@@ -1,0 +1,55 @@
+package fr.gens.core.modules;
+
+import fr.gens.core.CorePlugin;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+public class ShopModule implements Module, Listener {
+
+    private final CorePlugin plugin;
+    private boolean enabled = false;
+
+    public ShopModule(CorePlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    @Override
+    public String getName() {
+        return "Shop";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Gère les boutiques des joueurs et l'économie interne.";
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    @Override
+    public void enable() {
+        enabled = true;
+        // Enregistrer les événements de ce module
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        plugin.getLogger().info("[ShopModule] Activé !");
+    }
+
+    @Override
+    public void disable() {
+        enabled = false;
+        // Désenregistrer les événements de ce module pour qu'il s'arrête instantanément
+        HandlerList.unregisterAll(this);
+        plugin.getLogger().info("[ShopModule] Désactivé !");
+    }
+
+    // Exemple d'événement qui ne fonctionne que si le module est actif
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!enabled) return; // Sécurité supplémentaire
+        event.getPlayer().sendMessage("§aLe Shop est actuellement ouvert !");
+    }
+}

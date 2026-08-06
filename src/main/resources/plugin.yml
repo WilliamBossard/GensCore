@@ -1,0 +1,190 @@
+name: GensCore
+version: 1.0
+main: fr.gens.core.CorePlugin
+api-version: 1.26
+authors: [wboss]
+description: Le coeur du réseau Gens (GensBien / GensMauvais).
+commands:
+  money:
+    description: Voir son argent
+  balance:
+    description: Voir son argent (alias de money)
+  baltop:
+    description: Voir les joueurs les plus riches
+  pay:
+    description: Payer un joueur
+  eco:
+    description: Gerer l'economie (Admin)
+  shop:
+    description: Ouvrir la boutique du serveur
+  sethome:
+    description: Definir un home
+  home:
+    description: Se teleporter a un home
+  back:
+    description: Retourner a l'ancienne position
+  setspawn:
+    description: Definir le spawn
+  spawn:
+    description: Aller au spawn
+  delhome:
+    description: Supprimer un home
+  tpa:
+    description: Demander a se teleporter a un joueur
+  tpaccept:
+    description: Accepte une demande de téléportation.
+  tpadeny:
+    description: Refuse une demande de téléportation.
+  ah:
+    description: Ouvre l'Hôtel de Ventes ou met en vente un objet.
+    aliases: [auctionhouse, hdv]
+    usage: /ah [sell <prix>]
+  tpacancel:
+    description: Annuler sa demande de teleportation
+  gens:
+    description: "Commande principale de GensCore"
+    usage: "/gens"
+    permission: "genscore.admin"
+  menu:
+    description: "Ouvre le menu principal"
+    usage: "/menu [nom]"
+  discord:
+    description: Commandes relatives à Discord
+    usage: /discord <link|reg>
+  quests:
+    description: Ouvre le menu des quêtes journalières
+    aliases: [quete, quetes, quest]
+  register:
+    description: S'enregistrer sur le serveur
+    usage: /register <mdp> <confirmer>
+  login:
+    description: Se connecter
+    usage: /login <mdp>
+  changemdp:
+    aliases: [changepassword]
+    description: Changer son mot de passe
+    usage: /changemdp <ancien> <nouveau>
+  anvil:
+    description: Ouvrir une enclume
+  craftingtable:
+    aliases: [craft, workbench]
+    description: Ouvrir un etabli
+  enchanttable:
+    aliases: [enchanting]
+    description: Ouvrir une table d'enchantement
+  ec:
+    aliases: [enderchest]
+    description: Ouvrir l'EnderChest
+  feed:
+    description: Se nourrir
+  spawner:
+    description: Gerer les spawners GensCore
+    usage: /spawner <give> <joueur> <type> [stack]
+  freeze:
+    description: Geler un joueur
+    usage: /freeze <joueur>
+  openinv:
+    description: Voir l'inventaire d'un joueur
+    usage: /openinv <joueur>
+    aliases: [invsee]
+  resetmdp:
+    description: Supprimer le mot de passe d'un joueur
+    usage: /resetmdp <joueur>
+  web:
+    description: Commandes pour interagir avec l'inventaire Web (Casino)
+    usage: /web <deposit|withdraw>
+  jobs:
+    description: Ouvrir le menu des metiers
+    aliases: [job, metier, metiers]
+  mute:
+    description: Rend un joueur muet
+    usage: /mute <joueur> [durée] [raison]
+    description: Mute un joueur
+  unmute:
+    description: Demute un joueur
+  ban:
+    description: Banni un joueur
+    usage: /ban <joueur> [durée] [raison]
+  unban:
+    description: Débanni un joueur
+    usage: /unban <joueur>
+  team:
+    description: Commandes de Guilde
+    aliases: [guilde, guild, teams]
+  lock:
+    description: Verrouiller des conteneurs
+    aliases: [cprivate]
+
+permissions:
+  genscore.admin:
+    description: Permet d'administrer le plugin et bypass toutes les limites.
+    default: op
+  genscore.freeze:
+    description: Permet de geler un joueur
+    default: op
+  genscore.openinv:
+    description: Permet de voir l'inventaire d'un joueur
+    default: op
+  genscore.mute:
+    description: Permet de rendre muet un joueur
+    default: op
+  genscore.ban:
+    description: Permet de bannir un joueur
+    default: op
+  genscore.discord.linked:
+    description: Permet d'afficher le badge Discord
+    default: false
+  genscore.chat:
+    description: Permission pour le chat
+    default: true
+  genscore.quests.reroll:
+    description: Permet de reroll une quête avec un clic droit
+    default: op
+  genscore.quests.admin:
+    description: Permet de forcer le reroll de toutes ses quêtes
+    default: op
+  genscore.home:
+    description: Permet de se teleporter, creer et supprimer des homes.
+    default: true
+  genscore.spawn:
+    description: Permet de se teleporter au spawn.
+    default: true
+  genscore.tpa:
+    description: Permet de demander une teleportation.
+    default: true
+  genscore.back:
+    description: Permet de retourner a son ancienne position.
+    default: false
+  genscore.bypass.cooldown.all:
+    description: Bypass tous les temps d'attente.
+    default: op
+  genscore.bypass.cooldown.home:
+    description: Bypass le temps d'attente des homes.
+    default: false
+  genscore.bypass.cooldown.spawn:
+    description: Bypass le temps d'attente du spawn.
+    default: false
+  genscore.bypass.cooldown.back:
+    description: Bypass le temps d'attente du /back.
+    default: false
+  genscore.bypass.cooldown.tpa:
+    description: Bypass le temps d'attente du /tpa.
+    default: false
+  genscore.anvil:
+    description: Permet d'ouvrir l'enclume
+    default: op
+  genscore.craft:
+    description: Permet d'ouvrir l'etabli
+    default: op
+  genscore.enchant:
+    description: Permet d'ouvrir la table d'enchantement
+    default: op
+  genscore.ec:
+    description: Permet d'ouvrir l'EnderChest
+    default: op
+  genscore.feed:
+    description: Permet de se rassasier
+    default: op
+  genscore.admin.spawner:
+    description: Permet de se give des spawners
+    default: op

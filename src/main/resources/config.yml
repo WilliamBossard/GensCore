@@ -1,0 +1,14 @@
+# Configuration Générale de GensCore
+
+# Mot de passe pour accéder au Panel Web Admin
+admin-password: "gens"
+
+# Paramètres pour les Quêtes Journalières
+quests:
+  # Activer ou désactiver le module des quêtes
+  enabled: true
+  # Limite maximale de relance (reroll) de quête par joueur et par jour
+  max_rerolls_per_day: 3
+
+# Temps d'attente (en secondes) avant une téléportation
+teleport-cooldown: 3

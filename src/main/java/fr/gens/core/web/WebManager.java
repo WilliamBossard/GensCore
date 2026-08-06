@@ -1,0 +1,870 @@
+package fr.gens.core.web;
+
+import fr.gens.core.CorePlugin;
+import fr.gens.core.modules.Module;
+import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
+import fr.gens.core.modules.EconomyModule;
+import fr.gens.core.modules.shop.ShopCategory;
+import fr.gens.core.modules.shop.ShopItem;
+import fr.gens.core.modules.shop.ShopModule;
+import fr.gens.core.modules.headdrop.HeadDropModule;
+import fr.gens.core.modules.discord.DiscordModule;
+import org.bukkit.Material;
+import java.awt.Color;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.Calendar;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
+
+public class WebManager {
+
+    private final CorePlugin plugin;
+    private final int port;
+    private Javalin app;
+
+    public WebManager(CorePlugin plugin, int port) {
+        this.plugin = plugin;
+        this.port = port;
+    }
+
+    public void start() {
+        // Sauvegarder le ClassLoader de Bukkit
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        
+        try {
+            // Forcer le ClassLoader de Javalin pour éviter les conflits dans un plugin
+            Thread.currentThread().setContextClassLoader(Javalin.class.getClassLoader());
+
+            app = Javalin.create(config -> {
+                // Activer le CORS
+                config.bundledPlugins.enableCors(cors -> {
+                    cors.addRule(it -> {
+                        it.anyHost();
+                    });
+                });
+                
+                // Servir le site web compilé (React) depuis le jar (dossier public/)
+                config.staticFiles.add("/public", Location.CLASSPATH);
+
+                // Gérer le routage SPA (Single Page Application)
+                config.spaRoot.addFile("/", "/public/index.html", Location.CLASSPATH);
+
+            }).start(port);
+
+            // Middleware d'authentification pour les routes /api/admin/*
+            app.before("/api/admin/*", ctx -> {
+                String authHeader = ctx.header("Authorization");
+                String expectedPassword = plugin.getStorageManager().getConfig().getString("admin-password", "gens");
+                
+                if (authHeader == null || !authHeader.equals("Bearer " + expectedPassword)) {
+                    ctx.status(401).json("Non autorisé: Mot de passe incorrect");
+                }
+            });
+            WebPlayerAPI playerAPI = new WebPlayerAPI(plugin, app);
+            playerAPI.registerRoutes();
+
+            setupRoutes();
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Erreur lors du démarrage du serveur Web Javalin !");
+            e.printStackTrace();
+        } finally {
+            // Remettre le ClassLoader original de Bukkit
+            Thread.currentThread().setContextClassLoader(classLoader);
+        }
+    }
+
+    public static class ConfigResponse {
+        public double inflationExponent;
+        public double ahTaxPercentage;
+        public String adminPassword;
+        public double headDropChance;
+        public int maxQuestsRerolls;
+        public boolean lootrPreventBreak;
+        public boolean lootrPreventHopper;
+        public boolean lootrParticles;
+        public String motdLine1;
+        public String motdLine2;
+        public boolean minigameWheelEnabled;
+        public boolean minigameCasinoEnabled;
+        public String publicFeaturesText;
+        public String bluemapUrl;
+        public String serverIp;
+
+        public ConfigResponse(double inf, double ahTax, String pass, double hDrop, int qRerolls, boolean lootrPreventBreak, boolean lootrPreventHopper, boolean lootrParticles, String motdLine1, String motdLine2, boolean wheel, boolean casino, String publicFeaturesText, String bluemapUrl, String serverIp) {
+            this.inflationExponent = inf;
+            this.ahTaxPercentage = ahTax;
+            this.adminPassword = pass;
+            this.headDropChance = hDrop;
+            this.maxQuestsRerolls = qRerolls;
+            this.lootrPreventBreak = lootrPreventBreak;
+            this.lootrPreventHopper = lootrPreventHopper;
+            this.lootrParticles = lootrParticles;
+            this.motdLine1 = motdLine1;
+            this.motdLine2 = motdLine2;
+            this.minigameWheelEnabled = wheel;
+            this.minigameCasinoEnabled = casino;
+            this.publicFeaturesText = publicFeaturesText;
+            this.bluemapUrl = bluemapUrl;
+            this.serverIp = serverIp;
+        }
+    }
+
+    public static class ConfigRequest {
+        public double inflationExponent;
+        public double ahTaxPercentage;
+        public String adminPassword;
+        public double headDropChance;
+        public int maxQuestsRerolls;
+        public boolean lootrPreventBreak;
+        public boolean lootrPreventHopper;
+        public boolean lootrParticles;
+        public String motdLine1;
+        public String motdLine2;
+        public boolean minigameWheelEnabled;
+        public boolean minigameCasinoEnabled;
+        public String publicFeaturesText;
+        public String bluemapUrl;
+        public String serverIp;
+    }
+
+    public static class FileEditRequest {
+        public String content;
+    }
+
+    public void stop() {
+        if (app != null) {
+            app.stop();
+            plugin.getLogger().info("Serveur Web arrêté.");
+        }
+    }
+
+    private void setupRoutes() {
+        // Route API pour récupérer la liste des modules (Public)
+        app.get("/api/modules", ctx -> {
+            List<Map<String, Object>> modulesList = new ArrayList<>();
+            for (Module m : plugin.getModuleManager().getModules()) {
+                Map<String, Object> moduleData = new HashMap<>();
+                moduleData.put("name", m.getName());
+                moduleData.put("description", m.getDescription());
+                moduleData.put("enabled", m.isEnabled());
+                modulesList.add(moduleData);
+            }
+            ctx.json(modulesList);
+        });
+
+        // Texte public de la page d'accueil
+        String defaultPublicText = "Bienvenue aventurier sur la toute nouvelle interface du serveur Gens !\n\n" +
+                "- Système de Métiers (/jobs) pour bosser comme un forcené.\n" +
+                "- Hôtel des Ventes (/ah) pour vos transactions.\n" +
+                "- Map en direct via BlueMap (attention on te voit).\n" +
+                "- Création de Guildes (/team) avec des Quêtes Hebdomadaires en coop !\n" +
+                "- Verrous de coffres (/lock) pour sécuriser vos items ou les partager avec votre guilde.\n" +
+                "- Serveur Discord relié en direct au chat du jeu (avec affichage des Grades et Guildes).\n" +
+                "- Quêtes solos et classements en ligne pour flexer.\n\n" +
+                "NOUVEAU SYSTÈME DE GESTION\n" +
+                "Le plugin est continuellement mis à jour avec de nouvelles fonctionnalités. Rejoignez-nous pour découvrir la suite !";
+
+        app.get("/api/public/features", ctx -> {
+            ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
+            ctx.result(plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText));
+        });
+
+        // Route API pour activer/désactiver un module (Protégée Admin)
+        app.post("/api/admin/modules/{name}/toggle", ctx -> {
+            String moduleName = ctx.pathParam("name");
+            
+            // On récupère le body {"state": true/false}
+            ToggleRequest request = ctx.bodyAsClass(ToggleRequest.class);
+            
+            // On exécute l'activation sur le thread principal de Bukkit (Très important !)
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                boolean success = plugin.getModuleManager().toggleModule(moduleName, request.state);
+                if(success) {
+                    plugin.getLogger().info("Le web panel a changé l'état du module " + moduleName + " vers " + request.state);
+                }
+            });
+            
+            ctx.status(200).result("OK");
+        });
+
+        // Configuration Routes
+        app.get("/api/admin/config", ctx -> {
+            ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
+            ctx.json(new ConfigResponse(
+                plugin.getConfig().getDouble("shop.inflation_exponent", 0.5),
+                plugin.getConfig().getDouble("ah.tax_percentage", 0.0),
+                plugin.getStorageManager().getConfig().getString("admin-password", "gens"),
+                plugin.getConfig().getDouble("headdrop.chance", 10.0),
+                plugin.getConfig().getInt("quests.max_rerolls_per_day", 3),
+                plugin.getConfig().getBoolean("lootr.prevent-break", false),
+                plugin.getConfig().getBoolean("lootr.prevent-hopper", true),
+                plugin.getConfig().getBoolean("lootr.particles-enabled", true),
+                plugin.getConfig().getString("motd.line1", "&3&lLe Serveur Des Gens Bien"),
+                plugin.getConfig().getString("motd.line2", "&7&l>> &eSaison 4 &7&l- &bdiscord.gg/gensbien"),
+                plugin.getStorageManager().getConfig().getBoolean("minigames.wheel.enabled", true),
+                plugin.getStorageManager().getConfig().getBoolean("minigames.casino.enabled", true),
+                plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText),
+                plugin.getConfig().getString("bluemap.url", "http://localhost:8100"),
+                plugin.getConfig().getString("web.server_ip", "gens-core.duckdns.org")
+            ));
+        });
+
+        app.post("/api/admin/config", ctx -> {
+            ConfigRequest req = ctx.bodyAsClass(ConfigRequest.class);
+            plugin.getConfig().set("shop.inflation_exponent", req.inflationExponent);
+            plugin.getConfig().set("ah.tax_percentage", req.ahTaxPercentage);
+            plugin.getConfig().set("headdrop.chance", req.headDropChance);
+            plugin.getConfig().set("quests.max_rerolls_per_day", req.maxQuestsRerolls);
+            plugin.getConfig().set("lootr.prevent-break", req.lootrPreventBreak);
+            plugin.getConfig().set("lootr.prevent-hopper", req.lootrPreventHopper);
+            plugin.getConfig().set("lootr.particles-enabled", req.lootrParticles);
+            plugin.getConfig().set("motd.line1", req.motdLine1);
+            plugin.getConfig().set("motd.line2", req.motdLine2);
+            if (req.bluemapUrl != null) plugin.getConfig().set("bluemap.url", req.bluemapUrl);
+            if (req.serverIp != null) plugin.getConfig().set("web.server_ip", req.serverIp);
+            plugin.saveConfig();
+            
+            plugin.getStorageManager().getConfig().set("admin-password", req.adminPassword);
+            plugin.getStorageManager().getConfig().set("minigames.wheel.enabled", req.minigameWheelEnabled);
+            plugin.getStorageManager().getConfig().set("minigames.casino.enabled", req.minigameCasinoEnabled);
+            if (req.publicFeaturesText != null) {
+                plugin.getStorageManager().getConfig().set("web.public_features_text", req.publicFeaturesText);
+            }
+            plugin.getStorageManager().saveConfig();
+            
+            plugin.getLogger().info("Configuration serveur mise à jour depuis le panel Web !");
+            
+            HeadDropModule hd = (HeadDropModule) plugin.getModuleManager().getModule("headdrop");
+            if (hd != null) {
+                hd.setDropChance(req.headDropChance);
+            }
+            
+            fr.gens.core.modules.loot.LootModule loot = (fr.gens.core.modules.loot.LootModule) plugin.getModuleManager().getModule("lootr");
+            if (loot != null) {
+                loot.loadConfig();
+            }
+            
+            ctx.status(200).result("OK");
+        });
+
+        // Modération Joueurs
+        app.get("/api/admin/players", ctx -> {
+            List<Map<String, Object>> players = new ArrayList<>();
+            fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
+            for (org.bukkit.OfflinePlayer op : plugin.getServer().getOfflinePlayers()) {
+                if (op.getName() == null) continue; // Skip invalid
+                Map<String, Object> map = new HashMap<>();
+                map.put("name", op.getName());
+                map.put("uuid", op.getUniqueId().toString());
+                
+                org.bukkit.entity.Player p = op.getPlayer();
+                if (p != null && p.isOnline()) {
+                    map.put("online", true);
+                    map.put("ping", p.getPing());
+                    map.put("health", p.getHealth());
+                    map.put("maxHealth", p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue());
+                } else {
+                    map.put("online", false);
+                    map.put("ping", 0);
+                    map.put("health", 0);
+                    map.put("maxHealth", 20.0);
+                }
+                
+                map.put("isBanned", plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).isBanned(op.getName()));
+                map.put("isMuted", mod != null && mod.isMuted(op.getUniqueId()));
+
+                long playtime = 0;
+                try (Connection conn = plugin.getDatabaseManager().getConnection();
+                     PreparedStatement ps = conn.prepareStatement("SELECT playtime_minutes FROM player_global_stats WHERE uuid = ?")) {
+                    ps.setString(1, op.getUniqueId().toString());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) playtime = rs.getLong("playtime_minutes");
+                    }
+                } catch (Exception ignored) {}
+                map.put("playtime", playtime);
+                players.add(map);
+            }
+            ctx.json(players);
+        });
+
+        app.post("/api/admin/players/action", ctx -> {
+            PlayerActionRequest req = ctx.bodyAsClass(PlayerActionRequest.class);
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                DiscordModule discord = (DiscordModule) plugin.getModuleManager().getModule("Discord");
+                fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
+                org.bukkit.OfflinePlayer targetOffline = plugin.getServer().getOfflinePlayer(req.playerName);
+                org.bukkit.entity.Player target = targetOffline.getPlayer();
+
+                if ("kick".equalsIgnoreCase(req.action)) {
+                    if (target != null) {
+                        target.kickPlayer("§cVous avez été expulsé par un Administrateur.\n§7Raison : " + (req.reason != null ? req.reason : "Aucune raison"));
+                        plugin.getLogger().info("Le web panel a kick " + req.playerName);
+                        if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, Color.ORANGE);
+                    }
+                } else if ("ban".equalsIgnoreCase(req.action)) {
+                    long durationMs = 0;
+                    if (req.durationHours > 0) durationMs = req.durationHours * 3600000L;
+                    else if (req.durationDays > 0) durationMs = req.durationDays * 86400000L;
+                    
+                    java.util.Date expires = durationMs > 0 ? new java.util.Date(System.currentTimeMillis() + durationMs) : null;
+                    String reason = req.reason != null && !req.reason.isEmpty() ? req.reason : "Banni par un Administrateur";
+                    
+                    plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).addBan(req.playerName, "§c" + reason, expires, "WebAdmin");
+                    if (target != null) {
+                        target.kickPlayer("§cVous avez été banni.\n§7Raison : " + reason);
+                    }
+                    plugin.getLogger().info("Le web panel a banni " + req.playerName);
+                    if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);
+                } else if ("unban".equalsIgnoreCase(req.action)) {
+                    plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).pardon(req.playerName);
+                    if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("UNBAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin", Color.GREEN);
+                } else if ("mute".equalsIgnoreCase(req.action)) {
+                    if (mod != null && targetOffline != null && targetOffline.getUniqueId() != null) {
+                        long durationMs = 0;
+                        if (req.durationHours > 0) durationMs = req.durationHours * 3600000L;
+                        else if (req.durationDays > 0) durationMs = req.durationDays * 86400000L;
+                        String reason = req.reason != null && !req.reason.isEmpty() ? req.reason : "Aucune raison";
+                        mod.mutePlayer(targetOffline.getUniqueId(), reason, durationMs);
+                        
+                        if (target != null) {
+                            target.sendMessage("§c§lVous avez été rendu muet par le WebAdmin ! Raison : " + reason);
+                        }
+                        if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("MUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.YELLOW);
+                    }
+                } else if ("unmute".equalsIgnoreCase(req.action)) {
+                    if (mod != null && targetOffline != null && targetOffline.getUniqueId() != null) {
+                        mod.unmutePlayer(targetOffline.getUniqueId());
+                        if (target != null) {
+                            target.sendMessage("§a§lVous avez retrouvé l'usage de la parole.");
+                        }
+                        if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("UNMUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin", Color.GREEN);
+                    }
+                } else if ("message".equalsIgnoreCase(req.action)) {
+                    if (target != null) {
+                        target.sendMessage("§8[§cWebAdmin§8] §7" + req.reason);
+                    }
+                }
+            });
+            ctx.status(200).json("Action effectuée");
+        });
+
+        // Édition de fichiers
+        app.get("/api/admin/file", ctx -> {
+            String path = ctx.queryParam("path");
+            if (path == null || path.contains("..")) {
+                ctx.status(400).result("Invalid path");
+                return;
+            }
+            File file = new File(plugin.getDataFolder(), path);
+            if (!file.exists()) {
+                ctx.status(404).result("File not found");
+                return;
+            }
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            ctx.result(content);
+        });
+
+        app.post("/api/admin/file", ctx -> {
+            String path = ctx.queryParam("path");
+            if (path == null || path.contains("..")) {
+                ctx.status(400).result("Invalid path");
+                return;
+            }
+            File file = new File(plugin.getDataFolder(), path);
+            FileEditRequest req = ctx.bodyAsClass(FileEditRequest.class);
+            Files.writeString(file.toPath(), req.content, StandardCharsets.UTF_8);
+            
+            // Reload configuration if it's config.yml
+            if (path.equals("config.yml")) {
+                plugin.reloadConfig();
+                plugin.getLogger().info("Configuration rechargée depuis le WebPanel !");
+            }
+            
+            ctx.status(200).result("OK");
+        });
+
+        // ==========================================
+        // ROUTES SHOP & ECONOMIE
+        // ==========================================
+
+        app.get("/api/economy/stats", ctx -> {
+            EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
+            if (eco != null) {
+                // Pour simplifier, on ne peut pas iterer directement sur les UUIDs sans reflection si balances est privé
+                // Je vais utiliser un raccourci ou demander au module
+                // TODO: Ajouter une methode getTotalMoney dans EconomyModule
+                ctx.json(Map.of("status", "ok", "message", "Endpoint economie a implementer"));
+            } else {
+                ctx.status(404).json("Module economie desactive");
+            }
+        });
+
+        app.get("/api/shop/categories", ctx -> {
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop != null) {
+                ctx.json(shop.getCategories());
+            } else {
+                ctx.status(404).json("Shop desactive");
+            }
+        });
+
+        app.get("/api/shop/history/{material}", ctx -> {
+            String material = ctx.pathParam("material").toUpperCase();
+            List<Map<String, Object>> history = new ArrayList<>();
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "SELECT timestamp, buyPrice, sellPrice, stock FROM shop_history WHERE material = ? ORDER BY timestamp ASC LIMIT 50")) {
+                ps.setString(1, material);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> point = new HashMap<>();
+                        point.put("timestamp", rs.getLong("timestamp"));
+                        point.put("buyPrice", rs.getDouble("buyPrice"));
+                        point.put("sellPrice", rs.getDouble("sellPrice"));
+                        point.put("stock", rs.getInt("stock"));
+                        history.add(point);
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            ctx.json(history);
+        });
+
+        app.post("/api/admin/shop/category", ctx -> {
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            
+            ShopCategory request = ctx.bodyAsClass(ShopCategory.class);
+            ShopCategory existing = shop.getCategory(request.getId());
+            if (existing != null) {
+                existing.setDisplayName(request.getDisplayName());
+                existing.setIcon(request.getIcon());
+            } else {
+                shop.getCategories().add(request);
+            }
+            shop.saveShop();
+            ctx.status(200).result("OK");
+        });
+
+        app.post("/api/admin/shop/item", ctx -> {
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            
+            ItemRequest req = ctx.bodyAsClass(ItemRequest.class);
+            ShopCategory cat = shop.getCategory(req.categoryId);
+            if (cat != null) {
+                ShopItem item = cat.getItem(Material.valueOf(req.material));
+                if (item != null) {
+                    item.setBaseBuyPrice(req.baseBuyPrice);
+                    item.setBaseSellPrice(req.baseSellPrice);
+                    item.setTargetStock(req.targetStock);
+                    item.setCommand(req.isCommand);
+                    if (req.isCommand && req.commandToExecute != null) {
+                        item.setCommandToExecute(req.commandToExecute);
+                    }
+                    item.setEnabled(req.isEnabled);
+                } else {
+                    item = new ShopItem(Material.valueOf(req.material), req.baseBuyPrice, req.baseSellPrice);
+                    item.setTargetStock(req.targetStock);
+                    item.setCommand(req.isCommand);
+                    if (req.isCommand && req.commandToExecute != null) {
+                        item.setCommandToExecute(req.commandToExecute);
+                    }
+                    item.setEnabled(req.isEnabled);
+                    cat.addItem(item);
+                }
+                shop.saveShop();
+                ctx.status(200).result("OK");
+            } else {
+                ctx.status(404).json("Categorie introuvable");
+            }
+        });
+
+        app.delete("/api/admin/shop/item/{category}/{material}", ctx -> {
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            
+            String catId = ctx.pathParam("category");
+            String matName = ctx.pathParam("material").toUpperCase();
+            
+            ShopCategory cat = shop.getCategory(catId);
+            if (cat != null) {
+                try {
+                    Material mat = Material.valueOf(matName);
+                    cat.removeItem(mat);
+                    // Suppression SQL
+                    try (Connection conn = plugin.getDatabaseManager().getConnection();
+                         PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_items WHERE material = ? AND category_id = ?")) {
+                        ps.setString(1, mat.name());
+                        ps.setString(2, catId);
+                        ps.executeUpdate();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    shop.saveShop();
+                    ctx.status(200).result("OK");
+                } catch (IllegalArgumentException e) {
+                    ctx.status(400).json("Materiel invalide");
+                }
+            } else {
+                ctx.status(404).json("Categorie introuvable");
+            }
+        });
+
+        app.delete("/api/admin/shop/category/{id}", ctx -> {
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            
+            String catId = ctx.pathParam("id");
+            ShopCategory cat = shop.getCategory(catId);
+            
+            if (cat != null) {
+                shop.getCategories().remove(cat);
+                try (Connection conn = plugin.getDatabaseManager().getConnection();
+                     PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_categories WHERE id = ?")) {
+                    ps.setString(1, catId);
+                    ps.executeUpdate();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                shop.saveShop();
+                ctx.status(200).result("OK");
+            } else {
+                ctx.status(404).json("Categorie introuvable");
+            }
+        });
+
+        // ==============================================
+        // Teams Stats API
+        // ==============================================
+        app.get("/api/stats/teams/best", ctx -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT t.team_id, t.name, t.leader_uuid, s.weekly_points, s.total_points " +
+                     "FROM genscore_teams t " +
+                     "LEFT JOIN genscore_team_stats s ON t.team_id = s.team_id " +
+                     "ORDER BY s.total_points DESC LIMIT 1")) {
+                
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        int teamId = rs.getInt("team_id");
+                        Map<String, Object> teamObj = new HashMap<>();
+                        teamObj.put("name", rs.getString("name"));
+                        teamObj.put("weekly_points", rs.getInt("weekly_points"));
+                        teamObj.put("total_points", rs.getInt("total_points"));
+                        
+                        List<Map<String, String>> members = new ArrayList<>();
+                        try (PreparedStatement mStmt = conn.prepareStatement(
+                            "SELECT m.player_uuid, COALESCE(p.username, 'Unknown') as name " +
+                            "FROM genscore_team_members m LEFT JOIN player_profiles p ON m.player_uuid = p.uuid " +
+                            "WHERE m.team_id = ?")) {
+                            mStmt.setInt(1, teamId);
+                            try (ResultSet mrs = mStmt.executeQuery()) {
+                                while (mrs.next()) {
+                                    Map<String, String> m = new HashMap<>();
+                                    m.put("uuid", mrs.getString("player_uuid"));
+                                    m.put("name", mrs.getString("name"));
+                                    members.add(m);
+                                }
+                            }
+                        }
+                        teamObj.put("members", members);
+                        ctx.json(teamObj);
+                    } else {
+                        ctx.status(404).result("Aucune guilde trouvée.");
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                ctx.status(500).result("Erreur SQL");
+            }
+        });
+
+        app.get("/api/stats/teams", ctx -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT t.team_id, t.name, t.leader_uuid, s.weekly_points, s.total_points " +
+                     "FROM genscore_teams t " +
+                     "LEFT JOIN genscore_team_stats s ON t.team_id = s.team_id " +
+                     "ORDER BY s.weekly_points DESC")) {
+                
+                try (ResultSet rs = stmt.executeQuery()) {
+                    List<Map<String, Object>> teamsList = new ArrayList<>();
+                    while (rs.next()) {
+                        int teamId = rs.getInt("team_id");
+                        Map<String, Object> teamObj = new HashMap<>();
+                        teamObj.put("name", rs.getString("name"));
+                        teamObj.put("weekly_points", rs.getInt("weekly_points"));
+                        teamObj.put("total_points", rs.getInt("total_points"));
+                        
+                        int progress = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getProgress(teamId) : 0;
+                        int goal = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getGoal() : 1;
+                        String desc = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getDesc() : "Quête non définie";
+                        double percentage = Math.min(100.0, ((double) progress / goal) * 100.0);
+                        
+                        teamObj.put("quest_progress_percent", Math.round(percentage));
+                        teamObj.put("quest_progress", progress);
+                        teamObj.put("quest_goal", goal);
+                        teamObj.put("quest_desc", desc);
+                        
+                        List<Map<String, String>> members = new ArrayList<>();
+                        try (PreparedStatement mStmt = conn.prepareStatement(
+                            "SELECT m.player_uuid, COALESCE(p.username, 'Unknown') as name " +
+                            "FROM genscore_team_members m LEFT JOIN player_profiles p ON m.player_uuid = p.uuid " +
+                            "WHERE m.team_id = ?")) {
+                            mStmt.setInt(1, teamId);
+                            try (ResultSet mrs = mStmt.executeQuery()) {
+                                while (mrs.next()) {
+                                    Map<String, String> m = new HashMap<>();
+                                    m.put("uuid", mrs.getString("player_uuid"));
+                                    m.put("name", mrs.getString("name"));
+                                    members.add(m);
+                                }
+                            }
+                        }
+                        teamObj.put("members", members);
+                        teamsList.add(teamObj);
+                    }
+                    ctx.json(teamsList);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                ctx.status(500).result("Erreur SQL");
+            }
+        });
+
+        // ==========================================
+        // ROUTES AUCTION HOUSE (AH)
+        // ==========================================
+        app.get("/api/ah/items", ctx -> {
+            List<Map<String, Object>> ahItems = new ArrayList<>();
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "SELECT id, seller_name, price, expire_time FROM auction_house ORDER BY id DESC LIMIT 100")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> ahItem = new HashMap<>();
+                        ahItem.put("id", rs.getInt("id"));
+                        ahItem.put("sellerName", rs.getString("seller_name"));
+                        ahItem.put("price", rs.getDouble("price"));
+                        ahItem.put("expireTime", rs.getLong("expire_time"));
+                        // On ne renvoie pas le item_data (Base64) car le web panel ne saura pas l'afficher sans decodeur NBT
+                        ahItems.add(ahItem);
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            ctx.json(ahItems);
+        });
+
+          // ==========================================
+          // ROUTE PAGE PUBLIQUE
+          // ==========================================
+          app.get("/api/public/news", ctx -> {
+              ctx.result(plugin.getConfig().getString("publicPageContent", "Bienvenue sur notre serveur !\nNous sommes heureux de vous accueillir."));
+          });
+
+          app.get("/api/public/bluemap", ctx -> {
+              ctx.result(plugin.getConfig().getString("bluemap.url", "http://localhost:8100"));
+          });
+
+          app.get("/api/public/server_ip", ctx -> {
+              ctx.result(plugin.getConfig().getString("web.server_ip", "gens-core.duckdns.org"));
+          });
+
+        // ==========================================
+        // ROUTES LEADERBOARD GLOBAL
+        // ==========================================
+        app.get("/api/stats/leaderboard", ctx -> {
+            List<Map<String, Object>> leaderboard = new ArrayList<>();
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "SELECT q.player_name, p.username, q.quests_completed, q.uuid, " +
+                         "COALESCE(g.blocks_broken, 0) as blocks, " +
+                         "COALESCE(g.mobs_killed, 0) as mobs, " +
+                         "COALESCE(g.playtime_minutes, 0) as playtime " +
+                         "FROM player_quests_stats q " +
+                         "LEFT JOIN player_global_stats g ON q.uuid = g.uuid " +
+                         "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
+                         "ORDER BY q.quests_completed DESC, g.blocks_broken DESC LIMIT 50")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Map<String, Object> playerStat = new HashMap<>();
+                        String name = rs.getString("username");
+                        if (name == null) name = rs.getString("player_name");
+                        playerStat.put("playerName", name);
+                        playerStat.put("questsCompleted", rs.getInt("quests_completed"));
+                        playerStat.put("uuid", rs.getString("uuid"));
+                        playerStat.put("blocksBroken", rs.getInt("blocks"));
+                        playerStat.put("mobsKilled", rs.getInt("mobs"));
+                        playerStat.put("playtime", rs.getInt("playtime"));
+                        leaderboard.add(playerStat);
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            ctx.json(leaderboard);
+        });
+
+        app.get("/api/stats/quests/leaderboard", ctx -> {
+            Map<String, Object> result = new HashMap<>();
+            
+            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+                // Current Reward
+                Calendar cal = Calendar.getInstance();
+                cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                cal.set(Calendar.HOUR_OF_DAY, 0);
+                cal.set(Calendar.MINUTE, 0);
+                cal.set(Calendar.SECOND, 0);
+                cal.set(Calendar.MILLISECOND, 0);
+                String currentWeek = String.valueOf(cal.getTimeInMillis());
+                String reward = "Aucune";
+                
+                try (PreparedStatement ps = conn.prepareStatement("SELECT reward_description FROM weekly_rewards WHERE week_id = ?")) {
+                    ps.setString(1, currentWeek);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) reward = rs.getString("reward_description");
+                    }
+                }
+                result.put("reward", reward);
+                
+                long now = System.currentTimeMillis();
+                long dayStart = now - (24L * 60L * 60L * 1000L);
+                long weekStart = cal.getTimeInMillis();
+                long monthStart = now - (30L * 24L * 60L * 60L * 1000L);
+                
+                long endOfWeek = weekStart + (7L * 24L * 60L * 60L * 1000L);
+                long timeRemainingMs = endOfWeek - now;
+                if (timeRemainingMs < 0) timeRemainingMs = 0;
+                long days = timeRemainingMs / (1000 * 60 * 60 * 24);
+                long hours = (timeRemainingMs / (1000 * 60 * 60)) % 24;
+                long minutes = (timeRemainingMs / (1000 * 60)) % 60;
+                result.put("timeRemaining", days + "j " + hours + "h " + minutes + "m");
+                
+                // Helper function to query
+                java.util.function.BiFunction<Long, Long, List<Map<String, Object>>> getLeaderboard = (start, end) -> {
+                    List<Map<String, Object>> list = new ArrayList<>();
+                    String sql = "SELECT player_name, COUNT(*) as count FROM player_quests_history WHERE completion_date >= ? AND completion_date <= ? GROUP BY uuid ORDER BY count DESC LIMIT 10";
+                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                        ps.setLong(1, start);
+                        ps.setLong(2, end);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            while (rs.next()) {
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("playerName", rs.getString("player_name"));
+                                map.put("count", rs.getInt("count"));
+                                list.add(map);
+                            }
+                        }
+                    } catch (SQLException e) { e.printStackTrace(); }
+                    return list;
+                };
+                
+                result.put("daily", getLeaderboard.apply(dayStart, now));
+                result.put("weekly", getLeaderboard.apply(weekStart, now));
+                result.put("monthly", getLeaderboard.apply(monthStart, now));
+                
+                // Total is slightly different
+                List<Map<String, Object>> totalList = new ArrayList<>();
+                try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT q.player_name, p.username, q.quests_completed " +
+                    "FROM player_quests_stats q " +
+                    "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
+                    "ORDER BY quests_completed DESC LIMIT 10")) {
+                    try (ResultSet rs = ps.executeQuery()) {
+                        while (rs.next()) {
+                            Map<String, Object> map = new HashMap<>();
+                            String name = rs.getString("username");
+                            if (name == null) name = rs.getString("player_name");
+                            map.put("playerName", name);
+                            map.put("count", rs.getInt("quests_completed"));
+                            totalList.add(map);
+                        }
+                    }
+                }
+                result.put("total", totalList);
+                
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            
+            ctx.json(result);
+        });
+
+        app.get("/api/stats/jobs", ctx -> {
+            Map<String, List<Map<String, Object>>> jobsLeaderboard = new HashMap<>();
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "SELECT j.job_name, COALESCE(p.username, q.player_name, 'Inconnu') as player_name, j.level, j.xp " +
+                         "FROM player_jobs j " +
+                         "LEFT JOIN player_quests_stats q ON j.uuid = q.uuid " +
+                         "LEFT JOIN player_profiles p ON j.uuid = p.uuid " +
+                         "ORDER BY j.job_name, j.level DESC, j.xp DESC")) {
+                
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        String jobName = rs.getString("job_name");
+                        String playerName = rs.getString("player_name");
+                        
+                        Map<String, Object> stat = new HashMap<>();
+                        stat.put("playerName", playerName);
+                        stat.put("level", rs.getInt("level"));
+                        stat.put("xp", rs.getDouble("xp"));
+                        
+                        jobsLeaderboard.computeIfAbsent(jobName, k -> new ArrayList<>()).add(stat);
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            // Keep top 10 per job to save bandwidth
+            for (List<Map<String, Object>> list : jobsLeaderboard.values()) {
+                if (list.size() > 10) {
+                    list.subList(10, list.size()).clear();
+                }
+            }
+            ctx.json(jobsLeaderboard);
+        });
+    }
+    
+    // Classe DTO pour parser le JSON envoyé par React
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PlayerActionRequest {
+        public String action; // kick, ban, mute, message
+        public String playerName;
+        public String reason;
+        public int durationHours;
+        public int durationDays;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ToggleRequest {
+        public boolean state;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ItemRequest {
+        public String categoryId;
+        public String material;
+        public double baseBuyPrice;
+        public double baseSellPrice;
+        public int targetStock;
+        public boolean isCommand;
+        public String commandToExecute;
+        public boolean isEnabled = true;
+    }
+}
