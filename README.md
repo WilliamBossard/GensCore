@@ -1,6 +1,6 @@
 # GensCore
 
-![GensCore Banner](https://img.shields.io/badge/GensCore-Paper_Plugin-green.svg) ![Java Version](https://img.shields.io/badge/Java-21+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-1.20+-red.svg)
+![GensCore Banner](https://img.shields.io/badge/GensCore-Paper_Plugin-green.svg) ![Java Version](https://img.shields.io/badge/Java-21+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.1+-red.svg)
 
 **GensCore** est un plugin de base ultra-complet developpe specifiquement pour le serveur Survie/Faction *GensBien*. Il regroupe toutes les mecaniques essentielles du serveur en un seul plugin optimise, offrant ainsi d'excellentes performances tout en evitant d'avoir a gerer des dizaines de petits plugins separes.
 
