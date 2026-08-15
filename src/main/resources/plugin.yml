@@ -48,6 +48,8 @@ commands:
   menu:
     description: "Ouvre le menu principal"
     usage: "/menu [nom]"
+  module:
+    description: Activer ou desactiver un module du plugin (Admin)
   discord:
     description: Commandes relatives à Discord
     usage: /discord <link|reg>

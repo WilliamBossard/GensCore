@@ -103,6 +103,10 @@ public class CorePlugin extends JavaPlugin {
         getCommand("web").setExecutor(webCommand);
         getCommand("web").setTabCompleter(webCommand);
 
+        fr.gens.core.commands.ModuleCommand moduleCommand = new fr.gens.core.commands.ModuleCommand(this);
+        getCommand("module").setExecutor(moduleCommand);
+        getCommand("module").setTabCompleter(moduleCommand);
+
         // 3. Démarrer le serveur Web pour le panel admin
         int webPort = getConfig().getInt("web.port", 8080);
         this.webManager = new WebManager(this, webPort);
