@@ -151,9 +151,6 @@ public class SpawnerManager {
                 loc.getWorld().spawnParticle(Particle.FLAME, loc.clone().add(0.5, 0.5, 0.5), 3, 0.2, 0.2, 0.2, 0.05);
                 updateHologram(data);
             }
-            
-            // Save state asynchronously
-            Bukkit.getScheduler().runTaskAsynchronously(module.getPlugin(), () -> module.saveSpawnerToDB(data));
         }
     }
     

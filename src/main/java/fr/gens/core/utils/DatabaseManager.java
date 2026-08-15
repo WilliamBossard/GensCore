@@ -35,8 +35,14 @@ public class DatabaseManager {
             // S'assurer que le driver SQLite est charge
             Class.forName("org.sqlite.JDBC");
 
-            this.connection = DriverManager.getConnection(url);
-            plugin.getLogger().info("[DatabaseManager] Connecte a SQLite !");
+            // Parametres SQLite pour ameliorer la gestion des acces concurents (evite SQLITE_BUSY)
+            org.sqlite.SQLiteConfig config = new org.sqlite.SQLiteConfig();
+            config.setJournalMode(org.sqlite.SQLiteConfig.JournalMode.WAL);
+            config.setSynchronous(org.sqlite.SQLiteConfig.SynchronousMode.NORMAL);
+            config.setBusyTimeout(5000); // Attendre jusqu'a 5s si la DB est bloquee
+
+            this.connection = DriverManager.getConnection(url, config.toProperties());
+            plugin.getLogger().info("[DatabaseManager] Connecte a SQLite (WAL Mode) !");
         } catch (SQLException | ClassNotFoundException e) {
             plugin.getLogger().severe("Erreur lors de la connexion a la base de donnees SQLite !");
             e.printStackTrace();
