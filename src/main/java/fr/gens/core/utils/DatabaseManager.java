@@ -101,6 +101,19 @@ public class DatabaseManager {
                     "FOREIGN KEY(material) REFERENCES shop_items(material) ON DELETE CASCADE" +
                     ");");
 
+            // Tombes (Graves)
+            statement.execute("CREATE TABLE IF NOT EXISTS tombs (" +
+                    "id VARCHAR(36) PRIMARY KEY, " +
+                    "owner_id VARCHAR(36) NOT NULL, " +
+                    "world VARCHAR(50) NOT NULL, " +
+                    "x DOUBLE NOT NULL, " +
+                    "y DOUBLE NOT NULL, " +
+                    "z DOUBLE NOT NULL, " +
+                    "contents TEXT NOT NULL, " +
+                    "xp INTEGER NOT NULL, " +
+                    "expiration_time BIGINT NOT NULL" +
+                    ");");
+
             // Teleportation
             statement.execute("CREATE TABLE IF NOT EXISTS spawn_location (" +
                     "id INTEGER PRIMARY KEY DEFAULT 1, " +

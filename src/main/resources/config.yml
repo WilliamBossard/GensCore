@@ -2,6 +2,8 @@
 
 # Configuration du Panel Web Administratif
 web:
+  # Activer ou désactiver le panel web
+  enabled: false
   # Port sur lequel le panel sera accessible (ex: http://ip-du-serveur:8080)
   port: 8080
 
@@ -24,6 +26,15 @@ quests:
   enabled: true
   # Limite maximale de relance (reroll) de quête par joueur et par jour
   max_rerolls_per_day: 3
+
+modules:
+  tomb:
+    enabled: true
+    block_type: CHEST
+    store_xp: true
+    expiration_time_seconds: 3600
+    expiration_action: UNLOCK
+    default_access: OWNER_ONLY
 
 # Temps d'attente (en secondes) avant une téléportation
 teleport-cooldown: 3

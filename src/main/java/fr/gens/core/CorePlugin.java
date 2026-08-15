@@ -108,9 +108,13 @@ public class CorePlugin extends JavaPlugin {
         getCommand("module").setTabCompleter(moduleCommand);
 
         // 3. Démarrer le serveur Web pour le panel admin
-        int webPort = getConfig().getInt("web.port", 8080);
-        this.webManager = new WebManager(this, webPort);
-        this.webManager.start();
+        if (getConfig().getBoolean("web.enabled", false)) {
+            int webPort = getConfig().getInt("web.port", 8080);
+            this.webManager = new WebManager(this, webPort);
+            this.webManager.start();
+        } else {
+            getLogger().info("Le panel web est désactivé dans la configuration.");
+        }
 
         // 4. Lancer les rappels automatiques (Discord et Guilde)
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
@@ -131,7 +135,7 @@ public class CorePlugin extends JavaPlugin {
             }
         }, 36000L, 36000L); // 36000 ticks = 30 minutes
 
-        getLogger().info("GensCore est prêt ! Panel Web sur le port " + webPort + ".");
+        getLogger().info("GensCore est prêt !");
     }
 
     @Override

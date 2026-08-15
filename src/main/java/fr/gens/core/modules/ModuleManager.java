@@ -48,6 +48,7 @@ public class ModuleManager {
         addModule(new AuctionHouseModule(plugin));
         addModule(new HeadDropModule(plugin));
         addModule(new TabBoardModule(plugin));
+        addModule(new fr.gens.core.modules.tomb.TombModule(plugin));
         addModule(new CustomGuiModule(plugin));
         addModule(new DiscordModule(plugin));
         addModule(new QuestModule(plugin));

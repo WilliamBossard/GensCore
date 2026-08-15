@@ -77,4 +77,37 @@ public class StorageManager {
             return null;
         }
     }
+
+    public String itemStackArrayToBase64(ItemStack[] items) {
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
+            dataOutput.writeInt(items.length);
+            for (ItemStack item : items) {
+                dataOutput.writeObject(item);
+            }
+            dataOutput.close();
+            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public ItemStack[] itemStackArrayFromBase64(String data) {
+        try {
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(data));
+            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
+            int size = dataInput.readInt();
+            ItemStack[] items = new ItemStack[size];
+            for (int i = 0; i < size; i++) {
+                items[i] = (ItemStack) dataInput.readObject();
+            }
+            dataInput.close();
+            return items;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
