@@ -7,6 +7,8 @@ jobs:
   build:
     name: Build Plugin
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout Repository
@@ -28,6 +30,6 @@ jobs:
           name: "GensCore v1.0 (Brouillon)"
           tag_name: "v1.0"
           draft: true
-          files: target/GensCore-1.0-SNAPSHOT-shaded.jar
+          files: target/GensCore-1.0-SNAPSHOT.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
