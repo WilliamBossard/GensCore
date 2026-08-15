@@ -10,61 +10,63 @@ Ce plugin est modulable et gere les aspects suivants du serveur :
 * **Economie & Metiers (Jobs) :** Gestion de l'argent (`/money`, `/pay`) et des metiers.
 * **Guildes (Teams) :** Creation, invitation et gestion des guildes (`/team`).
 * **Quetes & Statistiques :** Quetes journalieres et statistiques globales des joueurs.
-* **Web Panel & BlueMap :** Un panel d'administration Web reactif developpe en React (port 8080) avec integration de BlueMap.
-* **Discord Bot :** Synchronisation complete avec Discord (JDA). Recompenses, badges de liaison en jeu et logs.
+* **Web Panel & BlueMap :** Un panel d'administration Web reactif avec integration de BlueMap, tournant via Javalin.
+* **Discord Bot :** Synchronisation complete avec Discord via l'API JDA.
 * **Moderation :** Commandes de base (`/mute`, `/ban`, `/freeze`, `/openinv`).
-* **Utilitaires de Survie :** Commandes essentielles comme `/spawn`, `/sethome`, `/home`, `/back`, `/tpa`, `/ec`, et `/feed`.
+* **Utilitaires de Survie :** Commandes essentielles comme `/spawn`, `/sethome`, `/back`, `/tpa`, `/ec`.
 * **Loot & Spawners :** Systeme de loot personnalise et gestion des spawners.
-* **Custom GUIs :** Interfaces et menus interactifs en jeu (`/menu`).
 
 ---
 
-## Compilation & Installation (Pour les Developpeurs / Joueurs Curieux)
+## Configuration & Reseaux (Ports)
 
-Si vous souhaitez contribuer, tester le plugin en local, ou simplement voir comment il est fait, voici un tutoriel complet pour le compiler vous-meme !
+Afin d'eviter d'avoir des elements confidentiels ou des adresses codees en dur, GensCore repose entierement sur le fichier de configuration `plugins/GensCore/config.yml`. Celui-ci se genere automatiquement au premier lancement et inclut les parametres cruciaux.
 
-### Prerequis
+### Web Panel
+Le panel d'administration Web s'execute localement sur votre serveur Minecraft, en parallele du jeu, en utilisant **Javalin**. 
+- Le port par defaut est **8080**.
+- Il peut etre modifie via l'option `web.port: 8080` dans le `config.yml`.
+- Si votre serveur Minecraft tourne sur un hebergeur (Pterodactyl), vous devrez ouvrir un second port de libre et indiquer ce port dans la configuration pour que le Panel Web soit accessible.
 
-Avant de commencer, assurez-vous d'avoir les elements suivants installes sur votre ordinateur :
-1. **[Java 21 ou superieur](https://adoptium.net/fr/)** (JDK)
-2. **[Maven](https://maven.apache.org/download.cgi)** (Pour gerer les dependances et compiler le plugin)
-3. **[Git](https://git-scm.com/)** (Pour telecharger le code source)
+### Discord Bot
+Le module Discord necessite un Token de bot. Pour des raisons de securite, ce Token ne doit **jamais** etre partage ou hardcode dans le code source Java.
+- Indiquez-le via l'option `discord.bot_token: "VOTRE_TOKEN"` dans le `config.yml`.
 
-### Etapes de Compilation
+### BlueMap
+Le Panel Web de GensCore integre une frame iFrame de BlueMap pour afficher la carte directement aux moderateurs.
+- Il recupere l'URL locale via `bluemap.url: "http://localhost:8100"` modifiable dans le `config.yml`.
 
-**1. Cloner le depot GitHub**
-Ouvrez un terminal (ou l'invite de commande) et tapez :
+---
+
+## Architecture Interne du Code
+
+Pour les developpeurs qui souhaitent modifier ou comprendre le plugin, voici les pilliers de l'architecture interne :
+
+1. **Le `ModuleManager`** : C'est le systeme central. Au lieu d'avoir un plugin monolithique, GensCore est divise en de dizaines de "Modules" (comme `EconomyModule`, `TeamsModule`, `DiscordModule`). Ils heritent tous de l'interface `Module` et peuvent etre actives ou desactives dynamiquement.
+2. **La base de donnees locale (`DatabaseManager.java`)** : Pour rester autonome, GensCore n'utilise pas MySQL mais une base de donnees **SQLite locale** (`genscore.db`), qui sauvegarde tout : les soldes des joueurs, les inventaires des guildes, la progression des quetes, les historiques de connexion.
+3. **L'API Web REST (`WebManager.java` & `WebPlayerAPI.java`)** : Javalin est utilise en arriere-plan pour lever un micro-serveur HTTP sur le port 8080. Le code React du dossier `/web-panel` est compile et mis dans `/src/main/resources/public/`. A chaque fois qu'un admin va sur la page web, Javalin sert ces fichiers HTML/JS, et communique par API JSON avec React.
+
+---
+
+## Compilation & Installation
+
+Si vous souhaitez compiler GensCore, l'environnement ideal est **Java 21**, gere par **Maven**.
+
+### Compilation Manuelle (Locale)
 ```bash
 git clone https://github.com/WilliamBossard/GensCore.git
 cd GensCore
-```
-
-**2. (Optionnel) Construire le Panel Web React**
-Si vous souhaitez recompiler le panel d'administration web integre au plugin, vous devez avoir [Node.js](https://nodejs.org/) installe.
-```bash
-cd web-panel
-npm install
-npm run build
-cd ..
-```
-*Note : Si vous ne voulez pas modifier le panel web, vous pouvez sauter cette etape, le plugin utilisera la version deja construite.*
-
-**3. Compiler le plugin avec Maven**
-A la racine du dossier `GensCore`, lancez la commande suivante :
-```bash
 mvn clean package
 ```
-*Maven va telecharger toutes les dependances (l'API de Bukkit/Paper, JDA, etc.) et compiler le projet.*
+Le fichier final se trouvera dans `target/GensCore-1.0-SNAPSHOT-shaded.jar`. (Le plugin utilise le Maven Shade Plugin pour empaqueter les librairies externes comme Javalin et JDA directement dans l'archive).
 
-**4. Recuperer le fichier `.jar`**
-Si la compilation a reussi, vous verrez un message `BUILD SUCCESS`.
-Allez dans le dossier `target/`. Vous y trouverez le fichier `GensCore-1.0-SNAPSHOT-shaded.jar`. 
-C'est votre plugin pret a etre utilise !
-
-### Lancer sur votre serveur local
-1. Prenez le fichier `GensCore-1.0-SNAPSHOT-shaded.jar` (que vous pouvez renommer en `GensCore.jar`).
-2. Glissez-le dans le dossier `plugins/` de votre serveur de test local Paper/Spigot.
-3. Demarrez votre serveur. Le dossier de configuration `GensCore` se creera automatiquement avec tous les fichiers necessaires !
+### Compilation via GitHub Actions
+GensCore possede un Workflow configure (dans `.github/workflows/release.yml`). 
+1. Allez sur votre Depot GitHub, dans l'onglet **"Actions"**.
+2. Selectionnez **"Build and Release GensCore"** a gauche.
+3. Cliquez sur **"Run workflow"**.
+4. GitHub va compiler le projet sur ses serveurs (gratuitement) en quelques secondes, puis creer un **Brouillon de Release (Draft Release)**. 
+5. Il ne vous reste plus qu'a telecharger le fichier `.jar` depuis la Release GitHub sans avoir besoin d'installer Java ou Maven sur votre ordinateur !
 
 ---
 *Plugin developpe avec passion pour GensBien.*

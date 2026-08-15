@@ -1,7 +1,22 @@
 # Configuration Générale de GensCore
 
+# Configuration du Panel Web Administratif
+web:
+  # Port sur lequel le panel sera accessible (ex: http://ip-du-serveur:8080)
+  port: 8080
+
 # Mot de passe pour accéder au Panel Web Admin
 admin-password: "gens"
+
+# Configuration Discord (Module JDA)
+discord:
+  # Token du Bot Discord (VOTRE_TOKEN_ICI pour désactiver le bot)
+  bot_token: "VOTRE_TOKEN_ICI"
+
+# Configuration BlueMap
+bluemap:
+  # L'URL où votre BlueMap est hébergée (utilisé par le panel web)
+  url: "http://localhost:8100"
 
 # Paramètres pour les Quêtes Journalières
 quests:

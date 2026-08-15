@@ -104,7 +104,8 @@ public class CorePlugin extends JavaPlugin {
         getCommand("web").setTabCompleter(webCommand);
 
         // 3. Démarrer le serveur Web pour le panel admin
-        this.webManager = new WebManager(this, 8080);
+        int webPort = getConfig().getInt("web.port", 8080);
+        this.webManager = new WebManager(this, webPort);
         this.webManager.start();
 
         // 4. Lancer les rappels automatiques (Discord et Guilde)
@@ -126,7 +127,7 @@ public class CorePlugin extends JavaPlugin {
             }
         }, 36000L, 36000L); // 36000 ticks = 30 minutes
 
-        getLogger().info("GensCore est prêt ! Panel Web sur le port 8080.");
+        getLogger().info("GensCore est prêt ! Panel Web sur le port " + webPort + ".");
     }
 
     @Override
