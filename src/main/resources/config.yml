@@ -29,11 +29,20 @@ quests:
 
 modules:
   tomb:
+    # Activer ou désactiver le module des tombes
     enabled: true
+    # Type de bloc utilisé pour la tombe (ex: CHEST, BARREL, PLAYER_HEAD)
     block_type: CHEST
+    # Sauvegarder l'expérience (XP) du joueur dans la tombe ?
     store_xp: true
+    # Temps d'expiration de la tombe en secondes (ex: 3600 = 1 heure)
     expiration_time_seconds: 3600
+    # Action à effectuer à l'expiration (UNLOCK, DROP, DESTROY)
+    # UNLOCK: Tout le monde peut l'ouvrir
+    # DROP: Lâche les items au sol
+    # DESTROY: Supprime la tombe et les items
     expiration_action: UNLOCK
+    # Accès par défaut avant expiration (OWNER_ONLY ou EVERYONE)
     default_access: OWNER_ONLY
 
 # Temps d'attente (en secondes) avant une téléportation

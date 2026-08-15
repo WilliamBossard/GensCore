@@ -86,7 +86,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             configChanged = true;
         }
         if (!plugin.getConfig().contains("discord.chat_channel_id")) {
-            plugin.getConfig().set("discord.chat_channel_id", "1347871196607418369");
+            plugin.getConfig().set("discord.chat_channel_id", "VOTRE_CHANNEL_ID_ICI");
             configChanged = true;
         }
         if (!plugin.getConfig().contains("discord.linked_role_id")) {
