@@ -38,6 +38,37 @@ public class WebManager {
     }
 
     public void start() {
+        // Extraction des fichiers web s'ils n'existent pas
+        File webDir = new File(plugin.getDataFolder(), "web");
+        if (!webDir.exists()) {
+            webDir.mkdirs();
+            try {
+                java.net.URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
+                if (url != null) {
+                    File jarFile = new File(url.toURI());
+                    if (jarFile.isFile()) {
+                        try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile)) {
+                            java.util.Enumeration<java.util.jar.JarEntry> entries = jar.entries();
+                            while (entries.hasMoreElements()) {
+                                java.util.jar.JarEntry entry = entries.nextElement();
+                                if (entry.getName().startsWith("public/") && !entry.isDirectory()) {
+                                    String destPath = entry.getName().substring("public/".length());
+                                    File destFile = new File(webDir, destPath);
+                                    destFile.getParentFile().mkdirs();
+                                    try (java.io.InputStream in = jar.getInputStream(entry)) {
+                                        java.nio.file.Files.copy(in, destFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                    }
+                                }
+                            }
+                        }
+                        plugin.getLogger().info("Fichiers web extraits dans " + webDir.getPath());
+                    }
+                }
+            } catch (Exception e) {
+                plugin.getLogger().severe("Erreur lors de l'extraction des fichiers web : " + e.getMessage());
+            }
+        }
+
         // Sauvegarder le ClassLoader de Bukkit
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         
@@ -53,11 +84,11 @@ public class WebManager {
                     });
                 });
                 
-                // Servir le site web compilé (React) depuis le jar (dossier public/)
-                config.staticFiles.add("/public", Location.CLASSPATH);
+                // Servir le site web depuis le dossier plugins/GensCore/web/
+                config.staticFiles.add(webDir.getAbsolutePath(), Location.EXTERNAL);
 
                 // Gérer le routage SPA (Single Page Application)
-                config.spaRoot.addFile("/", "/public/index.html", Location.CLASSPATH);
+                config.spaRoot.addFile("/", new File(webDir, "index.html").getAbsolutePath(), Location.EXTERNAL);
 
             }).start(port);
 
@@ -100,8 +131,13 @@ public class WebManager {
         public String publicFeaturesText;
         public String bluemapUrl;
         public String serverIp;
+        public String tombBlockType;
+        public boolean tombStoreXp;
+        public long tombExpirationSeconds;
+        public String tombExpirationAction;
+        public String tombDefaultAccess;
 
-        public ConfigResponse(double inf, double ahTax, String pass, double hDrop, int qRerolls, boolean lootrPreventBreak, boolean lootrPreventHopper, boolean lootrParticles, String motdLine1, String motdLine2, boolean wheel, boolean casino, String publicFeaturesText, String bluemapUrl, String serverIp) {
+        public ConfigResponse(double inf, double ahTax, String pass, double hDrop, int qRerolls, boolean lootrPreventBreak, boolean lootrPreventHopper, boolean lootrParticles, String motdLine1, String motdLine2, boolean wheel, boolean casino, String publicFeaturesText, String bluemapUrl, String serverIp, String tombBlockType, boolean tombStoreXp, long tombExpirationSeconds, String tombExpirationAction, String tombDefaultAccess) {
             this.inflationExponent = inf;
             this.ahTaxPercentage = ahTax;
             this.adminPassword = pass;
@@ -117,6 +153,11 @@ public class WebManager {
             this.publicFeaturesText = publicFeaturesText;
             this.bluemapUrl = bluemapUrl;
             this.serverIp = serverIp;
+            this.tombBlockType = tombBlockType;
+            this.tombStoreXp = tombStoreXp;
+            this.tombExpirationSeconds = tombExpirationSeconds;
+            this.tombExpirationAction = tombExpirationAction;
+            this.tombDefaultAccess = tombDefaultAccess;
         }
     }
 
@@ -136,6 +177,11 @@ public class WebManager {
         public String publicFeaturesText;
         public String bluemapUrl;
         public String serverIp;
+        public String tombBlockType;
+        public boolean tombStoreXp;
+        public long tombExpirationSeconds;
+        public String tombExpirationAction;
+        public String tombDefaultAccess;
     }
 
     public static class FileEditRequest {
@@ -216,7 +262,12 @@ public class WebManager {
                 plugin.getStorageManager().getConfig().getBoolean("minigames.casino.enabled", true),
                 plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText),
                 plugin.getConfig().getString("bluemap.url", "http://localhost:8100"),
-                plugin.getConfig().getString("web.server_ip", "gens-core.duckdns.org")
+                plugin.getConfig().getString("web.server_ip", "gens-core.duckdns.org"),
+                plugin.getConfig().getString("modules.tomb.block_type", "CHEST"),
+                plugin.getConfig().getBoolean("modules.tomb.store_xp", true),
+                plugin.getConfig().getLong("modules.tomb.expiration_time_seconds", 3600),
+                plugin.getConfig().getString("modules.tomb.expiration_action", "UNLOCK"),
+                plugin.getConfig().getString("modules.tomb.default_access", "OWNER_ONLY")
             ));
         });
 
@@ -233,6 +284,13 @@ public class WebManager {
             plugin.getConfig().set("motd.line2", req.motdLine2);
             if (req.bluemapUrl != null) plugin.getConfig().set("bluemap.url", req.bluemapUrl);
             if (req.serverIp != null) plugin.getConfig().set("web.server_ip", req.serverIp);
+            
+            if (req.tombBlockType != null) plugin.getConfig().set("modules.tomb.block_type", req.tombBlockType);
+            plugin.getConfig().set("modules.tomb.store_xp", req.tombStoreXp);
+            plugin.getConfig().set("modules.tomb.expiration_time_seconds", req.tombExpirationSeconds);
+            if (req.tombExpirationAction != null) plugin.getConfig().set("modules.tomb.expiration_action", req.tombExpirationAction);
+            if (req.tombDefaultAccess != null) plugin.getConfig().set("modules.tomb.default_access", req.tombDefaultAccess);
+            
             plugin.saveConfig();
             
             plugin.getStorageManager().getConfig().set("admin-password", req.adminPassword);

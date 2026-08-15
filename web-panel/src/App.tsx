@@ -22,6 +22,11 @@ interface ConfigState {
   publicFeaturesText: string;
   bluemapUrl: string;
   serverIp: string;
+  tombBlockType: string;
+  tombStoreXp: boolean;
+  tombExpirationSeconds: number;
+  tombExpirationAction: string;
+  tombDefaultAccess: string;
 }
 
 interface ShopItem {
@@ -108,7 +113,12 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     minigameCasinoEnabled: true,
     publicFeaturesText: "",
     bluemapUrl: "http://localhost:8100",
-    serverIp: "gens-core.duckdns.org"
+    serverIp: "gens-core.duckdns.org",
+    tombBlockType: "CHEST",
+    tombStoreXp: true,
+    tombExpirationSeconds: 3600,
+    tombExpirationAction: "UNLOCK",
+    tombDefaultAccess: "OWNER_ONLY"
   });
 
   useEffect(() => {
@@ -244,6 +254,40 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                     <span className="slider"></span>
                   </label>
                   <span style={{fontWeight: 500}}>Particules sur les coffres non fouillés</span>
+                </div>
+              </div>
+
+              <div className="admin-card">
+                <div className="settings-section-title"><Settings size={20} /> Configuration Tombes</div>
+                <div className="form-group">
+                  <label>Type de Bloc (ex: CHEST, BARREL, PLAYER_HEAD)</label>
+                  <input type="text" value={config.tombBlockType || 'CHEST'} onChange={e => setConfig({...config, tombBlockType: e.target.value})} className="login-input" />
+                </div>
+                <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row'}}>
+                  <label className="switch">
+                    <input type="checkbox" checked={config.tombStoreXp} onChange={e => setConfig({...config, tombStoreXp: e.target.checked})} />
+                    <span className="slider"></span>
+                  </label>
+                  <span style={{fontWeight: 500}}>Sauvegarder l'XP dans la tombe</span>
+                </div>
+                <div className="form-group">
+                  <label>Temps d'expiration (Secondes)</label>
+                  <input type="number" min="0" value={config.tombExpirationSeconds || 3600} onChange={e => setConfig({...config, tombExpirationSeconds: parseInt(e.target.value) || 0})} className="login-input" />
+                </div>
+                <div className="form-group">
+                  <label>Action à l'expiration</label>
+                  <select value={config.tombExpirationAction || 'UNLOCK'} onChange={e => setConfig({...config, tombExpirationAction: e.target.value})} className="login-input">
+                    <option value="UNLOCK">UNLOCK (Ouvrir à tous)</option>
+                    <option value="DROP">DROP (Lâcher les objets)</option>
+                    <option value="DESTROY">DESTROY (Détruire les objets)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Accès par défaut</label>
+                  <select value={config.tombDefaultAccess || 'OWNER_ONLY'} onChange={e => setConfig({...config, tombDefaultAccess: e.target.value})} className="login-input">
+                    <option value="OWNER_ONLY">OWNER_ONLY (Seulement le propriétaire)</option>
+                    <option value="EVERYONE">EVERYONE (Tout le monde)</option>
+                  </select>
                 </div>
               </div>
 
