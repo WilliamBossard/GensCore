@@ -99,7 +99,7 @@ public class PlaceholderUtils {
 
         // Discord
         boolean linked = p.hasPermission("genscore.discord.linked");
-        String discordStatus = linked ? "&r&7Le Discord: &bdiscord.gg/gensbien" : "&e&l⚠ &cDiscord non lié ! &b/linktuto";
+        String discordStatus = linked ? "&r&7Le Discord: &bdiscord.gg/gensbien" : "&e&l &cDiscord non lié ! &b/linktuto";
         result = result.replace("%discord_status%", discordStatus);
         
         String discordName = linked ? "Compte Lié" : "Non lié";

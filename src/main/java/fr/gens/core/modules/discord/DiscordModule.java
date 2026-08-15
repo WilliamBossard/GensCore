@@ -135,7 +135,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                 
                 plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
-                sendBotMessage("✅ **Le serveur a démarré !**");
+                sendBotMessage("**Le serveur a démarré !**");
                 
             } catch (Exception e) {
                 plugin.getLogger().severe("[Discord] Erreur lors de la connexion du bot : " + e.getMessage());
@@ -147,7 +147,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
     public void disable() {
         enabled = false;
         if (jda != null) {
-            sendBotMessage("🔴 **Le serveur est maintenant éteint.**");
+            sendBotMessage(" **Le serveur est maintenant éteint.**");
             
             if (webhookClient != null) {
                 webhookClient.close();
@@ -428,7 +428,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                 }
             });
 
-            event.getChannel().sendMessage("✅ Ton compte Minecraft a été lié avec succès !").queue();
+            event.getChannel().sendMessage("Ton compte Minecraft a été lié avec succès !").queue();
         } else if (event.getChannel().getId().equals(plugin.getConfig().getString("discord.chat_channel_id"))) {
             // Discord -> Minecraft Chat
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -465,12 +465,12 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             UUID uuid = plugin.getDatabaseManager().getUuidFromDiscord(discordId);
             
             if (uuid == null) {
-                event.reply("❌ Vous n'avez lié aucun compte Minecraft à ce compte Discord.").setEphemeral(true).queue();
+                event.reply("Vous n'avez lié aucun compte Minecraft à ce compte Discord.").setEphemeral(true).queue();
                 return;
             }
             
             if (newPassword.length() < 4) {
-                event.reply("❌ Le mot de passe doit faire au moins 4 caractères.").setEphemeral(true).queue();
+                event.reply("Le mot de passe doit faire au moins 4 caractères.").setEphemeral(true).queue();
                 return;
             }
 
@@ -483,7 +483,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                 authModule.forceLogout(uuid);
             }
             
-            event.reply("✅ Votre mot de passe Minecraft a été changé avec succès ! Vous pouvez maintenant vous connecter en jeu avec `/login`.").setEphemeral(true).queue();
+            event.reply("Votre mot de passe Minecraft a été changé avec succès ! Vous pouvez maintenant vous connecter en jeu avec `/login`.").setEphemeral(true).queue();
         }
     }
 }

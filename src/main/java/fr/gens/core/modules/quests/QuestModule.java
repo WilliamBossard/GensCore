@@ -642,7 +642,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                         lore.add("§d» Clic Droit pour Reroll (" + used + "/" + limit + ")");
                     } else if (completed) {
                         lore.add(" ");
-                        lore.add("§a✔ Récompenses récupérées !");
+                        lore.add("§a Récompenses récupérées !");
                         meta.addEnchant(org.bukkit.enchantments.Enchantment.LURE, 1, true);
                         meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
                     }

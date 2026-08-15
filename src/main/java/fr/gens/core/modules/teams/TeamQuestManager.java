@@ -124,7 +124,7 @@ public class TeamQuestManager {
         current += amount;
         if (current >= activeQuest.amount) {
             current = activeQuest.amount;
-            team.broadcast("§a§l🏆 Votre guilde a terminé la Quête Hebdomadaire !");
+            team.broadcast("§a§l Votre guilde a terminé la Quête Hebdomadaire !");
             team.broadcast("§e+" + activeQuest.points + " Points de Guilde !");
             
             // Ajouter les points

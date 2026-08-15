@@ -119,11 +119,11 @@ public class TabBoardModule implements Module, Listener {
             configLines.add("&fJoueur: &e%player%");
             configLines.add("&fGrade: %prefix%");
             configLines.add("");
-            configLines.add("&6💰 Économie:");
+            configLines.add("&6 Économie:");
             configLines.add("&fArgent: &a%money%$");
             configLines.add("&fBourse: &7/shop");
             configLines.add("");
-            configLines.add("&b📜 Quêtes:");
+            configLines.add("&b Quêtes:");
             configLines.add("&fTerminées: &30");
             configLines.add("");
             configLines.add("&fEn ligne: &b%online%");
@@ -160,10 +160,10 @@ public class TabBoardModule implements Module, Listener {
             lines.add(parsed);
             
             // Inject Jobs after Economy if it's the blank line before Quests, or just dynamically
-            if (line.equals("&b📜 Quêtes:")) {
+            if (line.equals("&b Quêtes:")) {
                 // Insert Jobs before Quests
                 int insertIdx = lines.size() - 1;
-                lines.add(insertIdx, "§a🛠 Métiers:");
+                lines.add(insertIdx, "§a Métiers:");
                 fr.gens.core.modules.jobs.JobsModule jobsMod = (fr.gens.core.modules.jobs.JobsModule) plugin.getModuleManager().getModule("jobs");
                 if (jobsMod != null && jobsMod.isEnabled()) {
                     boolean hasJob = false;
@@ -191,7 +191,7 @@ public class TabBoardModule implements Module, Listener {
         if (!plugin.getConfig().contains("tabboard.tablist.header")) {
             plugin.getConfig().set("tabboard.tablist.header", "&m                                                                &r\n&3&lLe Serveur Des Gens Bien\n&r&7&l>> &eBienvenue &3&l%player% &7&l! <<\n&r&7Joueurs en ligne: &f%online%\n&6Staff en ligne: &e%staff%");
             plugin.getConfig().set("tabboard.tablist.footer", "\n&2Ping: %ping%ms\n&7&lMémoire: %mem_used% MB / %mem_max% MB\n&7Quêtes terminées: &e0\n\n%discord_status%\n&m                                                                ");
-            plugin.getConfig().set("tabboard.tablist.discord_not_linked", "&e&l⚠ &cDiscord non lié ! &b/linktuto");
+            plugin.getConfig().set("tabboard.tablist.discord_not_linked", "&e&l &cDiscord non lié ! &b/linktuto");
             plugin.getConfig().set("tabboard.tablist.discord_linked", "&r&7Le Discord: &bdiscord.gg/gensbien");
             plugin.saveConfig();
         }
@@ -241,7 +241,7 @@ public class TabBoardModule implements Module, Listener {
                 prefixStr = prefixStr + " ";
             }
             
-            String suffixStr = target.hasPermission("genscore.discord.linked") ? " §b§l✔" : "";
+            String suffixStr = target.hasPermission("genscore.discord.linked") ? " §b§l" : "";
 
             Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr);
             Component suffixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr);

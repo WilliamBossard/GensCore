@@ -66,7 +66,7 @@ public class TeamGui {
             meta.setDisplayName("§e" + (op.getName() != null ? op.getName() : "Joueur Inconnu"));
             List<String> lore = new ArrayList<>();
             if (team.getLeaderUuid().equals(memberUuid)) {
-                lore.add("§6★ Chef de Guilde");
+                lore.add("§6 Chef de Guilde");
             } else {
                 lore.add("§7Membre");
                 if (isLeader) {

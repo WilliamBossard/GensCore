@@ -85,7 +85,7 @@ public class HeadDropModule implements Module, Listener {
                 lore.add("§8§m------------------------");
                 
                 if (killer != null) {
-                    lore.add("§c⚔ Tué par : §f" + killer.getName());
+                    lore.add("§c Tué par : §f" + killer.getName());
                     
                     ItemStack weapon = killer.getInventory().getItemInMainHand();
                     String weaponName = "§7A mains nues";
@@ -95,13 +95,13 @@ public class HeadDropModule implements Module, Listener {
                             weaponName = weapon.getItemMeta().getDisplayName();
                         }
                     }
-                    lore.add("§c🗡 Arme : §f" + weaponName);
+                    lore.add("§c Arme : §f" + weaponName);
                 } else {
-                    lore.add("§c💀 Cause : §fMorts naturelles / Environnement");
+                    lore.add("§c Cause : §fMorts naturelles / Environnement");
                 }
                 
                 String date = new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date());
-                lore.add("§e📅 Date : §f" + date);
+                lore.add("§e Date : §f" + date);
                 lore.add("§8§m------------------------");
                 
                 meta.setLore(lore);
