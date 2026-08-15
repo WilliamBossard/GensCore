@@ -22,9 +22,9 @@ jobs:
           cache: maven
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Build Web Panel (React)
         run: |
@@ -36,7 +36,7 @@ jobs:
         run: mvn clean package -DskipTests
         
       - name: Create GitHub Release (Draft)
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: "GensCore v1.0 (Brouillon)"
           tag_name: "v1.0"
