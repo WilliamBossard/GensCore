@@ -150,7 +150,7 @@ public class TombListener implements Listener {
 
         boolean canOpen = false;
         
-        if (isOwner) {
+        if (isOwner || player.hasPermission("genscore.tomb.admin")) {
             canOpen = true;
         } else if (defaultAccess.equals("EVERYONE")) {
             canOpen = true;
