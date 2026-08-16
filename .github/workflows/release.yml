@@ -31,6 +31,9 @@ jobs:
           cd web-panel
           npm install
           npm run build
+          cd ..
+          mkdir -p src/main/resources/public
+          cp -R web-panel/dist/* src/main/resources/public/
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
