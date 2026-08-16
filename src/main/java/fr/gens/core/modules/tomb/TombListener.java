@@ -86,9 +86,10 @@ public class TombListener implements Listener {
         }
         
         long expirationSecs = plugin.getConfig().getLong("modules.tomb.expiration_time_seconds", 3600);
+        long expirationMs = expirationSecs <= 0 ? -1L : expirationSecs * 1000L;
 
         // Enregistrer la tombe
-        module.getTombManager().createTomb(player.getUniqueId(), targetBlock.getLocation(), contents, xp, expirationSecs * 1000L);
+        module.getTombManager().createTomb(player.getUniqueId(), targetBlock.getLocation(), contents, xp, expirationMs);
         
         // Placer le bloc
         String blockTypeStr = plugin.getConfig().getString("modules.tomb.block_type", "CHEST").toUpperCase();

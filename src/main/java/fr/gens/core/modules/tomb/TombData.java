@@ -47,6 +47,7 @@ public class TombData {
     }
 
     public boolean isExpired() {
+        if (expirationTime == -1) return false;
         return System.currentTimeMillis() > expirationTime;
     }
 }

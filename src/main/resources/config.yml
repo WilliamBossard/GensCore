@@ -37,7 +37,7 @@ modules:
     store_xp: true
     # Pourcentage d'XP à sauvegarder dans la tombe (100 = tout, 50 = la moitié, etc.)
     xp_keep_percentage: 100
-    # Temps d'expiration de la tombe en secondes (ex: 3600 = 1 heure)
+    # Temps d'expiration de la tombe en secondes (ex: 3600 = 1 heure, 0 = aucune expiration)
     expiration_time_seconds: 3600
     # Action à effectuer à l'expiration (UNLOCK, DROP, DESTROY)
     # UNLOCK: Tout le monde peut l'ouvrir

@@ -73,7 +73,7 @@ public class TombManager {
 
     public TombData createTomb(UUID ownerId, Location location, ItemStack[] contents, int xp, long expirationMs) {
         UUID id = UUID.randomUUID();
-        long expirationTime = System.currentTimeMillis() + expirationMs;
+        long expirationTime = expirationMs == -1L ? -1L : System.currentTimeMillis() + expirationMs;
         TombData tomb = new TombData(id, ownerId, location, contents, xp, expirationTime);
         
         activeTombs.put(id, tomb);
@@ -157,8 +157,9 @@ public class TombManager {
         NamespacedKey key = new NamespacedKey(plugin, "tomb_id");
         
         for (TombData tomb : activeTombs.values()) {
-            boolean isExpired = now > tomb.getExpirationTime();
-            long remainingSecs = (tomb.getExpirationTime() - now) / 1000;
+            boolean hasExpiration = tomb.getExpirationTime() != -1L;
+            boolean isExpired = hasExpiration && now > tomb.getExpirationTime();
+            long remainingSecs = hasExpiration ? (tomb.getExpirationTime() - now) / 1000 : 0;
 
             if (isExpired) {
                 if (action.equals("DESTROY")) {
@@ -191,12 +192,14 @@ public class TombManager {
                                 display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
                             } else if (!isExpired) {
                                 String timeStr = "";
-                                if (remainingSecs >= 60) {
-                                    timeStr = (remainingSecs / 60) + "m " + (remainingSecs % 60) + "s";
-                                } else {
-                                    timeStr = remainingSecs + "s";
+                                if (hasExpiration) {
+                                    if (remainingSecs >= 60) {
+                                        timeStr = "<br><gray>⏱ <white>" + (remainingSecs / 60) + "m " + (remainingSecs % 60) + "s";
+                                    } else {
+                                        timeStr = "<br><gray>⏱ <white>" + remainingSecs + "s";
+                                    }
                                 }
-                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée<br><gray>⏱ <white>" + timeStr));
+                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée" + timeStr));
                             }
                         }
                     }
