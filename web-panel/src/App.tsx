@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
-import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, TrendingUp, Shield, ToggleLeft, ToggleRight, FileText, Target, Gamepad2, Users, UserX, Gavel, Mic, MicOff, MessageSquare } from 'lucide-react';
+import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, TrendingUp, Shield, ToggleLeft, ToggleRight, FileText, Target, Gamepad2, Users, UserX, Gavel, Mic, MicOff, MessageSquare, Menu, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PlayerLogin, PlayerDashboard } from './PlayerPortal';
 import { Docs } from './Docs';
@@ -98,6 +98,7 @@ function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
 
 // === COMPOSANT : VUE ADMIN (LAYOUT AVEC SIDEBAR) ===
 function AdminLayout({ password, onLogout }: { password: string, onLogout: () => void }) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'shop' | 'settings' | 'modules' | 'files' | 'players' | 'content'>((localStorage.getItem('gens_admin_tab') as any) || 'shop');
   const [config, setConfig] = useState<ConfigState>({
     inflationExponent: 0.5,
@@ -158,18 +159,32 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
 
   return (
     <div className="admin-layout">
-      <aside className="admin-sidebar">
+      {/* Overlay mobile */}
+      {isSidebarOpen && (
+        <div 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      <aside className={`admin-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
           <Settings size={28} />
           <h2>GensCore</h2>
+          <button 
+            className="mobile-close-btn" 
+            onClick={() => setIsSidebarOpen(false)}
+            style={{ marginLeft: 'auto', background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'none' }}
+          >
+            <X size={24} />
+          </button>
         </div>
         <nav className="admin-nav">
-          <a style={{cursor: 'pointer'}} className={activeTab === 'shop' ? 'active' : ''} onClick={() => setActiveTab('shop')}><ShoppingCart size={18}/> Boutique</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'modules' ? 'active' : ''} onClick={() => setActiveTab('modules')}><Package size={18}/> Modules</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'files' ? 'active' : ''} onClick={() => setActiveTab('files')}><FileText size={18}/> Fichiers (Avancé)</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}><Settings size={18}/> Paramètres</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'players' ? 'active' : ''} onClick={() => setActiveTab('players')}><Users size={18}/> Joueurs</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'content' ? 'active' : ''} onClick={() => setActiveTab('content')}><FileText size={18}/> Page d'Accueil</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'shop' ? 'active' : ''} onClick={() => { setActiveTab('shop'); setIsSidebarOpen(false); }}><ShoppingCart size={18}/> Boutique</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'modules' ? 'active' : ''} onClick={() => { setActiveTab('modules'); setIsSidebarOpen(false); }}><Package size={18}/> Modules</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'files' ? 'active' : ''} onClick={() => { setActiveTab('files'); setIsSidebarOpen(false); }}><FileText size={18}/> Fichiers (Avancé)</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'settings' ? 'active' : ''} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}><Settings size={18}/> Paramètres</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'players' ? 'active' : ''} onClick={() => { setActiveTab('players'); setIsSidebarOpen(false); }}><Users size={18}/> Joueurs</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'content' ? 'active' : ''} onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}><FileText size={18}/> Page d'Accueil</a>
         </nav>
         <div className="admin-sidebar-footer">
           <button className="logout-button" onClick={onLogout}><LogOut size={18}/> Quitter</button>
@@ -178,7 +193,16 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
       
       <main className="admin-main">
         <header className="admin-header">
-          <h2>{activeTab === 'shop' ? 'Gestion de la Boutique' : activeTab === 'modules' ? 'Gestion des Modules' : activeTab === 'files' ? 'Éditeur de Fichiers' : activeTab === 'players' ? 'Modération' : activeTab === 'content' ? 'Édition de l\'Accueil' : 'Configuration du Serveur'}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button 
+              className="mobile-menu-btn" 
+              onClick={() => setIsSidebarOpen(true)}
+              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '12px', cursor: 'pointer', display: 'none' }}
+            >
+              <Menu size={24} />
+            </button>
+            <h2>{activeTab === 'shop' ? 'Gestion de la Boutique' : activeTab === 'modules' ? 'Gestion des Modules' : activeTab === 'files' ? 'Éditeur de Fichiers' : activeTab === 'players' ? 'Modération' : activeTab === 'content' ? 'Édition de l\'Accueil' : 'Configuration du Serveur'}</h2>
+          </div>
           <div className="admin-user"><Shield size={18}/> Administrateur</div>
         </header>
 
@@ -318,6 +342,28 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                 <div style={{marginTop: '2rem'}}>
                   <button type="submit" className="login-button" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
                     <Settings size={18} /> Sauvegarder la configuration
+                  </button>
+                </div>
+              </div>
+              <div className="admin-card">
+                <div className="settings-section-title"><Trash2 size={20} /> Gestion des Données</div>
+                <div className="form-group" style={{ marginBottom: '0' }}>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                    Supprimer tous les homes des joueurs. Cette action est irréversible.
+                  </p>
+                  <button 
+                    type="button" 
+                    className="btn" 
+                    style={{ background: '#ef4444', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
+                    onClick={async () => {
+                      if (confirm('Voulez-vous vraiment supprimer TOUS les homes de TOUS les joueurs ?')) {
+                        const res = await fetch(`${API_URL}/admin/homes`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${password}` } });
+                        if (res.ok) alert('Tous les homes ont été supprimés avec succès.');
+                        else alert('Erreur lors de la suppression des homes.');
+                      }
+                    }}
+                  >
+                    <Trash2 size={18} /> Clear All Homes
                   </button>
                 </div>
               </div>

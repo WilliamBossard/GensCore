@@ -606,6 +606,16 @@ public class WebManager {
             }
         });
 
+        app.delete("/api/admin/homes", ctx -> {
+            fr.gens.core.modules.TeleportHomeModule homeModule = (fr.gens.core.modules.TeleportHomeModule) plugin.getModuleManager().getModule("CmdHome");
+            if (homeModule != null) {
+                homeModule.clearAllHomes();
+                ctx.status(200).result("OK");
+            } else {
+                ctx.status(404).json("Module CmdHome désactivé");
+            }
+        });
+
         // ==============================================
         // Teams Stats API
         // ==============================================

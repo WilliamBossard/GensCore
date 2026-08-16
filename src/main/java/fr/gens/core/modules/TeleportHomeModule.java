@@ -126,12 +126,21 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
         }
     }
 
+    public void clearAllHomes() {
+        homes.clear();
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes")) {
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     private void saveHomes() {
         // Sauvegarde synchrone (déjà gérée en temps réel, mais on pourrait tout dump ici si besoin)
     }
 
     private int getMaxHomes(Player p) {
-        int max = 1; // Default
+        int max = plugin.getConfig().getInt("modules.home.default_max", 3); // Default
         for (PermissionAttachmentInfo perm : p.getEffectivePermissions()) {
             String pName = perm.getPermission();
             if (pName.startsWith("genscore.home.limit.")) {

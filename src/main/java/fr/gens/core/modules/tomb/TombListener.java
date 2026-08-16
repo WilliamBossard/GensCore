@@ -51,24 +51,25 @@ public class TombListener implements Listener {
 
         Location loc = player.getLocation().getBlock().getLocation();
         
-        // Trouver le sol pour poser la tombe
+        // Trouver un emplacement libre (Air, Eau, Lave)
         Block targetBlock = loc.getBlock();
-        if (!targetBlock.getType().isSolid()) {
-            // Le joueur est dans l'air, l'eau, etc. On descend pour trouver le sol
+        
+        // Si on est dans un bloc solide ou non-remplaçable (herbe haute, dalles, etc.), on monte
+        while (!targetBlock.getType().isAir() && targetBlock.getType() != Material.WATER && targetBlock.getType() != Material.LAVA) {
+            if (targetBlock.getY() >= targetBlock.getWorld().getMaxHeight() - 1) {
+                break;
+            }
+            targetBlock = targetBlock.getRelative(0, 1, 0);
+        }
+        
+        // Si on est dans l'air/eau, on s'assure d'être sur un bloc solide
+        if (targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER || targetBlock.getType() == Material.LAVA) {
             while (targetBlock.getY() > targetBlock.getWorld().getMinHeight()) {
                 Block below = targetBlock.getRelative(0, -1, 0);
                 if (below.getType().isSolid() || below.getType() == Material.LAVA) {
                     break;
                 }
                 targetBlock = below;
-            }
-        } else {
-            // Le joueur est dans un mur (suffocation), on monte pour trouver une place libre
-            while (targetBlock.getY() < targetBlock.getWorld().getMaxHeight() - 1) {
-                if (!targetBlock.getType().isSolid()) {
-                    break;
-                }
-                targetBlock = targetBlock.getRelative(0, 1, 0);
             }
         }
 

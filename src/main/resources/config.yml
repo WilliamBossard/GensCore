@@ -47,5 +47,8 @@ modules:
     # Accès par défaut avant expiration (OWNER_ONLY ou EVERYONE)
     default_access: OWNER_ONLY
 
+  home:
+    # Nombre de homes par défaut pour un joueur
+    default_max: 3
 # Temps d'attente (en secondes) avant une téléportation
 teleport-cooldown: 3
