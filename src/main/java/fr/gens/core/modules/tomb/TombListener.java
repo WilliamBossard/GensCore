@@ -51,10 +51,25 @@ public class TombListener implements Listener {
 
         Location loc = player.getLocation().getBlock().getLocation();
         
-        // Trouver un bloc d'air libre pour poser la tombe
+        // Trouver le sol pour poser la tombe
         Block targetBlock = loc.getBlock();
-        if (targetBlock.getType() != Material.AIR && targetBlock.getType() != Material.WATER) {
-            targetBlock = loc.clone().add(0, 1, 0).getBlock();
+        if (!targetBlock.getType().isSolid()) {
+            // Le joueur est dans l'air, l'eau, etc. On descend pour trouver le sol
+            while (targetBlock.getY() > targetBlock.getWorld().getMinHeight()) {
+                Block below = targetBlock.getRelative(0, -1, 0);
+                if (below.getType().isSolid() || below.getType() == Material.LAVA) {
+                    break;
+                }
+                targetBlock = below;
+            }
+        } else {
+            // Le joueur est dans un mur (suffocation), on monte pour trouver une place libre
+            while (targetBlock.getY() < targetBlock.getWorld().getMaxHeight() - 1) {
+                if (!targetBlock.getType().isSolid()) {
+                    break;
+                }
+                targetBlock = targetBlock.getRelative(0, 1, 0);
+            }
         }
 
         // On crée un tableau avec les items
