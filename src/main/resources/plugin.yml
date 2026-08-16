@@ -190,3 +190,6 @@ permissions:
   genscore.admin.spawner:
     description: Permet de se give des spawners
     default: op
+  genscore.tomb.admin:
+    description: Permet d'ouvrir et de gérer toutes les tombes
+    default: op
