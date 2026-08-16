@@ -24,9 +24,13 @@ public class StorageManager {
         
         // Ajoute uniquement les cles manquantes sans ecraser ni reformater
         boolean changed = false;
+        plugin.getConfig().addDefault("modules.tomb.store_xp", true);
+        plugin.getConfig().addDefault("modules.tomb.xp_keep_percentage", 100);
+        plugin.getConfig().addDefault("modules.tomb.expiration_time_seconds", 3600);
+        
         if (plugin.getConfig().getDefaults() != null) {
             for (String key : plugin.getConfig().getDefaults().getKeys(true)) {
-                if (!plugin.getConfig().contains(key)) {
+                if (!plugin.getConfig().isSet(key)) {
                     plugin.getConfig().set(key, plugin.getConfig().getDefaults().get(key));
                     changed = true;
                 }

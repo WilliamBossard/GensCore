@@ -35,6 +35,8 @@ modules:
     block_type: CHEST
     # Sauvegarder l'expérience (XP) du joueur dans la tombe ?
     store_xp: true
+    # Pourcentage d'XP à sauvegarder dans la tombe (100 = tout, 50 = la moitié, etc.)
+    xp_keep_percentage: 100
     # Temps d'expiration de la tombe en secondes (ex: 3600 = 1 heure)
     expiration_time_seconds: 3600
     # Action à effectuer à l'expiration (UNLOCK, DROP, DESTROY)

@@ -38,10 +38,10 @@ public class TombModule implements Module {
 
         Bukkit.getPluginManager().registerEvents(new TombListener(plugin, this), plugin);
 
-        // Tâche de vérification des expirations toutes les minutes (1200 ticks)
+        // Tâche de vérification des expirations et mise à jour de l'hologramme toutes les secondes (20 ticks)
         this.checkTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             tombManager.checkExpirations();
-        }, 1200L, 1200L);
+        }, 20L, 20L);
     }
 
     @Override

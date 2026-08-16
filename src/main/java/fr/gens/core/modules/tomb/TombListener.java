@@ -16,6 +16,14 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.Bukkit;
+import java.util.UUID;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -54,8 +62,27 @@ public class TombListener implements Listener {
         
         int xp = 0;
         if (plugin.getConfig().getBoolean("modules.tomb.store_xp", true)) {
-            xp = event.getDroppedExp();
+            // Calculate total XP
+            int level = player.getLevel();
+            float expProgress = player.getExp();
+            int totalExp = 0;
+            if (level <= 15) {
+                totalExp = (int) (level * level + 6 * level);
+            } else if (level <= 30) {
+                totalExp = (int) (2.5 * level * level - 40.5 * level + 360);
+            } else {
+                totalExp = (int) (4.5 * level * level - 162.5 * level + 2220);
+            }
+            int expToNextLevel = player.getExpToLevel();
+            totalExp += Math.round(expProgress * expToNextLevel);
+
+            int percentage = plugin.getConfig().getInt("modules.tomb.xp_keep_percentage", 100);
+            xp = (int) (totalExp * (percentage / 100.0f));
+
             event.setDroppedExp(0);
+            event.setNewExp(0);
+            event.setNewLevel(0);
+            event.setNewTotalExp(0);
         }
         
         long expirationSecs = plugin.getConfig().getLong("modules.tomb.expiration_time_seconds", 3600);
@@ -72,6 +99,15 @@ public class TombListener implements Listener {
             material = Material.CHEST;
         }
         targetBlock.setType(material);
+        
+        if (material == Material.PLAYER_HEAD) {
+            org.bukkit.block.BlockState state = targetBlock.getState();
+            if (state instanceof org.bukkit.block.Skull) {
+                org.bukkit.block.Skull skull = (org.bukkit.block.Skull) state;
+                skull.setPlayerProfile(player.getPlayerProfile());
+                skull.update();
+            }
+        }
 
         event.getDrops().clear(); // On empêche les items de tomber par terre
         player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Votre tombe a été placée en " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "."));
@@ -107,13 +143,34 @@ public class TombListener implements Listener {
         }
 
         if (canOpen) {
-            // Rendre l'inventaire
+            // Rendre l'inventaire et auto-équiper si possible
             for (ItemStack item : tomb.getContents()) {
                 if (item != null && item.getType() != Material.AIR) {
-                    if (player.getInventory().firstEmpty() != -1) {
-                        player.getInventory().addItem(item);
-                    } else {
-                        player.getWorld().dropItemNaturally(player.getLocation(), item);
+                    boolean equipped = false;
+                    String type = item.getType().name();
+                    if (type.endsWith("_HELMET") && (player.getInventory().getHelmet() == null || player.getInventory().getHelmet().getType() == Material.AIR)) {
+                        player.getInventory().setHelmet(item);
+                        equipped = true;
+                    } else if (type.endsWith("_CHESTPLATE") && (player.getInventory().getChestplate() == null || player.getInventory().getChestplate().getType() == Material.AIR)) {
+                        player.getInventory().setChestplate(item);
+                        equipped = true;
+                    } else if (type.endsWith("_LEGGINGS") && (player.getInventory().getLeggings() == null || player.getInventory().getLeggings().getType() == Material.AIR)) {
+                        player.getInventory().setLeggings(item);
+                        equipped = true;
+                    } else if (type.endsWith("_BOOTS") && (player.getInventory().getBoots() == null || player.getInventory().getBoots().getType() == Material.AIR)) {
+                        player.getInventory().setBoots(item);
+                        equipped = true;
+                    } else if (type.equals("SHIELD") && (player.getInventory().getItemInOffHand() == null || player.getInventory().getItemInOffHand().getType() == Material.AIR)) {
+                        player.getInventory().setItemInOffHand(item);
+                        equipped = true;
+                    }
+
+                    if (!equipped) {
+                        if (player.getInventory().firstEmpty() != -1) {
+                            player.getInventory().addItem(item);
+                        } else {
+                            player.getWorld().dropItemNaturally(player.getLocation(), item);
+                        }
                     }
                 }
             }
@@ -155,6 +212,42 @@ public class TombListener implements Listener {
             Block block = iterator.next();
             if (module.getTombManager().getTombAt(block.getLocation()) != null) {
                 iterator.remove();
+            }
+        }
+    }
+
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        NamespacedKey key = new NamespacedKey(plugin, "tomb_id");
+        for (Entity entity : event.getChunk().getEntities()) {
+            if (entity.getType() == EntityType.TEXT_DISPLAY && entity.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+                String storedId = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+                try {
+                    UUID id = UUID.fromString(storedId);
+                    TombData tomb = null;
+                    // On ne peut pas faire un module.getTombManager().getTombById() car il n'y a pas cette methode,
+                    // mais on peut le recuperer via tombByLocation si on connait la loc, ou iterer.
+                    // On va juste iterer, c'est au load du chunk donc pas tres grave
+                    // En fait, on a juste besoin de verifier si la tombe existe encore !
+                    Block block = entity.getLocation().clone().subtract(0.5, 1.2, 0.5).getBlock();
+                    tomb = module.getTombManager().getTombAt(block.getLocation());
+                    
+                    if (tomb == null || !tomb.getId().equals(id)) {
+                        entity.remove(); // Ghost hologram, remove it
+                    } else {
+                        // Update it
+                        TextDisplay display = (TextDisplay) entity;
+                        String ownerName = Bukkit.getOfflinePlayer(tomb.getOwnerId()).getName();
+                        if (ownerName == null) ownerName = "Inconnu";
+                        if (tomb.isExpired() && plugin.getConfig().getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase().equals("UNLOCK")) {
+                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
+                        } else {
+                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée"));
+                        }
+                    }
+                } catch (Exception e) {
+                    entity.remove(); // Bad ID
+                }
             }
         }
     }
