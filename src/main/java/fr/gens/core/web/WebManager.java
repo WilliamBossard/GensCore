@@ -38,9 +38,11 @@ public class WebManager {
     }
 
     public void start() {
-        // Extraction des fichiers web s'ils n'existent pas
+        // Extraction des fichiers web s'ils n'existent pas ou si index.html manque
         File webDir = new File(plugin.getDataFolder(), "web");
-        if (!webDir.exists()) {
+        File indexFile = new File(webDir, "index.html");
+        
+        if (!webDir.exists() || !indexFile.exists()) {
             webDir.mkdirs();
             try {
                 java.net.URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
