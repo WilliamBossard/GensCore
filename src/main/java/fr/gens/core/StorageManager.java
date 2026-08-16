@@ -20,7 +20,9 @@ public class StorageManager {
 
     public StorageManager(CorePlugin plugin) {
         this.plugin = plugin;
-        plugin.saveDefaultConfig(); // Sauvegarde config.yml
+        plugin.saveDefaultConfig(); // Sauvegarde config.yml initiale si elle n'existe pas
+        plugin.getConfig().options().copyDefaults(true); // Ajoute automatiquement les nouvelles configurations manquantes
+        plugin.saveConfig(); // Sauvegarde le fichier avec les ajouts
         initDataFile(); // Initialise data.yml
     }
 

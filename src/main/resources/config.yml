@@ -30,7 +30,7 @@ quests:
 modules:
   tomb:
     # Activer ou désactiver le module des tombes
-    enabled: true
+    enabled: false
     # Type de bloc utilisé pour la tombe (ex: CHEST, BARREL, PLAYER_HEAD)
     block_type: CHEST
     # Sauvegarder l'expérience (XP) du joueur dans la tombe ?
