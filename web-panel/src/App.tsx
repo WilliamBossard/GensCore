@@ -1219,7 +1219,7 @@ export function ClientMap() {
   );
 }
 
-function Leaderboard({ isEnabled }: { isEnabled?: boolean }) {
+export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
   const { t } = useTranslation();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
