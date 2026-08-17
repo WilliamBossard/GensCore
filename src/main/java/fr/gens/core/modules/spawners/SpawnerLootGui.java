@@ -36,7 +36,7 @@ public class SpawnerLootGui implements Listener {
 
     public static void openGui(Player player, SpawnerData data, SpawnerModule module, int page) {
         setModule(module);
-        Inventory inv = Bukkit.createInventory(null, 54, "§8Loot: §6" + data.getType() + " §7(Page " + (page + 1) + ")");
+        Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Loot: <gold>" + data.getType()) + " <gray>(Page " + (page + 1) + ")");
 
         int slot = 0;
         int startIndex = page * 45;
@@ -72,14 +72,14 @@ public class SpawnerLootGui implements Listener {
         }
         
         if (page > 0) {
-            inv.setItem(45, createGuiItem(Material.ARROW, "§cPage Précédente"));
+            inv.setItem(45, createGuiItem(Material.ARROW, "<red>Page Précédente"));
         }
         
         if (hasNextPage) {
-            inv.setItem(53, createGuiItem(Material.ARROW, "§aPage Suivante"));
+            inv.setItem(53, createGuiItem(Material.ARROW, "<green>Page Suivante"));
         }
         
-        inv.setItem(49, createGuiItem(Material.BARRIER, "§cRetour au Menu Principal"));
+        inv.setItem(49, createGuiItem(Material.BARRIER, "<red>Retour au Menu Principal"));
 
         guiSnapshots.put(player, snapshot);
         openGuis.put(player, data);
@@ -92,7 +92,7 @@ public class SpawnerLootGui implements Listener {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
+            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
             item.setItemMeta(meta);
         }
         return item;

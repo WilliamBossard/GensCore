@@ -174,7 +174,7 @@ public class EconomyModule implements Module, CommandExecutor, TabCompleter {
                         double bal = rs.getDouble("balance");
                         OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
                         String name = p.getName() != null ? p.getName() : "Inconnu";
-                        sender.sendMessage("§e" + rank + ". §7" + name + " §8- §6" + String.format("%.2f", bal) + " $");
+                        sender.sendMessage("<yellow>" + rank + ". <gray>" + name + " <dark_gray>- <gold>" + String.format("%.2f", bal) + " $");
                         rank++;
                     }
                 } catch (SQLException e) {

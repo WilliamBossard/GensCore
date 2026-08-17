@@ -50,6 +50,6 @@ public class ShopModule implements Module, Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!enabled) return; // Sécurité supplémentaire
-        event.getPlayer().sendMessage("§aLe Shop est actuellement ouvert !");
+        event.getPlayer().sendMessage("<green>Le Shop est actuellement ouvert !");
     }
 }

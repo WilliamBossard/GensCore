@@ -35,8 +35,8 @@ public class MotdModule implements Module, Listener {
     public void enable() {
         enabled = true;
         if (!plugin.getConfig().contains("motd.line1")) {
-            plugin.getConfig().set("motd.line1", "&3&lLe Serveur Des Gens Bien");
-            plugin.getConfig().set("motd.line2", "&7&l>> &eSaison 4 &7&l- &bdiscord.gg/gensbien");
+            plugin.getConfig().set("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien");
+            plugin.getConfig().set("motd.line2", "<gray><bold>>> <yellow>Saison 4 <gray><bold>- <aqua>discord.gg/gensbien");
             plugin.saveConfig();
         }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -53,7 +53,7 @@ public class MotdModule implements Module, Listener {
     public void onServerPing(ServerListPingEvent event) {
         if (!enabled) return;
 
-        String line1 = plugin.getConfig().getString("motd.line1", "&3&lLe Serveur Des Gens Bien");
+        String line1 = plugin.getConfig().getString("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien");
         String line2 = plugin.getConfig().getString("motd.line2", "");
 
         String fullMotdStr = line1 + "\n" + line2;
@@ -68,7 +68,7 @@ public class MotdModule implements Module, Listener {
         } catch (Throwable ignored) {}
 
         // Fallback for non-Paper environments or older versions
-        String fullMotd = ChatColor.translateAlternateColorCodes('&', fullMotdStr);
+        String fullMotd = fullMotdStr;
         event.setMotd(fullMotd);
     }
 }

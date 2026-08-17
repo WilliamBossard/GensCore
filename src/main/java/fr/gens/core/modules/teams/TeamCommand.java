@@ -56,7 +56,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             if (newTeam == null) {
                 plugin.getLangManager().sendMessage(player, "teamcommand.msg_4");
             } else {
-                player.sendMessage("§aGuilde " + name + " créée avec succès !");
+                player.sendMessage("<green>Guilde " + name + " créée avec succès !");
             }
             return true;
         }
@@ -80,9 +80,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             invites.put(target.getUniqueId(), player.getUniqueId());
-            target.sendMessage("§aVous avez reçu une invitation pour rejoindre la guilde §e" + team.getName() + "§a !");
+            target.sendMessage("<green>Vous avez reçu une invitation pour rejoindre la guilde <yellow>" + team.getName() + "<green> !");
             plugin.getLangManager().sendMessage(target, "teamcommand.msg_9");
-            player.sendMessage("§aInvitation envoyée à " + target.getName());
+            player.sendMessage("<green>Invitation envoyée à " + target.getName());
             return true;
         }
 
@@ -99,7 +99,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             TeamData leaderTeam = plugin.getTeamManager().getPlayerTeam(leaderUuid);
             if (leaderTeam != null) {
                 plugin.getTeamManager().addMember(leaderTeam, player.getUniqueId());
-                leaderTeam.broadcast("§e" + player.getName() + " §aa rejoint la guilde !");
+                leaderTeam.broadcast("<yellow>" + player.getName() + " <green>a rejoint la guilde !");
             } else {
                 plugin.getLangManager().sendMessage(player, "teamcommand.msg_12");
             }

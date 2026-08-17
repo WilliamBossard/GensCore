@@ -259,7 +259,7 @@ public class ShopModule implements Module, CommandExecutor {
     public void openCategoryGui(Player player) {
         ShopCategoryGuiHolder holder = new ShopCategoryGuiHolder();
         int size = Math.max(9, (int) (Math.ceil(categories.size() / 9.0) * 9));
-        Inventory inv = Bukkit.createInventory(holder, size, "§8Boutique - Catégories");
+        Inventory inv = Bukkit.createInventory(holder, size, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Boutique - Catégories"));
         holder.setInventory(inv);
 
         for (int i = 0; i < categories.size(); i++) {
@@ -267,11 +267,11 @@ public class ShopModule implements Module, CommandExecutor {
             ItemStack item = new ItemStack(cat.getIcon());
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName("§a§l" + cat.getDisplayName());
+                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>" + cat.getDisplayName()));
                 List<String> lore = new ArrayList<>();
-                lore.add("§7" + cat.getItems().size() + " objets disponibles.");
-                lore.add("§eCliquez pour ouvrir !");
-                meta.setLore(lore);
+                lore.add("<gray>" + cat.getItems().size() + " objets disponibles.");
+                lore.add("<yellow>Cliquez pour ouvrir !");
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                 item.setItemMeta(meta);
             }
             inv.setItem(i, item);
@@ -282,7 +282,7 @@ public class ShopModule implements Module, CommandExecutor {
 
     public void openItemsGui(Player player, ShopCategory category) {
         ShopItemsGuiHolder holder = new ShopItemsGuiHolder(category);
-        Inventory inv = Bukkit.createInventory(holder, 54, "§8Shop - " + category.getDisplayName());
+        Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Shop - " + category.getDisplayName()));
         holder.setInventory(inv);
 
         int slot = 0;
@@ -292,26 +292,26 @@ public class ShopModule implements Module, CommandExecutor {
             ItemStack i = new ItemStack(item.getMaterial());
             ItemMeta meta = i.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName("§f§l" + item.getMaterial().name());
+                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<white><bold>" + item.getMaterial().name()));
                 List<String> lore = new ArrayList<>();
-                lore.add("§8Prix Dynamique (Inflation)");
+                lore.add("<dark_gray>Prix Dynamique (Inflation)");
                 lore.add("");
                 if (item.isCommand()) {
-                lore.add("§a▶ Achat Unique : §e" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
-                lore.add("§8(Exécute une commande sur votre compte)");
+                lore.add("<green>▶ Achat Unique : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
+                lore.add("<dark_gray>(Exécute une commande sur votre compte)");
                 lore.add("");
-                lore.add("§eClic Gauche pour Acheter");
+                lore.add("<yellow>Clic Gauche pour Acheter");
             } else {
-                lore.add("§a▶ Achat (x1) : §e" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
-                lore.add("§c◀ Vente (x1) : §e" + String.format("%.2f", item.getCurrentSellPrice()) + " $");
+                lore.add("<green>▶ Achat (x1) : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
+                lore.add("<red>◀ Vente (x1) : <yellow>" + String.format("%.2f", item.getCurrentSellPrice()) + " $");
                 lore.add("");
-                lore.add("§7Stock du Serveur: " + item.getStock() + " (Cible: " + item.getTargetStock() + ")");
+                lore.add("<gray>Stock du Serveur: " + item.getStock() + " (Cible: " + item.getTargetStock() + ")");
                 lore.add("");
-                lore.add("§eClic Gauche pour Acheter");
-                lore.add("§eClic Droit pour Vendre");
-                lore.add("§8(Shift pour x64)");
+                lore.add("<yellow>Clic Gauche pour Acheter");
+                lore.add("<yellow>Clic Droit pour Vendre");
+                lore.add("<dark_gray>(Shift pour x64)");
             }
-                meta.setLore(lore);
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                 i.setItemMeta(meta);
             }
             inv.setItem(slot++, i);
@@ -320,7 +320,7 @@ public class ShopModule implements Module, CommandExecutor {
         // Bouton retour
         ItemStack back = new ItemStack(Material.BARRIER);
         ItemMeta backMeta = back.getItemMeta();
-        backMeta.setDisplayName("§c§lRetour aux catégories");
+        backMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red><bold>Retour aux catégories"));
         back.setItemMeta(backMeta);
         inv.setItem(49, back);
 
@@ -384,10 +384,10 @@ public class ShopModule implements Module, CommandExecutor {
                         if (shopItem.isCommand()) {
                             String cmd = shopItem.getCommandToExecute().replace("%player%", p.getName());
                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                            p.sendMessage("§aAchat validé ! Vous avez obtenu le contenu de §e" + shopItem.getMaterial().name());
+                            p.sendMessage("<green>Achat validé ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name());
                         } else {
                             p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
-                            p.sendMessage("§aAchat de " + amount + "x " + shopItem.getMaterial().name() + " pour §e" + String.format("%.2f", totalCost) + " $");
+                            p.sendMessage("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $");
                         }
                         
                         openItemsGui(p, category); // Refresh
@@ -433,7 +433,7 @@ public class ShopModule implements Module, CommandExecutor {
                         // Modifier le stock (augmente car les joueurs vendent au serveur)
                         shopItem.setStock(shopItem.getStock() + amount);
                         
-                        p.sendMessage("§aVente de " + amount + "x " + shopItem.getMaterial().name() + " pour §e" + String.format("%.2f", totalEarn) + " $");
+                        p.sendMessage("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $");
                         openItemsGui(p, category); // Refresh
                         saveShop();
                         logTransaction(shopItem);

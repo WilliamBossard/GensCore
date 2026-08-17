@@ -272,7 +272,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
     private void openHomeGui(Player player) {
         HomeGuiHolder holder = new HomeGuiHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27, "§8Mes Homes (" + homes.getOrDefault(player.getUniqueId(), new HashMap<>()).size() + "/" + getMaxHomes(player) + ")");
+        Inventory inv = Bukkit.createInventory(holder, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId()), new HashMap<>()).size() + "/" + getMaxHomes(player) + ")");
         holder.setInventory(inv);
 
         Map<String, Location> playerHomes = homes.getOrDefault(player.getUniqueId(), new HashMap<>());
@@ -282,10 +282,10 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
             ItemStack item = new ItemStack(Material.WHITE_BED);
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.setDisplayName("§a§l" + homeName);
+                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>" + homeName));
                 List<String> lore = new ArrayList<>();
-                lore.add("§7Cliquez pour Gérer ce Home");
-                meta.setLore(lore);
+                lore.add("<gray>Cliquez pour Gérer ce Home");
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                 item.setItemMeta(meta);
             }
             inv.setItem(slot++, item);
@@ -315,7 +315,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
             if (clicked == null || clicked.getType() != Material.WHITE_BED) return;
             if (clicked.getItemMeta() == null) return;
 
-            String homeName = clicked.getItemMeta().getDisplayName().replace("§a§l", "");
+            String homeName = clicked.getItemMeta().getDisplayName().replace("<green><bold>", "");
             Map<String, Location> playerHomes = homes.get(p.getUniqueId());
             
             if (playerHomes != null && playerHomes.containsKey(homeName)) {
@@ -326,27 +326,27 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
     private void openConfirmGui(Player player, String homeName) {
         ConfirmHomeGuiHolder holder = new ConfirmHomeGuiHolder(homeName);
-        Inventory inv = Bukkit.createInventory(holder, 9, "§8Gestion: " + homeName);
+        Inventory inv = Bukkit.createInventory(holder, 9, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Gestion: " + homeName));
         holder.setInventory(inv);
 
         // Bloc vert (Téléportation)
         ItemStack tpItem = new ItemStack(Material.LIME_CONCRETE);
         ItemMeta tpMeta = tpItem.getItemMeta();
-        tpMeta.setDisplayName("§a§lSe Téléporter");
+        tpMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>Se Téléporter"));
         tpItem.setItemMeta(tpMeta);
         inv.setItem(2, tpItem);
 
         // Bloc rouge (Suppression)
         ItemStack delItem = new ItemStack(Material.RED_CONCRETE);
         ItemMeta delMeta = delItem.getItemMeta();
-        delMeta.setDisplayName("§c§lSupprimer");
+        delMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red><bold>Supprimer"));
         delItem.setItemMeta(delMeta);
         inv.setItem(6, delItem);
 
         // Bouton retour
         ItemStack backItem = new ItemStack(Material.BARRIER);
         ItemMeta backMeta = backItem.getItemMeta();
-        backMeta.setDisplayName("§e§lRetour aux Homes");
+        backMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow><bold>Retour aux Homes"));
         backItem.setItemMeta(backMeta);
         inv.setItem(8, backItem);
 
@@ -389,7 +389,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
                 if (playerHomes != null) {
                     playerHomes.remove(homeName);
                     deleteHomeFromDB(p.getUniqueId(), homeName);
-                    p.sendMessage("§cHome " + homeName + " supprimé.");
+                    p.sendMessage("<red>Home " + homeName + " supprimé.");
                 }
                 openHomeGui(p);
             } else if (clicked.getType() == Material.BARRIER) {

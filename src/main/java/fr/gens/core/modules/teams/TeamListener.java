@@ -72,11 +72,11 @@ public class TeamListener implements Listener {
         }
     }
     private void openTeamQuestGui(Player player, TeamData team) {
-        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, "§9§lQuête de Guilde");
+        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<blue><bold>Quête de Guilde"));
         
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.setDisplayName(" ");
+        glassMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
         
@@ -84,29 +84,29 @@ public class TeamListener implements Listener {
         if (tqm != null) {
             ItemStack questItem = new ItemStack(Material.NETHER_STAR);
             org.bukkit.inventory.meta.ItemMeta qmeta = questItem.getItemMeta();
-            qmeta.setDisplayName("§6§lQuête Hebdomadaire");
+            qmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>Quête Hebdomadaire"));
             java.util.List<String> lore = new java.util.ArrayList<>();
-            lore.add("§7" + tqm.getDesc());
+            lore.add("<gray>" + tqm.getDesc());
             lore.add("");
             int progress = tqm.getProgress(team.getTeamId());
             int goal = tqm.getGoal();
             if (progress >= goal) {
-                lore.add("§a§lTERMINÉE !");
+                lore.add("<green><bold>TERMINÉE !");
             } else {
-                lore.add("§eProgression: §f" + progress + " §e/ §f" + goal);
+                lore.add("<yellow>Progression: <white>" + progress + " <yellow>/ <white>" + goal);
             }
-            qmeta.setLore(lore);
+            qmeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             questItem.setItemMeta(qmeta);
             inv.setItem(13, questItem);
             
             // Add points info
             ItemStack pointsItem = new ItemStack(Material.SUNFLOWER);
             org.bukkit.inventory.meta.ItemMeta pmeta = pointsItem.getItemMeta();
-            pmeta.setDisplayName("§ePoints de Guilde");
+            pmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Points de Guilde"));
             java.util.List<String> plore = new java.util.ArrayList<>();
-            plore.add("§7Hebdomadaire : §f" + team.getWeeklyPoints());
-            plore.add("§7Total : §f" + team.getTotalPoints());
-            pmeta.setLore(plore);
+            plore.add("<gray>Hebdomadaire : <white>" + team.getWeeklyPoints());
+            plore.add("<gray>Total : <white>" + team.getTotalPoints());
+            pmeta.lore(java.util.Optional.ofNullable(plore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             pointsItem.setItemMeta(pmeta);
             inv.setItem(22, pointsItem);
         }

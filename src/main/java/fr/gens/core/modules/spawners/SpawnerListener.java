@@ -64,7 +64,7 @@ public class SpawnerListener implements Listener {
             int storageLvl = meta.getPersistentDataContainer().getOrDefault(storageKey, PersistentDataType.INTEGER, 0);
             
             if (!module.getSpawnerManager().isValidType(type)) {
-                event.getPlayer().sendMessage("§cType de spawner invalide.");
+                event.getPlayer().sendMessage("<red>Type de spawner invalide.");
                 return;
             }
             
@@ -75,7 +75,7 @@ public class SpawnerListener implements Listener {
             data.setLastInteractedPlayer(event.getPlayer().getName());
             module.addSpawner(data);
             
-            event.getPlayer().sendMessage("§aSpawner GensCore posé !");
+            event.getPlayer().sendMessage("<green>Spawner GensCore posé !");
             
             // Set vanilla spawner type just for visuals
             try {
@@ -222,7 +222,7 @@ public class SpawnerListener implements Listener {
                         int spaceLeft = maxStack - data.getStackCount();
                         
                         if (spaceLeft < itemInternalStack) {
-                            player.sendMessage("§cPas assez de place dans ce spawner pour ajouter cette pile de " + itemInternalStack + " spawner(s). (Espace libre: " + spaceLeft + ")");
+                            player.sendMessage("<red>Pas assez de place dans ce spawner pour ajouter cette pile de " + itemInternalStack + " spawner(s). (Espace libre: " + spaceLeft + ")");
                             return;
                         }
                         
@@ -249,7 +249,7 @@ public class SpawnerListener implements Listener {
                         data.setLastInteractedPlayer(player.getName());
                         
                         module.getSpawnerManager().updateHologram(data);
-                        player.sendMessage("§aVous avez ajouté " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")");
+                        player.sendMessage("<green>Vous avez ajouté " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")");
                         return;
                     } else {
                         plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_9");

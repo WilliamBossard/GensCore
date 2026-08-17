@@ -29,13 +29,13 @@ public class SpawnerGui implements Listener {
     }
 
     public static void openGui(Player player, SpawnerData data) {
-        Inventory inv = Bukkit.createInventory(null, 45, "§8Gestion: §6" + data.getType());
+        Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Gestion: <gold>" + data.getType()));
 
         // Vitres de décoration
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
         if (glassMeta != null) {
-            glassMeta.setDisplayName(" ");
+            glassMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" "));
             glass.setItemMeta(glassMeta);
         }
         for (int i = 0; i < 45; i++) {
@@ -46,11 +46,11 @@ public class SpawnerGui implements Listener {
         ItemStack info = new ItemStack(Material.SPAWNER);
         ItemMeta infoMeta = info.getItemMeta();
         if (infoMeta != null) {
-            infoMeta.setDisplayName("§6§l" + data.getType());
+            infoMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>" + data.getType()));
             List<String> lore = new ArrayList<>();
-            lore.add("§7Stack: §f" + data.getStackCount());
-            lore.add("§7Dernier accès: §f" + data.getLastInteractedPlayer());
-            infoMeta.setLore(lore);
+            lore.add("<gray>Stack: <white>" + data.getStackCount());
+            lore.add("<gray>Dernier accès: <white>" + data.getLastInteractedPlayer());
+            infoMeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             info.setItemMeta(infoMeta);
         }
         inv.setItem(4, info);
@@ -59,12 +59,12 @@ public class SpawnerGui implements Listener {
         ItemStack xpBtn = new ItemStack(Material.EXPERIENCE_BOTTLE);
         ItemMeta xpMeta = xpBtn.getItemMeta();
         if (xpMeta != null) {
-            xpMeta.setDisplayName("§a§lRécupérer l'XP");
+            xpMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>Récupérer l'XP"));
             List<String> lore = new ArrayList<>();
-            lore.add("§7XP Actuelle: §a" + data.getStoredExp() + " / " + moduleInstance.getSpawnerManager().getMaxStorageExp(data.getExpLevel()));
+            lore.add("<gray>XP Actuelle: <green>" + data.getStoredExp() + " / " + moduleInstance.getSpawnerManager().getMaxStorageExp(data.getExpLevel()));
             lore.add("");
-            lore.add("§eCliquez pour récupérer");
-            xpMeta.setLore(lore);
+            lore.add("<yellow>Cliquez pour récupérer");
+            xpMeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             xpBtn.setItemMeta(xpMeta);
         }
         inv.setItem(20, xpBtn);
@@ -73,13 +73,13 @@ public class SpawnerGui implements Listener {
         ItemStack itemsBtn = new ItemStack(Material.CHEST);
         ItemMeta itemsMeta = itemsBtn.getItemMeta();
         if (itemsMeta != null) {
-            itemsMeta.setDisplayName("§6§lStockage d'objets");
+            itemsMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>Stockage d'objets"));
             int totalItems = data.getStoredItems().values().stream().mapToInt(Integer::intValue).sum();
             List<String> lore = new ArrayList<>();
-            lore.add("§7Items Actuels: §e" + totalItems + " / " + moduleInstance.getSpawnerManager().getMaxStorageItems(data.getStorageLevel()));
+            lore.add("<gray>Items Actuels: <yellow>" + totalItems + " / " + moduleInstance.getSpawnerManager().getMaxStorageItems(data.getStorageLevel()));
             lore.add("");
-            lore.add("§eCliquez pour ouvrir le coffre");
-            itemsMeta.setLore(lore);
+            lore.add("<yellow>Cliquez pour ouvrir le coffre");
+            itemsMeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             itemsBtn.setItemMeta(itemsMeta);
         }
         inv.setItem(24, itemsBtn);
@@ -100,22 +100,22 @@ public class SpawnerGui implements Listener {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§b§lAméliorer " + name);
+            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua><bold>Améliorer " + name));
             List<String> lore = new ArrayList<>();
-            lore.add("§7Niveau actuel: §f" + currentLevel);
+            lore.add("<gray>Niveau actuel: <white>" + currentLevel);
             if (currentLevel >= 10) {
-                lore.add("§c§lNIVEAU MAX !");
+                lore.add("<red><bold>NIVEAU MAX !");
             } else {
-                lore.add("§7Niveau suivant: §f" + (currentLevel + 1));
+                lore.add("<gray>Niveau suivant: <white>" + (currentLevel + 1));
                 lore.add("");
                 if (ecoEnabled) {
-                    lore.add("§7Coût: §6" + getUpgradeCost(currentLevel) + "$");
+                    lore.add("<gray>Coût: <gold>" + getUpgradeCost(currentLevel) + "$");
                 } else {
-                    lore.add("§7Coût: §a" + getUpgradeXpCost(currentLevel) + " Niveaux");
+                    lore.add("<gray>Coût: <green>" + getUpgradeXpCost(currentLevel) + " Niveaux");
                 }
-                lore.add("§eCliquez pour améliorer !");
+                lore.add("<yellow>Cliquez pour améliorer !");
             }
-            meta.setLore(lore);
+            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             item.setItemMeta(meta);
         }
         return item;
@@ -158,7 +158,7 @@ public class SpawnerGui implements Listener {
             // XP
             if (data.getStoredExp() > 0) {
                 player.giveExp(data.getStoredExp());
-                player.sendMessage("§aVous avez récupéré " + data.getStoredExp() + " points d'expérience !");
+                player.sendMessage("<green>Vous avez récupéré " + data.getStoredExp() + " points d'expérience !");
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                 data.setStoredExp(0);
                 moduleInstance.getSpawnerManager().updateHologram(data);
@@ -203,18 +203,18 @@ public class SpawnerGui implements Listener {
             if (eco.getBalance(player.getUniqueId()) >= cost) {
                 eco.takeMoney(player.getUniqueId(), cost);
                 applyUpgrade(player, data, type, currentLevel);
-                player.sendMessage("§aAmélioration effectuée pour " + cost + "$ !");
+                player.sendMessage("<green>Amélioration effectuée pour " + cost + "$ !");
             } else {
-                player.sendMessage("§cVous n'avez pas assez d'argent ! (" + cost + "$ nécessaires)");
+                player.sendMessage("<red>Vous n'avez pas assez d'argent ! (" + cost + "$ nécessaires)");
             }
         } else {
             int xpCost = getUpgradeXpCost(currentLevel);
             if (player.getLevel() >= xpCost) {
                 player.setLevel(player.getLevel() - xpCost);
                 applyUpgrade(player, data, type, currentLevel);
-                player.sendMessage("§aAmélioration effectuée pour " + xpCost + " niveaux !");
+                player.sendMessage("<green>Amélioration effectuée pour " + xpCost + " niveaux !");
             } else {
-                player.sendMessage("§cVous n'avez pas assez de niveaux ! (" + xpCost + " nécessaires)");
+                player.sendMessage("<red>Vous n'avez pas assez de niveaux ! (" + xpCost + " nécessaires)");
             }
         }
     }

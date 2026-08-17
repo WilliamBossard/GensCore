@@ -105,7 +105,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
                     return true;
                 }
                 p.openInventory(target.getEnderChest());
-                p.sendMessage("§aVous regardez l'enderchest de §e" + target.getName() + "§a.");
+                p.sendMessage("<green>Vous regardez l'enderchest de <yellow>" + target.getName() + "<green>.");
             } else {
                 p.openInventory(p.getEnderChest());
             }

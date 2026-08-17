@@ -86,7 +86,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
                 ConfigurationSection settings = config.getConfigurationSection("menu-settings");
                 if (settings == null) continue;
 
-                String title = ChatColor.translateAlternateColorCodes('&', settings.getString("name", "Menu"));
+                String title = settings.getString("name", "Menu");
                 int rows = settings.getInt("rows", 3);
                 String customCommand = settings.getString("command");
                 
@@ -143,9 +143,9 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             String itemName = section.getString("name");
-            if (itemName != null) meta.setDisplayName(itemName);
+            if (itemName != null) meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(itemName));
             List<String> lore = section.getStringList("lore");
-            if (lore != null && !lore.isEmpty()) meta.setLore(lore);
+            if (lore != null && !lore.isEmpty()) meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             item.setItemMeta(meta);
         }
         return item;
@@ -165,14 +165,14 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         if (menu != null) {
             openMenu(p, menu);
         } else {
-            p.sendMessage("§cMenu introuvable : " + menuName);
+            p.sendMessage("<red>Menu introuvable : " + menuName);
         }
         return true;
     }
 
     public void openMenu(Player player, CustomMenu menu) {
         String parsedTitle = PlaceholderUtils.setPlaceholders(plugin, player, menu.getTitle());
-        Inventory inv = Bukkit.createInventory(null, menu.getSize(), parsedTitle);
+        Inventory inv = Bukkit.createInventory(null, menu.getSize(), net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(parsedTitle));
 
         for (Map.Entry<Integer, CustomMenu.MenuItem> entry : menu.getItems().entrySet()) {
             CustomMenu.MenuItem mi = entry.getValue();
@@ -192,7 +192,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
             if (meta != null) {
                 if (meta.hasDisplayName()) {
                     String name = PlaceholderUtils.setPlaceholders(plugin, player, meta.getDisplayName());
-                    meta.setDisplayName(name);
+                    meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
                 }
                 if (meta.hasLore()) {
                     List<String> newLore = new ArrayList<>();
@@ -202,7 +202,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
                             newLore.add(parsedLine);
                         }
                     }
-                    meta.setLore(newLore);
+                    meta.lore(java.util.Optional.ofNullable(newLore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                 }
                 item.setItemMeta(meta);
             }

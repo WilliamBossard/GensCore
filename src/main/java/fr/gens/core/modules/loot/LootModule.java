@@ -48,10 +48,10 @@ public class LootModule implements Module, Listener {
     private boolean preventBreak = false;
     private boolean particlesEnabled = true;
     private int breakConfirmTime = 3;
-    private String breakConfirmMsg = "§eCasse-le encore une fois dans les 3 secondes pour confirmer !";
-    private String chestBrokenMsg = "§aCoffre Lootr retiré !";
-    private String cannotBreakMsg = "§cTu ne peux pas casser ce coffre !";
-    private String inventoryTitle = "§8[§6§8] §eCoffre à Butin";
+    private String breakConfirmMsg = "<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !";
+    private String chestBrokenMsg = "<green>Coffre Lootr retiré !";
+    private String cannotBreakMsg = "<red>Tu ne peux pas casser ce coffre !";
+    private String inventoryTitle = "<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin";
 
     public LootModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -95,10 +95,10 @@ public class LootModule implements Module, Listener {
             config.set("lootr.prevent-break", false);
             config.set("lootr.particles-enabled", true);
             config.set("lootr.break-confirm-time", 3);
-            config.set("lootr.messages.break-confirm", "&eCasse-le encore une fois dans les 3 secondes pour confirmer !");
-            config.set("lootr.messages.chest-broken", "&aCoffre Lootr retiré !");
-            config.set("lootr.messages.cannot-break", "&cTu ne peux pas casser ce coffre !");
-            config.set("lootr.inventory.title", "&8[&6&8] &eCoffre à Butin");
+            config.set("lootr.messages.break-confirm", "<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !");
+            config.set("lootr.messages.chest-broken", "<green>Coffre Lootr retiré !");
+            config.set("lootr.messages.cannot-break", "<red>Tu ne peux pas casser ce coffre !");
+            config.set("lootr.inventory.title", "<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin");
             plugin.saveConfig();
         }
         
@@ -193,7 +193,7 @@ public class LootModule implements Module, Listener {
         LootManager.LootChestData data = lootManager.getLootChestData(loc);
         if (data == null) return;
 
-        Inventory inv = Bukkit.createInventory(null, data.getSize(), inventoryTitle);
+        Inventory inv = Bukkit.createInventory(null, data.getSize(), net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(inventoryTitle));
         boolean hasLootedBefore = lootManager.hasPlayerLooted(p.getUniqueId(), loc);
 
         if (hasLootedBefore) {

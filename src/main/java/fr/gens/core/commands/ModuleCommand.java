@@ -23,12 +23,12 @@ public class ModuleCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.isOp() && !sender.hasPermission("genscore.admin")) {
-            sender.sendMessage(ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande.");
+            sender.sendMessage("<red>" + "Vous n'avez pas la permission d'utiliser cette commande.");
             return true;
         }
 
         if (args.length != 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /module <nom_du_module> <on|off>");
+            sender.sendMessage("<red>" + "Usage: /module <nom_du_module> <on|off>");
             return true;
         }
 
@@ -37,7 +37,7 @@ public class ModuleCommand implements CommandExecutor, TabCompleter {
 
         Module module = plugin.getModuleManager().getModule(moduleName);
         if (module == null) {
-            sender.sendMessage(ChatColor.RED + "Module introuvable: " + moduleName);
+            sender.sendMessage("<red>" + "Module introuvable: " + moduleName);
             return true;
         }
 
@@ -47,21 +47,21 @@ public class ModuleCommand implements CommandExecutor, TabCompleter {
         } else if (action.equals("off") || action.equals("disable")) {
             state = false;
         } else {
-            sender.sendMessage(ChatColor.RED + "L'action doit être 'on' ou 'off'.");
+            sender.sendMessage("<red>" + "L'action doit être 'on' ou 'off'.");
             return true;
         }
 
         if (module.isEnabled() == state) {
-            sender.sendMessage(ChatColor.YELLOW + "Le module " + module.getName() + " est déjà sur ce statut.");
+            sender.sendMessage("<yellow>" + "Le module " + module.getName() + " est déjà sur ce statut.");
             return true;
         }
 
         boolean success = plugin.getModuleManager().toggleModule(moduleName, state);
         if (success) {
-            String stateStr = state ? ChatColor.GREEN + "ACTIVÉ" : ChatColor.RED + "DÉSACTIVÉ";
-            sender.sendMessage(ChatColor.GREEN + "Le module " + ChatColor.GOLD + module.getName() + ChatColor.GREEN + " a été " + stateStr + ChatColor.GREEN + ".");
+            String stateStr = state ? "<green>" + "ACTIVÉ" : "<red>" + "DÉSACTIVÉ";
+            sender.sendMessage("<green>" + "Le module " + "<gold>" + module.getName() + "<green>" + " a été " + stateStr + "<green>" + ".");
         } else {
-            sender.sendMessage(ChatColor.RED + "Une erreur est survenue lors du changement de statut.");
+            sender.sendMessage("<red>" + "Une erreur est survenue lors du changement de statut.");
         }
 
         return true;

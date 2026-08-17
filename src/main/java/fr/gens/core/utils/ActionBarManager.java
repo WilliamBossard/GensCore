@@ -59,7 +59,7 @@ public class ActionBarManager {
                 if (combined == null) {
                     combined = msg.getComponent();
                 } else {
-                    combined = combined.append(Component.text(" §8| ")).append(msg.getComponent());
+                    combined = combined.append(Component.text(" <dark_gray>| ")).append(msg.getComponent());
                 }
             }
         }

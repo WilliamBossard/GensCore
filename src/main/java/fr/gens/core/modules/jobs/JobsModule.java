@@ -215,7 +215,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             playerLevel.get(uuid).put(type, currentLevel);
             leveledUp = true;
             
-            player.sendMessage("§8[§6Métiers§8] §aVous passez niveau §f" + currentLevel + " §adans le métier " + type.getColor() + type.getDisplayName() + " §a!");
+            player.sendMessage("<dark_gray>[<gold>Métiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le métier " + type.getColor() + type.getDisplayName() + " <green>!");
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
             
             // Récompenses de Level Up (Battle Pass)
@@ -223,7 +223,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null && eco.isEnabled()) {
                 eco.addMoney(uuid, reward);
-                player.sendMessage("§8[§6Métiers§8] §7Vous avez reçu §a" + reward + "$ §7!");
+                player.sendMessage("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reçu <green>" + reward + "$ <gray>!");
             }
             
             // Récompenses Objets selon le palier
@@ -235,7 +235,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         // Action Bar Manager
         String formattedXp = String.format("%.1f", currentXp);
         String formattedNext = String.format("%.1f", nextXp);
-        Component msg = Component.text("§8[" + type.getColor() + type.getDisplayName() + "§8] §f" + formattedXp + " §7/ " + formattedNext + " XP");
+        Component msg = Component.text("<dark_gray>[" + type.getColor() + type.getDisplayName() + "<dark_gray>] <white>" + formattedXp + " <gray>/ " + formattedNext + " XP");
         plugin.getActionBarManager().sendMessage(player, "jobs", msg, 40);
     }
     
@@ -251,7 +251,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             mat = r.nextBoolean() ? Material.DIAMOND : Material.EMERALD;
         }
         player.getInventory().addItem(new ItemStack(mat, amount));
-        player.sendMessage("§8[§6Métiers§8] §7Vous avez reçu §e" + amount + "x " + mat.name() + " §7!");
+        player.sendMessage("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reçu <yellow>" + amount + "x " + mat.name() + " <gray>!");
     }
 
     @Override

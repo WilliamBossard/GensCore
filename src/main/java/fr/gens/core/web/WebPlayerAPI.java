@@ -63,7 +63,7 @@ public class WebPlayerAPI implements Listener {
             plugin.getStorageManager().getConfig().set("wheel.rewards.4.color", "#8b5cf6");
 
             plugin.getStorageManager().getConfig().set("wheel.rewards.5.name", "Spawner à Vache");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.5.command", "give %player% spawner 1 name:&eSpawner_à_Vache");
+            plugin.getStorageManager().getConfig().set("wheel.rewards.5.command", "give %player% spawner 1 name:<yellow>Spawner_à_Vache");
             plugin.getStorageManager().getConfig().set("wheel.rewards.5.chance", 1);
             plugin.getStorageManager().getConfig().set("wheel.rewards.5.color", "#ef4444");
             
@@ -430,7 +430,7 @@ public class WebPlayerAPI implements Listener {
             if (target != null && target.isOnline()) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), rewardCommand.replace("%player%", target.getName()));
-                    target.sendMessage("§a[Web] " + rewardMessage);
+                    target.sendMessage("<green>[Web] " + rewardMessage);
                 });
             } else {
                 try (Connection conn = plugin.getDatabaseManager().getConnection();
@@ -515,7 +515,7 @@ public class WebPlayerAPI implements Listener {
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
                         if (message != null && !message.isEmpty()) {
-                            player.sendMessage("§a[Web] " + message);
+                            player.sendMessage("<green>[Web] " + message);
                         }
                     });
                     

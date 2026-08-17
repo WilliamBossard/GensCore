@@ -96,7 +96,7 @@ public class TeleportTpaModule implements Module, CommandExecutor {
 
             tpaRequests.put(target.getUniqueId(), p.getUniqueId());
             
-            p.sendMessage("§aDemande de téléportation envoyée à §e" + target.getName() + "§a.");
+            p.sendMessage("<green>Demande de téléportation envoyée à <yellow>" + target.getName() + "<green>.");
             
             Component acceptBtn = Component.text("[Accepter] ")
                     .color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD)
@@ -106,15 +106,15 @@ public class TeleportTpaModule implements Module, CommandExecutor {
                     .color(NamedTextColor.RED).decorate(TextDecoration.BOLD)
                     .clickEvent(ClickEvent.runCommand("/tpdeny"));
 
-            target.sendMessage(Component.text("§e" + p.getName() + " §asouhaite se téléporter à vous."));
+            target.sendMessage(Component.text("<yellow>" + p.getName() + " <green>souhaite se téléporter à vous."));
             target.sendMessage(acceptBtn.append(denyBtn));
 
             // Expiration après 60 secondes
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 if (tpaRequests.containsKey(target.getUniqueId()) && tpaRequests.get(target.getUniqueId()).equals(p.getUniqueId())) {
                     tpaRequests.remove(target.getUniqueId());
-                    p.sendMessage("§cVotre demande de téléportation vers §e" + target.getName() + " §ca expiré.");
-                    target.sendMessage("§cLa demande de téléportation de §e" + p.getName() + " §ca expiré.");
+                    p.sendMessage("<red>Votre demande de téléportation vers <yellow>" + target.getName() + " <red>a expiré.");
+                    target.sendMessage("<red>La demande de téléportation de <yellow>" + p.getName() + " <red>a expiré.");
                 }
             }, 20 * 60L);
             return true;
@@ -130,7 +130,7 @@ public class TeleportTpaModule implements Module, CommandExecutor {
             Player requester = Bukkit.getPlayer(requesterId);
             if (requester != null && requester.isOnline()) {
                 plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_7");
-                requester.sendMessage("§aDemande acceptée par §e" + p.getName() + "§a. Téléportation...");
+                requester.sendMessage("<green>Demande acceptée par <yellow>" + p.getName() + "<green>. Téléportation...");
                 TeleportUtil.teleportWithCooldown(requester, p.getLocation(), p.getName(), "genscore.bypass.cooldown.tpa");
             } else {
                 plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_8");
@@ -148,7 +148,7 @@ public class TeleportTpaModule implements Module, CommandExecutor {
             Player requester = Bukkit.getPlayer(requesterId);
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_10");
             if (requester != null && requester.isOnline()) {
-                requester.sendMessage("§cDemande refusée par §e" + p.getName() + "§c.");
+                requester.sendMessage("<red>Demande refusée par <yellow>" + p.getName() + "<red>.");
             }
             return true;
         }

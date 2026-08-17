@@ -286,14 +286,14 @@ public class SpawnerManager {
         
         String text;
         if (!module.isEnabled()) {
-            text = "§c§lSpawner Désactivé\n§7(Les productions sont suspendues)";
+            text = "<red><bold>Spawner Désactivé\n<gray>(Les productions sont suspendues)";
         } else if (data.isLootChest()) {
-            text = "§e§lCoffre de Récupération\n" +
-                   (totalItems == 0 && data.getStoredExp() == 0 ? "§cVide" : "§fStock: §e" + totalItems + " items\n§aExp: §a" + data.getStoredExp() + " XP");
+            text = "<yellow><bold>Coffre de Récupération\n" +
+                   (totalItems == 0 && data.getStoredExp() == 0 ? "<red>Vide" : "<white>Stock: <yellow>" + totalItems + " items\n<green>Exp: <green>" + data.getStoredExp() + " XP");
         } else {
-            text = "§6§l" + data.getType() + " §7(x" + data.getStackCount() + ")\n" +
-                   (totalItems >= maxItems ? "§cStock plein: " : "§fStock: ") + "§e" + totalItems + "/" + maxItems + " items\n" +
-                   (data.getStoredExp() >= maxExp ? "§cExp plein: " : "§aExp: ") + "§a" + data.getStoredExp() + "/" + maxExp + " XP";
+            text = "<gold><bold>" + data.getType() + " <gray>(x" + data.getStackCount() + ")\n" +
+                   (totalItems >= maxItems ? "<red>Stock plein: " : "<white>Stock: ") + "<yellow>" + totalItems + "/" + maxItems + " items\n" +
+                   (data.getStoredExp() >= maxExp ? "<red>Exp plein: " : "<green>Exp: ") + "<green>" + data.getStoredExp() + "/" + maxExp + " XP";
         }
         display.setText(text);
     }

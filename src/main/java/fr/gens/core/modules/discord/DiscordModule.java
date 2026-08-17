@@ -361,7 +361,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             pendingLinks.put(code, p.getUniqueId());
             
             plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
-            p.sendMessage("§e!link " + code);
+            p.sendMessage("<yellow>!link " + code);
             plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
             return true;
         }
@@ -433,7 +433,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             // Discord -> Minecraft Chat
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 UUID uuid = plugin.getDatabaseManager().getUuidFromDiscord(event.getAuthor().getId());
-                String prefix = "§7[Joueur] ";
+                String prefix = "<gray>[Joueur] ";
                 String guild = "";
                 String playerName = event.getAuthor().getName();
                 
@@ -442,16 +442,16 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                         net.luckperms.api.model.user.User user = net.luckperms.api.LuckPermsProvider.get().getUserManager().loadUser(uuid).get();
                         if (user != null) {
                             String lpPrefix = user.getCachedData().getMetaData().getPrefix();
-                            if (lpPrefix != null) prefix = org.bukkit.ChatColor.translateAlternateColorCodes('&', lpPrefix) + " ";
+                            if (lpPrefix != null) prefix = org.bukkit.lpPrefix + " ";
                             playerName = user.getUsername() != null ? user.getUsername() : playerName;
                         }
                     } catch (Exception ignored) {}
                     
                     fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
-                    if (team != null) guild = "§e[" + team.getName() + "] ";
+                    if (team != null) guild = "<yellow>[" + team.getName() + "] ";
                 }
                 
-                String finalMessage = "§9[Discord] " + prefix + guild + "§f" + playerName + " §8» §7" + event.getMessage().getContentDisplay();
+                String finalMessage = "<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>» <gray>" + event.getMessage().getContentDisplay();
                 Bukkit.getServer().broadcastMessage(finalMessage);
             });
         }

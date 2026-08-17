@@ -104,8 +104,8 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                 }
 
                 p.getInventory().setItemInMainHand(null);
-                p.sendMessage("§aObjet mis en vente pour §e" + price + " $ §a!");
-                Bukkit.broadcastMessage("§e[AH] §f" + p.getName() + " §avient de mettre un objet en vente pour §e" + price + " $ §a!");
+                p.sendMessage("<green>Objet mis en vente pour <yellow>" + price + " $ <green>!");
+                Bukkit.broadcastMessage("<yellow>[AH] <white>" + p.getName() + " <green>vient de mettre un objet en vente pour <yellow>" + price + " $ <green>!");
 
             } catch (NumberFormatException e) {
                 plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_4");
@@ -122,7 +122,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
 
     private void openAhGui(Player p, int page) {
         AhGuiHolder holder = new AhGuiHolder(page);
-        Inventory inv = Bukkit.createInventory(holder, 54, "§8Hôtel de Ventes (Page " + (page + 1) + ")");
+        Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Hôtel de Ventes (Page " + (page + 1)) + ")");
         holder.setInventory(inv);
 
         List<AhItem> items = new ArrayList<>();
@@ -156,15 +156,15 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                 if (meta != null) {
                     List<String> lore = meta.getLore();
                     if (lore == null) lore = new ArrayList<>();
-                    lore.add("§8----------------------");
-                    lore.add("§7Vendeur : §f" + ahItem.sellerName);
-                    lore.add("§7Prix : §e" + String.format("%.2f", ahItem.price) + " $");
+                    lore.add("<dark_gray>----------------------");
+                    lore.add("<gray>Vendeur : <white>" + ahItem.sellerName);
+                    lore.add("<gray>Prix : <yellow>" + String.format("%.2f", ahItem.price) + " $");
                     if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
-                        lore.add("§c▶ Cliquez pour annuler la vente");
+                        lore.add("<red>▶ Cliquez pour annuler la vente");
                     } else {
-                        lore.add("§a▶ Cliquez pour acheter");
+                        lore.add("<green>▶ Cliquez pour acheter");
                     }
-                    meta.setLore(lore);
+                    meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                     item.setItemMeta(meta);
                 }
                 inv.setItem(slot++, item);
@@ -175,7 +175,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
         // Boutons de pagination (simplifié pour l'instant)
         ItemStack info = new ItemStack(Material.PAPER);
         ItemMeta infoMeta = info.getItemMeta();
-        infoMeta.setDisplayName("§ePage " + (page + 1));
+        infoMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Page " + (page + 1)));
         info.setItemMeta(infoMeta);
         inv.setItem(49, info);
 
@@ -230,14 +230,14 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                             
                             ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
                             p.getInventory().addItem(originalItem);
-                            p.sendMessage("§aVous avez acheté un objet à §e" + ahItem.sellerName + " §apour §e" + ahItem.price + " $ §a!");
+                            p.sendMessage("<green>Vous avez acheté un objet à <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + ahItem.price + " $ <green>!");
                             
                             Player seller = Bukkit.getPlayer(UUID.fromString(ahItem.sellerUuid));
                             if (seller != null && seller.isOnline()) {
                                 if (taxAmount > 0) {
-                                    seller.sendMessage("§aUn joueur a acheté votre objet sur l'Hôtel de Ventes ! Vous gagnez §e" + String.format("%.2f", sellerProfit) + " $ §8(Taxe: -" + String.format("%.2f", taxAmount) + " $)");
+                                    seller.sendMessage("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes ! Vous gagnez <yellow>" + String.format("%.2f", sellerProfit) + " $ <dark_gray>(Taxe: -" + String.format("%.2f", taxAmount) + " $)");
                                 } else {
-                                    seller.sendMessage("§aUn joueur a acheté votre objet sur l'Hôtel de Ventes pour §e" + ahItem.price + " $ §a!");
+                                    seller.sendMessage("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes pour <yellow>" + ahItem.price + " $ <green>!");
                                 }
                             }
                             openAhGui(p, page); // Refresh

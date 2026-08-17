@@ -31,12 +31,12 @@ public class TeamGui {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 45, "§8Guilde : " + team.getName());
+        Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Guilde : " + team.getName()));
 
         // Ligne de décor
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.setDisplayName(" ");
+        glassMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < 9; i++) inv.setItem(i, glass);
         for (int i = 37; i < 44; i++) inv.setItem(i, glass);
@@ -44,13 +44,13 @@ public class TeamGui {
         // Bouton Quêtes
         ItemStack quests = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta qmeta = quests.getItemMeta();
-        qmeta.setDisplayName("§bQuêtes de Guilde");
+        qmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Quêtes de Guilde"));
         List<String> qlore = new ArrayList<>();
-        qlore.add("§7Accomplissez des défis en coopération");
-        qlore.add("§7pour gagner des Points de Guilde !");
+        qlore.add("<gray>Accomplissez des défis en coopération");
+        qlore.add("<gray>pour gagner des Points de Guilde !");
         qlore.add("");
-        qlore.add("§eClic pour ouvrir");
-        qmeta.setLore(qlore);
+        qlore.add("<yellow>Clic pour ouvrir");
+        qmeta.lore(java.util.Optional.ofNullable(qlore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
         quests.setItemMeta(qmeta);
         inv.setItem(36, quests);
 
@@ -63,18 +63,18 @@ public class TeamGui {
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
             meta.setOwningPlayer(op);
-            meta.setDisplayName("§e" + (op.getName() != null ? op.getName() : "Joueur Inconnu"));
+            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>" + (op.getName() != null ? op.getName() : "Joueur Inconnu")));
             List<String> lore = new ArrayList<>();
             if (team.getLeaderUuid().equals(memberUuid)) {
-                lore.add("§6 Chef de Guilde");
+                lore.add("<gold> Chef de Guilde");
             } else {
-                lore.add("§7Membre");
+                lore.add("<gray>Membre");
                 if (isLeader) {
                     lore.add("");
-                    lore.add("§cClic droit pour exclure");
+                    lore.add("<red>Clic droit pour exclure");
                 }
             }
-            meta.setLore(lore);
+            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             head.setItemMeta(meta);
 
             inv.setItem(slot++, head);
@@ -85,14 +85,14 @@ public class TeamGui {
         if (isLeader) {
             ItemStack settings = new ItemStack(Material.REPEATER);
             ItemMeta smeta = settings.getItemMeta();
-            smeta.setDisplayName("§bParamètres de Verrouillage");
+            smeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Paramètres de Verrouillage"));
             List<String> slore = new ArrayList<>();
-            slore.add("§7Auto-verrouiller les coffres posés");
-            slore.add("§7pour les membres de l'équipe :");
-            slore.add(team.isAutoLock() ? "§a§lACTIVÉ" : "§c§lDÉSACTIVÉ");
+            slore.add("<gray>Auto-verrouiller les coffres posés");
+            slore.add("<gray>pour les membres de l'équipe :");
+            slore.add(team.isAutoLock() ? "<green><bold>ACTIVÉ" : "<red><bold>DÉSACTIVÉ");
             slore.add("");
-            slore.add("§eClic pour changer");
-            smeta.setLore(slore);
+            slore.add("<yellow>Clic pour changer");
+            smeta.lore(java.util.Optional.ofNullable(slore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             settings.setItemMeta(smeta);
             inv.setItem(40, settings);
         }
@@ -100,7 +100,7 @@ public class TeamGui {
         // Quitter la team
         ItemStack leave = new ItemStack(Material.BARRIER);
         ItemMeta lmeta = leave.getItemMeta();
-        lmeta.setDisplayName("§cQuitter la guilde");
+        lmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Quitter la guilde"));
         leave.setItemMeta(lmeta);
         inv.setItem(44, leave);
 

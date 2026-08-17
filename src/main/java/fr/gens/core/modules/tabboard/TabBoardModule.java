@@ -95,7 +95,7 @@ public class TabBoardModule implements Module, Listener {
     }
 
     private void setupBoard(Player player) {
-        GensScoreboard board = new GensScoreboard(player, "§6§lServeur");
+        GensScoreboard board = new GensScoreboard(player, "<gold><bold>Serveur");
         boards.put(player.getUniqueId(), board);
     }
 
@@ -115,26 +115,26 @@ public class TabBoardModule implements Module, Listener {
         List<String> configLines = plugin.getConfig().getStringList("tabboard.scoreboard.lines");
         if (configLines == null || configLines.isEmpty()) {
             configLines = new ArrayList<>();
-            configLines.add("&7&m--------------------");
-            configLines.add("&fJoueur: &e%player%");
-            configLines.add("&fGrade: %prefix%");
+            configLines.add("<gray><strikethrough>--------------------");
+            configLines.add("<white>Joueur: <yellow>%player%");
+            configLines.add("<white>Grade: %prefix%");
             configLines.add("");
-            configLines.add("&6 Économie:");
-            configLines.add("&fArgent: &a%money%$");
-            configLines.add("&fBourse: &7/shop");
+            configLines.add("<gold> Économie:");
+            configLines.add("<white>Argent: <green>%money%$");
+            configLines.add("<white>Bourse: <gray>/shop");
             configLines.add("");
-            configLines.add("&b Quêtes:");
-            configLines.add("&fTerminées: &30");
+            configLines.add("<aqua> Quêtes:");
+            configLines.add("<white>Terminées: <dark_aqua>0");
             configLines.add("");
-            configLines.add("&fEn ligne: &b%online%");
-            configLines.add("&7&m--------------------");
-            configLines.add("&eIP: &f82.64.129.187");
+            configLines.add("<white>En ligne: <aqua>%online%");
+            configLines.add("<gray><strikethrough>--------------------");
+            configLines.add("<yellow>IP: <white>82.64.129.187");
             plugin.getConfig().set("tabboard.scoreboard.lines", configLines);
-            plugin.getConfig().set("tabboard.scoreboard.title", "&6&lServeur");
+            plugin.getConfig().set("tabboard.scoreboard.title", "<gold><bold>Serveur");
             plugin.saveConfig();
         }
 
-        String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("tabboard.scoreboard.title", "&6&lServeur"));
+        String title = plugin.getConfig().getString("tabboard.scoreboard.title", "<gold><bold>Serveur");
         board.updateTitle(title);
 
         EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
@@ -143,15 +143,15 @@ public class TabBoardModule implements Module, Listener {
         for (String line : configLines) {
             if (!ecoEnabled && (line.contains("%money%") || line.contains("Économie") || line.contains("/shop") || line.contains("Bourse"))) {
                 if (line.contains("Économie")) {
-                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "&6\u2694 Statistiques:"));
+                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "<gold>\u2694 Statistiques:"));
                 } else if (line.contains("%money%")) {
                     int playMinutes = p.getStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE) / 1200;
                     int playHours = playMinutes / 60;
                     int playMins = playMinutes % 60;
-                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "&fTemps de jeu: &e" + playHours + "h" + playMins + "m"));
+                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "<white>Temps de jeu: <yellow>" + playHours + "h" + playMins + "m"));
                 } else if (line.contains("Bourse")) {
                     int mobKills = p.getStatistic(org.bukkit.Statistic.MOB_KILLS);
-                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "&fMobs tués: &c" + mobKills));
+                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "<white>Mobs tués: <red>" + mobKills));
                 }
                 continue;
             }
@@ -163,7 +163,7 @@ public class TabBoardModule implements Module, Listener {
             if (line.equals("&b Quêtes:")) {
                 // Insert Jobs before Quests
                 int insertIdx = lines.size() - 1;
-                lines.add(insertIdx, "§a Métiers:");
+                lines.add(insertIdx, "<green> Métiers:");
                 fr.gens.core.modules.jobs.JobsModule jobsMod = (fr.gens.core.modules.jobs.JobsModule) plugin.getModuleManager().getModule("jobs");
                 if (jobsMod != null && jobsMod.isEnabled()) {
                     boolean hasJob = false;
@@ -171,12 +171,12 @@ public class TabBoardModule implements Module, Listener {
                         if (jobsMod.hasJob(p.getUniqueId(), type)) {
                             hasJob = true;
                             int lvl = jobsMod.getLevel(p.getUniqueId(), type);
-                            lines.add(insertIdx + 1, "§f" + type.getDisplayName() + ": §aLvl " + lvl);
+                            lines.add(insertIdx + 1, "<white>" + type.getDisplayName() + ": <green>Lvl " + lvl);
                             insertIdx++;
                         }
                     }
                     if (!hasJob) {
-                        lines.add(insertIdx + 1, "§7Aucun métier");
+                        lines.add(insertIdx + 1, "<gray>Aucun métier");
                         insertIdx++;
                     }
                 }
@@ -189,10 +189,10 @@ public class TabBoardModule implements Module, Listener {
 
     private void updateTabList(Player p) {
         if (!plugin.getConfig().contains("tabboard.tablist.header")) {
-            plugin.getConfig().set("tabboard.tablist.header", "&m                                                                &r\n&3&lLe Serveur Des Gens Bien\n&r&7&l>> &eBienvenue &3&l%player% &7&l! <<\n&r&7Joueurs en ligne: &f%online%\n&6Staff en ligne: &e%staff%");
-            plugin.getConfig().set("tabboard.tablist.footer", "\n&2Ping: %ping%ms\n&7&lMémoire: %mem_used% MB / %mem_max% MB\n&7Quêtes terminées: &e0\n\n%discord_status%\n&m                                                                ");
-            plugin.getConfig().set("tabboard.tablist.discord_not_linked", "&e&l &cDiscord non lié ! &b/linktuto");
-            plugin.getConfig().set("tabboard.tablist.discord_linked", "&r&7Le Discord: &bdiscord.gg/gensbien");
+            plugin.getConfig().set("tabboard.tablist.header", "<strikethrough>                                                                <reset>\n<dark_aqua><bold>Le Serveur Des Gens Bien\n<reset><gray><bold>>> <yellow>Bienvenue <dark_aqua><bold>%player% <gray><bold>! <<\n<reset><gray>Joueurs en ligne: <white>%online%\n<gold>Staff en ligne: <yellow>%staff%");
+            plugin.getConfig().set("tabboard.tablist.footer", "\n<dark_green>Ping: %ping%ms\n<gray><bold>Mémoire: %mem_used% MB / %mem_max% MB\n<gray>Quêtes terminées: <yellow>0\n\n%discord_status%\n<strikethrough>                                                                ");
+            plugin.getConfig().set("tabboard.tablist.discord_not_linked", "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto");
+            plugin.getConfig().set("tabboard.tablist.discord_linked", "<reset><gray>Le Discord: <aqua>discord.gg/gensbien");
             plugin.saveConfig();
         }
 
@@ -233,12 +233,12 @@ public class TabBoardModule implements Module, Listener {
             // Ajout du tag de Guilde (Team)
             fr.gens.core.modules.teams.TeamData tData = plugin.getTeamManager().getPlayerTeam(target.getUniqueId());
             if (tData != null) {
-                prefixStr = prefixStr + " §e[" + tData.getName() + "] ";
+                prefixStr = prefixStr + " <yellow>[" + tData.getName() + "] ";
             } else {
                 prefixStr = prefixStr + " ";
             }
             
-            String suffixStr = target.hasPermission("genscore.discord.linked") ? " §b§l" : "";
+            String suffixStr = target.hasPermission("genscore.discord.linked") ? " <aqua><bold>" : "";
 
             Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr);
             Component suffixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr);
@@ -282,16 +282,16 @@ public class TabBoardModule implements Module, Listener {
             if (user != null) {
                 String prefix = user.getCachedData().getMetaData().getPrefix();
                 if (prefix != null && !prefix.trim().isEmpty()) {
-                    return ChatColor.translateAlternateColorCodes('&', prefix);
+                    return prefix;
                 }
                 
                 // Fallback to group display name if prefix is not set
                 String groupName = user.getPrimaryGroup();
                 if (groupName != null) {
-                    return "§e" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1);
+                    return "<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1);
                 }
             }
         } catch (Exception ignored) {} // In case LuckPerms is missing
-        return "§7Joueur";
+        return "<gray>Joueur";
     }
 }

@@ -300,8 +300,8 @@ public class WebManager {
                 plugin.getConfig().getBoolean("lootr.prevent-break", false),
                 plugin.getConfig().getBoolean("lootr.prevent-hopper", true),
                 plugin.getConfig().getBoolean("lootr.particles-enabled", true),
-                plugin.getConfig().getString("motd.line1", "&3&lLe Serveur Des Gens Bien"),
-                plugin.getConfig().getString("motd.line2", "&7&l>> &eSaison 4 &7&l- &bdiscord.gg/gensbien"),
+                plugin.getConfig().getString("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien"),
+                plugin.getConfig().getString("motd.line2", "<gray><bold>>> <yellow>Saison 4 <gray><bold>- <aqua>discord.gg/gensbien"),
                 plugin.getStorageManager().getConfig().getBoolean("minigames.wheel.enabled", true),
                 plugin.getStorageManager().getConfig().getBoolean("minigames.casino.enabled", true),
                 plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText),
@@ -405,7 +405,7 @@ public class WebManager {
 
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.kickPlayer("§cVous avez été expulsé par un Administrateur.\n§7Raison : " + (req.reason != null ? req.reason : "Aucune raison"));
+                        target.kickPlayer("<red>Vous avez été expulsé par un Administrateur.\n<gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison"));
                         plugin.getLogger().info("Le web panel a kick " + req.playerName);
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, Color.ORANGE);
                     }
@@ -417,9 +417,9 @@ public class WebManager {
                     java.util.Date expires = durationMs > 0 ? new java.util.Date(System.currentTimeMillis() + durationMs) : null;
                     String reason = req.reason != null && !req.reason.isEmpty() ? req.reason : "Banni par un Administrateur";
                     
-                    plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).addBan(req.playerName, "§c" + reason, expires, "WebAdmin");
+                    plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).addBan(req.playerName, "<red>" + reason, expires, "WebAdmin");
                     if (target != null) {
-                        target.kickPlayer("§cVous avez été banni.\n§7Raison : " + reason);
+                        target.kickPlayer("<red>Vous avez été banni.\n<gray>Raison : " + reason);
                     }
                     plugin.getLogger().info("Le web panel a banni " + req.playerName);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);
@@ -435,7 +435,7 @@ public class WebManager {
                         mod.mutePlayer(targetOffline.getUniqueId(), reason, durationMs);
                         
                         if (target != null) {
-                            target.sendMessage("§c§lVous avez été rendu muet par le WebAdmin ! Raison : " + reason);
+                            target.sendMessage("<red><bold>Vous avez été rendu muet par le WebAdmin ! Raison : " + reason);
                         }
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("MUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.YELLOW);
                     }
@@ -449,7 +449,7 @@ public class WebManager {
                     }
                 } else if ("message".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.sendMessage("§8[§cWebAdmin§8] §7" + req.reason);
+                        target.sendMessage("<dark_gray>[<red>WebAdmin<dark_gray>] <gray>" + req.reason);
                     }
                 }
             });
@@ -533,7 +533,7 @@ public class WebManager {
             ShopCategory request = ctx.bodyAsClass(ShopCategory.class);
             ShopCategory existing = shop.getCategory(request.getId());
             if (existing != null) {
-                existing.setDisplayName(request.getDisplayName());
+                existing.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(request.getDisplayName()));
                 existing.setIcon(request.getIcon());
             } else {
                 shop.getCategories().add(request);

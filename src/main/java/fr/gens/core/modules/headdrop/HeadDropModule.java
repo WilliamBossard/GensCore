@@ -79,32 +79,32 @@ public class HeadDropModule implements Module, Listener {
             
             if (meta != null) {
                 meta.setOwningPlayer(victim);
-                meta.setDisplayName("§eTête de §6" + victim.getName());
+                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Tête de <gold>" + victim.getName()));
 
                 List<String> lore = new ArrayList<>();
-                lore.add("§8§m------------------------");
+                lore.add("<dark_gray><strikethrough>------------------------");
                 
                 if (killer != null) {
-                    lore.add("§c Tué par : §f" + killer.getName());
+                    lore.add("<red> Tué par : <white>" + killer.getName());
                     
                     ItemStack weapon = killer.getInventory().getItemInMainHand();
-                    String weaponName = "§7A mains nues";
+                    String weaponName = "<gray>A mains nues";
                     if (weapon != null && weapon.getType() != Material.AIR) {
-                        weaponName = "§7" + weapon.getType().name().replace("_", " ");
+                        weaponName = "<gray>" + weapon.getType().name().replace("_", " ");
                         if (weapon.hasItemMeta() && weapon.getItemMeta().hasDisplayName()) {
                             weaponName = weapon.getItemMeta().getDisplayName();
                         }
                     }
-                    lore.add("§c Arme : §f" + weaponName);
+                    lore.add("<red> Arme : <white>" + weaponName);
                 } else {
-                    lore.add("§c Cause : §fMorts naturelles / Environnement");
+                    lore.add("<red> Cause : <white>Morts naturelles / Environnement");
                 }
                 
                 String date = new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date());
-                lore.add("§e Date : §f" + date);
-                lore.add("§8§m------------------------");
+                lore.add("<yellow> Date : <white>" + date);
+                lore.add("<dark_gray><strikethrough>------------------------");
                 
-                meta.setLore(lore);
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                 head.setItemMeta(meta);
             }
             

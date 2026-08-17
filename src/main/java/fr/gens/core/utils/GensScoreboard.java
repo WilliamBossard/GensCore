@@ -74,6 +74,6 @@ public class GensScoreboard {
     }
 
     private String getEntry(int line) {
-        return ChatColor.values()[line].toString() + ChatColor.RESET;
+        return ChatColor.values()[line].toString() + "<reset>";
     }
 }

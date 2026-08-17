@@ -25,12 +25,12 @@ public class JobsGUI implements Listener {
     }
 
     public void openGUI(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 36, "§8■ §x§f§f§b§7§0§3Métiers §8■");
+        Inventory inv = Bukkit.createInventory(null, 36, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>■ §x<white><white><aqua><gray><black><dark_aqua>Métiers <dark_gray>■"));
 
         // Fill background
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.setDisplayName(" ");
+        glassMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < inv.getSize(); i++) {
             inv.setItem(i, glass);
@@ -53,25 +53,25 @@ public class JobsGUI implements Listener {
             
             ItemStack item = new ItemStack(mat);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(type.getColor() + "§l" + type.getDisplayName());
+            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(type.getColor() + "<bold>" + type.getDisplayName()));
             List<String> lore = new ArrayList<>();
             lore.add("");
-            lore.add("§7Niveau: §f" + level);
-            lore.add("§7XP: §f" + String.format("%.1f", xp) + " §8/ §f" + nextXp);
+            lore.add("<gray>Niveau: <white>" + level);
+            lore.add("<gray>XP: <white>" + String.format("%.1f", xp) + " <dark_gray>/ <white>" + nextXp);
             
             int percent = (int) ((xp / nextXp) * 100);
             String progressBar = createProgressBar(percent);
             
-            lore.add("§8" + progressBar + " §8(§7" + percent + "%§8)");
+            lore.add("<dark_gray>" + progressBar + " <dark_gray>(<gray>" + percent + "%<dark_gray>)");
             lore.add("");
             if (hasJob) {
-                lore.add("§a■ §7Statut : §a§lActif");
-                lore.add("§8▶ §cCliquez pour démissionner");
+                lore.add("<green>■ <gray>Statut : <green><bold>Actif");
+                lore.add("<dark_gray>▶ <red>Cliquez pour démissionner");
             } else {
-                lore.add("§c■ §7Statut : §c§lInactif");
-                lore.add("§8▶ §aCliquez pour rejoindre");
+                lore.add("<red>■ <gray>Statut : <red><bold>Inactif");
+                lore.add("<dark_gray>▶ <green>Cliquez pour rejoindre");
             }
-            meta.setLore(lore);
+            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             item.setItemMeta(meta);
             
             inv.setItem(slots[i], item);
@@ -83,9 +83,9 @@ public class JobsGUI implements Listener {
     private String createProgressBar(int percent) {
         int totalBars = 20;
         int activeBars = (percent * totalBars) / 100;
-        StringBuilder sb = new StringBuilder("§a");
+        StringBuilder sb = new StringBuilder("<green>");
         for (int i = 0; i < totalBars; i++) {
-            if (i == activeBars) sb.append("§7");
+            if (i == activeBars) sb.append("<gray>");
             sb.append("|");
         }
         return sb.toString();
@@ -113,13 +113,13 @@ public class JobsGUI implements Listener {
             if (targetJob != null) {
                 if (jobsModule.hasJob(p.getUniqueId(), targetJob)) {
                     jobsModule.leaveJob(p.getUniqueId(), targetJob);
-                    p.sendMessage("§cVous avez quitté le métier " + targetJob.getDisplayName() + " !");
+                    p.sendMessage("<red>Vous avez quitté le métier " + targetJob.getDisplayName() + " !");
                 } else {
                     if (jobsModule.getActiveJobsCount(p.getUniqueId()) >= 2) {
                         plugin.getLangManager().sendMessage(p, "jobsgui.msg_1");
                     } else {
                         jobsModule.joinJob(p.getUniqueId(), targetJob);
-                        p.sendMessage("§aVous avez rejoint le métier " + targetJob.getDisplayName() + " !");
+                        p.sendMessage("<green>Vous avez rejoint le métier " + targetJob.getDisplayName() + " !");
                     }
                 }
                 openGUI(p);

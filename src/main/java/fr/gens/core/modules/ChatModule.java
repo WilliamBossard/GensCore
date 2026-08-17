@@ -52,13 +52,13 @@ public class ChatModule implements Module, Listener {
         
         // Exige la permission pour parler
         if (!event.getPlayer().hasPermission("genscore.chat")) {
-            event.getPlayer().sendMessage("§cVous n'avez pas la permission de parler dans le chat (genscore.chat).");
+            event.getPlayer().sendMessage("<red>Vous n'avez pas la permission de parler dans le chat (genscore.chat).");
             event.setCancelled(true);
             return;
         }
 
         // Récupérer le préfixe depuis LuckPerms
-        String prefix = "§7[Joueur] ";
+        String prefix = "<gray>[Joueur] ";
         try {
             net.luckperms.api.LuckPerms api = net.luckperms.api.LuckPermsProvider.get();
             net.luckperms.api.model.user.User user = api.getUserManager().getUser(event.getPlayer().getUniqueId());
@@ -76,7 +76,7 @@ public class ChatModule implements Module, Listener {
             }
         } catch (Exception e) {
             if (event.getPlayer().hasPermission("genscore.admin")) {
-                prefix = "§c[Admin] ";
+                prefix = "<red>[Admin] ";
             }
         }
         
@@ -84,10 +84,10 @@ public class ChatModule implements Module, Listener {
         String guildTag = "";
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
         if (team != null) {
-            guildTag = "§e[" + team.getName() + "] ";
+            guildTag = "<yellow>[" + team.getName() + "] ";
         }
         
-        event.setFormat(prefix + guildTag + "§f%1$s §8» §7%2$s");
+        event.setFormat(prefix + guildTag + "<white>%1$s <dark_gray>» <gray>%2$s");
     }
 
     @EventHandler

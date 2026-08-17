@@ -172,7 +172,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                             try (PreparedStatement savePending = conn.prepareStatement("INSERT INTO pending_rewards (uuid, command, message) VALUES (?, ?, ?)")) {
                                 savePending.setString(1, winnerUuid);
                                 savePending.setString(2, giveCmd);
-                                savePending.setString(3, "§aVous avez gagné le classement de quêtes de la semaine ! Voici votre lot : " + rewardDesc);
+                                savePending.setString(3, "<green>Vous avez gagné le classement de quêtes de la semaine ! Voici votre lot : " + rewardDesc);
                                 savePending.executeUpdate();
                             }
                             plugin.getLogger().info("[Quests] Récompense de la semaine distribuée au joueur " + winnerUuid);
@@ -420,7 +420,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     
                     // Action Bar
                     boolean isDone = newProgress >= quest.getRequiredAmount();
-                    String color = isDone ? "§a" : "§e";
+                    String color = isDone ? "<green>" : "<yellow>";
                     Component msg = Component.text("§8[§bQuêtes§8] §f" + quest.getName().replace("&", "§") + " §8» " + color + newProgress + " §7/ " + quest.getRequiredAmount());
                     plugin.getActionBarManager().sendMessage(p, "quests", msg, 40);
                     
@@ -485,7 +485,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                         fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
                         if (eco != null) {
                             eco.addMoney(p.getUniqueId(), amount);
-                            p.sendMessage("§a+ " + amount + "$");
+                            p.sendMessage("<green>+ " + amount + "$");
                         }
                     } catch (NumberFormatException ignored) {}
                 }
@@ -551,7 +551,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     }
 
     public void openQuestsMenu(Player p) {
-        Inventory inv = Bukkit.createInventory(null, 45, "§9§lQuêtes Journalières");
+        Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<blue><bold>Quêtes Journalières"));
         PlayerQuestData data = playerData.get(p.getUniqueId());
         
         if (data == null) {
@@ -561,12 +561,12 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
 
         // Fill background
         ItemStack bluePane = new ItemStack(Material.BLUE_STAINED_GLASS_PANE);
-        ItemMeta bm = bluePane.getItemMeta(); bm.setDisplayName(" "); bluePane.setItemMeta(bm);
+        ItemMeta bm = bluePane.getItemMeta(); bm.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" ")); bluePane.setItemMeta(bm);
         int[] blueSlots = {2,3,4, 6,7,8, 10,11, 18,19, 20, 27,28, 29, 37,38,39,40, 42,43,44};
         for(int s : blueSlots) if(s < 45) inv.setItem(s, bluePane);
 
         ItemStack cyanPane = new ItemStack(Material.CYAN_STAINED_GLASS_PANE);
-        ItemMeta cm = cyanPane.getItemMeta(); cm.setDisplayName(" "); cyanPane.setItemMeta(cm);
+        ItemMeta cm = cyanPane.getItemMeta(); cm.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" ")); cyanPane.setItemMeta(cm);
         int[] cyanSlots = {13, 15, 17, 22, 24, 26, 31, 33, 35};
         for(int s : cyanSlots) if(s < 45) inv.setItem(s, cyanPane);
 
@@ -575,9 +575,9 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta sm = (SkullMeta) head.getItemMeta();
         sm.setOwningPlayer(p);
-        sm.setDisplayName("§b" + p.getName());
+        sm.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>" + p.getName()));
         List<String> hl = new ArrayList<>();
-        hl.add("§3Statut:");
+        hl.add("<dark_aqua>Statut:");
         
         // Count today's achieved
         int achieved = 0;
@@ -591,9 +591,9 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
             totalDay += act.size();
         }
         
-        hl.add(" §3§l| §7Quêtes accomplies : §b" + achieved + "§3/§b" + totalDay);
-        hl.add(" §3§l| §7Total complété : §b" + completedTotal);
-        sm.setLore(hl);
+        hl.add(" <dark_aqua><bold>| <gray>Quêtes accomplies : <aqua>" + achieved + "<dark_aqua>/<aqua>" + totalDay);
+        hl.add(" <dark_aqua><bold>| <gray>Total complété : <aqua>" + completedTotal);
+        sm.lore(java.util.Optional.ofNullable(hl).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
         head.setItemMeta(sm);
         inv.setItem(4, head);
 
@@ -628,9 +628,9 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                         l = l.replace("%required%", String.valueOf(q.getRequiredAmount()));
                         if (l.contains("%status%")) {
                             if (completed) {
-                                l = l.replace("%status%", "§bTERMINÉ");
+                                l = l.replace("%status%", "<aqua>TERMINÉ");
                             } else {
-                                l = l.replace("%status%", "§b" + qEntry.getValue() + "§3/§b" + q.getRequiredAmount());
+                                l = l.replace("%status%", "<aqua>" + qEntry.getValue() + "<dark_aqua>/<aqua>" + q.getRequiredAmount());
                             }
                         }
                         lore.add(l.replace("&", "§"));
@@ -639,14 +639,14 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                         lore.add(" ");
                         int limit = plugin.getConfig().getInt("quests.max_rerolls_per_day", 3);
                         int used = plugin.getDatabaseManager().getRerollsDone(p.getUniqueId(), getTodayString());
-                        lore.add("§d» Clic Droit pour Reroll (" + used + "/" + limit + ")");
+                        lore.add("<light_purple>» Clic Droit pour Reroll (" + used + "/" + limit + ")");
                     } else if (completed) {
                         lore.add(" ");
-                        lore.add("§a Récompenses récupérées !");
+                        lore.add("<green> Récompenses récupérées !");
                         meta.addEnchant(org.bukkit.enchantments.Enchantment.LURE, 1, true);
                         meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
                     }
-                    meta.setLore(lore);
+                    meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                     item.setItemMeta(meta);
                 }
 
@@ -696,7 +696,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                             int limit = plugin.getConfig().getInt("quests.max_rerolls_per_day", 3);
                             int used = plugin.getDatabaseManager().getRerollsDone(p.getUniqueId(), getTodayString());
                             if (used >= limit) {
-                                p.sendMessage("§cVous avez atteint la limite de " + limit + " rerolls pour aujourd'hui !");
+                                p.sendMessage("<red>Vous avez atteint la limite de " + limit + " rerolls pour aujourd'hui !");
                                 return;
                             }
                             

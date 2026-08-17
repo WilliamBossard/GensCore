@@ -35,23 +35,23 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
         ItemStack item = new ItemStack(Material.SPAWNER, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName("§6§lSpawner de " + type);
+            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>Spawner de " + type));
             List<String> lore = new ArrayList<>();
-            lore.add("§7Type: §f" + type);
-            lore.add("§7Stack: §f" + stack);
+            lore.add("<gray>Type: <white>" + type);
+            lore.add("<gray>Stack: <white>" + stack);
             
             if (expLvl > 0 || speedLvl > 0 || storageLvl > 0) {
                 lore.add("");
-                lore.add("§b§lAméliorations :");
-                if (expLvl > 0) lore.add(" §8- §7XP: §fNiv." + expLvl);
-                if (speedLvl > 0) lore.add(" §8- §7Vitesse: §fNiv." + speedLvl);
-                if (storageLvl > 0) lore.add(" §8- §7Stockage: §fNiv." + storageLvl);
+                lore.add("<aqua><bold>Améliorations :");
+                if (expLvl > 0) lore.add(" <dark_gray>- <gray>XP: <white>Niv." + expLvl);
+                if (speedLvl > 0) lore.add(" <dark_gray>- <gray>Vitesse: <white>Niv." + speedLvl);
+                if (storageLvl > 0) lore.add(" <dark_gray>- <gray>Stockage: <white>Niv." + storageLvl);
             }
             
             lore.add("");
-            lore.add("§ePosez ce générateur pour commencer");
-            lore.add("§eà accumuler des objets !");
-            meta.setLore(lore);
+            lore.add("<yellow>Posez ce générateur pour commencer");
+            lore.add("<yellow>à accumuler des objets !");
+            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
 
             NamespacedKey typeKey = new NamespacedKey(plugin, "spawner_type");
             NamespacedKey stackKey = new NamespacedKey(plugin, "spawner_stack");
@@ -107,8 +107,8 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
 
             ItemStack spawner = createSpawnerItem(plugin, type, stack);
             target.getInventory().addItem(spawner);
-            sender.sendMessage("§aVous avez donné un spawner " + type + " (x" + stack + ") à " + target.getName() + ".");
-            target.sendMessage("§aVous avez reçu un spawner " + type + " (x" + stack + ").");
+            sender.sendMessage("<green>Vous avez donné un spawner " + type + " (x" + stack + ") à " + target.getName() + ".");
+            target.sendMessage("<green>Vous avez reçu un spawner " + type + " (x" + stack + ").");
         }
 
         return true;

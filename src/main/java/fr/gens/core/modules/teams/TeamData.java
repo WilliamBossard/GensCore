@@ -74,7 +74,7 @@ public class TeamData {
         for (UUID uuid : members) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
-                p.sendMessage("§8[§bTeam " + name + "§8] §7" + message);
+                p.sendMessage("<dark_gray>[<aqua>Team " + name + "<dark_gray>] <gray>" + message);
             }
         }
     }

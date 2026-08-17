@@ -214,12 +214,12 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             if (frozenPlayers.contains(uuid)) {
                 frozenPlayers.remove(uuid);
                 target.setGravity(true);
-                sender.sendMessage("§aLe joueur " + target.getName() + " a été dégelé.");
+                sender.sendMessage("<green>Le joueur " + target.getName() + " a été dégelé.");
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_4");
             } else {
                 frozenPlayers.add(uuid);
                 target.setGravity(false); // Geler en l'air
-                sender.sendMessage("§aLe joueur " + target.getName() + " a été gelé.");
+                sender.sendMessage("<green>Le joueur " + target.getName() + " a été gelé.");
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_5");
             }
             return true;
@@ -291,7 +291,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 }
             }
             
-            sender.sendMessage("§aLe mot de passe de " + args[0] + " a été supprimé.");
+            sender.sendMessage("<green>Le mot de passe de " + args[0] + " a été supprimé.");
             return true;
         }
 
@@ -329,10 +329,10 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             }
             
             mutePlayer(target.getUniqueId(), reason, duration);
-            sender.sendMessage("§aVous avez rendu muet " + target.getName());
+            sender.sendMessage("<green>Vous avez rendu muet " + target.getName());
             Player online = target.getPlayer();
             if (online != null) {
-                online.sendMessage("§c§lVous avez été rendu muet par un modérateur ! Raison : " + reason);
+                online.sendMessage("<red><bold>Vous avez été rendu muet par un modérateur ! Raison : " + reason);
             }
             sendDiscordLog("MUTE", target.getName(), sender.getName(), reason, duration);
             return true;
@@ -344,7 +344,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
             if (target != null && target.getUniqueId() != null) {
                 unmutePlayer(target.getUniqueId());
-                sender.sendMessage("§aLe joueur " + target.getName() + " n'est plus muet.");
+                sender.sendMessage("<green>Le joueur " + target.getName() + " n'est plus muet.");
                 Player online = target.getPlayer();
                 if (online != null) plugin.getLangManager().sendMessage(online, "moderationmodule.msg_17");
                 sendDiscordLog("UNMUTE", target.getName(), sender.getName(), "Pardonné", 0);
@@ -384,9 +384,9 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             
             Player online = target.getPlayer();
             if (online != null) {
-                online.kickPlayer("§cVous avez été banni du serveur.\n§fRaison : " + reason);
+                online.kickPlayer("<red>Vous avez été banni du serveur.\n<white>Raison : " + reason);
             }
-            sender.sendMessage("§aLe joueur " + target.getName() + " a été banni.");
+            sender.sendMessage("<green>Le joueur " + target.getName() + " a été banni.");
             sendDiscordLog("BAN", target.getName(), sender.getName(), reason, durationMs);
             return true;
         }
@@ -397,7 +397,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
             if (target != null && target.getName() != null) {
                 Bukkit.getBanList(org.bukkit.BanList.Type.NAME).pardon(target.getName());
-                sender.sendMessage("§aLe joueur " + target.getName() + " a été débanni.");
+                sender.sendMessage("<green>Le joueur " + target.getName() + " a été débanni.");
                 sendDiscordLog("UNBAN", target.getName(), sender.getName(), "Pardonné", 0);
             }
             return true;
@@ -470,7 +470,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         if (!enabled) return;
         if (isMuted(event.getPlayer().getUniqueId())) {
             MuteData data = getMuteData(event.getPlayer().getUniqueId());
-            event.getPlayer().sendMessage("§cVous êtes rendu muet sur le serveur ! Raison : " + data.reason);
+            event.getPlayer().sendMessage("<red>Vous êtes rendu muet sur le serveur ! Raison : " + data.reason);
             event.setCancelled(true);
         }
     }
