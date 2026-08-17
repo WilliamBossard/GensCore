@@ -67,6 +67,33 @@ public class LangManager {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else {
+            updateLangFile(file, fileName);
+        }
+    }
+
+    private void updateLangFile(File file, String fileName) {
+        try {
+            boolean changed = false;
+            FileConfiguration diskConfig = YamlConfiguration.loadConfiguration(file);
+            try (InputStream in = plugin.getResource("lang/" + fileName)) {
+                if (in == null) return;
+                try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+                    FileConfiguration jarConfig = YamlConfiguration.loadConfiguration(reader);
+                    for (String key : jarConfig.getKeys(true)) {
+                        if (!diskConfig.contains(key)) {
+                            diskConfig.set(key, jarConfig.get(key));
+                            changed = true;
+                        }
+                    }
+                }
+            }
+            if (changed) {
+                diskConfig.save(file);
+                plugin.getLogger().info("Updated language file: " + fileName + " with missing keys.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
