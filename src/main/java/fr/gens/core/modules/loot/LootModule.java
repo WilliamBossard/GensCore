@@ -85,7 +85,7 @@ public class LootModule implements Module, Listener {
             startParticleTask();
         }
 
-        plugin.getLogger().info("[LootModule] Activé.");
+        plugin.getLangManager().sendConsoleMessage("lootmodule.log_1");
     }
 
     public void loadConfig() {
@@ -130,7 +130,7 @@ public class LootModule implements Module, Listener {
         if (lootManager != null) {
             lootManager.saveChests();
         }
-        plugin.getLogger().info("[LootModule] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("lootmodule.log_2");
     }
 
     private void startParticleTask() {

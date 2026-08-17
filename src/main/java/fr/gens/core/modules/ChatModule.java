@@ -36,14 +36,14 @@ public class ChatModule implements Module, Listener {
     public void enable() {
         enabled = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[ChatModule] Activé.");
+        plugin.getLangManager().sendConsoleMessage("chatmodule.log_1");
     }
 
     @Override
     public void disable() {
         enabled = false;
         HandlerList.unregisterAll(this);
-        plugin.getLogger().info("[ChatModule] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("chatmodule.log_2");
     }
 
     @EventHandler

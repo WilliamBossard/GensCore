@@ -63,7 +63,7 @@ public class StatsModule implements Module, Listener {
             saveAllToDatabase();
         }, 1200L, 1200L).getTaskId();
 
-        plugin.getLogger().info("[Stats] Module activé.");
+        plugin.getLangManager().sendConsoleMessage("statsmodule.log_1");
     }
 
     @Override
@@ -72,7 +72,7 @@ public class StatsModule implements Module, Listener {
         Bukkit.getScheduler().cancelTask(taskId);
         saveAllToDatabase();
         statsCache.clear();
-        plugin.getLogger().info("[Stats] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("statsmodule.log_2");
     }
 
     public PlayerStats getStats(UUID uuid) {

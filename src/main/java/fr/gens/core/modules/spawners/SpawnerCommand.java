@@ -73,25 +73,25 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("genscore.admin.spawner")) {
-            sender.sendMessage("§cVous n'avez pas la permission.");
+            plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_1");
             return true;
         }
 
         if (args.length < 3) {
-            sender.sendMessage("§cUsage: /spawner give <joueur> <type> [stack]");
+            plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_2");
             return true;
         }
 
         if (args[0].equalsIgnoreCase("give")) {
             Player target = Bukkit.getPlayer(args[1]);
             if (target == null) {
-                sender.sendMessage("§cJoueur introuvable.");
+                plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_3");
                 return true;
             }
 
             String type = args[2].toUpperCase();
             if (!module.getSpawnerManager().isValidType(type)) {
-                sender.sendMessage("§cCe type de spawner n'existe pas dans la config.");
+                plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_4");
                 return true;
             }
 
@@ -100,7 +100,7 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
                 try {
                     stack = Integer.parseInt(args[3]);
                 } catch (NumberFormatException e) {
-                    sender.sendMessage("§cLe stack doit être un nombre.");
+                    plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_5");
                     return true;
                 }
             }

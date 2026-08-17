@@ -109,7 +109,7 @@ public class WebManager {
             setupRoutes();
             
         } catch (Exception e) {
-            plugin.getLogger().severe("Erreur lors du démarrage du serveur Web Javalin !");
+            plugin.getLangManager().sendConsoleError("webmanager.log_1");
             e.printStackTrace();
         } finally {
             // Remettre le ClassLoader original de Bukkit
@@ -193,7 +193,7 @@ public class WebManager {
     public void stop() {
         if (app != null) {
             app.stop();
-            plugin.getLogger().info("Serveur Web arrêté.");
+            plugin.getLangManager().sendConsoleMessage("webmanager.log_2");
         }
     }
 
@@ -226,6 +226,24 @@ public class WebManager {
         app.get("/api/public/features", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
             ctx.result(plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText));
+        });
+
+        // API de Langue
+        app.get("/api/public/lang", ctx -> {
+            ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
+            String lang = ctx.queryParam("lang");
+            if (lang == null) lang = plugin.getConfig().getString("lang", "fr_FR");
+            
+            java.io.File langFile = new java.io.File(plugin.getDataFolder() + java.io.File.separator + "lang", lang + ".yml");
+            if (!langFile.exists()) {
+                langFile = new java.io.File(plugin.getDataFolder() + java.io.File.separator + "lang", "fr_FR.yml");
+            }
+            if (langFile.exists()) {
+                org.bukkit.configuration.file.FileConfiguration langConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(langFile);
+                ctx.json(langConfig.getValues(true)); // Transforme les clés YAML en JSON "a.b": "value"
+            } else {
+                ctx.status(404).json("Language file not found");
+            }
         });
 
         // Route API pour activer/désactiver un module (Protégée Admin)
@@ -303,7 +321,7 @@ public class WebManager {
             }
             plugin.getStorageManager().saveConfig();
             
-            plugin.getLogger().info("Configuration serveur mise à jour depuis le panel Web !");
+            plugin.getLangManager().sendConsoleMessage("webmanager.log_3");
             
             HeadDropModule hd = (HeadDropModule) plugin.getModuleManager().getModule("headdrop");
             if (hd != null) {
@@ -344,14 +362,7 @@ public class WebManager {
                 map.put("isBanned", plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).isBanned(op.getName()));
                 map.put("isMuted", mod != null && mod.isMuted(op.getUniqueId()));
 
-                long playtime = 0;
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement ps = conn.prepareStatement("SELECT playtime_minutes FROM player_global_stats WHERE uuid = ?")) {
-                    ps.setString(1, op.getUniqueId().toString());
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) playtime = rs.getLong("playtime_minutes");
-                    }
-                } catch (Exception ignored) {}
+                long playtime = plugin.getDatabaseManager().getPlaytimeMinutes(op.getUniqueId());
                 map.put("playtime", playtime);
                 players.add(map);
             }
@@ -406,7 +417,7 @@ public class WebManager {
                     if (mod != null && targetOffline != null && targetOffline.getUniqueId() != null) {
                         mod.unmutePlayer(targetOffline.getUniqueId());
                         if (target != null) {
-                            target.sendMessage("§a§lVous avez retrouvé l'usage de la parole.");
+                            plugin.getLangManager().sendMessage(target, "webmanager.msg_1");
                         }
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("UNMUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin", Color.GREEN);
                     }
@@ -448,7 +459,7 @@ public class WebManager {
             // Reload configuration if it's config.yml
             if (path.equals("config.yml")) {
                 plugin.reloadConfig();
-                plugin.getLogger().info("Configuration rechargée depuis le WebPanel !");
+                plugin.getLangManager().sendConsoleMessage("webmanager.log_4");
             }
             
             ctx.status(200).result("OK");
@@ -480,26 +491,13 @@ public class WebManager {
         });
 
         app.get("/api/shop/history/{material}", ctx -> {
-            String material = ctx.pathParam("material").toUpperCase();
-            List<Map<String, Object>> history = new ArrayList<>();
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                         "SELECT timestamp, buyPrice, sellPrice, stock FROM shop_history WHERE material = ? ORDER BY timestamp ASC LIMIT 50")) {
-                ps.setString(1, material);
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        Map<String, Object> point = new HashMap<>();
-                        point.put("timestamp", rs.getLong("timestamp"));
-                        point.put("buyPrice", rs.getDouble("buyPrice"));
-                        point.put("sellPrice", rs.getDouble("sellPrice"));
-                        point.put("stock", rs.getInt("stock"));
-                        history.add(point);
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop != null) {
+                String material = ctx.pathParam("material").toUpperCase();
+                ctx.json(shop.getHistory(material));
+            } else {
+                ctx.status(404).json("Shop desactive");
             }
-            ctx.json(history);
         });
 
         app.post("/api/admin/shop/category", ctx -> {
@@ -565,14 +563,7 @@ public class WebManager {
                     Material mat = Material.valueOf(matName);
                     cat.removeItem(mat);
                     // Suppression SQL
-                    try (Connection conn = plugin.getDatabaseManager().getConnection();
-                         PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_items WHERE material = ? AND category_id = ?")) {
-                        ps.setString(1, mat.name());
-                        ps.setString(2, catId);
-                        ps.executeUpdate();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+                    shop.deleteItem(catId, mat.name());
                     shop.saveShop();
                     ctx.status(200).result("OK");
                 } catch (IllegalArgumentException e) {
@@ -592,13 +583,7 @@ public class WebManager {
             
             if (cat != null) {
                 shop.getCategories().remove(cat);
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_categories WHERE id = ?")) {
-                    ps.setString(1, catId);
-                    ps.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                shop.deleteCategory(catId);
                 shop.saveShop();
                 ctx.status(200).result("OK");
             } else {
@@ -620,98 +605,25 @@ public class WebManager {
         // Teams Stats API
         // ==============================================
         app.get("/api/stats/teams/best", ctx -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT t.team_id, t.name, t.leader_uuid, s.weekly_points, s.total_points " +
-                     "FROM genscore_teams t " +
-                     "LEFT JOIN genscore_team_stats s ON t.team_id = s.team_id " +
-                     "ORDER BY s.total_points DESC LIMIT 1")) {
-                
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        int teamId = rs.getInt("team_id");
-                        Map<String, Object> teamObj = new HashMap<>();
-                        teamObj.put("name", rs.getString("name"));
-                        teamObj.put("weekly_points", rs.getInt("weekly_points"));
-                        teamObj.put("total_points", rs.getInt("total_points"));
-                        
-                        List<Map<String, String>> members = new ArrayList<>();
-                        try (PreparedStatement mStmt = conn.prepareStatement(
-                            "SELECT m.player_uuid, COALESCE(p.username, 'Unknown') as name " +
-                            "FROM genscore_team_members m LEFT JOIN player_profiles p ON m.player_uuid = p.uuid " +
-                            "WHERE m.team_id = ?")) {
-                            mStmt.setInt(1, teamId);
-                            try (ResultSet mrs = mStmt.executeQuery()) {
-                                while (mrs.next()) {
-                                    Map<String, String> m = new HashMap<>();
-                                    m.put("uuid", mrs.getString("player_uuid"));
-                                    m.put("name", mrs.getString("name"));
-                                    members.add(m);
-                                }
-                            }
-                        }
-                        teamObj.put("members", members);
-                        ctx.json(teamObj);
-                    } else {
-                        ctx.status(404).result("Aucune guilde trouvée.");
-                    }
+            fr.gens.core.modules.teams.TeamManager tm = plugin.getTeamManager();
+            if (tm != null) {
+                java.util.Map<String, Object> bestTeam = tm.getBestTeamStats();
+                if (bestTeam != null) {
+                    ctx.json(bestTeam);
+                } else {
+                    ctx.status(404).result("Aucune guilde trouvée.");
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                ctx.status(500).result("Erreur SQL");
+            } else {
+                ctx.status(404).result("Team manager non trouvé.");
             }
         });
 
         app.get("/api/stats/teams", ctx -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT t.team_id, t.name, t.leader_uuid, s.weekly_points, s.total_points " +
-                     "FROM genscore_teams t " +
-                     "LEFT JOIN genscore_team_stats s ON t.team_id = s.team_id " +
-                     "ORDER BY s.weekly_points DESC")) {
-                
-                try (ResultSet rs = stmt.executeQuery()) {
-                    List<Map<String, Object>> teamsList = new ArrayList<>();
-                    while (rs.next()) {
-                        int teamId = rs.getInt("team_id");
-                        Map<String, Object> teamObj = new HashMap<>();
-                        teamObj.put("name", rs.getString("name"));
-                        teamObj.put("weekly_points", rs.getInt("weekly_points"));
-                        teamObj.put("total_points", rs.getInt("total_points"));
-                        
-                        int progress = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getProgress(teamId) : 0;
-                        int goal = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getGoal() : 1;
-                        String desc = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getDesc() : "Quête non définie";
-                        double percentage = Math.min(100.0, ((double) progress / goal) * 100.0);
-                        
-                        teamObj.put("quest_progress_percent", Math.round(percentage));
-                        teamObj.put("quest_progress", progress);
-                        teamObj.put("quest_goal", goal);
-                        teamObj.put("quest_desc", desc);
-                        
-                        List<Map<String, String>> members = new ArrayList<>();
-                        try (PreparedStatement mStmt = conn.prepareStatement(
-                            "SELECT m.player_uuid, COALESCE(p.username, 'Unknown') as name " +
-                            "FROM genscore_team_members m LEFT JOIN player_profiles p ON m.player_uuid = p.uuid " +
-                            "WHERE m.team_id = ?")) {
-                            mStmt.setInt(1, teamId);
-                            try (ResultSet mrs = mStmt.executeQuery()) {
-                                while (mrs.next()) {
-                                    Map<String, String> m = new HashMap<>();
-                                    m.put("uuid", mrs.getString("player_uuid"));
-                                    m.put("name", mrs.getString("name"));
-                                    members.add(m);
-                                }
-                            }
-                        }
-                        teamObj.put("members", members);
-                        teamsList.add(teamObj);
-                    }
-                    ctx.json(teamsList);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                ctx.status(500).result("Erreur SQL");
+            fr.gens.core.modules.teams.TeamManager tm = plugin.getTeamManager();
+            if (tm != null) {
+                ctx.json(tm.getAllTeamStats());
+            } else {
+                ctx.status(404).result("Team manager non trouvé.");
             }
         });
 
@@ -719,25 +631,12 @@ public class WebManager {
         // ROUTES AUCTION HOUSE (AH)
         // ==========================================
         app.get("/api/ah/items", ctx -> {
-            List<Map<String, Object>> ahItems = new ArrayList<>();
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                         "SELECT id, seller_name, price, expire_time FROM auction_house ORDER BY id DESC LIMIT 100")) {
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        Map<String, Object> ahItem = new HashMap<>();
-                        ahItem.put("id", rs.getInt("id"));
-                        ahItem.put("sellerName", rs.getString("seller_name"));
-                        ahItem.put("price", rs.getDouble("price"));
-                        ahItem.put("expireTime", rs.getLong("expire_time"));
-                        // On ne renvoie pas le item_data (Base64) car le web panel ne saura pas l'afficher sans decodeur NBT
-                        ahItems.add(ahItem);
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            fr.gens.core.modules.AuctionHouseModule ah = (fr.gens.core.modules.AuctionHouseModule) plugin.getModuleManager().getModule("auctionhouse");
+            if (ah != null) {
+                ctx.json(ah.getAuctionItemsForWeb());
+            } else {
+                ctx.status(404).result("AH module not found");
             }
-            ctx.json(ahItems);
         });
 
           // ==========================================
@@ -756,158 +655,18 @@ public class WebManager {
           });
 
         // ==========================================
-        // ROUTES LEADERBOARD GLOBAL
+        // ROUTES LEADERBOARD
         // ==========================================
         app.get("/api/stats/leaderboard", ctx -> {
-            List<Map<String, Object>> leaderboard = new ArrayList<>();
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                         "SELECT q.player_name, p.username, q.quests_completed, q.uuid, " +
-                         "COALESCE(g.blocks_broken, 0) as blocks, " +
-                         "COALESCE(g.mobs_killed, 0) as mobs, " +
-                         "COALESCE(g.playtime_minutes, 0) as playtime " +
-                         "FROM player_quests_stats q " +
-                         "LEFT JOIN player_global_stats g ON q.uuid = g.uuid " +
-                         "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
-                         "ORDER BY q.quests_completed DESC, g.blocks_broken DESC LIMIT 50")) {
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        Map<String, Object> playerStat = new HashMap<>();
-                        String name = rs.getString("username");
-                        if (name == null) name = rs.getString("player_name");
-                        playerStat.put("playerName", name);
-                        playerStat.put("questsCompleted", rs.getInt("quests_completed"));
-                        playerStat.put("uuid", rs.getString("uuid"));
-                        playerStat.put("blocksBroken", rs.getInt("blocks"));
-                        playerStat.put("mobsKilled", rs.getInt("mobs"));
-                        playerStat.put("playtime", rs.getInt("playtime"));
-                        leaderboard.add(playerStat);
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            ctx.json(leaderboard);
+            ctx.json(plugin.getDatabaseManager().getGlobalLeaderboard());
         });
 
         app.get("/api/stats/quests/leaderboard", ctx -> {
-            Map<String, Object> result = new HashMap<>();
-            
-            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                // Current Reward
-                Calendar cal = Calendar.getInstance();
-                cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-                cal.set(Calendar.HOUR_OF_DAY, 0);
-                cal.set(Calendar.MINUTE, 0);
-                cal.set(Calendar.SECOND, 0);
-                cal.set(Calendar.MILLISECOND, 0);
-                String currentWeek = String.valueOf(cal.getTimeInMillis());
-                String reward = "Aucune";
-                
-                try (PreparedStatement ps = conn.prepareStatement("SELECT reward_description FROM weekly_rewards WHERE week_id = ?")) {
-                    ps.setString(1, currentWeek);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) reward = rs.getString("reward_description");
-                    }
-                }
-                result.put("reward", reward);
-                
-                long now = System.currentTimeMillis();
-                long dayStart = now - (24L * 60L * 60L * 1000L);
-                long weekStart = cal.getTimeInMillis();
-                long monthStart = now - (30L * 24L * 60L * 60L * 1000L);
-                
-                long endOfWeek = weekStart + (7L * 24L * 60L * 60L * 1000L);
-                long timeRemainingMs = endOfWeek - now;
-                if (timeRemainingMs < 0) timeRemainingMs = 0;
-                long days = timeRemainingMs / (1000 * 60 * 60 * 24);
-                long hours = (timeRemainingMs / (1000 * 60 * 60)) % 24;
-                long minutes = (timeRemainingMs / (1000 * 60)) % 60;
-                result.put("timeRemaining", days + "j " + hours + "h " + minutes + "m");
-                
-                // Helper function to query
-                java.util.function.BiFunction<Long, Long, List<Map<String, Object>>> getLeaderboard = (start, end) -> {
-                    List<Map<String, Object>> list = new ArrayList<>();
-                    String sql = "SELECT player_name, COUNT(*) as count FROM player_quests_history WHERE completion_date >= ? AND completion_date <= ? GROUP BY uuid ORDER BY count DESC LIMIT 10";
-                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                        ps.setLong(1, start);
-                        ps.setLong(2, end);
-                        try (ResultSet rs = ps.executeQuery()) {
-                            while (rs.next()) {
-                                Map<String, Object> map = new HashMap<>();
-                                map.put("playerName", rs.getString("player_name"));
-                                map.put("count", rs.getInt("count"));
-                                list.add(map);
-                            }
-                        }
-                    } catch (SQLException e) { e.printStackTrace(); }
-                    return list;
-                };
-                
-                result.put("daily", getLeaderboard.apply(dayStart, now));
-                result.put("weekly", getLeaderboard.apply(weekStart, now));
-                result.put("monthly", getLeaderboard.apply(monthStart, now));
-                
-                // Total is slightly different
-                List<Map<String, Object>> totalList = new ArrayList<>();
-                try (PreparedStatement ps = conn.prepareStatement(
-                    "SELECT q.player_name, p.username, q.quests_completed " +
-                    "FROM player_quests_stats q " +
-                    "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
-                    "ORDER BY quests_completed DESC LIMIT 10")) {
-                    try (ResultSet rs = ps.executeQuery()) {
-                        while (rs.next()) {
-                            Map<String, Object> map = new HashMap<>();
-                            String name = rs.getString("username");
-                            if (name == null) name = rs.getString("player_name");
-                            map.put("playerName", name);
-                            map.put("count", rs.getInt("quests_completed"));
-                            totalList.add(map);
-                        }
-                    }
-                }
-                result.put("total", totalList);
-                
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            
-            ctx.json(result);
+            ctx.json(plugin.getDatabaseManager().getQuestsLeaderboardData());
         });
 
         app.get("/api/stats/jobs", ctx -> {
-            Map<String, List<Map<String, Object>>> jobsLeaderboard = new HashMap<>();
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                         "SELECT j.job_name, COALESCE(p.username, q.player_name, 'Inconnu') as player_name, j.level, j.xp " +
-                         "FROM player_jobs j " +
-                         "LEFT JOIN player_quests_stats q ON j.uuid = q.uuid " +
-                         "LEFT JOIN player_profiles p ON j.uuid = p.uuid " +
-                         "ORDER BY j.job_name, j.level DESC, j.xp DESC")) {
-                
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        String jobName = rs.getString("job_name");
-                        String playerName = rs.getString("player_name");
-                        
-                        Map<String, Object> stat = new HashMap<>();
-                        stat.put("playerName", playerName);
-                        stat.put("level", rs.getInt("level"));
-                        stat.put("xp", rs.getDouble("xp"));
-                        
-                        jobsLeaderboard.computeIfAbsent(jobName, k -> new ArrayList<>()).add(stat);
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            // Keep top 10 per job to save bandwidth
-            for (List<Map<String, Object>> list : jobsLeaderboard.values()) {
-                if (list.size() > 10) {
-                    list.subList(10, list.size()).clear();
-                }
-            }
-            ctx.json(jobsLeaderboard);
+            ctx.json(plugin.getDatabaseManager().getJobsLeaderboardData());
         });
     }
     

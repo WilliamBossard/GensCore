@@ -37,14 +37,14 @@ public class GuiModule implements Module, Listener {
     public void enable() {
         enabled = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[GuiModule] Activé.");
+        plugin.getLangManager().sendConsoleMessage("guimodule.log_1");
     }
 
     @Override
     public void disable() {
         enabled = false;
         HandlerList.unregisterAll(this);
-        plugin.getLogger().info("[GuiModule] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("guimodule.log_2");
     }
 
     // Intercepte les clics dans nos menus custom pour empêcher les joueurs de voler les items

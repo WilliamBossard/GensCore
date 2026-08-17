@@ -116,7 +116,7 @@ public class JobsGUI implements Listener {
                     p.sendMessage("§cVous avez quitté le métier " + targetJob.getDisplayName() + " !");
                 } else {
                     if (jobsModule.getActiveJobsCount(p.getUniqueId()) >= 2) {
-                        p.sendMessage("§cVous avez déjà 2 métiers actifs ! Quittez-en un d'abord.");
+                        plugin.getLangManager().sendMessage(p, "jobsgui.msg_1");
                     } else {
                         jobsModule.joinJob(p.getUniqueId(), targetJob);
                         p.sendMessage("§aVous avez rejoint le métier " + targetJob.getDisplayName() + " !");

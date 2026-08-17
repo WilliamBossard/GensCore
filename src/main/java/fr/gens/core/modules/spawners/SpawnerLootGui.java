@@ -181,7 +181,7 @@ public class SpawnerLootGui implements Listener {
                                 // Delete the chest
                                 data.getLocation().getBlock().setType(Material.AIR);
                                 moduleInstance.removeSpawner(data.getLocation());
-                                player.sendMessage("§aLe coffre de récupération est vide et a disparu.");
+                                plugin.getLangManager().sendMessage(player, "spawnerlootgui.msg_1");
                             }
                         } else {
                             SpawnerGui.openGui(player, data);

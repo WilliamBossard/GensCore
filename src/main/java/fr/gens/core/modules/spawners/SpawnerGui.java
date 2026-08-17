@@ -164,7 +164,7 @@ public class SpawnerGui implements Listener {
                 moduleInstance.getSpawnerManager().updateHologram(data);
                 Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data)); // refresh différé
             } else {
-                player.sendMessage("§cAucune XP stockée !");
+                plugin.getLangManager().sendMessage(player, "spawnergui.msg_1");
             }
         } else if (slot == 24) {
             // Coffre Items
@@ -187,12 +187,12 @@ public class SpawnerGui implements Listener {
         }
         
         if (currentLevel >= 10) {
-            player.sendMessage("§cCe spawner est déjà au niveau maximum pour cette amélioration.");
+            plugin.getLangManager().sendMessage(player, "spawnergui.msg_2");
             return;
         }
         
         if (moduleInstance != null && !moduleInstance.isEnabled()) {
-            player.sendMessage("§cLe système de spawners est actuellement désactivé. Vous ne pouvez pas acheter d'améliorations.");
+            plugin.getLangManager().sendMessage(player, "spawnergui.msg_3");
             return;
         }
         

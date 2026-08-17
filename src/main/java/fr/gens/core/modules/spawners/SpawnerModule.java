@@ -102,7 +102,7 @@ public class SpawnerModule implements Module {
         
         plugin.getCommand("spawner").setExecutor(new SpawnerCommand(plugin, this));
         
-        plugin.getLogger().info("[SpawnerModule] Activé.");
+        plugin.getLangManager().sendConsoleMessage("spawnermodule.log_1");
     }
 
     @Override
@@ -125,7 +125,7 @@ public class SpawnerModule implements Module {
         saveAllSpawnersToDB();
         // On ne clear() pas activeSpawners pour continuer de protéger les blocs
         
-        plugin.getLogger().info("[SpawnerModule] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("spawnermodule.log_2");
     }
     
     public CorePlugin getPlugin() {
@@ -199,7 +199,7 @@ public class SpawnerModule implements Module {
                 Bukkit.getScheduler().runTask(plugin, () -> spawnerManager.updateHologram(data));
             }
         } catch (SQLException e) {
-            plugin.getLogger().severe("Erreur lors du chargement des spawners depuis SQLite.");
+            plugin.getLangManager().sendConsoleError("spawnermodule.log_3");
             e.printStackTrace();
         }
         plugin.getLogger().info("[SpawnerModule] " + count + " spawners chargés.");

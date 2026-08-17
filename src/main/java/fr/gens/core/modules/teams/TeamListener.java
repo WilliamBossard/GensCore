@@ -48,11 +48,11 @@ public class TeamListener implements Listener {
 
             if (item.getType() == Material.BARRIER) {
                 if (isLeader) {
-                    player.sendMessage("§cEn tant que chef, vous devez utiliser /team disband ou transférer le lead (à venir). La guilde est supprimée.");
+                    plugin.getLangManager().sendMessage(player, "teamlistener.msg_1");
                     plugin.getTeamManager().disbandTeam(team);
                 } else {
                     plugin.getTeamManager().removeMember(team, player.getUniqueId());
-                    player.sendMessage("§aVous avez quitté la guilde.");
+                    plugin.getLangManager().sendMessage(player, "teamlistener.msg_2");
                 }
                 player.closeInventory();
                 return;
@@ -64,7 +64,7 @@ public class TeamListener implements Listener {
                     UUID targetUuid = meta.getOwningPlayer().getUniqueId();
                     if (!targetUuid.equals(player.getUniqueId())) {
                         plugin.getTeamManager().removeMember(team, targetUuid);
-                        player.sendMessage("§cMembre expulsé.");
+                        plugin.getLangManager().sendMessage(player, "teamlistener.msg_3");
                         teamGui.openTeamGui(player);
                     }
                 }

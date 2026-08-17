@@ -50,7 +50,7 @@ public class LockModule implements Module {
     @Override
     public void disable() {
         enabled = false;
-        plugin.getLogger().info("[Locks] Module désactivé !");
+        plugin.getLangManager().sendConsoleMessage("lockmodule.log_1");
     }
 
     private void loadLocks() {

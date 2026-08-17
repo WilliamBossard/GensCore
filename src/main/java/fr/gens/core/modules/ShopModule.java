@@ -35,7 +35,7 @@ public class ShopModule implements Module, Listener {
         enabled = true;
         // Enregistrer les événements de ce module
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[ShopModule] Activé !");
+        plugin.getLangManager().sendConsoleMessage("shopmodule.log_1");
     }
 
     @Override
@@ -43,7 +43,7 @@ public class ShopModule implements Module, Listener {
         enabled = false;
         // Désenregistrer les événements de ce module pour qu'il s'arrête instantanément
         HandlerList.unregisterAll(this);
-        plugin.getLogger().info("[ShopModule] Désactivé !");
+        plugin.getLangManager().sendConsoleMessage("shopmodule.log_2");
     }
 
     // Exemple d'événement qui ne fonctionne que si le module est actif

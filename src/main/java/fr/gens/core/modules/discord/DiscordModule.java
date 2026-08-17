@@ -103,7 +103,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
         String token = plugin.getConfig().getString("discord.bot_token", "");
         if (token == null || token.isEmpty() || token.equals("VOTRE_TOKEN_ICI")) {
-            plugin.getLogger().warning("[Discord] Token invalide ! Configurez le token dans config.yml via l'interface Web.");
+            plugin.getLangManager().sendConsoleWarning("discordmodule.log_1");
             return;
         }
 
@@ -127,7 +127,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                         .addEventListeners(this)
                         .build();
                 jda.awaitReady();
-                plugin.getLogger().info("[Discord] Bot connecté avec succès !");
+                plugin.getLangManager().sendConsoleMessage("discordmodule.log_2");
                 
                 jda.upsertCommand("resetpassword", "Changer le mot de passe de votre compte Minecraft")
                    .addOption(OptionType.STRING, "nouveau_mdp", "Votre nouveau mot de passe", true)
@@ -157,7 +157,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             jda = null;
         }
         pendingLinks.clear();
-        plugin.getLogger().info("[Discord] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("discordmodule.log_3");
     }
 
     public void sendBotMessage(String content) {
@@ -353,20 +353,20 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
         if (args.length > 0 && args[0].equalsIgnoreCase("link")) {
             if (p.hasPermission("genscore.discord.linked") && plugin.getDatabaseManager().getDiscordId(p.getUniqueId()) != null) {
-                p.sendMessage("§cVotre compte est déjà lié !");
+                plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
                 return true;
             }
 
             String code = String.format("%04d", new Random().nextInt(10000));
             pendingLinks.put(code, p.getUniqueId());
             
-            p.sendMessage("§a§l[Discord] §7Pour lier votre compte, allez sur le serveur Discord et tapez :");
+            plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
             p.sendMessage("§e!link " + code);
-            p.sendMessage("§7(Ce code expire au prochain redémarrage)");
+            plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
             return true;
         }
         
-        p.sendMessage("§cUtilisation: /discord link");
+        plugin.getLangManager().sendMessage(p, "discordmodule.msg_4");
         return true;
     }
 
@@ -396,7 +396,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                         
                         Player p = Bukkit.getPlayer(uuid);
                         if (p != null) {
-                            p.sendMessage("§a§l[Discord] §aVotre compte a été lié avec succès !");
+                            plugin.getLangManager().sendMessage(p, "discordmodule.msg_5");
                         }
                     }
                     plugin.getDatabaseManager().setDiscordId(uuid, event.getAuthor().getId());

@@ -40,13 +40,13 @@ public class MotdModule implements Module, Listener {
             plugin.saveConfig();
         }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[MOTD] Module activé.");
+        plugin.getLangManager().sendConsoleMessage("motdmodule.log_1");
     }
 
     @Override
     public void disable() {
         enabled = false;
-        plugin.getLogger().info("[MOTD] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("motdmodule.log_2");
     }
 
     @EventHandler

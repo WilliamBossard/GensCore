@@ -67,7 +67,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
     public void disable() {
         enabled = false;
         menus.clear();
-        plugin.getLogger().info("[CustomGui] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("customguimodule.log_1");
     }
 
     public void loadMenus() {

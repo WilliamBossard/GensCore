@@ -96,7 +96,7 @@ public class SpawnerListener implements Listener {
             SpawnerData data = module.getSpawnerAt(block.getLocation());
             if (data != null && data.isLootChest()) {
                 event.setCancelled(true);
-                player.sendMessage("§cVous ne pouvez pas casser ce coffre de récupération. Videz-le pour qu'il disparaisse.");
+                plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_1");
                 return;
             }
         }
@@ -109,7 +109,7 @@ public class SpawnerListener implements Listener {
         if (data != null) {
             if (!module.isEnabled()) {
                 event.setCancelled(true);
-                player.sendMessage("§cLe système de spawners est actuellement désactivé. Vous ne pouvez pas casser ce spawner.");
+                plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_2");
                 return;
             }
             
@@ -135,11 +135,11 @@ public class SpawnerListener implements Listener {
                 data.setLootChest(true);
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> module.saveSpawnerToDB(data));
                 module.getSpawnerManager().updateHologram(data);
-                player.sendMessage("§eSpawner cassé. Les ressources générées sont restées dans ce coffre de récupération !");
+                plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_3");
                 event.setCancelled(true); // Annuler la casse car on a remplacé le block par un coffre
             } else {
                 module.removeSpawner(loc);
-                player.sendMessage("§aSpawner GensCore cassé !");
+                plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_4");
             }
         } else {
             // Vanilla spawner conversion
@@ -154,7 +154,7 @@ public class SpawnerListener implements Listener {
                     if (System.currentTimeMillis() - lastAttempt > 3000) {
                         event.setCancelled(true);
                         vanillaBreakConfirm.put(uuid, System.currentTimeMillis());
-                        player.sendMessage("§cLe module spawner est désactivé. Recassez le spawner dans les 3 secondes pour forcer la destruction (sans récupération).");
+                        plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_5");
                         return;
                     } else {
                         vanillaBreakConfirm.remove(uuid);
@@ -167,7 +167,7 @@ public class SpawnerListener implements Listener {
                     ItemStack hand = player.getInventory().getItemInMainHand();
                     if (hand == null || !hand.containsEnchantment(Enchantment.SILK_TOUCH)) {
                         event.setCancelled(true);
-                        player.sendMessage("§cIl vous faut l'enchantement §bDélicatesse (Silk Touch) §cpour casser et récupérer ce spawner !");
+                        plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_6");
                         return;
                     }
                 }
@@ -175,7 +175,7 @@ public class SpawnerListener implements Listener {
                 ItemStack customSpawner = SpawnerCommand.createSpawnerItem(plugin, type, 1);
                 block.getWorld().dropItemNaturally(loc, customSpawner);
                 event.setExpToDrop(0); // Prevent vanilla exp drop
-                player.sendMessage("§aSpawner Vanilla converti en Spawner GensCore !");
+                plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_7");
             }
         }
     }
@@ -209,7 +209,7 @@ public class SpawnerListener implements Listener {
         // Stacking logic
         if (item != null && item.getType() == Material.SPAWNER && item.hasItemMeta()) {
             if (!module.isEnabled()) {
-                player.sendMessage("§cLe système de spawners est actuellement désactivé. Vous ne pouvez pas rajouter de spawners.");
+                plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_8");
                 return;
             }
             ItemMeta meta = item.getItemMeta();
@@ -252,11 +252,11 @@ public class SpawnerListener implements Listener {
                         player.sendMessage("§aVous avez ajouté " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")");
                         return;
                     } else {
-                        player.sendMessage("§cCe spawner a atteint sa limite de stack.");
+                        plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_9");
                         return;
                     }
                 } else {
-                    player.sendMessage("§cCe n'est pas le même type de spawner !");
+                    plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_10");
                     return;
                 }
             }

@@ -95,29 +95,25 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         loadMutedPlayers();
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[Moderation] Module activé.");
+        plugin.getLangManager().sendConsoleMessage("moderationmodule.log_1");
     }
 
     @Override
     public void disable() {
         this.enabled = false;
-        List<String> frozen = new ArrayList<>();
-        for (UUID uuid : frozenPlayers) {
-            frozen.add(uuid.toString());
-        }
-        plugin.getConfig().set("moderation.frozen", frozen);
         
-        List<String> mutes = new ArrayList<>();
-        for (Map.Entry<UUID, MuteData> entry : mutedPlayers.entrySet()) {
-            mutes.add(entry.getKey().toString() + ";" + entry.getValue().expiration + ";" + entry.getValue().reason);
-        }
-        plugin.getConfig().set("moderation.mutes", mutes);
+        // Save to Database instead of config
+        plugin.getDatabaseManager().saveFrozen(frozenPlayers);
+        plugin.getDatabaseManager().saveMutes(mutedPlayers);
         
-        plugin.saveConfig();
-        plugin.getLogger().info("[Moderation] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("moderationmodule.log_2");
     }
     
     public void loadFrozenPlayers() {
+        frozenPlayers.clear();
+        frozenPlayers.addAll(plugin.getDatabaseManager().loadFrozen());
+        
+        // Migration from config if needed
         if (plugin.getConfig().contains("moderation.frozen")) {
             List<String> frozen = plugin.getConfig().getStringList("moderation.frozen");
             for (String s : frozen) {
@@ -125,10 +121,16 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                     frozenPlayers.add(UUID.fromString(s));
                 } catch (Exception ignored) {}
             }
+            plugin.getConfig().set("moderation.frozen", null);
+            plugin.saveConfig();
         }
     }
 
     public void loadMutedPlayers() {
+        mutedPlayers.clear();
+        mutedPlayers.putAll(plugin.getDatabaseManager().loadMutes());
+        
+        // Migration from config if needed
         if (plugin.getConfig().contains("moderation.mutes")) {
             List<String> mutes = plugin.getConfig().getStringList("moderation.mutes");
             for (String s : mutes) {
@@ -142,6 +144,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                     }
                 } catch (Exception ignored) {}
             }
+            plugin.getConfig().set("moderation.mutes", null);
+            plugin.saveConfig();
         }
     }
 
@@ -194,16 +198,16 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
         if (command.getName().equalsIgnoreCase("freeze")) {
             if (!sender.hasPermission("genscore.freeze")) {
-                sender.sendMessage("§cVous n'avez pas la permission.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_1");
                 return true;
             }
             if (args.length == 0) {
-                sender.sendMessage("§cUsage: /freeze <joueur>");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_2");
                 return true;
             }
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                sender.sendMessage("§cJoueur introuvable ou hors ligne.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_3");
                 return true;
             }
             UUID uuid = target.getUniqueId();
@@ -211,32 +215,32 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 frozenPlayers.remove(uuid);
                 target.setGravity(true);
                 sender.sendMessage("§aLe joueur " + target.getName() + " a été dégelé.");
-                target.sendMessage("§a§lVous avez été dégelé par un administrateur.");
+                plugin.getLangManager().sendMessage(target, "moderationmodule.msg_4");
             } else {
                 frozenPlayers.add(uuid);
                 target.setGravity(false); // Geler en l'air
                 sender.sendMessage("§aLe joueur " + target.getName() + " a été gelé.");
-                target.sendMessage("§c§lVous avez été gelé par un administrateur !");
+                plugin.getLangManager().sendMessage(target, "moderationmodule.msg_5");
             }
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("openinv")) {
             if (!sender.hasPermission("genscore.openinv")) {
-                sender.sendMessage("§cVous n'avez pas la permission.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_6");
                 return true;
             }
             if (!(sender instanceof Player)) {
-                sender.sendMessage("§cSeul un joueur peut utiliser cette commande.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_7");
                 return true;
             }
             if (args.length == 0) {
-                sender.sendMessage("§cUsage: /openinv <joueur>");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_8");
                 return true;
             }
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                sender.sendMessage("§cJoueur introuvable ou hors ligne.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_9");
                 return true;
             }
             Player p = (Player) sender;
@@ -246,11 +250,11 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
         if (command.getName().equalsIgnoreCase("resetmdp")) {
             if (!sender.hasPermission("genscore.admin")) {
-                sender.sendMessage("§cVous n'avez pas la permission.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_10");
                 return true;
             }
             if (args.length == 0) {
-                sender.sendMessage("§cUsage: /resetmdp <joueur>");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_11");
                 return true;
             }
             
@@ -269,12 +273,12 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             }
             
             if (targetUUID == null) {
-                sender.sendMessage("§cJoueur jamais vu sur le serveur.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_12");
                 return true;
             }
             
             if (plugin.getDatabaseManager().getAuthData(targetUUID) == null) {
-                sender.sendMessage("§cCe joueur n'a pas de mot de passe enregistré.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_13");
                 return true;
             }
             
@@ -293,17 +297,17 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
         if (command.getName().equalsIgnoreCase("mute")) {
             if (!sender.hasPermission("genscore.mute")) {
-                sender.sendMessage("§cVous n'avez pas la permission.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_14");
                 return true;
             }
             if (args.length < 1) {
-                sender.sendMessage("§cUsage: /mute <joueur> [durée] [raison]");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_15");
                 return true;
             }
             
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
             if (target == null || target.getUniqueId() == null) {
-                sender.sendMessage("§cJoueur introuvable.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_16");
                 return true;
             }
 
@@ -342,7 +346,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 unmutePlayer(target.getUniqueId());
                 sender.sendMessage("§aLe joueur " + target.getName() + " n'est plus muet.");
                 Player online = target.getPlayer();
-                if (online != null) online.sendMessage("§a§lVous avez retrouvé l'usage de la parole.");
+                if (online != null) plugin.getLangManager().sendMessage(online, "moderationmodule.msg_17");
                 sendDiscordLog("UNMUTE", target.getName(), sender.getName(), "Pardonné", 0);
             }
             return true;
@@ -350,7 +354,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
         if (command.getName().equalsIgnoreCase("ban")) {
             if (!sender.hasPermission("genscore.ban")) {
-                sender.sendMessage("§cVous n'avez pas la permission.");
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
                 return true;
             }
             if (args.length < 1) return false;

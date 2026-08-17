@@ -23,6 +23,7 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import org.mindrot.jbcrypt.BCrypt;
 
 import org.bukkit.command.CommandExecutor;
 
@@ -56,22 +57,30 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     public void enable() {
         this.enabled = true;
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[Auth] Module activé.");
+        plugin.getLangManager().sendConsoleMessage("authmodule.log_1");
     }
 
     @Override
     public void disable() {
         this.enabled = false;
         authenticated.clear();
-        plugin.getLogger().info("[Auth] Module désactivé.");
+        Bukkit.getScheduler().cancelTasks(plugin);
+        plugin.getLangManager().sendConsoleMessage("authmodule.log_2");
+    }
+    
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        if (plugin.getCommand("register") != null) plugin.getCommand("register").setExecutor(this);
+        if (plugin.getCommand("login") != null) plugin.getCommand("login").setExecutor(this);
+        if (plugin.getCommand("changemdp") != null) plugin.getCommand("changemdp").setExecutor(this);
     }
 
     public void forceLogout(UUID uuid) {
         authenticated.remove(uuid);
         Player p = Bukkit.getPlayer(uuid);
         if (p != null && p.isOnline()) {
-            p.sendMessage("§cVotre mot de passe a été modifié.");
-            p.sendMessage("§cVous avez été déconnecté. Veuillez vous reconnecter avec /login <mot_de_passe>");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_1");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_2");
         }
     }
 
@@ -83,35 +92,35 @@ public class AuthModule implements Module, Listener, CommandExecutor {
 
         if (label.equalsIgnoreCase("register")) {
             if (authenticated.contains(uuid)) {
-                p.sendMessage("§cVous êtes déjà connecté.");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_3");
                 return true;
             }
             DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(uuid);
             if (data != null) {
-                p.sendMessage("§cVous êtes déjà enregistré. Utilisez /login <mot de passe>");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_4");
                 return true;
             }
             if (args.length < 2) {
-                p.sendMessage("§cUsage: /register <mot de passe> <confirmer mot de passe>");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_5");
                 return true;
             }
             if (!args[0].equals(args[1])) {
-                p.sendMessage("§cLes mots de passe ne correspondent pas.");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_6");
                 return true;
             }
             String password = args[0];
             if (password.length() < 4) {
-                p.sendMessage("§cLe mot de passe doit faire au moins 4 caractères.");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_7");
                 return true;
             }
 
-            String salt = generateSalt();
-            String hash = hashPassword(password, salt);
+            String salt = ""; // Non utilisé pour BCrypt mais gardé pour compatibilité BDD
+            String hash = BCrypt.hashpw(password, BCrypt.gensalt());
             String ip = p.getAddress().getAddress().getHostAddress();
 
             plugin.getDatabaseManager().registerPlayer(uuid, hash, salt, ip);
             authenticated.add(uuid);
-            p.sendMessage("§aVous avez été enregistré et connecté avec succès !");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_8");
             
             fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
             if (discord != null && discord.isEnabled()) {
@@ -122,36 +131,57 @@ public class AuthModule implements Module, Listener, CommandExecutor {
 
         if (label.equalsIgnoreCase("login")) {
             if (authenticated.contains(uuid)) {
-                p.sendMessage("§cVous êtes déjà connecté.");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_9");
                 return true;
             }
             DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(uuid);
             if (data == null) {
-                p.sendMessage("§cVous n'êtes pas enregistré. Utilisez /register <mdp> <confirmer mdp>");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_10");
                 return true;
             }
             if (args.length < 1) {
-                p.sendMessage("§cUsage: /login <mot de passe>");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_11");
                 return true;
             }
             String password = args[0];
-            String hash = hashPassword(password, data.salt);
+            
+            boolean isAuthenticated = false;
+            boolean needsMigration = false;
+            
+            if (data.hash.startsWith("$2a$") || data.hash.startsWith("$2b$") || data.hash.startsWith("$2y$")) {
+                // Mot de passe BCrypt
+                isAuthenticated = BCrypt.checkpw(password, data.hash);
+            } else {
+                // Ancien mot de passe SHA-256
+                String oldHash = oldHashPassword(password, data.salt);
+                if (oldHash.equals(data.hash)) {
+                    isAuthenticated = true;
+                    needsMigration = true;
+                }
+            }
 
-            if (hash.equals(data.hash)) {
+            if (isAuthenticated) {
                 String ip = p.getAddress().getAddress().getHostAddress();
+                
+                if (needsMigration) {
+                    String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
+                    plugin.getDatabaseManager().updatePassword(uuid, newHash, "");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_12");
+                }
+                
                 plugin.getDatabaseManager().updateLogin(uuid, ip);
                 authenticated.add(uuid);
-                p.sendMessage("§aAuthentification réussie. Bon jeu !");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_13");
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
                 if (discord != null && discord.isEnabled()) {
                     discord.logAuthEvent(p.getName(), "Connexion Réussie", java.awt.Color.GREEN);
                 }
             } else {
-                p.sendMessage("§cMot de passe incorrect.");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_14");
                 String discordId = plugin.getDatabaseManager().getDiscordId(uuid);
                 if (discordId != null && !discordId.isEmpty()) {
-                    p.sendMessage("§eMot de passe oublié ? Utilisez la commande §b/resetpassword §esur notre serveur Discord pour le réinitialiser !");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_15");
                 }
             }
             return true;
@@ -159,11 +189,11 @@ public class AuthModule implements Module, Listener, CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("changemdp")) {
             if (args.length != 2) {
-                p.sendMessage("§cUtilisation: /changemdp <ancien> <nouveau>");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_16");
                 return true;
             }
             if (!authenticated.contains(p.getUniqueId())) {
-                p.sendMessage("§cVous devez être connecté pour faire ça.");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_17");
                 return true;
             }
             String oldPass = args[0];
@@ -171,18 +201,24 @@ public class AuthModule implements Module, Listener, CommandExecutor {
 
             DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(uuid);
             if (data != null) {
-                String oldHash = hashPassword(oldPass, data.salt);
-                if (oldHash.equals(data.hash)) {
+                boolean isOldPasswordCorrect = false;
+                if (data.hash.startsWith("$2a$") || data.hash.startsWith("$2b$") || data.hash.startsWith("$2y$")) {
+                    isOldPasswordCorrect = BCrypt.checkpw(oldPass, data.hash);
+                } else {
+                    String oldHash = oldHashPassword(oldPass, data.salt);
+                    isOldPasswordCorrect = oldHash.equals(data.hash);
+                }
+                
+                if (isOldPasswordCorrect) {
                     if (newPass.length() < 4) {
-                        p.sendMessage("§cLe nouveau mot de passe doit faire au moins 4 caractères.");
+                        plugin.getLangManager().sendMessage(p, "authmodule.msg_18");
                         return true;
                     }
-                    String newSalt = generateSalt();
-                    String newHash = hashPassword(newPass, newSalt);
-                    plugin.getDatabaseManager().updatePassword(uuid, newHash, newSalt);
-                    p.sendMessage("§aVotre mot de passe a été mis à jour avec succès !");
+                    String newHash = BCrypt.hashpw(newPass, BCrypt.gensalt());
+                    plugin.getDatabaseManager().updatePassword(uuid, newHash, "");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_19");
                 } else {
-                    p.sendMessage("§cL'ancien mot de passe est incorrect.");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_20");
                 }
             }
             return true;
@@ -194,17 +230,17 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     private void requireAuth(Player p) {
         DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(p.getUniqueId());
         if (data == null) {
-            p.sendMessage("§c=============================");
-            p.sendMessage("§cBienvenue sur GensBien !");
-            p.sendMessage("§eVeuillez vous enregistrer avec:");
-            p.sendMessage("§b/register <mdp> <confirmer mdp>");
-            p.sendMessage("§c=============================");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_21");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_22");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_23");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_24");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_25");
         } else {
-            p.sendMessage("§c=============================");
-            p.sendMessage("§cBienvenue sur GensBien !");
-            p.sendMessage("§eVeuillez vous connecter avec:");
-            p.sendMessage("§b/login <mdp>");
-            p.sendMessage("§c=============================");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_26");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_27");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_28");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_29");
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_30");
         }
     }
 
@@ -222,7 +258,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
             if (currentIp.equals(data.lastIp) && timeSinceLastLogin < SESSION_TIMEOUT) {
                 authenticated.add(uuid);
                 plugin.getDatabaseManager().updateLogin(uuid, currentIp);
-                p.sendMessage("§aConnecté automatiquement.");
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_31");
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
                 if (discord != null && discord.isEnabled()) {
@@ -314,13 +350,14 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     // Security Utilities
 
     public static String generateSalt() {
+        // Gardé pour rétrocompatibilité lors d'anciens resetmdp non-BCrypt si jamais
         SecureRandom random = new SecureRandom();
         byte[] saltBytes = new byte[16];
         random.nextBytes(saltBytes);
         return Base64.getEncoder().encodeToString(saltBytes);
     }
 
-    public static String hashPassword(String password, String salt) {
+    public static String oldHashPassword(String password, String salt) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(salt.getBytes());
@@ -329,5 +366,11 @@ public class AuthModule implements Module, Listener, CommandExecutor {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 non supporté", e);
         }
+    }
+
+    public static String hashPassword(String password, String salt) {
+        // N'est plus appelé qu'historiquement, BCrypt gère le hash maintenant.
+        // On retourne la version BCrypt par défaut.
+        return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 }

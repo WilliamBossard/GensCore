@@ -65,7 +65,7 @@ public class TabBoardModule implements Module, Listener {
 
         // Tâche de mise à jour toutes les secondes (20 ticks)
         taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::updateAll, 20L, 20L);
-        plugin.getLogger().info("[TabBoard] Module activé.");
+        plugin.getLangManager().sendConsoleMessage("tabboardmodule.log_1");
     }
 
     @Override
@@ -79,7 +79,7 @@ public class TabBoardModule implements Module, Listener {
             p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         }
         boards.clear();
-        plugin.getLogger().info("[TabBoard] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("tabboardmodule.log_2");
     }
 
     @EventHandler
@@ -206,11 +206,8 @@ public class TabBoardModule implements Module, Listener {
         String rawHeader = plugin.getConfig().getString("tabboard.tablist.header", "");
         String rawFooter = plugin.getConfig().getString("tabboard.tablist.footer", "");
 
-        String finalHeaderStr = PlaceholderUtils.setPlaceholders(plugin, p, rawHeader);
-        String finalFooterStr = PlaceholderUtils.setPlaceholders(plugin, p, rawFooter);
-
-        Component headerComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(finalHeaderStr);
-        Component footerComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(finalFooterStr);
+        Component headerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, rawHeader);
+        Component footerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, rawFooter);
 
         p.sendPlayerListHeaderAndFooter(headerComp, footerComp);
     }

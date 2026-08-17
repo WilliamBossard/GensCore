@@ -39,13 +39,22 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
     @Override
     public void enable() {
         this.enabled = true;
-        plugin.getLogger().info("[Utils] Module activé.");
+        plugin.getLangManager().sendConsoleMessage("utilsmodule.log_1");
+    }
+
+    @Override
+    public void registerCommands(CorePlugin plugin) {
+        String[] utilsCmds = {"anvil", "craftingtable", "enchanttable", "ec", "feed"};
+        for (String cmd : utilsCmds) {
+            org.bukkit.command.PluginCommand c = plugin.getCommand(cmd);
+            if (c != null) c.setExecutor(this);
+        }
     }
 
     @Override
     public void disable() {
         this.enabled = false;
-        plugin.getLogger().info("[Utils] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("utilsmodule.log_2");
     }
 
     @Override
@@ -55,7 +64,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
 
         if (label.equalsIgnoreCase("anvil")) {
             if (!p.hasPermission("genscore.anvil")) {
-                p.sendMessage("§cVous n'avez pas la permission d'utiliser cette commande.");
+                plugin.getLangManager().sendMessage(p, "utilsmodule.msg_1");
                 return true;
             }
             p.openAnvil(null, true);
@@ -64,7 +73,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
 
         if (label.equalsIgnoreCase("craftingtable") || label.equalsIgnoreCase("craft") || label.equalsIgnoreCase("workbench")) {
             if (!p.hasPermission("genscore.craft")) {
-                p.sendMessage("§cVous n'avez pas la permission d'utiliser cette commande.");
+                plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
                 return true;
             }
             p.openWorkbench(null, true);
@@ -73,7 +82,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
 
         if (label.equalsIgnoreCase("enchanttable") || label.equalsIgnoreCase("enchanting")) {
             if (!p.hasPermission("genscore.enchant")) {
-                p.sendMessage("§cVous n'avez pas la permission d'utiliser cette commande.");
+                plugin.getLangManager().sendMessage(p, "utilsmodule.msg_3");
                 return true;
             }
             p.openEnchanting(null, true);
@@ -82,17 +91,17 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
 
         if (label.equalsIgnoreCase("ec") || label.equalsIgnoreCase("enderchest")) {
             if (!p.hasPermission("genscore.ec")) {
-                p.sendMessage("§cVous n'avez pas la permission d'utiliser cette commande.");
+                plugin.getLangManager().sendMessage(p, "utilsmodule.msg_4");
                 return true;
             }
             if (args.length > 0) {
                 if (!p.hasPermission("genscore.admin")) {
-                    p.sendMessage("§cVous n'avez pas la permission d'ouvrir l'enderchest d'un autre joueur.");
+                    plugin.getLangManager().sendMessage(p, "utilsmodule.msg_5");
                     return true;
                 }
                 Player target = org.bukkit.Bukkit.getPlayer(args[0]);
                 if (target == null) {
-                    p.sendMessage("§cLe joueur n'est pas en ligne.");
+                    plugin.getLangManager().sendMessage(p, "utilsmodule.msg_6");
                     return true;
                 }
                 p.openInventory(target.getEnderChest());
@@ -105,12 +114,12 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
 
         if (label.equalsIgnoreCase("feed")) {
             if (!p.hasPermission("genscore.feed")) {
-                p.sendMessage("§cVous n'avez pas la permission d'utiliser cette commande.");
+                plugin.getLangManager().sendMessage(p, "utilsmodule.msg_7");
                 return true;
             }
             p.setFoodLevel(20);
             p.setSaturation(20.0f);
-            p.sendMessage("§aVous avez été rassasié !");
+            plugin.getLangManager().sendMessage(p, "utilsmodule.msg_8");
             return true;
         }
 

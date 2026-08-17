@@ -40,20 +40,20 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage("§cUsage: /web deposit | withdraw");
+            plugin.getLangManager().sendMessage(player, "webcommand.msg_1");
             return true;
         }
 
         if (args[0].equalsIgnoreCase("deposit")) {
             ItemStack item = player.getInventory().getItemInMainHand();
             if (item == null || item.getType() == Material.AIR) {
-                player.sendMessage("§cVous devez tenir un objet en main !");
+                plugin.getLangManager().sendMessage(player, "webcommand.msg_2");
                 return true;
             }
 
             String base64 = plugin.getStorageManager().itemStackToBase64(item);
             if (base64 == null) {
-                player.sendMessage("§cErreur lors de la sauvegarde de l'objet.");
+                plugin.getLangManager().sendMessage(player, "webcommand.msg_3");
                 return true;
             }
 
@@ -68,11 +68,11 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
 
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         player.getInventory().setItemInMainHand(null);
-                        player.sendMessage("§aObjet envoyé sur votre inventaire Web (Paris) !");
+                        plugin.getLangManager().sendMessage(player, "webcommand.msg_4");
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
-                    player.sendMessage("§cErreur base de données.");
+                    plugin.getLangManager().sendMessage(player, "webcommand.msg_5");
                 }
             });
 
@@ -80,7 +80,7 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
             // Ouvre le GUI des rewards
             openWithdrawGUI(player);
         } else {
-            player.sendMessage("§cUsage: /web deposit | withdraw");
+            plugin.getLangManager().sendMessage(player, "webcommand.msg_6");
         }
 
         return true;
@@ -129,7 +129,7 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                player.sendMessage("§cErreur lors du chargement des récompenses.");
+                plugin.getLangManager().sendMessage(player, "webcommand.msg_7");
             }
         });
     }
@@ -161,7 +161,7 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
                                 player.getWorld().dropItem(player.getLocation(), item);
                             });
                             event.getInventory().remove(clicked);
-                            player.sendMessage("§aObjet récupéré !");
+                            plugin.getLangManager().sendMessage(player, "webcommand.msg_8");
                         });
                     }
                 } catch (Exception e) {

@@ -58,7 +58,7 @@ public class HeadDropModule implements Module, Listener {
     @Override
     public void disable() {
         enabled = false;
-        plugin.getLogger().info("[HeadDrop] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("headdropmodule.log_1");
     }
 
     public void setDropChance(double dropChance) {

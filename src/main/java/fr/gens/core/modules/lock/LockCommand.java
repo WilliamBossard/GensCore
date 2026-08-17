@@ -31,7 +31,7 @@ public class LockCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage("§e[Verrous] §7Cliquez (Clic-gauche) sur un conteneur pour le §aVerrouiller (Privé)§7.");
+            plugin.getLangManager().sendMessage(player, "lockcommand.msg_1");
             pendingActions.put(player.getUniqueId(), "private");
             return true;
         }
@@ -39,24 +39,24 @@ public class LockCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase();
         
         if (sub.equals("private")) {
-            player.sendMessage("§e[Verrous] §7Cliquez (Clic-gauche) sur un conteneur pour le §aVerrouiller (Privé)§7.");
+            plugin.getLangManager().sendMessage(player, "lockcommand.msg_2");
             pendingActions.put(player.getUniqueId(), "private");
             return true;
         }
 
         if (sub.equals("unlock")) {
-            player.sendMessage("§e[Verrous] §7Cliquez (Clic-gauche) sur un conteneur pour le §cDévérouiller§7.");
+            plugin.getLangManager().sendMessage(player, "lockcommand.msg_3");
             pendingActions.put(player.getUniqueId(), "unlock");
             return true;
         }
 
         if (sub.equals("guild")) {
-            player.sendMessage("§e[Verrous] §7Cliquez (Clic-gauche) sur un conteneur pour le verrouiller pour §bVotre Guilde§7.");
+            plugin.getLangManager().sendMessage(player, "lockcommand.msg_4");
             pendingActions.put(player.getUniqueId(), "guild");
             return true;
         }
 
-        player.sendMessage("§cUsage: /lock, /lock unlock, ou /lock guild");
+        plugin.getLangManager().sendMessage(player, "lockcommand.msg_5");
         return true;
     }
 

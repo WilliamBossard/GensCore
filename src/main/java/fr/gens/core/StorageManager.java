@@ -22,24 +22,12 @@ public class StorageManager {
         this.plugin = plugin;
         plugin.saveDefaultConfig(); // Sauvegarde config.yml initiale si elle n'existe pas
         
-        // Ajoute uniquement les cles manquantes sans ecraser ni reformater
-        boolean changed = false;
         plugin.getConfig().addDefault("modules.tomb.store_xp", true);
         plugin.getConfig().addDefault("modules.tomb.xp_keep_percentage", 100);
         plugin.getConfig().addDefault("modules.tomb.expiration_time_seconds", 3600);
         
-        if (plugin.getConfig().getDefaults() != null) {
-            for (String key : plugin.getConfig().getDefaults().getKeys(true)) {
-                if (!plugin.getConfig().isSet(key)) {
-                    plugin.getConfig().set(key, plugin.getConfig().getDefaults().get(key));
-                    changed = true;
-                }
-            }
-        }
-        
-        if (changed) {
-            plugin.saveConfig();
-        }
+        plugin.getConfig().options().copyDefaults(true);
+        plugin.saveConfig();
         
         initDataFile(); // Initialise data.yml
     }
@@ -59,7 +47,7 @@ public class StorageManager {
             try {
                 dataConfig.save(dataFile);
             } catch (IOException e) {
-                plugin.getLogger().severe("Impossible de sauvegarder data.yml");
+                plugin.getLangManager().sendConsoleError("storagemanager.log_1");
             }
         }
     }

@@ -55,7 +55,13 @@ public class ShopModule implements Module, CommandExecutor {
     public void enable() {
         enabled = true;
         loadShop();
-        plugin.getLogger().info("[DynamicShop] Activé.");
+        plugin.getLangManager().sendConsoleMessage("shopmodule.log_3");
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        org.bukkit.command.PluginCommand shopCmd = plugin.getCommand("shop");
+        if (shopCmd != null) shopCmd.setExecutor(this);
     }
 
 
@@ -64,7 +70,7 @@ public class ShopModule implements Module, CommandExecutor {
     public void disable() {
         enabled = false;
         saveShop();
-        plugin.getLogger().info("[DynamicShop] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("shopmodule.log_4");
     }
 
     public List<ShopCategory> getCategories() {
@@ -188,10 +194,56 @@ public class ShopModule implements Module, CommandExecutor {
         }
     }
 
+    // --- WEB EXTENSION ---
+    public java.util.List<java.util.Map<String, Object>> getHistory(String material) {
+        java.util.List<java.util.Map<String, Object>> history = new java.util.ArrayList<>();
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT timestamp, buyPrice, sellPrice, stock FROM shop_history WHERE material = ? ORDER BY timestamp ASC LIMIT 50")) {
+            ps.setString(1, material);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.util.Map<String, Object> point = new java.util.HashMap<>();
+                    point.put("timestamp", rs.getLong("timestamp"));
+                    point.put("buyPrice", rs.getDouble("buyPrice"));
+                    point.put("sellPrice", rs.getDouble("sellPrice"));
+                    point.put("stock", rs.getInt("stock"));
+                    history.add(point);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return history;
+    }
+
+    public boolean deleteItem(String categoryId, String materialName) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_items WHERE material = ? AND category_id = ?")) {
+            ps.setString(1, materialName);
+            ps.setString(2, categoryId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteCategory(String categoryId) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_categories WHERE id = ?")) {
+            ps.setString(1, categoryId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage("§cLe shop est désactivé.");
+            plugin.getLangManager().sendMessage(sender, "shopmodule.msg_1");
             return true;
         }
         if (!(sender instanceof Player)) return true;
@@ -343,11 +395,11 @@ public class ShopModule implements Module, CommandExecutor {
                         logTransaction(shopItem);
                         logPlayerTransaction(p.getUniqueId(), "ACHAT", shopItem.getMaterial().name(), amount, totalCost);
                     } else {
-                        p.sendMessage("§cVous n'avez pas assez d'argent.");
+                        plugin.getLangManager().sendMessage(p, "shopmodule.msg_2");
                     }
                 } else {
                     if (shopItem.isCommand()) {
-                        p.sendMessage("§cVous ne pouvez pas vendre cet objet.");
+                        plugin.getLangManager().sendMessage(p, "shopmodule.msg_3");
                         return;
                     }
                     
@@ -387,7 +439,7 @@ public class ShopModule implements Module, CommandExecutor {
                         logTransaction(shopItem);
                         logPlayerTransaction(p.getUniqueId(), "VENTE", shopItem.getMaterial().name(), amount, totalEarn);
                     } else {
-                        p.sendMessage("§cVous n'avez pas assez d'objets à vendre.");
+                        plugin.getLangManager().sendMessage(p, "shopmodule.msg_4");
                     }
                 }
             }

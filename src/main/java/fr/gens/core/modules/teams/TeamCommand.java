@@ -40,21 +40,21 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
         if (sub.equals("create")) {
             if (args.length < 2) {
-                player.sendMessage("§cUsage: /team create <nom>");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_1");
                 return true;
             }
             if (team != null) {
-                player.sendMessage("§cVous êtes déjà dans une guilde.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_2");
                 return true;
             }
             String name = args[1];
             if (name.length() > 16) {
-                player.sendMessage("§cLe nom de la guilde est trop long (16 max).");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_3");
                 return true;
             }
             TeamData newTeam = plugin.getTeamManager().createTeam(name, player.getUniqueId());
             if (newTeam == null) {
-                player.sendMessage("§cCe nom de guilde est déjà pris ou une erreur est survenue.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_4");
             } else {
                 player.sendMessage("§aGuilde " + name + " créée avec succès !");
             }
@@ -63,37 +63,37 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
 
         if (sub.equals("invite")) {
             if (team == null || !team.getLeaderUuid().equals(player.getUniqueId())) {
-                player.sendMessage("§cVous devez être chef de guilde pour inviter.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_5");
                 return true;
             }
             if (args.length < 2) {
-                player.sendMessage("§cUsage: /team invite <joueur>");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_6");
                 return true;
             }
             Player target = Bukkit.getPlayer(args[1]);
             if (target == null) {
-                player.sendMessage("§cJoueur introuvable.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_7");
                 return true;
             }
             if (plugin.getTeamManager().getPlayerTeam(target.getUniqueId()) != null) {
-                player.sendMessage("§cCe joueur est déjà dans une guilde.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_8");
                 return true;
             }
             invites.put(target.getUniqueId(), player.getUniqueId());
             target.sendMessage("§aVous avez reçu une invitation pour rejoindre la guilde §e" + team.getName() + "§a !");
-            target.sendMessage("§aTapez §e/team accept §apour rejoindre.");
+            plugin.getLangManager().sendMessage(target, "teamcommand.msg_9");
             player.sendMessage("§aInvitation envoyée à " + target.getName());
             return true;
         }
 
         if (sub.equals("accept")) {
             if (team != null) {
-                player.sendMessage("§cVous êtes déjà dans une guilde.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_10");
                 return true;
             }
             UUID leaderUuid = invites.get(player.getUniqueId());
             if (leaderUuid == null) {
-                player.sendMessage("§cAucune invitation en attente.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_11");
                 return true;
             }
             TeamData leaderTeam = plugin.getTeamManager().getPlayerTeam(leaderUuid);
@@ -101,13 +101,13 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 plugin.getTeamManager().addMember(leaderTeam, player.getUniqueId());
                 leaderTeam.broadcast("§e" + player.getName() + " §aa rejoint la guilde !");
             } else {
-                player.sendMessage("§cLa guilde n'existe plus.");
+                plugin.getLangManager().sendMessage(player, "teamcommand.msg_12");
             }
             invites.remove(player.getUniqueId());
             return true;
         }
 
-        player.sendMessage("§cUsage: /team create <nom> | /team invite <joueur> | /team accept");
+        plugin.getLangManager().sendMessage(player, "teamcommand.msg_13");
         return true;
     }
 

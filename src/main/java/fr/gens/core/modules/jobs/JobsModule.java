@@ -79,7 +79,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             }
         }, 200L, 200L); // 10 secondes
         
-        plugin.getLogger().info("[Jobs] Module activé.");
+        plugin.getLangManager().sendConsoleMessage("jobsmodule.log_1");
     }
 
     @Override
@@ -92,7 +92,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         playerXp.clear();
         playerLevel.clear();
         activeJobs.clear();
-        plugin.getLogger().info("[Jobs] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("jobsmodule.log_2");
     }
     
     public void loadPlayer(UUID uuid) {

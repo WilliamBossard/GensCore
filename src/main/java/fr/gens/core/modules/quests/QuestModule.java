@@ -99,7 +99,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         saveAllData();
         questsPool.clear();
         playerData.clear();
-        plugin.getLogger().info("[Quests] Module désactivé.");
+        plugin.getLangManager().sendConsoleMessage("questmodule.log_1");
     }
 
     private void checkWeeklyRewards() {
@@ -231,7 +231,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         }
 
         if (oldQuestsFolder.exists() && newQuestsFolder.listFiles().length == 0) {
-            plugin.getLogger().info("[Quests] Migration depuis ODailyQuests en cours...");
+            plugin.getLangManager().sendConsoleMessage("questmodule.log_2");
             for (File file : oldQuestsFolder.listFiles()) {
                 if (file.getName().endsWith(".yml")) {
                     File dest = new File(newQuestsFolder, file.getName());
@@ -242,7 +242,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     }
                 }
             }
-            plugin.getLogger().info("[Quests] Migration terminée !");
+            plugin.getLangManager().sendConsoleMessage("questmodule.log_3");
         }
     }
 
@@ -511,7 +511,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage("§cLes quêtes sont actuellement désactivées.");
+            plugin.getLangManager().sendMessage(sender, "questmodule.msg_1");
             return true;
         }
         if (!(sender instanceof Player)) return true;
@@ -525,7 +525,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                      assignNewQuests(p.getUniqueId(), data, conn);
                      Bukkit.getScheduler().runTask(plugin, () -> {
                          playerData.put(p.getUniqueId(), data);
-                         p.sendMessage("§aVos quêtes ont été relancées.");
+                         plugin.getLangManager().sendMessage(p, "questmodule.msg_2");
                          openQuestsMenu(p);
                      });
                  } catch (SQLException e) {
@@ -555,7 +555,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         PlayerQuestData data = playerData.get(p.getUniqueId());
         
         if (data == null) {
-            p.sendMessage("§cChargement de vos quêtes, veuillez patienter...");
+            plugin.getLangManager().sendMessage(p, "questmodule.msg_3");
             return;
         }
 
@@ -714,7 +714,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     private void rerollQuest(Player p, String category, String oldQuestId, PlayerQuestData data) {
         List<Quest> available = questsPool.get(category);
         if (available == null || available.size() <= 1) {
-            p.sendMessage("§cAucune autre quête disponible dans cette catégorie !");
+            plugin.getLangManager().sendMessage(p, "questmodule.msg_4");
             return;
         }
         
@@ -729,7 +729,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         }
         
         if (newQuest == null) {
-            p.sendMessage("§cImpossible de trouver une nouvelle quête !");
+            plugin.getLangManager().sendMessage(p, "questmodule.msg_5");
             return;
         }
         
@@ -749,7 +749,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     data.getActiveQuests().get(category).remove(oldQuestId);
                     data.getCompletedQuests().get(category).remove(oldQuestId);
                     data.addQuest(category, nqId, 0, false);
-                    p.sendMessage("§aQuête échangée avec succès !");
+                    plugin.getLangManager().sendMessage(p, "questmodule.msg_6");
                     openQuestsMenu(p);
                 });
                 

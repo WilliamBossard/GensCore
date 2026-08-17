@@ -49,14 +49,20 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
         enabled = true;
         loadBacks();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[CmdBack] Activé.");
+        plugin.getLangManager().sendConsoleMessage("teleportbackmodule.log_1");
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        org.bukkit.command.PluginCommand backCmd = plugin.getCommand("back");
+        if (backCmd != null) backCmd.setExecutor(this);
     }
 
     @Override
     public void disable() {
         enabled = false;
         HandlerList.unregisterAll(this);
-        plugin.getLogger().info("[CmdBack] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("teleportbackmodule.log_2");
     }
 
     private void loadBacks() {
@@ -92,7 +98,7 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage("§cCe module est désactivé.");
+            plugin.getLangManager().sendMessage(sender, "teleportbackmodule.msg_1");
             return true;
         }
 
@@ -100,7 +106,7 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
         Player p = (Player) sender;
 
         if (!p.hasPermission("genscore.back")) {
-            p.sendMessage("§cVous n'avez pas la permission ou le grade requis (genscore.back).");
+            plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_2");
             return true;
         }
 
@@ -108,7 +114,7 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
         if (backLoc != null) {
             TeleportUtil.teleportWithCooldown(p, backLoc, "l'ancienne position", "genscore.bypass.cooldown.back");
         } else {
-            p.sendMessage("§cAucune position précédente trouvée.");
+            plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_3");
         }
         return true;
     }

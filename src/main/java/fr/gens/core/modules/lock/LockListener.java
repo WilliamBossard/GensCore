@@ -76,7 +76,7 @@ public class LockListener implements Listener {
             player.sendMessage("§e[Verrous] §aConteneur verrouillé pour l'équipe §e" + team.getName() + "§a.");
         } else {
             lockModule.createLock(block.getLocation(), player.getUniqueId(), -1);
-            player.sendMessage("§e[Verrous] §aConteneur verrouillé. Seul vous pouvez l'ouvrir.");
+            plugin.getLangManager().sendMessage(player, "locklistener.msg_1");
         }
     }
 
@@ -97,31 +97,31 @@ public class LockListener implements Listener {
             
             if (action.equals("guild")) {
                 if (currentLock != null) {
-                    player.sendMessage("§cCe conteneur est déjà verrouillé.");
+                    plugin.getLangManager().sendMessage(player, "locklistener.msg_2");
                 } else {
                     TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
                     if (team != null) {
                         lockModule.createLock(block.getLocation(), null, team.getTeamId());
                         player.sendMessage("§aVerrouillé pour la guilde " + team.getName() + ".");
                     } else {
-                        player.sendMessage("§cVous n'êtes pas dans une guilde !");
+                        plugin.getLangManager().sendMessage(player, "locklistener.msg_3");
                     }
                 }
             } else if (action.equals("private")) {
                 if (currentLock != null && !canAccess(player, currentLock)) {
-                    player.sendMessage("§cVous ne pouvez pas modifier ce verrou.");
+                    plugin.getLangManager().sendMessage(player, "locklistener.msg_4");
                 } else {
                     lockModule.createLock(block.getLocation(), uuid, -1);
-                    player.sendMessage("§aConteneur privé ! Seul vous pourrez l'ouvrir.");
+                    plugin.getLangManager().sendMessage(player, "locklistener.msg_5");
                 }
             } else if (action.equals("unlock")) {
                 if (currentLock == null) {
-                    player.sendMessage("§cCe conteneur n'est pas verrouillé.");
+                    plugin.getLangManager().sendMessage(player, "locklistener.msg_6");
                 } else if (canAccess(player, currentLock)) {
                     lockModule.removeLock(block.getLocation());
-                    player.sendMessage("§aVerrou supprimé.");
+                    plugin.getLangManager().sendMessage(player, "locklistener.msg_7");
                 } else {
-                    player.sendMessage("§cVous ne pouvez pas déverrouiller ce conteneur.");
+                    plugin.getLangManager().sendMessage(player, "locklistener.msg_8");
                 }
             }
             return;
@@ -133,7 +133,7 @@ public class LockListener implements Listener {
             if (lock != null) {
                 if (!canAccess(player, lock)) {
                     event.setCancelled(true);
-                    player.sendMessage("§cCe conteneur est verrouillé.");
+                    plugin.getLangManager().sendMessage(player, "locklistener.msg_9");
                 }
             }
         }
@@ -149,10 +149,10 @@ public class LockListener implements Listener {
             Player player = event.getPlayer();
             if (!canAccess(player, lock)) {
                 event.setCancelled(true);
-                player.sendMessage("§cCe bloc est verrouillé, vous ne pouvez pas le casser.");
+                plugin.getLangManager().sendMessage(player, "locklistener.msg_10");
             } else {
                 lockModule.removeLock(block.getLocation());
-                player.sendMessage("§e[Verrous] §7Verrou retiré.");
+                plugin.getLangManager().sendMessage(player, "locklistener.msg_11");
             }
         }
     }

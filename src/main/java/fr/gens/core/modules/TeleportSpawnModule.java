@@ -62,19 +62,28 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        plugin.getLogger().info("[CmdSpawn] Activé.");
+        plugin.getLangManager().sendConsoleMessage("teleportspawnmodule.log_1");
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        org.bukkit.command.PluginCommand setspawnCmd = plugin.getCommand("setspawn");
+        if (setspawnCmd != null) setspawnCmd.setExecutor(this);
+        
+        org.bukkit.command.PluginCommand spawnCmd = plugin.getCommand("spawn");
+        if (spawnCmd != null) spawnCmd.setExecutor(this);
     }
 
     @Override
     public void disable() {
         enabled = false;
-        plugin.getLogger().info("[CmdSpawn] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("teleportspawnmodule.log_2");
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage("§cCe module est désactivé.");
+            plugin.getLangManager().sendMessage(sender, "teleportspawnmodule.msg_1");
             return true;
         }
 
@@ -83,7 +92,7 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("setspawn")) {
             if (!p.hasPermission("genscore.admin")) {
-                p.sendMessage("§cPermission refusée.");
+                plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_2");
                 return true;
             }
             spawnLocation = p.getLocation();
@@ -103,19 +112,19 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
                 e.printStackTrace();
             }
             
-            p.sendMessage("§aSpawn défini et sauvegardé dans SQLite !");
+            plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_3");
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("spawn")) {
             if (!p.hasPermission("genscore.spawn")) {
-                p.sendMessage("§cVous n'avez pas la permission (genscore.spawn).");
+                plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_4");
                 return true;
             }
             if (spawnLocation != null) {
                 TeleportUtil.teleportWithCooldown(p, spawnLocation, "le spawn", "genscore.bypass.cooldown.spawn");
             } else {
-                p.sendMessage("§cLe spawn n'est pas défini !");
+                plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_5");
             }
             return true;
         }

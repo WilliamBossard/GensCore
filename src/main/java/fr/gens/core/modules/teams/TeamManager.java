@@ -68,7 +68,7 @@ public class TeamManager {
             }
             plugin.getLogger().info("Chargé " + teamsById.size() + " équipes en mémoire.");
         } catch (SQLException e) {
-            plugin.getLogger().severe("Erreur lors du chargement des équipes !");
+            plugin.getLangManager().sendConsoleError("teammanager.log_1");
             e.printStackTrace();
         }
     }
@@ -169,7 +169,103 @@ public class TeamManager {
             stmt.setString(1, member.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
+            plugin.getLangManager().sendConsoleError("db.query_error");
             e.printStackTrace();
         }
+    }
+
+    // --- WEB STATS EXTENSIONS ---
+
+    public java.util.Map<String, Object> getBestTeamStats() {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT t.team_id, t.name, t.leader_uuid, s.weekly_points, s.total_points " +
+                 "FROM genscore_teams t " +
+                 "LEFT JOIN genscore_team_stats s ON t.team_id = s.team_id " +
+                 "ORDER BY s.total_points DESC LIMIT 1")) {
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int teamId = rs.getInt("team_id");
+                    java.util.Map<String, Object> teamObj = new java.util.HashMap<>();
+                    teamObj.put("name", rs.getString("name"));
+                    teamObj.put("weekly_points", rs.getInt("weekly_points"));
+                    teamObj.put("total_points", rs.getInt("total_points"));
+                    
+                    java.util.List<java.util.Map<String, String>> members = new java.util.ArrayList<>();
+                    try (PreparedStatement mStmt = conn.prepareStatement(
+                        "SELECT m.player_uuid, COALESCE(p.username, 'Unknown') as name " +
+                        "FROM genscore_team_members m LEFT JOIN player_profiles p ON m.player_uuid = p.uuid " +
+                        "WHERE m.team_id = ?")) {
+                        mStmt.setInt(1, teamId);
+                        try (ResultSet mrs = mStmt.executeQuery()) {
+                            while (mrs.next()) {
+                                java.util.Map<String, String> m = new java.util.HashMap<>();
+                                m.put("uuid", mrs.getString("player_uuid"));
+                                m.put("name", mrs.getString("name"));
+                                members.add(m);
+                            }
+                        }
+                    }
+                    teamObj.put("members", members);
+                    return teamObj;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public java.util.List<java.util.Map<String, Object>> getAllTeamStats() {
+        java.util.List<java.util.Map<String, Object>> teamsList = new java.util.ArrayList<>();
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                 "SELECT t.team_id, t.name, t.leader_uuid, s.weekly_points, s.total_points " +
+                 "FROM genscore_teams t " +
+                 "LEFT JOIN genscore_team_stats s ON t.team_id = s.team_id " +
+                 "ORDER BY s.weekly_points DESC")) {
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int teamId = rs.getInt("team_id");
+                    java.util.Map<String, Object> teamObj = new java.util.HashMap<>();
+                    teamObj.put("name", rs.getString("name"));
+                    teamObj.put("weekly_points", rs.getInt("weekly_points"));
+                    teamObj.put("total_points", rs.getInt("total_points"));
+                    
+                    int progress = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getProgress(teamId) : 0;
+                    int goal = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getGoal() : 1;
+                    String desc = plugin.getTeamQuestManager() != null ? plugin.getTeamQuestManager().getDesc() : "Quête non définie";
+                    double percentage = Math.min(100.0, ((double) progress / goal) * 100.0);
+                    
+                    teamObj.put("quest_progress_percent", Math.round(percentage));
+                    teamObj.put("quest_progress", progress);
+                    teamObj.put("quest_goal", goal);
+                    teamObj.put("quest_desc", desc);
+                    
+                    java.util.List<java.util.Map<String, String>> members = new java.util.ArrayList<>();
+                    try (PreparedStatement mStmt = conn.prepareStatement(
+                        "SELECT m.player_uuid, COALESCE(p.username, 'Unknown') as name " +
+                        "FROM genscore_team_members m LEFT JOIN player_profiles p ON m.player_uuid = p.uuid " +
+                        "WHERE m.team_id = ?")) {
+                        mStmt.setInt(1, teamId);
+                        try (ResultSet mrs = mStmt.executeQuery()) {
+                            while (mrs.next()) {
+                                java.util.Map<String, String> m = new java.util.HashMap<>();
+                                m.put("uuid", mrs.getString("player_uuid"));
+                                m.put("name", mrs.getString("name"));
+                                members.add(m);
+                            }
+                        }
+                    }
+                    teamObj.put("members", members);
+                    teamsList.add(teamObj);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return teamsList;
     }
 }

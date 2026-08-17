@@ -34,12 +34,12 @@ public class TeamModule implements Module {
         plugin.getCommand("team").setExecutor(teamCmd);
         plugin.getCommand("team").setTabCompleter(teamCmd);
         Bukkit.getPluginManager().registerEvents(teamListener, plugin);
-        plugin.getLogger().info("[Teams] Module activé !");
+        plugin.getLangManager().sendConsoleMessage("teammodule.log_1");
     }
 
     @Override
     public void disable() {
         enabled = false;
-        plugin.getLogger().info("[Teams] Module désactivé !");
+        plugin.getLangManager().sendConsoleMessage("teammodule.log_2");
     }
 }

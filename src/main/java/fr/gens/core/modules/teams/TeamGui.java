@@ -27,7 +27,7 @@ public class TeamGui {
         TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
 
         if (team == null) {
-            player.sendMessage("§cVous n'avez pas de guilde. Utilisez /team create <nom> ou demandez une invitation.");
+            plugin.getLangManager().sendMessage(player, "teamgui.msg_1");
             return;
         }
 

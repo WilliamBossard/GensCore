@@ -46,14 +46,14 @@ public class FastLeafDecayModule implements Module, Listener {
     public void enable() {
         enabled = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[FastLeafDecay] Activé.");
+        plugin.getLangManager().sendConsoleMessage("fastleafdecaymodule.log_1");
     }
 
     @Override
     public void disable() {
         enabled = false;
         HandlerList.unregisterAll(this);
-        plugin.getLogger().info("[FastLeafDecay] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("fastleafdecaymodule.log_2");
     }
 
     @EventHandler

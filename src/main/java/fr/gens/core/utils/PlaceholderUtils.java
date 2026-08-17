@@ -6,16 +6,19 @@ import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 public class PlaceholderUtils {
@@ -56,54 +59,60 @@ public class PlaceholderUtils {
         }
     }
 
-    public static String setPlaceholders(CorePlugin plugin, Player p, String text) {
-        if (text == null || p == null) return text;
+    /**
+     * Parse une string (contenant potentiellement des codes legacy ou MiniMessage) et applique les placeholders.
+     */
+    public static Component setPlaceholdersComponent(CorePlugin plugin, Player p, String text) {
+        if (text == null || p == null) return Component.empty();
 
-        String result = text;
+        List<TagResolver> resolvers = new ArrayList<>();
 
         // Base Player
-        result = result.replace("%player%", p.getName());
-        result = result.replace("%player_name%", p.getName());
+        resolvers.add(Placeholder.parsed("player", p.getName()));
+        resolvers.add(Placeholder.parsed("player_name", p.getName()));
 
         // Quests
         int completedQuests = plugin.getDatabaseManager().getQuestsCompletedTotal(p.getUniqueId());
-        result = result.replace("%quests%", String.valueOf(completedQuests));
-        result = result.replace("%quests_completed%", String.valueOf(completedQuests));
+        resolvers.add(Placeholder.parsed("quests", String.valueOf(completedQuests)));
+        resolvers.add(Placeholder.parsed("quests_completed", String.valueOf(completedQuests)));
 
         // Economy
         EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
         if (eco != null && eco.isEnabled()) {
             String balance = String.format("%.0f", eco.getBalance(p.getUniqueId()));
-            result = result.replace("%balance%", balance);
-            result = result.replace("%money%", balance);
+            resolvers.add(Placeholder.parsed("balance", balance));
+            resolvers.add(Placeholder.parsed("money", balance));
         } else {
-            result = result.replace("%balance%", "REMOVE_LINE");
-            result = result.replace("%money%", "REMOVE_LINE");
+            resolvers.add(Placeholder.parsed("balance", "0"));
+            resolvers.add(Placeholder.parsed("money", "0"));
         }
 
         // Server
-        result = result.replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
+        resolvers.add(Placeholder.parsed("online", String.valueOf(Bukkit.getOnlinePlayers().size())));
         int staffCount = 0;
         for (Player online : Bukkit.getOnlinePlayers()) {
             if (online.hasPermission("group.owner") || online.hasPermission("group.admin") || online.hasPermission("group.mod") || online.hasPermission("group.helper")) {
                 staffCount++;
             }
         }
-        result = result.replace("%staff%", String.valueOf(staffCount));
+        resolvers.add(Placeholder.parsed("staff", String.valueOf(staffCount)));
         
         long maxMemory = Runtime.getRuntime().maxMemory() / 1048576;
         long usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-        result = result.replace("%mem_used%", String.valueOf(usedMemory));
-        result = result.replace("%mem_max%", String.valueOf(maxMemory));
-        result = result.replace("%ping%", String.valueOf(p.getPing()));
+        resolvers.add(Placeholder.parsed("mem_used", String.valueOf(usedMemory)));
+        resolvers.add(Placeholder.parsed("mem_max", String.valueOf(maxMemory)));
+        resolvers.add(Placeholder.parsed("ping", String.valueOf(p.getPing())));
 
         // Discord
         boolean linked = p.hasPermission("genscore.discord.linked");
-        String discordStatus = linked ? "&r&7Le Discord: &bdiscord.gg/gensbien" : "&e&l &cDiscord non lié ! &b/linktuto";
-        result = result.replace("%discord_status%", discordStatus);
+        String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto";
+        resolvers.add(Placeholder.parsed("discord_status", discordStatus)); // We parse it as a placeholder string, wait, no, if we parse it, it won't resolve colors.
+        
+        // Wait, if it contains colors, we should use MiniMessage Component
+        resolvers.add(Placeholder.component("discord_status", parseToComponent(discordStatus)));
         
         String discordName = linked ? "Compte Lié" : "Non lié";
-        result = result.replace("%discord_name%", discordName);
+        resolvers.add(Placeholder.parsed("discord_name", discordName));
 
         // Statistics
         try {
@@ -111,11 +120,11 @@ public class PlaceholderUtils {
             int totalMinutes = ticks / 1200;
             int hours = totalMinutes / 60;
             int minutes = totalMinutes % 60;
-            result = result.replace("%hours_played%", String.valueOf(ticks / 72000));
-            result = result.replace("%playtime%", hours + "h" + String.format("%02d", minutes) + "m");
-            result = result.replace("%player_kills%", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS)));
-            result = result.replace("%mob_kills%", String.valueOf(p.getStatistic(Statistic.MOB_KILLS)));
-            result = result.replace("%deaths%", String.valueOf(p.getStatistic(Statistic.DEATHS)));
+            resolvers.add(Placeholder.parsed("hours_played", String.valueOf(ticks / 72000)));
+            resolvers.add(Placeholder.parsed("playtime", hours + "h" + String.format("%02d", minutes) + "m"));
+            resolvers.add(Placeholder.parsed("player_kills", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS))));
+            resolvers.add(Placeholder.parsed("mob_kills", String.valueOf(p.getStatistic(Statistic.MOB_KILLS))));
+            resolvers.add(Placeholder.parsed("deaths", String.valueOf(p.getStatistic(Statistic.DEATHS))));
         } catch (Exception ignored) {}
 
         // First join date
@@ -124,9 +133,9 @@ public class PlaceholderUtils {
             if (firstPlayed > 0) {
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
                 sdf.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
-                result = result.replace("%first_join%", sdf.format(new Date(firstPlayed)));
+                resolvers.add(Placeholder.parsed("first_join", sdf.format(new Date(firstPlayed))));
             } else {
-                result = result.replace("%first_join%", "Inconnu");
+                resolvers.add(Placeholder.parsed("first_join", "Inconnu"));
             }
         } catch (Exception ignored) {}
 
@@ -138,28 +147,88 @@ public class PlaceholderUtils {
                 String groupName = user.getPrimaryGroup();
                 if (groupName != null) {
                     String formattedGroup = groupName.substring(0, 1).toUpperCase() + groupName.substring(1);
-                    result = result.replace("%group%", formattedGroup);
+                    resolvers.add(Placeholder.parsed("group", formattedGroup));
                 } else {
-                    result = result.replace("%group%", "Joueur");
+                    resolvers.add(Placeholder.parsed("group", "Joueur"));
                 }
 
                 String prefix = user.getCachedData().getMetaData().getPrefix();
                 if (prefix != null && !prefix.trim().isEmpty()) {
-                    result = result.replace("%prefix%", prefix);
+                    resolvers.add(Placeholder.component("prefix", parseToComponent(prefix)));
                 } else if (groupName != null) {
-                    result = result.replace("%prefix%", "&e" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1));
+                    resolvers.add(Placeholder.component("prefix", parseToComponent("&e" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1))));
                 } else {
-                    result = result.replace("%prefix%", "&7Joueur");
+                    resolvers.add(Placeholder.component("prefix", parseToComponent("&7Joueur")));
                 }
             } else {
-                result = result.replace("%group%", "Joueur");
-                result = result.replace("%prefix%", "&7Joueur");
+                resolvers.add(Placeholder.parsed("group", "Joueur"));
+                resolvers.add(Placeholder.component("prefix", parseToComponent("&7Joueur")));
             }
         } catch (Exception ignored) {
-            result = result.replace("%group%", "Joueur");
-            result = result.replace("%prefix%", "&7Joueur");
+            resolvers.add(Placeholder.parsed("group", "Joueur"));
+            resolvers.add(Placeholder.component("prefix", parseToComponent("&7Joueur")));
         }
 
-        return ChatColor.translateAlternateColorCodes('&', result);
+        // Before passing to MiniMessage, let's pre-convert Legacy variables (%) to MiniMessage Tags (<>)
+        String mmText = text.replace("§", "&")
+                            .replace("%player%", "<player>")
+                            .replace("%player_name%", "<player_name>")
+                            .replace("%quests%", "<quests>")
+                            .replace("%quests_completed%", "<quests_completed>")
+                            .replace("%balance%", "<balance>")
+                            .replace("%money%", "<money>")
+                            .replace("%online%", "<online>")
+                            .replace("%staff%", "<staff>")
+                            .replace("%mem_used%", "<mem_used>")
+                            .replace("%mem_max%", "<mem_max>")
+                            .replace("%ping%", "<ping>")
+                            .replace("%discord_status%", "<discord_status>")
+                            .replace("%discord_name%", "<discord_name>")
+                            .replace("%hours_played%", "<hours_played>")
+                            .replace("%playtime%", "<playtime>")
+                            .replace("%player_kills%", "<player_kills>")
+                            .replace("%mob_kills%", "<mob_kills>")
+                            .replace("%deaths%", "<deaths>")
+                            .replace("%first_join%", "<first_join>")
+                            .replace("%group%", "<group>")
+                            .replace("%prefix%", "<prefix>");
+
+        // Also convert legacy colors in the base string to MiniMessage tags so everything is handled cleanly
+        mmText = mmText
+                .replace("&0", "<black>")
+                .replace("&1", "<dark_blue>")
+                .replace("&2", "<dark_green>")
+                .replace("&3", "<dark_aqua>")
+                .replace("&4", "<dark_red>")
+                .replace("&5", "<dark_purple>")
+                .replace("&6", "<gold>")
+                .replace("&7", "<gray>")
+                .replace("&8", "<dark_gray>")
+                .replace("&9", "<blue>")
+                .replace("&a", "<green>")
+                .replace("&b", "<aqua>")
+                .replace("&c", "<red>")
+                .replace("&d", "<light_purple>")
+                .replace("&e", "<yellow>")
+                .replace("&f", "<white>")
+                .replace("&k", "<obfuscated>")
+                .replace("&l", "<bold>")
+                .replace("&m", "<strikethrough>")
+                .replace("&n", "<underlined>")
+                .replace("&o", "<italic>")
+                .replace("&r", "<reset>");
+
+        return MiniMessage.miniMessage().deserialize(mmText, TagResolver.resolver(resolvers));
+    }
+
+    /**
+     * Ancienne méthode pour compatibilité (retourne un String avec couleurs legacy).
+     * @deprecated Utiliser setPlaceholdersComponent
+     */
+    @Deprecated
+    public static String setPlaceholders(CorePlugin plugin, Player p, String text) {
+        Component comp = setPlaceholdersComponent(plugin, p, text);
+        return LegacyComponentSerializer.legacySection().serialize(comp);
     }
 }
+

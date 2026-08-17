@@ -54,6 +54,12 @@ public class AuctionHouseModule implements Module, CommandExecutor {
     }
 
     @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        org.bukkit.command.PluginCommand ahCmd = plugin.getCommand("ah");
+        if (ahCmd != null) ahCmd.setExecutor(this);
+    }
+
+    @Override
     public void disable() {
         enabled = false;
     }
@@ -61,7 +67,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage("§cLe module Hôtel de ventes est désactivé.");
+            plugin.getLangManager().sendMessage(sender, "auctionhousemodule.msg_1");
             return true;
         }
 
@@ -72,13 +78,13 @@ public class AuctionHouseModule implements Module, CommandExecutor {
             try {
                 double price = Double.parseDouble(args[1]);
                 if (price <= 0) {
-                    p.sendMessage("§cLe prix doit être supérieur à 0.");
+                    plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_2");
                     return true;
                 }
 
                 ItemStack item = p.getInventory().getItemInMainHand();
                 if (item == null || item.getType() == Material.AIR) {
-                    p.sendMessage("§cVous devez tenir un objet en main !");
+                    plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_3");
                     return true;
                 }
 
@@ -102,9 +108,9 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                 Bukkit.broadcastMessage("§e[AH] §f" + p.getName() + " §avient de mettre un objet en vente pour §e" + price + " $ §a!");
 
             } catch (NumberFormatException e) {
-                p.sendMessage("§cPrix invalide.");
+                plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_4");
             } catch (SQLException e) {
-                p.sendMessage("§cErreur lors de la mise en vente.");
+                plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5");
                 e.printStackTrace();
             }
             return true;
@@ -208,7 +214,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                     if (deleteFromDb(ahItem.id)) {
                         ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
                         p.getInventory().addItem(originalItem);
-                        p.sendMessage("§cVente annulée.");
+                        plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_6");
                         openAhGui(p, page); // Refresh
                     }
                 } else {
@@ -236,11 +242,11 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                             }
                             openAhGui(p, page); // Refresh
                         } else {
-                            p.sendMessage("§cCet objet a déjà été vendu !");
+                            plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_7");
                             openAhGui(p, page);
                         }
                     } else {
-                        p.sendMessage("§cVous n'avez pas assez d'argent.");
+                        plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_8");
                     }
                 }
             }
@@ -257,6 +263,28 @@ public class AuctionHouseModule implements Module, CommandExecutor {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // --- WEB EXTENSION ---
+    public java.util.List<java.util.Map<String, Object>> getAuctionItemsForWeb() {
+        java.util.List<java.util.Map<String, Object>> ahItems = new java.util.ArrayList<>();
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT id, seller_name, price, expire_time FROM auction_house ORDER BY id DESC LIMIT 100")) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.util.Map<String, Object> ahItem = new java.util.HashMap<>();
+                    ahItem.put("id", rs.getInt("id"));
+                    ahItem.put("sellerName", rs.getString("seller_name"));
+                    ahItem.put("price", rs.getDouble("price"));
+                    ahItem.put("expireTime", rs.getLong("expire_time"));
+                    ahItems.add(ahItem);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return ahItems;
     }
 
     private static class AhItem {

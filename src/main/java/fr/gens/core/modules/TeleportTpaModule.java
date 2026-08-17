@@ -46,20 +46,29 @@ public class TeleportTpaModule implements Module, CommandExecutor {
     @Override
     public void enable() {
         enabled = true;
-        plugin.getLogger().info("[CmdTpa] Activé.");
+        plugin.getLangManager().sendConsoleMessage("teleporttpamodule.log_1");
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        String[] cmds = {"tpa", "tpaccept", "tpdeny", "tpadeny", "tpacancel"};
+        for (String c : cmds) {
+            org.bukkit.command.PluginCommand cmd = plugin.getCommand(c);
+            if (cmd != null) cmd.setExecutor(this);
+        }
     }
 
     @Override
     public void disable() {
         enabled = false;
         tpaRequests.clear();
-        plugin.getLogger().info("[CmdTpa] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("teleporttpamodule.log_2");
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage("§cCe module est désactivé.");
+            plugin.getLangManager().sendMessage(sender, "teleporttpamodule.msg_1");
             return true;
         }
         if (!(sender instanceof Player)) return true;
@@ -67,21 +76,21 @@ public class TeleportTpaModule implements Module, CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("tpa")) {
             if (!p.hasPermission("genscore.tpa")) {
-                p.sendMessage("§cPermission refusée (genscore.tpa).");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_2");
                 return true;
             }
             if (args.length == 0) {
-                p.sendMessage("§cUsage: /tpa <joueur>");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_3");
                 return true;
             }
             
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null || !target.isOnline()) {
-                p.sendMessage("§cCe joueur n'est pas en ligne.");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_4");
                 return true;
             }
             if (target.getUniqueId().equals(p.getUniqueId())) {
-                p.sendMessage("§cVous ne pouvez pas vous téléporter sur vous-même.");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_5");
                 return true;
             }
 
@@ -113,31 +122,31 @@ public class TeleportTpaModule implements Module, CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("tpaccept")) {
             if (!tpaRequests.containsKey(p.getUniqueId())) {
-                p.sendMessage("§cAucune demande de téléportation en attente.");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_6");
                 return true;
             }
             
             UUID requesterId = tpaRequests.remove(p.getUniqueId());
             Player requester = Bukkit.getPlayer(requesterId);
             if (requester != null && requester.isOnline()) {
-                p.sendMessage("§aDemande acceptée.");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_7");
                 requester.sendMessage("§aDemande acceptée par §e" + p.getName() + "§a. Téléportation...");
                 TeleportUtil.teleportWithCooldown(requester, p.getLocation(), p.getName(), "genscore.bypass.cooldown.tpa");
             } else {
-                p.sendMessage("§cLe joueur n'est plus en ligne.");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_8");
             }
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("tpdeny")) {
             if (!tpaRequests.containsKey(p.getUniqueId())) {
-                p.sendMessage("§cAucune demande de téléportation en attente.");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_9");
                 return true;
             }
             
             UUID requesterId = tpaRequests.remove(p.getUniqueId());
             Player requester = Bukkit.getPlayer(requesterId);
-            p.sendMessage("§cDemande refusée.");
+            plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_10");
             if (requester != null && requester.isOnline()) {
                 requester.sendMessage("§cDemande refusée par §e" + p.getName() + "§c.");
             }
@@ -149,13 +158,13 @@ public class TeleportTpaModule implements Module, CommandExecutor {
             for (Map.Entry<UUID, UUID> entry : tpaRequests.entrySet()) {
                 if (entry.getValue().equals(p.getUniqueId())) {
                     tpaRequests.remove(entry.getKey());
-                    p.sendMessage("§cDemande annulée.");
+                    plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_11");
                     removed = true;
                     break;
                 }
             }
             if (!removed) {
-                p.sendMessage("§cVous n'avez envoyé aucune demande en attente.");
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_12");
             }
             return true;
         }

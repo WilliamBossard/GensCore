@@ -107,6 +107,20 @@
             <artifactId>discord-webhooks</artifactId>
             <version>0.8.4</version>
         </dependency>
+
+        <!-- HikariCP pour le pool de connexions -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
+        <!-- jBcrypt pour le hashage des mots de passe -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+            <version>0.4</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -149,6 +163,26 @@
                                 <relocation>
                                     <pattern>io.javalin</pattern>
                                     <shadedPattern>fr.gens.core.lib.javalin</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.dv8tion</pattern>
+                                    <shadedPattern>fr.gens.core.lib.dv8tion</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson</pattern>
+                                    <shadedPattern>fr.gens.core.lib.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.sqlite</pattern>
+                                    <shadedPattern>fr.gens.core.lib.sqlite</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.zaxxer.hikari</pattern>
+                                    <shadedPattern>fr.gens.core.lib.hikari</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.mindrot.jbcrypt</pattern>
+                                    <shadedPattern>fr.gens.core.lib.jbcrypt</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>

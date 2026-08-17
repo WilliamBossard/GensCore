@@ -64,7 +64,7 @@ public class ModuleManager {
         addModule(new TeamModule(plugin));
         addModule(new LockModule(plugin));
         
-        plugin.getLogger().info(modules.size() + " modules enregistrés au total.");
+        plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 
         // Charger les états depuis la config et les activer si besoin
         for (Module module : modules.values()) {

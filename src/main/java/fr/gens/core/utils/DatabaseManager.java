@@ -10,11 +10,13 @@ import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.UUID;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class DatabaseManager {
 
     private final CorePlugin plugin;
-    private Connection connection;
+    private HikariDataSource dataSource;
 
     public DatabaseManager(CorePlugin plugin) {
         this.plugin = plugin;
@@ -23,28 +25,37 @@ public class DatabaseManager {
     }
 
     private void connect() {
+        // S'assurer que le dossier existe
+        if (!plugin.getDataFolder().exists()) {
+            plugin.getDataFolder().mkdirs();
+        }
+
+        File dataFile = new File(plugin.getDataFolder(), "genscore.db");
+        String url = "jdbc:sqlite:" + dataFile.getAbsolutePath();
+
         try {
-            // S'assurer que le dossier existe
-            if (!plugin.getDataFolder().exists()) {
-                plugin.getDataFolder().mkdirs();
-            }
-
-            File dataFile = new File(plugin.getDataFolder(), "genscore.db");
-            String url = "jdbc:sqlite:" + dataFile.getAbsolutePath();
-
-            // S'assurer que le driver SQLite est charge
             Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            plugin.getLangManager().sendConsoleError("error.sqlite_driver");
+        }
 
-            // Parametres SQLite pour ameliorer la gestion des acces concurents (evite SQLITE_BUSY)
-            org.sqlite.SQLiteConfig config = new org.sqlite.SQLiteConfig();
-            config.setJournalMode(org.sqlite.SQLiteConfig.JournalMode.WAL);
-            config.setSynchronous(org.sqlite.SQLiteConfig.SynchronousMode.NORMAL);
-            config.setBusyTimeout(5000); // Attendre jusqu'a 5s si la DB est bloquee
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(url);
+        config.setPoolName("GensCore-Pool");
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
+        config.setConnectionTimeout(30000);
+        
+        // SQLite properties for WAL and concurrency
+        config.addDataSourceProperty("journal_mode", "WAL");
+        config.addDataSourceProperty("synchronous", "NORMAL");
+        config.addDataSourceProperty("busy_timeout", "5000");
 
-            this.connection = DriverManager.getConnection(url, config.toProperties());
-            plugin.getLogger().info("[DatabaseManager] Connecte a SQLite (WAL Mode) !");
-        } catch (SQLException | ClassNotFoundException e) {
-            plugin.getLogger().severe("Erreur lors de la connexion a la base de donnees SQLite !");
+        try {
+            this.dataSource = new HikariDataSource(config);
+            plugin.getLangManager().sendConsoleMessage("db.pool_init");
+        } catch (Exception e) {
+            plugin.getLangManager().sendConsoleError("db.pool_error");
             e.printStackTrace();
         }
     }
@@ -53,7 +64,7 @@ public class DatabaseManager {
          try (Connection conn = getConnection();
              Statement statement = conn.createStatement()) {
              
-            plugin.getLogger().info("[DatabaseManager] Tables pretes !");
+            plugin.getLangManager().sendConsoleMessage("db.tables_ready");
 
             // Economie pour l'economie
             statement.execute("CREATE TABLE IF NOT EXISTS players_economy (" +
@@ -336,30 +347,32 @@ public class DatabaseManager {
                     "PRIMARY KEY (uuid, job_name)" +
                     ")");
 
-            plugin.getLogger().info("[DatabaseManager] Tables initialisees avec succes.");
+            // Moderation tables
+            statement.execute("CREATE TABLE IF NOT EXISTS moderation_mutes (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "expiration BIGINT NOT NULL, " +
+                    "reason TEXT NOT NULL" +
+                    ")");
+
+            statement.execute("CREATE TABLE IF NOT EXISTS moderation_frozen (" +
+                    "uuid VARCHAR(36) PRIMARY KEY" +
+                    ")");
+
+            plugin.getLangManager().sendConsoleMessage("db.tables_init_success");
         } catch (SQLException e) {
-            plugin.getLogger().severe("Erreur lors de l'initialisation des tables !");
+            plugin.getLangManager().sendConsoleError("db.tables_init_error");
             e.printStackTrace();
         }
     }
 
     public Connection getConnection() throws SQLException {
-        File dataFolder = plugin.getDataFolder();
-        if (!dataFolder.exists()) {
-            dataFolder.mkdir();
-        }
-        File databaseFile = new File(dataFolder, "genscore.db");
-        return DriverManager.getConnection("jdbc:sqlite:" + databaseFile.getAbsolutePath());
+        return dataSource.getConnection();
     }
 
     public void close() {
-        try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                plugin.getLogger().info("[DatabaseManager] Connexion SQLite fermee.");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+            plugin.getLangManager().sendConsoleMessage("db.pool_closed");
         }
     }
 
@@ -583,7 +596,7 @@ public class DatabaseManager {
                         fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
                         if (eco != null && eco.isEnabled()) {
                             eco.addMoney(player.getUniqueId(), amount);
-                            player.sendMessage("§aVous avez reçu " + amount + "$ comme récompense en attente !");
+                            plugin.getLangManager().sendMessage(player, "economy.pending_reward", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)));
                         }
                     }
                     if (itemData != null && !itemData.isEmpty()) {
@@ -598,9 +611,9 @@ public class DatabaseManager {
                                 for (org.bukkit.inventory.ItemStack drop : excess.values()) {
                                     player.getWorld().dropItemNaturally(player.getLocation(), drop);
                                 }
-                                player.sendMessage("§aVous avez reçu votre récompense matérielle de guilde !");
+                                plugin.getLangManager().sendMessage(player, "guild.reward_received");
                             } catch (Exception e) {
-                                player.sendMessage("§cErreur lors de la distribution de votre récompense (objet invalide).");
+                                plugin.getLangManager().sendMessage(player, "error.invalid_reward");
                             }
                         }
                     }
@@ -615,5 +628,230 @@ public class DatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // --- MODERATION ---
+    public void saveMutes(java.util.Map<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> mutes) {
+        String deleteSql = "DELETE FROM moderation_mutes";
+        String insertSql = "INSERT INTO moderation_mutes (uuid, expiration, reason) VALUES (?, ?, ?)";
+        try (Connection conn = getConnection();
+             java.sql.Statement stmt = conn.createStatement();
+             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+            stmt.executeUpdate(deleteSql);
+            for (java.util.Map.Entry<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> entry : mutes.entrySet()) {
+                pstmt.setString(1, entry.getKey().toString());
+                pstmt.setLong(2, entry.getValue().expiration);
+                pstmt.setString(3, entry.getValue().reason);
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveFrozen(java.util.Set<UUID> frozen) {
+        String deleteSql = "DELETE FROM moderation_frozen";
+        String insertSql = "INSERT INTO moderation_frozen (uuid) VALUES (?)";
+        try (Connection conn = getConnection();
+             java.sql.Statement stmt = conn.createStatement();
+             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+            stmt.executeUpdate(deleteSql);
+            for (UUID uuid : frozen) {
+                pstmt.setString(1, uuid.toString());
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public java.util.Map<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> loadMutes() {
+        java.util.Map<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> mutes = new java.util.HashMap<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM moderation_mutes");
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                mutes.put(UUID.fromString(rs.getString("uuid")), new fr.gens.core.modules.moderation.ModerationModule.MuteData(rs.getString("reason"), rs.getLong("expiration")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return mutes;
+    }
+
+    public java.util.Set<UUID> loadFrozen() {
+        java.util.Set<UUID> frozen = new java.util.HashSet<>();
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM moderation_frozen");
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                frozen.add(UUID.fromString(rs.getString("uuid")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return frozen;
+    }
+
+    // --- WEB STATS EXTENSIONS ---
+
+    public long getPlaytimeMinutes(UUID uuid) {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT playtime_minutes FROM player_global_stats WHERE uuid = ?")) {
+            ps.setString(1, uuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getLong("playtime_minutes");
+            }
+        } catch (SQLException e) {
+            plugin.getLangManager().sendConsoleError("db.query_error");
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public java.util.List<java.util.Map<String, Object>> getGlobalLeaderboard() {
+        java.util.List<java.util.Map<String, Object>> leaderboard = new java.util.ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT q.player_name, p.username, q.quests_completed, q.uuid, " +
+                     "COALESCE(g.blocks_broken, 0) as blocks, " +
+                     "COALESCE(g.mobs_killed, 0) as mobs, " +
+                     "COALESCE(g.playtime_minutes, 0) as playtime " +
+                     "FROM player_quests_stats q " +
+                     "LEFT JOIN player_global_stats g ON q.uuid = g.uuid " +
+                     "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
+                     "ORDER BY q.quests_completed DESC, g.blocks_broken DESC LIMIT 50")) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    java.util.Map<String, Object> playerStat = new java.util.HashMap<>();
+                    String name = rs.getString("username");
+                    if (name == null) name = rs.getString("player_name");
+                    playerStat.put("playerName", name);
+                    playerStat.put("questsCompleted", rs.getInt("quests_completed"));
+                    playerStat.put("uuid", rs.getString("uuid"));
+                    playerStat.put("blocksBroken", rs.getInt("blocks"));
+                    playerStat.put("mobsKilled", rs.getInt("mobs"));
+                    playerStat.put("playtime", rs.getLong("playtime"));
+                    leaderboard.add(playerStat);
+                }
+            }
+        } catch (SQLException e) {
+            plugin.getLangManager().sendConsoleError("db.query_error");
+            e.printStackTrace();
+        }
+        return leaderboard;
+    }
+
+    public java.util.Map<String, Object> getQuestsLeaderboardData() {
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        try (Connection conn = getConnection()) {
+            // Current Reward
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.set(java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.MONDAY);
+            cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+            cal.set(java.util.Calendar.MINUTE, 0);
+            cal.set(java.util.Calendar.SECOND, 0);
+            cal.set(java.util.Calendar.MILLISECOND, 0);
+            String currentWeek = String.valueOf(cal.getTimeInMillis());
+            String reward = "Aucune";
+            
+            try (PreparedStatement ps = conn.prepareStatement("SELECT reward_description FROM weekly_rewards WHERE week_id = ?")) {
+                ps.setString(1, currentWeek);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) reward = rs.getString("reward_description");
+                }
+            }
+            result.put("reward", reward);
+            
+            long now = System.currentTimeMillis();
+            long dayStart = now - (24L * 60L * 60L * 1000L);
+            long weekStart = cal.getTimeInMillis();
+            long monthStart = now - (30L * 24L * 60L * 60L * 1000L);
+            
+            long endOfWeek = weekStart + (7L * 24L * 60L * 60L * 1000L);
+            long timeRemainingMs = endOfWeek - now;
+            if (timeRemainingMs < 0) timeRemainingMs = 0;
+            long days = timeRemainingMs / (1000 * 60 * 60 * 24);
+            long hours = (timeRemainingMs / (1000 * 60 * 60)) % 24;
+            long minutes = (timeRemainingMs / (1000 * 60)) % 60;
+            result.put("timeRemaining", days + "j " + hours + "h " + minutes + "m");
+            
+            // Helper function to query
+            java.util.function.BiFunction<Long, Long, java.util.List<java.util.Map<String, Object>>> getLeaderboard = (start, end) -> {
+                java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
+                String sql = "SELECT player_name, COUNT(*) as count FROM player_quests_history WHERE completion_date >= ? AND completion_date <= ? GROUP BY uuid ORDER BY count DESC LIMIT 10";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setLong(1, start);
+                    ps.setLong(2, end);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        while (rs.next()) {
+                            java.util.Map<String, Object> map = new java.util.HashMap<>();
+                            map.put("playerName", rs.getString("player_name"));
+                            map.put("count", rs.getInt("count"));
+                            list.add(map);
+                        }
+                    }
+                } catch (SQLException e) { e.printStackTrace(); }
+                return list;
+            };
+            
+            result.put("daily", getLeaderboard.apply(dayStart, now));
+            result.put("weekly", getLeaderboard.apply(weekStart, now));
+            result.put("monthly", getLeaderboard.apply(monthStart, now));
+            
+            java.util.List<java.util.Map<String, Object>> totalList = new java.util.ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement(
+                "SELECT q.player_name, p.username, q.quests_completed " +
+                "FROM player_quests_stats q " +
+                "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
+                "ORDER BY quests_completed DESC LIMIT 10")) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        java.util.Map<String, Object> map = new java.util.HashMap<>();
+                        String name = rs.getString("username");
+                        if (name == null) name = rs.getString("player_name");
+                        map.put("playerName", name);
+                        map.put("count", rs.getInt("quests_completed"));
+                        totalList.add(map);
+                    }
+                }
+            }
+            result.put("total", totalList);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    public java.util.Map<String, java.util.List<java.util.Map<String, Object>>> getJobsLeaderboardData() {
+        java.util.Map<String, java.util.List<java.util.Map<String, Object>>> jobsLeaderboard = new java.util.HashMap<>();
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT j.job_name, COALESCE(p.username, q.player_name, 'Inconnu') as player_name, j.level, j.xp " +
+                     "FROM player_jobs j " +
+                     "LEFT JOIN player_quests_stats q ON j.uuid = q.uuid " +
+                     "LEFT JOIN player_profiles p ON j.uuid = p.uuid " +
+                     "ORDER BY j.job_name, j.level DESC, j.xp DESC")) {
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String jobName = rs.getString("job_name");
+                    String playerName = rs.getString("player_name");
+                    
+                    java.util.Map<String, Object> stat = new java.util.HashMap<>();
+                    stat.put("playerName", playerName);
+                    stat.put("level", rs.getInt("level"));
+                    stat.put("xp", rs.getDouble("xp"));
+                    
+                    jobsLeaderboard.computeIfAbsent(jobName, k -> new java.util.ArrayList<>()).add(stat);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return jobsLeaderboard;
     }
 }

@@ -60,14 +60,26 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     public void enable() {
         enabled = true;
         loadHomes();
-        plugin.getLogger().info("[CmdHome] Activé.");
+        plugin.getLangManager().sendConsoleMessage("teleporthomemodule.log_1");
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        org.bukkit.command.PluginCommand sethomeCmd = plugin.getCommand("sethome");
+        if (sethomeCmd != null) { sethomeCmd.setExecutor(this); }
+        
+        org.bukkit.command.PluginCommand homeCmd = plugin.getCommand("home");
+        if (homeCmd != null) { homeCmd.setExecutor(this); homeCmd.setTabCompleter(this); }
+        
+        org.bukkit.command.PluginCommand delhomeCmd = plugin.getCommand("delhome");
+        if (delhomeCmd != null) { delhomeCmd.setExecutor(this); delhomeCmd.setTabCompleter(this); }
     }
 
     @Override
     public void disable() {
         enabled = false;
         saveHomes();
-        plugin.getLogger().info("[CmdHome] Désactivé.");
+        plugin.getLangManager().sendConsoleMessage("teleporthomemodule.log_2");
     }
 
     private void loadHomes() {
@@ -157,7 +169,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage("§cCe module est désactivé.");
+            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
             return true;
         }
         if (!(sender instanceof Player)) return true;
@@ -165,7 +177,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
         if (command.getName().equalsIgnoreCase("sethome")) {
             if (!p.hasPermission("genscore.home")) {
-                p.sendMessage("§cPermission refusée (genscore.home).");
+                plugin.getLangManager().sendMessage(p, "error.no_permission");
                 return true;
             }
             
@@ -173,19 +185,23 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
             Map<String, Location> playerHomes = homes.computeIfAbsent(p.getUniqueId(), k -> new HashMap<>());
             
             if (!playerHomes.containsKey(homeName) && playerHomes.size() >= getMaxHomes(p)) {
-                p.sendMessage("§cVous avez atteint votre limite de " + getMaxHomes(p) + " homes.");
+                plugin.getLangManager().sendMessage(p, "home.limit_reached",
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("max", String.valueOf(getMaxHomes(p)))
+                );
                 return true;
             }
 
             playerHomes.put(homeName, p.getLocation());
             saveHomeToDB(p.getUniqueId(), homeName, p.getLocation());
-            p.sendMessage("§aHome §e" + homeName + " §adéfini et sauvegardé en SQL !");
+            plugin.getLangManager().sendMessage(p, "home.set", 
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+            );
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("home")) {
             if (!p.hasPermission("genscore.home")) {
-                p.sendMessage("§cPermission refusée (genscore.home).");
+                plugin.getLangManager().sendMessage(p, "error.no_permission");
                 return true;
             }
             if (args.length > 0) {
@@ -194,7 +210,9 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
                 if (playerHomes != null && playerHomes.containsKey(homeName)) {
                     TeleportUtil.teleportWithCooldown(p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
                 } else {
-                    p.sendMessage("§cLe home §e" + homeName + " §cn'existe pas.");
+                    plugin.getLangManager().sendMessage(p, "home.not_found", 
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+                    );
                 }
                 return true;
             }
@@ -204,11 +222,11 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
         if (command.getName().equalsIgnoreCase("delhome")) {
             if (!p.hasPermission("genscore.home")) {
-                p.sendMessage("§cPermission refusée (genscore.home).");
+                plugin.getLangManager().sendMessage(p, "error.no_permission");
                 return true;
             }
             if (args.length == 0) {
-                p.sendMessage("§cUsage: /delhome <nom>");
+                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Usage: /delhome <nom></red>"));
                 return true;
             }
             String homeName = args[0];
@@ -216,9 +234,13 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
             if (playerHomes != null && playerHomes.containsKey(homeName)) {
                 playerHomes.remove(homeName);
                 deleteHomeFromDB(p.getUniqueId(), homeName);
-                p.sendMessage("§cHome " + homeName + " supprimé.");
+                plugin.getLangManager().sendMessage(p, "home.delete", 
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+                );
             } else {
-                p.sendMessage("§cLe home §e" + homeName + " §cn'existe pas.");
+                plugin.getLangManager().sendMessage(p, "home.not_found", 
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+                );
             }
             return true;
         }
