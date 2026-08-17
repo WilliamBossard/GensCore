@@ -1,179 +1,321 @@
 web:
-  dashboard:
-    title: Dashboard
-    balance: Current Balance
-    guild: Guild
-    rank: 'Rank:'
-    web_inventory: Web Inventory
-    web_inventory_desc: Retrieve your items bought or won on the web.
-    open_inventory: Open Inventory
-    no_guild: None
-  nav:
-    shop: Dynamic Shop
-    ah: Auction House
-    map: World Map
-    stats: My Statistics
-    games: Web Mini-Games
-    jobs: Legends
-    admin: Admin Panel
-    logout: Logout
-    new: NEW
-    admin_tag: ADMIN
-  auth:
-    login_title: Web Panel Login
-    username: Minecraft Username
-    password: Password (/register)
-    login_btn: Login
-    logging_in: Logging in...
   admin:
-    title: Admin Panel
-    tabs:
-      shop: "Shop"
-      modules: "Modules"
-      files: "Files"
-      settings: "Settings"
-      players: "Players"
-      content: "Content"
-      web_inv: Web Inv.
-      ranks: Ranks
-      back_to_game: "Back to Game"
+    active: Active
+    content:
+      announcements: Announcements and News
+      desc: This text will appear on the public homepage for all players.
+      placeholder: Write the homepage text here...
+      save: Save and Publish
+      title: Homepage Editor
+    inactive: Disabled
     modules_cat:
-      economy: "Economy & Trade"
-      gameplay: "Players & Gameplay"
-      interface: "Interface & Communication"
-      admin: "Admin & Utilities"
-      enable_all: "Enable All"
-      disable_all: "Disable All"
+      admin: Admin & Utilities
+      disable_all: Disable All
+      economy: Economy & Trade
+      enable_all: Enable All
+      gameplay: Players & Gameplay
+      interface: Interface & Communication
+    modules_desc:
+      auctionhouse: Auction house between players.
+      auth: Login system for offline servers.
+      bluemap: BlueMap integration and markers.
+      chat: Chat formatting and prefixes/channels management.
+      cmdback: Command to return to last location.
+      cmdhome: Homes management command.
+      cmdspawn: Spawn teleportation command.
+      cmdtpa: Teleportation command to other players.
+      customgui: Custom interface via web.
+      discord: Link in-game chat with a Discord bot.
+      dynamicshop: In-game shop with dynamic pricing based on supply and demand.
+      economy: Vault economy management, currencies and transactions.
+      fastleafdecay: Fast destruction of leaves from cut trees.
+      gui: Creation of custom virtual menus.
+      headdrop: Players and mobs have a chance to drop their head.
+      jobs: Jobs system and leveling for players.
+      locks: Locking of chests and doors via signs.
+      lootr: Random loot chests generation in the world.
+      minigames: Games like fortune wheel and slot machine.
+      moderation: 'Staff tools: ban, mute, kick, history.'
+      motd: Customization of the server login message.
+      quests: Creation and management of daily/weekly quests.
+      spawners: Custom spawners and loots management.
+      stats: Tracking of player statistics.
+      tabboard: Customization of the TAB menu.
+      teams: Guild and alliance system between players.
+      teleport: TPA, /spawn, /home commands.
+      tomb: Tombs upon player death to save their inventory.
+      utils: Useful commands /feed, /heal, /trash.
+      web: Global settings for the web panel.
+    players:
+      action: Action
+      ban: Ban
+      cancel: Cancel
+      confirm: Confirm
+      days: Days
+      duration: Duration (0 = Permanent)
+      empty: No registered players.
+      hours: Hours
+      kick: Kick
+      loading: Loading players...
+      message: Message
+      msg: PM
+      mute: Mute
+      offline: Offline
+      playtime: Playtime
+      reason: Reason
+      reason_placeholder: 'Ex: Spam, cheating...'
+      title: All Players
+      unban: Unban
+      unit: Unit
+      unmute: Unmute
     save: Save
     saving: Saving...
-    status: "Status"
-    active: "Active"
-    inactive: "Disabled"
+    settings:
+      ah_tax: Auction House Tax (in %)
+      bluemap_url: BlueMap URL (Server IP)
+      data_homes_btn: Clear All Homes
+      data_homes_confirm: Do you really want to delete ALL homes for ALL players?
+      data_homes_desc: Delete all player homes. This action is irreversible.
+      data_homes_error: Error deleting homes.
+      data_homes_success: All homes were successfully deleted.
+      data_title: Data Management
+      eco_quests: Economy & Quests
+      games_casino: Enable Slot Machine
+      games_title: Mini-Games
+      games_wheel: Enable Fortune Wheel
+      head_drop: Head Drop Chance (in %)
+      inflation: 'Inflation Exponent (default: 0.5)'
+      lootr_break: Prevent Breaking Chests
+      lootr_hopper: Block Hoppers
+      lootr_particles: Particles on Unlooted Chests
+      lootr_title: Lootr Configuration
+      motd_desc: Global MOTD activation is handled in the 'Modules' tab.
+      motd_line1: Line 1
+      motd_line2: Line 2
+      motd_title: MOTD Configuration
+      quest_rerolls: Daily Quest Reroll Limit
+      save: Save Configuration
+      security_pass: New Administrator Password
+      security_pass_placeholder: Leave empty to keep current
+      security_title: Security
+      server_ip: Server IP (Homepage)
+      title: Server Configuration
+      tomb_access: Default Access
+      tomb_access_everyone: EVERYONE (Everyone)
+      tomb_access_owner: OWNER_ONLY (Owner only)
+      tomb_action: Action on Expiration
+      tomb_action_destroy: DESTROY (Destroy items)
+      tomb_action_drop: DROP (Drop items)
+      tomb_action_unlock: UNLOCK (Open to everyone)
+      tomb_block: Block Type (e.g. CHEST, BARREL, PLAYER_HEAD)
+      tomb_expire: Expiration Time (Seconds)
+      tomb_title: Tombs Configuration
+      tomb_xp: Save XP in Tomb
+    shop:
+      new_cat: New Category
+      title: Shop Management
+    status: Status
+    tabs:
+      back_to_game: Back to Game
+      content: Content
+      files: Files
+      modules: Modules
+      players: Players
+      ranks: Ranks
+      settings: Settings
+      shop: Shop
+      web_inv: Web Inv.
+    title: Admin Panel
+  auth:
+    logging_in: Logging in...
+    login_btn: Login
+    login_title: Web Panel Login
+    password: Password (/register)
+    username: Minecraft Username
   common:
     error: Error
     success: Success
+  dashboard:
+    balance: Current Balance
+    guild: Guild
+    no_guild: None
+    open_inventory: Open Inventory
+    rank: 'Rank:'
+    title: Dashboard
+    web_inventory: Web Inventory
+    web_inventory_desc: Retrieve your items bought or won on the web.
+  nav:
+    admin: Admin Panel
+    admin_tag: ADMIN
+    ah: Auction House
+    games: Web Mini-Games
+    jobs: Legends
+    logout: Logout
+    map: World Map
+    new: NEW
+    shop: Dynamic Shop
+    stats: My Statistics
   public:
-    hero_title: Welcome to the Server
-    hero_subtitle: Join the adventure right now!
-    ip: IP
-    features_title: Features & News
-    loading: Loading...
-    learn_more: Learn more about our systems
     admin_access: Administrator Access
-    leaderboard_title: Global Player Leaderboard
-    leaderboard_subtitle: The best players on the server with their detailed statistics
-    stats_disabled: The statistics module is currently disabled by the administrator.
-    table_player: Player
-    table_quests: Quests
-    table_blocks: Blocks Broken
-    table_mobs: Mobs Killed
-    table_playtime: Playtime (h)
-    table_empty: No players registered yet.
-    profile_btn: My Profile
-    shop:
-      title: "Dynamic Market"
-      subtitle: "Track real-time economy prices"
-      disabled_title: "Shop Disabled"
-      disabled_desc: "The shop module is currently disabled by the administrator."
-      loading: "Loading Shop..."
-      buy: "Buy"
-      sell: "Sell"
-      unsellable: "Unsellable"
-      command_tag: "Rank / Command"
-      history: "History"
-      select_item: "Select an item"
-      select_item_desc: "Click on an item to see its price evolution (Inflation/Deflation)."
-      no_history: "No recent transactions."
+    ah:
+      days: days
+      disabled_desc: The Auction House module is currently disabled by the administrator.
+      disabled_title: Auction House Disabled
+      empty: The Auction House is currently empty. Login and use /ah sell to sell
+        items!
+      expire_in: Expires in
+      loading: Loading Auction House...
+      offer: 'Offer #'
+      price: Price
+      seller: Seller
+      subtitle: Discover items for sale by players live
+      title: Auction House (AH)
     docs:
-      title: Complete Documentation
-      subtitle: Discover all the exclusive features of the Gens server.
       back_btn: Back to Home
       sections:
-        management:
-          title: Autonomous Management System
-          desc: The server has a unique web panel system allowing the owner to manage
-            players, the shop, the economy, and server settings <strong>in real time</strong>
-            without needing to restart.
-        economy:
-          title: Economy & Dynamic Shop
-          desc: The economy reacts to player actions. Shop prices (<code>/shop</code>)
-            automatically adjust according to supply and demand. You can also sell
-            items to other players via the Auction House (<code>/ah</code>).
-        quests:
-          title: Daily Quests
-          desc: Daily challenges (<code>/quests</code>) are generated for each player.
-            Kill monsters, mine blocks, or craft items to earn money and job experience.
-        jobs:
-          title: Jobs & Spawners
-          desc: Progress in your jobs (<code>/jobs</code>) to become the best craftsman
-            on the server. Plus, you have the ability to retrieve <strong>Spawners</strong>
-            with a Silk Touch pickaxe and place them anywhere for your personal farms!
         bluemap:
-          title: BlueMap Integration
           desc: Visualize the world in 3D from your browser thanks to BlueMap. Panel
             integration even allows administrators to track players in real time if
             needed.
-        loot:
-          title: Monster Heads & Custom Loot
-          desc: Collect the heads of monsters you kill, and enjoy a custom instantiated
-            chest (Loot) system for each player. First comers no longer steal all
-            the loot!
-        guilds:
-          title: Guilds & Weekly Quests
-          desc: Create your own Guild (<code>/team</code>) and invite your friends.
-            Together, participate in the weekly quest to earn exclusive rewards and
-            climb to the top of the global leaderboard!
-        locks:
-          title: Chest Locks (Locks)
-          desc: Secure your chests with the <code>/lock</code> command. You can create
-            private locks, or use <code>/lock guild</code> to share access to a chest
-            with all members of your guild.
+          title: BlueMap Integration
         discord:
-          title: Discord-Minecraft Bridge
           desc: The Discord server and the game are fully linked. You can link your
             account via <code>/discord link</code>. Chat is synced both ways and even
             displays your ranks and guild!
-
-
-
-
+          title: Discord-Minecraft Bridge
+        economy:
+          desc: The economy reacts to player actions. Shop prices (<code>/shop</code>)
+            automatically adjust according to supply and demand. You can also sell
+            items to other players via the Auction House (<code>/ah</code>).
+          title: Economy & Dynamic Shop
+        guilds:
+          desc: Create your own Guild (<code>/team</code>) and invite your friends.
+            Together, participate in the weekly quest to earn exclusive rewards and
+            climb to the top of the global leaderboard!
+          title: Guilds & Weekly Quests
+        jobs:
+          desc: Progress in your jobs (<code>/jobs</code>) to become the best craftsman
+            on the server. Plus, you have the ability to retrieve <strong>Spawners</strong>
+            with a Silk Touch pickaxe and place them anywhere for your personal farms!
+          title: Jobs & Spawners
+        locks:
+          desc: Secure your chests with the <code>/lock</code> command. You can create
+            private locks, or use <code>/lock guild</code> to share access to a chest
+            with all members of your guild.
+          title: Chest Locks (Locks)
+        loot:
+          desc: Collect the heads of monsters you kill, and enjoy a custom instantiated
+            chest (Loot) system for each player. First comers no longer steal all
+            the loot!
+          title: Monster Heads & Custom Loot
+        management:
+          desc: The server has a unique web panel system allowing the owner to manage
+            players, the shop, the economy, and server settings <strong>in real time</strong>
+            without needing to restart.
+          title: Autonomous Management System
+        quests:
+          desc: Daily challenges (<code>/quests</code>) are generated for each player.
+            Kill monsters, mine blocks, or craft items to earn money and job experience.
+          title: Daily Quests
+      subtitle: Discover all the exclusive features of the Gens server.
+      title: Complete Documentation
+    features_title: Features & News
+    hero_subtitle: Join the adventure right now!
+    hero_title: Welcome to the Server
+    ip: IP
+    leaderboard_subtitle: The best players on the server with their detailed statistics
+    leaderboard_title: Global Player Leaderboard
+    learn_more: Learn more about our systems
+    loading: Loading...
     modules:
-      dynamicshop:
-        name: "DynamicShop"
-        desc: "In-game shop with dynamic inflation driven by supply and demand."
-      economy:
-        name: "Economy"
-        desc: "Money system with /money, /pay, /eco and Vault API."
       auctionhouse:
-        name: "AuctionHouse"
-        desc: "Player-to-player auction house system."
-      jobs:
-        name: "Jobs"
-        desc: "Job system (Miner, Woodcutter, Hunter, Farmer)."
+        desc: Player-to-player auction house system.
+        name: AuctionHouse
       chat:
-        name: "Chat"
-        desc: "Manages chat formatting. Permission: genscore.chat"
-      gui_api:
-        name: "GUI API"
-        desc: "Internal engine for creating interactive inventories."
-      fastleafdecay:
-        name: "FastLeafDecay"
-        desc: "Leaves decay instantly when a tree is chopped down."
-      cmdhome:
-        name: "CmdHome"
-        desc: "Commands /home with secure GUIs, limits and cooldowns."
+        desc: 'Manages chat formatting. Permission: genscore.chat'
+        name: Chat
       cmdback:
-        name: "CmdBack"
-        desc: "Paid/VIP /back command with interactive death message."
+        desc: Paid/VIP /back command with interactive death message.
+        name: CmdBack
+      cmdhome:
+        desc: Commands /home with secure GUIs, limits and cooldowns.
+        name: CmdHome
       cmdspawn:
-        name: "CmdSpawn"
-        desc: "Persistent /spawn and /setspawn commands with cooldowns."
+        desc: Persistent /spawn and /setspawn commands with cooldowns.
+        name: CmdSpawn
       cmdtpa:
-        name: "CmdTpa"
-        desc: "Teleportation request commands (/tpa, /tpaccept, /tpdeny, /tpacancel)."
-      tomb:
-        name: "Tomb"
-        desc: "Manages player tombs upon their death."
+        desc: Teleportation request commands (/tpa, /tpaccept, /tpdeny, /tpacancel).
+        name: CmdTpa
+      dynamicshop:
+        desc: In-game shop with dynamic inflation driven by supply and demand.
+        name: DynamicShop
+      economy:
+        desc: Money system with /money, /pay, /eco and Vault API.
+        name: Economy
+      fastleafdecay:
+        desc: Leaves decay instantly when a tree is chopped down.
+        name: FastLeafDecay
+      gui_api:
+        desc: Internal engine for creating interactive inventories.
+        name: GUI API
+      jobs:
+        desc: Job system (Miner, Woodcutter, Hunter, Farmer).
+        name: Jobs
       motd:
-        name: "MOTD"
-        desc: "Manages the server MOTD on the multiplayer list."
+        desc: Manages the server MOTD on the multiplayer list.
+        name: MOTD
+      tomb:
+        desc: Manages player tombs upon their death.
+        name: Tomb
+    profile_btn: My Profile
+    quests:
+      competition: COMPETITION
+      competition_desc: 'The player who has completed the most quests at the end of
+        the week will automatically receive the following reward:'
+      disabled_desc: The Quests module is currently disabled.
+      disabled_title: Quests Disabled
+      loading: Loading quests...
+      no_data: No data for this period.
+      this_month: This Month
+      this_week: This Week
+      time_left: Time left
+      today: Today
+      total: Global Total
+      weekly_prize: Weekly Prize
+    shop:
+      buy: Buy
+      command_tag: Rank / Command
+      disabled_desc: The shop module is currently disabled by the administrator.
+      disabled_title: Shop Disabled
+      history: History
+      loading: Loading Shop...
+      no_history: No recent transactions.
+      select_item: Select an item
+      select_item_desc: Click on an item to see its price evolution (Inflation/Deflation).
+      sell: Sell
+      subtitle: Track real-time economy prices
+      title: Dynamic Market
+      unsellable: Unsellable
+    stats:
+      balance: Bank Balance
+      best_team: Best Guild
+      buy: Buy
+      day_prefix: D
+      global_title: Your Global Statistics
+      jobs_level: Global Jobs Level
+      kd_ratio: K/D Ratio
+      no_transactions: No recent transactions.
+      playtime: Playtime
+      quests_7_days: Quests (Last 7 days)
+      quests_completed: Completed Quests
+      recent_transactions: Recent Transactions
+      sell: Sell
+      total_deaths: Total Deaths
+      total_points: Total Points
+    stats_disabled: The statistics module is currently disabled by the administrator.
+    table_blocks: Blocks Broken
+    table_empty: No players registered yet.
+    table_mobs: Mobs Killed
+    table_player: Player
+    table_playtime: Playtime (h)
+    table_quests: Quests

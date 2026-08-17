@@ -50,6 +50,7 @@ export function PlayerLogin({ onLogin }: { onLogin: (data: any) => void }) {
 }
 
 function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boolean }) {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<any>(null);
   const [bestTeam, setBestTeam] = useState<any>(null);
   useEffect(() => {
@@ -66,7 +67,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
       .catch(() => setBestTeam(null));
   }, [uuid]);
 
-  if (!stats) return <div className="loading">Chargement...</div>;
+  if (!stats) return <div className="loading">{t('web.public.loading')}</div>;
 
   // Helper formatting
   const formatPlaytime = (minutes: number) => {
@@ -80,45 +81,45 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
 
   return (
     <div className="dashboard-content" style={{padding: '2rem'}}>
-      <h2 style={{marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '10px'}}><BarChart2/> Vos Statistiques Globales</h2>
+      <h2 style={{marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '10px'}}><BarChart2/> {t('web.public.stats.global_title')}</h2>
       
       <div className="stats-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '2rem'}}>
         
         <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
           <Clock size={40} style={{color: 'var(--accent)', marginBottom: '1rem', margin: '0 auto'}}/>
           <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{formatPlaytime(stats.playtimeMinutes)}</h3>
-          <p style={{color: 'var(--text-muted)'}}>Temps de Jeu</p>
+          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.playtime')}</p>
         </div>
 
         <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
           <Pickaxe size={40} style={{color: '#a855f7', marginBottom: '1rem', margin: '0 auto'}}/>
           <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.globalJobLevel || 0}</h3>
-          <p style={{color: 'var(--text-muted)'}}>Niveau Global Métiers</p>
+          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.jobs_level')}</p>
         </div>
 
         <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
           <Swords size={40} style={{color: '#f97316', marginBottom: '1rem', margin: '0 auto'}}/>
           <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{kdRatio}</h3>
-          <p style={{color: 'var(--text-muted)'}}>Ratio K/D ({stats.playerKills} Kills)</p>
+          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.kd_ratio')} ({stats.playerKills} Kills)</p>
         </div>
 
         <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
           <Skull size={40} style={{color: '#ef4444', marginBottom: '1rem', margin: '0 auto'}}/>
           <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.deaths}</h3>
-          <p style={{color: 'var(--text-muted)'}}>Morts Totales</p>
+          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.total_deaths')}</p>
         </div>
 
         <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
           <Target size={40} style={{color: 'var(--accent)', marginBottom: '1rem', margin: '0 auto'}}/>
           <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.questsCompleted}</h3>
-          <p style={{color: 'var(--text-muted)'}}>Quêtes Accomplies</p>
+          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.quests_completed')}</p>
         </div>
 
         {isEcoEnabled && (
           <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
             <ShoppingCart size={40} style={{color: '#10b981', marginBottom: '1rem', margin: '0 auto'}}/>
             <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.balance ? stats.balance.toFixed(2) : 0} $</h3>
-            <p style={{color: 'var(--text-muted)'}}>Solde Bancaire</p>
+            <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.balance')}</p>
           </div>
         )}
         
@@ -127,7 +128,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
       <div className="dashboard-split" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
         {/* GRAPHIQUE QUETES */}
         <div className="admin-card" style={{padding: '1.5rem'}}>
-          <h3 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}><TrendingUp size={20} color="var(--accent)"/> Quêtes (7 derniers jours)</h3>
+          <h3 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}><TrendingUp size={20} color="var(--accent)"/> {t('web.public.stats.quests_7_days')}</h3>
           <div style={{display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '150px', paddingTop: '20px', borderBottom: '1px solid var(--card-border)'}}>
             {(stats.questsActivity || [0,0,0,0,0,0,0]).map((count: number, index: number) => {
               const max = Math.max(...(stats.questsActivity || []), 5);
@@ -141,7 +142,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
                     borderRadius: '4px 4px 0 0',
                     opacity: count > 0 ? 1 : 0.3
                   }}></div>
-                  <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>J-{6-index}</span>
+                  <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{t('web.public.stats.day_prefix')}-{6-index}</span>
                 </div>
               );
             })}
@@ -151,15 +152,15 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
         {/* DERNIERES TRANSACTIONS */}
         {isEcoEnabled && (
           <div className="admin-card" style={{padding: '1.5rem'}}>
-            <h3 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}><History size={20} color="var(--accent)"/> Dernières Transactions</h3>
+            <h3 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}><History size={20} color="var(--accent)"/> {t('web.public.stats.recent_transactions')}</h3>
             {(!stats.recentTransactions || stats.recentTransactions.length === 0) ? (
-              <p style={{color: 'var(--text-muted)'}}>Aucune transaction récente.</p>
+              <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.no_transactions')}</p>
             ) : (
               <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
                 {stats.recentTransactions.map((tr: any, idx: number) => (
                   <div key={idx} style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--card-border)'}}>
                     <div>
-                      <strong style={{color: tr.type === 'BUY' || tr.type === 'ACHAT' ? '#ef4444' : '#10b981'}}>{tr.type === 'BUY' || tr.type === 'ACHAT' ? 'Achat' : 'Vente'}</strong> de {tr.amount}x {tr.material}
+                      <strong style={{color: tr.type === 'BUY' || tr.type === 'ACHAT' ? '#ef4444' : '#10b981'}}>{tr.type === 'BUY' || tr.type === 'ACHAT' ? t('web.public.stats.buy') : t('web.public.stats.sell')}</strong> x{tr.amount} {tr.material}
                     </div>
                     <div style={{fontWeight: 'bold', color: tr.type === 'BUY' || tr.type === 'ACHAT' ? '#ef4444' : '#10b981'}}>
                       {tr.type === 'BUY' || tr.type === 'ACHAT' ? '-' : '+'}{tr.price.toFixed(2)} $
@@ -176,11 +177,11 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
       {bestTeam && (
         <div className="admin-card" style={{marginTop: '2rem', padding: '1.5rem', background: 'linear-gradient(135deg, rgba(168,85,247,0.1), rgba(249,115,22,0.1))', border: '1px solid rgba(168,85,247,0.3)'}}>
           <h3 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#a855f7'}}>
-            <Shield size={24}/> Meilleure Guilde : {bestTeam.name}
+            <Shield size={24}/> {t('web.public.stats.best_team')} : {bestTeam.name}
           </h3>
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
             <div style={{fontSize: '1.2rem'}}>
-              <strong>{bestTeam.total_points}</strong> Points Totaux
+              <strong>{bestTeam.total_points}</strong> {t('web.public.stats.total_points')}
             </div>
             <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
               {bestTeam.members && bestTeam.members.map((member: any, idx: number) => (

@@ -217,80 +217,80 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
           <form onSubmit={handleSaveConfig}>
             <div className="settings-grid">
               <div className="admin-card">
-                <div className="settings-section-title"><Settings size={20} /> Économie & Quêtes</div>
+                <div className="settings-section-title"><Settings size={20} /> {t('web.admin.settings.eco_quests')}</div>
                 <div className="form-group">
-                  <label>Exposant d'inflation (défaut: 0.5)</label>
+                  <label>{t('web.admin.settings.inflation')}</label>
                   <input type="number" step="0.01" value={config.inflationExponent} onChange={e => setConfig({...config, inflationExponent: parseFloat(e.target.value)})} required className="login-input" />
                 </div>
                 <div className="form-group">
-                  <label>Taxe de l'Hôtel des Ventes (en %)</label>
+                  <label>{t('web.admin.settings.ah_tax')}</label>
                   <input type="number" step="0.1" value={config.ahTaxPercentage} onChange={e => setConfig({...config, ahTaxPercentage: parseFloat(e.target.value)})} required className="login-input" />
                 </div>
 
                 <div className="form-group">
-                  <label>URL BlueMap (IP Serveur)</label>
+                  <label>{t('web.admin.settings.bluemap_url')}</label>
                   <input type="text" value={config.bluemapUrl || ""} onChange={e => setConfig({...config, bluemapUrl: e.target.value})} required className="login-input" />
                 </div>
                 <div className="form-group">
-                  <label>IP Serveur (Accueil)</label>
+                  <label>{t('web.admin.settings.server_ip')}</label>
                   <input type="text" value={config.serverIp || ""} onChange={e => setConfig({...config, serverIp: e.target.value})} required className="login-input" />
                 </div>
                 <div className="form-group">
-                  <label>Chance de drop d'une tête (en %)</label>
+                  <label>{t('web.admin.settings.head_drop')}</label>
                   <input type="number" step="0.1" max="100" min="0" value={config.headDropChance} onChange={e => setConfig({...config, headDropChance: parseFloat(e.target.value)})} required className="login-input" />
                 </div>
                 <div className="form-group">
-                  <label>Limite Quotidienne Reroll Quêtes</label>
+                  <label>{t('web.admin.settings.quest_rerolls')}</label>
                   <input type="number" min="0" className="login-input" value={config.maxQuestsRerolls} onChange={(e) => setConfig({...config, maxQuestsRerolls: parseInt(e.target.value) || 0})} />
                 </div>
               </div>
 
               <div className="admin-card">
-                <div className="settings-section-title"><Target size={20} /> Configuration MOTD</div>
+                <div className="settings-section-title"><Target size={20} /> {t('web.admin.settings.motd_title')}</div>
                 <div className="form-group" style={{marginBottom: '1rem'}}>
                   <p style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>
-                    L'activation globale du MOTD se fait depuis l'onglet "Modules".
+                    {t('web.admin.settings.motd_desc')}
                   </p>
                 </div>
                 <div className="form-group">
-                  <label>Ligne 1</label>
+                  <label>{t('web.admin.settings.motd_line1')}</label>
                   <input type="text" value={config.motdLine1 || ''} onChange={e => setConfig({...config, motdLine1: e.target.value})} className="login-input" />
                 </div>
                 <div className="form-group">
-                  <label>Ligne 2</label>
+                  <label>{t('web.admin.settings.motd_line2')}</label>
                   <input type="text" value={config.motdLine2 || ''} onChange={e => setConfig({...config, motdLine2: e.target.value})} className="login-input" />
                 </div>
               </div>
 
               <div className="admin-card">
-                <div className="settings-section-title"><Package size={20} /> Configuration Lootr</div>
+                <div className="settings-section-title"><Package size={20} /> {t('web.admin.settings.lootr_title')}</div>
                 <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row'}}>
                   <label className="switch">
                     <input type="checkbox" checked={config.lootrPreventBreak} onChange={e => setConfig({...config, lootrPreventBreak: e.target.checked})} />
                     <span className="slider"></span>
                   </label>
-                  <span style={{fontWeight: 500}}>Empêcher de casser les coffres</span>
+                  <span style={{fontWeight: 500}}>{t('web.admin.settings.lootr_break')}</span>
                 </div>
                 <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row'}}>
                   <label className="switch">
                     <input type="checkbox" checked={config.lootrPreventHopper} onChange={e => setConfig({...config, lootrPreventHopper: e.target.checked})} />
                     <span className="slider"></span>
                   </label>
-                  <span style={{fontWeight: 500}}>Bloquer les entonnoirs (Hoppers)</span>
+                  <span style={{fontWeight: 500}}>{t('web.admin.settings.lootr_hopper')}</span>
                 </div>
                 <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', flexDirection: 'row'}}>
                   <label className="switch">
                     <input type="checkbox" checked={config.lootrParticles} onChange={e => setConfig({...config, lootrParticles: e.target.checked})} />
                     <span className="slider"></span>
                   </label>
-                  <span style={{fontWeight: 500}}>Particules sur les coffres non fouillés</span>
+                  <span style={{fontWeight: 500}}>{t('web.admin.settings.lootr_particles')}</span>
                 </div>
               </div>
 
               <div className="admin-card">
-                <div className="settings-section-title"><Settings size={20} /> Configuration Tombes</div>
+                <div className="settings-section-title"><Settings size={20} /> {t('web.admin.settings.tomb_title')}</div>
                 <div className="form-group">
-                  <label>Type de Bloc (ex: CHEST, BARREL, PLAYER_HEAD)</label>
+                  <label>{t('web.admin.settings.tomb_block')}</label>
                   <input type="text" value={config.tombBlockType || 'CHEST'} onChange={e => setConfig({...config, tombBlockType: e.target.value})} className="login-input" />
                 </div>
                 <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row'}}>
@@ -298,78 +298,78 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                     <input type="checkbox" checked={config.tombStoreXp} onChange={e => setConfig({...config, tombStoreXp: e.target.checked})} />
                     <span className="slider"></span>
                   </label>
-                  <span style={{fontWeight: 500}}>Sauvegarder l'XP dans la tombe</span>
+                  <span style={{fontWeight: 500}}>{t('web.admin.settings.tomb_xp')}</span>
                 </div>
                 <div className="form-group">
-                  <label>Temps d'expiration (Secondes)</label>
+                  <label>{t('web.admin.settings.tomb_expire')}</label>
                   <input type="number" min="0" value={config.tombExpirationSeconds || 3600} onChange={e => setConfig({...config, tombExpirationSeconds: parseInt(e.target.value) || 0})} className="login-input" />
                 </div>
                 <div className="form-group">
-                  <label>Action à l'expiration</label>
+                  <label>{t('web.admin.settings.tomb_action')}</label>
                   <select value={config.tombExpirationAction || 'UNLOCK'} onChange={e => setConfig({...config, tombExpirationAction: e.target.value})} className="login-input">
-                    <option value="UNLOCK">UNLOCK (Ouvrir à tous)</option>
-                    <option value="DROP">DROP (Lâcher les objets)</option>
-                    <option value="DESTROY">DESTROY (Détruire les objets)</option>
+                    <option value="UNLOCK">{t('web.admin.settings.tomb_action_unlock')}</option>
+                    <option value="DROP">{t('web.admin.settings.tomb_action_drop')}</option>
+                    <option value="DESTROY">{t('web.admin.settings.tomb_action_destroy')}</option>
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Accès par défaut</label>
+                  <label>{t('web.admin.settings.tomb_access')}</label>
                   <select value={config.tombDefaultAccess || 'OWNER_ONLY'} onChange={e => setConfig({...config, tombDefaultAccess: e.target.value})} className="login-input">
-                    <option value="OWNER_ONLY">OWNER_ONLY (Seulement le propriétaire)</option>
-                    <option value="EVERYONE">EVERYONE (Tout le monde)</option>
+                    <option value="OWNER_ONLY">{t('web.admin.settings.tomb_access_owner')}</option>
+                    <option value="EVERYONE">{t('web.admin.settings.tomb_access_everyone')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="admin-card">
-                <div className="settings-section-title"><Gamepad2 size={20} /> Mini-Jeux</div>
+                <div className="settings-section-title"><Gamepad2 size={20} /> {t('web.admin.settings.games_title')}</div>
                 <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row'}}>
                   <label className="switch">
                     <input type="checkbox" checked={config.minigameWheelEnabled !== false} onChange={e => toggleMinigame('wheel', e.target.checked)} />
                     <span className="slider"></span>
                   </label>
-                  <span style={{fontWeight: 500}}>Activer la Roue de la Fortune</span>
+                  <span style={{fontWeight: 500}}>{t('web.admin.settings.games_wheel')}</span>
                 </div>
                 <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row'}}>
                   <label className="switch">
                     <input type="checkbox" checked={config.minigameCasinoEnabled !== false} onChange={e => toggleMinigame('casino', e.target.checked)} />
                     <span className="slider"></span>
                   </label>
-                  <span style={{fontWeight: 500}}>Activer la Machine à Sous</span>
+                  <span style={{fontWeight: 500}}>{t('web.admin.settings.games_casino')}</span>
                 </div>
               </div>
 
               <div className="admin-card">
-                <div className="settings-section-title"><Shield size={20} /> Sécurité</div>
+                <div className="settings-section-title"><Shield size={20} /> {t('web.admin.settings.security_title')}</div>
                 <div className="form-group">
-                  <label>Nouveau Mot de passe Administrateur</label>
-                  <input type="text" placeholder="Laisser vide pour ne pas changer" value={config.adminPassword || ''} onChange={e => setConfig({...config, adminPassword: e.target.value})} className="login-input" />
+                  <label>{t('web.admin.settings.security_pass')}</label>
+                  <input type="text" placeholder={t('web.admin.settings.security_pass_placeholder')} value={config.adminPassword || ''} onChange={e => setConfig({...config, adminPassword: e.target.value})} className="login-input" />
                 </div>
                 <div style={{marginTop: '2rem'}}>
                   <button type="submit" className="login-button" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
-                    <Settings size={18} /> Sauvegarder la configuration
+                    <Settings size={18} /> {t('web.admin.settings.save')}
                   </button>
                 </div>
               </div>
               <div className="admin-card">
-                <div className="settings-section-title"><Trash2 size={20} /> Gestion des Données</div>
+                <div className="settings-section-title"><Trash2 size={20} /> {t('web.admin.settings.data_title')}</div>
                 <div className="form-group" style={{ marginBottom: '0' }}>
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                    Supprimer tous les homes des joueurs. Cette action est irréversible.
+                    {t('web.admin.settings.data_homes_desc')}
                   </p>
                   <button 
                     type="button" 
                     className="btn" 
                     style={{ background: '#ef4444', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
                     onClick={async () => {
-                      if (confirm('Voulez-vous vraiment supprimer TOUS les homes de TOUS les joueurs ?')) {
+                      if (confirm(t('web.admin.settings.data_homes_confirm'))) {
                         const res = await fetch(`${API_URL}/admin/homes`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${password}` } });
-                        if (res.ok) alert('Tous les homes ont été supprimés avec succès.');
-                        else alert('Erreur lors de la suppression des homes.');
+                        if (res.ok) alert(t('web.admin.settings.data_homes_success'));
+                        else alert(t('web.admin.settings.data_homes_error'));
                       }
                     }}
                   >
-                    <Trash2 size={18} /> Clear All Homes
+                    <Trash2 size={18} /> {t('web.admin.settings.data_homes_btn')}
                   </button>
                 </div>
               </div>
@@ -379,20 +379,20 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
         {activeTab === 'content' && (
           <form onSubmit={handleSaveConfig}>
             <div className="admin-card">
-              <div className="settings-section-title"><FileText size={20} /> Annonces et Nouveautés</div>
-              <p style={{color: 'var(--text-muted)', marginBottom: '1.5rem'}}>Ce texte apparaîtra sur la page d'accueil publique de tous les joueurs.</p>
+              <div className="settings-section-title"><FileText size={20} /> {t('web.admin.content.announcements')}</div>
+              <p style={{color: 'var(--text-muted)', marginBottom: '1.5rem'}}>{t('web.admin.content.desc')}</p>
               <div className="form-group">
                 <textarea 
                   value={config.publicFeaturesText || ''} 
                   onChange={e => setConfig({...config, publicFeaturesText: e.target.value})} 
                   className="input-field" 
                   style={{minHeight: '300px', resize: 'vertical', fontFamily: 'monospace', lineHeight: '1.5'}} 
-                  placeholder="Écrivez le texte de la page d'accueil ici..."
+                  placeholder={t('web.admin.content.placeholder')}
                 />
               </div>
               <div style={{marginTop: '2rem'}}>
                 <button type="submit" className="login-button" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px'}}>
-                  <Settings size={18} /> Sauvegarder et Publier
+                  <Settings size={18} /> {t('web.admin.content.save')}
                 </button>
               </div>
             </div>
@@ -456,11 +456,12 @@ function AdminPlayers({ password }: { password: string }) {
     });
   };
 
-  if (loading) return <div className="loading">Chargement des joueurs...</div>;
+  const { t } = useTranslation();
+  if (loading) return <div className="loading">{t('web.admin.players.loading')}</div>;
 
   return (
     <div>
-      <h2 style={{marginBottom: '2rem'}}>Tous les Joueurs ({players.length})</h2>
+      <h2 style={{marginBottom: '2rem'}}>{t('web.admin.players.title')} ({players.length})</h2>
       
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem'}}>
         {players.map(p => (
@@ -476,8 +477,8 @@ function AdminPlayers({ password }: { password: string }) {
               <div>
                 <h3 style={{margin: 0, fontSize: '1.2rem'}}>{p.name}</h3>
                 <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>
-                  {p.online ? `Ping: ${p.ping}ms • ` : 'Hors-Ligne • '} 
-                  Temps de jeu: {Math.floor(p.playtime/60)}h
+                  {p.online ? `Ping: ${p.ping}ms • ` : `${t('web.admin.players.offline')} • `} 
+                  {t('web.admin.players.playtime')}: {Math.floor(p.playtime/60)}h
                 </div>
               </div>
             </div>
@@ -485,69 +486,69 @@ function AdminPlayers({ password }: { password: string }) {
             <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
               {p.online && (
                 <button className="btn-small" style={{flex: 1, background: 'var(--bg-color)', color: '#ef4444', border: '1px solid #ef4444'}} onClick={() => setActionModal({player: p.name, action: 'kick'})}>
-                  <UserX size={16}/> Kick
+                  <UserX size={16}/> {t('web.admin.players.kick')}
                 </button>
               )}
               {p.isBanned ? (
                 <button className="btn-small" style={{flex: 1, background: 'var(--success)', color: 'white', border: 'none'}} onClick={() => setActionModal({player: p.name, action: 'unban'})}>
-                  <Gavel size={16}/> Unban
+                  <Gavel size={16}/> {t('web.admin.players.unban')}
                 </button>
               ) : (
                 <button className="btn-small" style={{flex: 1, background: '#ef4444', color: 'white', border: 'none'}} onClick={() => setActionModal({player: p.name, action: 'ban'})}>
-                  <Gavel size={16}/> Ban
+                  <Gavel size={16}/> {t('web.admin.players.ban')}
                 </button>
               )}
               {p.isMuted ? (
                 <button className="btn-small" style={{flex: 1, background: 'var(--success)', color: 'white', border: 'none'}} onClick={() => setActionModal({player: p.name, action: 'unmute'})}>
-                  <Mic size={16}/> Unmute
+                  <Mic size={16}/> {t('web.admin.players.unmute')}
                 </button>
               ) : (
                 <button className="btn-small" style={{flex: 1, background: 'var(--bg-color)', color: '#f59e0b', border: '1px solid #f59e0b'}} onClick={() => setActionModal({player: p.name, action: 'mute'})}>
-                  <MicOff size={16}/> Mute
+                  <MicOff size={16}/> {t('web.admin.players.mute')}
                 </button>
               )}
               {p.online && (
                 <button className="btn-small" style={{flex: 1, background: 'var(--bg-color)', color: '#3b82f6', border: '1px solid #3b82f6'}} onClick={() => setActionModal({player: p.name, action: 'message'})}>
-                  <MessageSquare size={16}/> MP
+                  <MessageSquare size={16}/> {t('web.admin.players.msg')}
                 </button>
               )}
             </div>
           </div>
         ))}
-        {players.length === 0 && <div style={{color: 'var(--text-muted)'}}>Aucun joueur inscrit.</div>}
+        {players.length === 0 && <div style={{color: 'var(--text-muted)'}}>{t('web.admin.players.empty')}</div>}
       </div>
 
       {actionModal && (
         <div className="modal-overlay">
           <div className="modal-content admin-card">
-            <h3 style={{marginBottom: '1rem', textTransform: 'capitalize'}}>Action: {actionModal.action} ({actionModal.player})</h3>
+            <h3 style={{marginBottom: '1rem', textTransform: 'capitalize'}}>{t('web.admin.players.action')}: {actionModal.action} ({actionModal.player})</h3>
             
             {['ban', 'mute', 'kick', 'message'].includes(actionModal.action) && (
               <div className="form-group">
-                <label>{actionModal.action === 'message' ? 'Message' : 'Raison'}</label>
-                <input type="text" value={reason} onChange={e => setReason(e.target.value)} placeholder="Ex: Spam, triche..." className="input-field" />
+                <label>{actionModal.action === 'message' ? t('web.admin.players.message') : t('web.admin.players.reason')}</label>
+                <input type="text" value={reason} onChange={e => setReason(e.target.value)} placeholder={t('web.admin.players.reason_placeholder')} className="input-field" />
               </div>
             )}
 
             {(actionModal.action === 'ban' || actionModal.action === 'mute') && (
               <div style={{display: 'flex', gap: '10px'}}>
                 <div className="form-group" style={{flex: 2}}>
-                  <label>Durée (0 = Permanent)</label>
+                  <label>{t('web.admin.players.duration')}</label>
                   <input type="number" value={duration} onChange={e => setDuration(parseFloat(e.target.value) || 0)} min="0" className="input-field" />
                 </div>
                 <div className="form-group" style={{flex: 1}}>
-                  <label>Unité</label>
+                  <label>{t('web.admin.players.unit')}</label>
                   <select value={durationType} onChange={e => setDurationType(e.target.value)} className="input-field">
-                    <option value="hours">Heures</option>
-                    <option value="days">Jours</option>
+                    <option value="hours">{t('web.admin.players.hours')}</option>
+                    <option value="days">{t('web.admin.players.days')}</option>
                   </select>
                 </div>
               </div>
             )}
 
             <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
-              <button className="btn" onClick={handleAction}>Confirmer</button>
-              <button className="btn" style={{background: 'transparent', border: '1px solid var(--card-border)'}} onClick={() => setActionModal(null)}>Annuler</button>
+              <button className="btn" onClick={handleAction}>{t('web.admin.players.confirm')}</button>
+              <button className="btn" style={{background: 'transparent', border: '1px solid var(--card-border)'}} onClick={() => setActionModal(null)}>{t('web.admin.players.cancel')}</button>
             </div>
           </div>
         </div>
@@ -792,9 +793,9 @@ function AdminModules({ password }: { password: string }) {
                     {mod.enabled ? <ToggleRight size={32}/> : <ToggleLeft size={32}/>}
                   </button>
                 </div>
-                <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4'}}>{mod.description}</p>
+                <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4'}}>{t(`web.admin.modules_desc.${mod.name.toLowerCase()}`) || mod.description}</p>
                 <div style={{marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid var(--card-border)', fontSize: '0.8rem'}}>
-                  Statut : <strong style={{color: mod.enabled ? '#10b981' : '#ef4444'}}>{mod.enabled ? 'Actif' : 'Désactivé'}</strong>
+                  Statut : <strong style={{color: mod.enabled ? '#10b981' : '#ef4444'}}>{mod.enabled ? t('web.admin.active') : t('web.admin.inactive')}</strong>
                 </div>
               </div>
             ))}
