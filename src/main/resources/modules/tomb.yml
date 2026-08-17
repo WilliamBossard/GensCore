@@ -1,8 +1,13 @@
 modules:
-  tomb:
-    block_type: CHEST
-    store_xp: true
+  # Death Tomb Module Configuration
+tomb:
+    # Material of the tomb block (e.g., CHEST, BARREL, PLAYER_HEAD)
+  block_type: CHEST
+    # Should the player's XP be stored in the tomb?
+  store_xp: true
     xp_keep_percentage: 100
     expiration_time_seconds: 3600
-    expiration_action: UNLOCK
-    default_access: OWNER_ONLY
+    # Action to take on expiration: UNLOCK, DROP, or DESTROY
+  expiration_action: UNLOCK
+    # Default access policy: OWNER_ONLY or EVERYONE
+  default_access: OWNER_ONLY

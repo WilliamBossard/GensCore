@@ -1,9 +1,17 @@
+# Web Panel Configuration
 web:
+  # Enable or disable the Web Panel
   enabled: false
+  # If true, the plugin will automatically replace the web/ folder at startup.
+  # Set to false if you are making custom modifications to the web files.
   auto_update_panel: true
+  # The port on which the Javalin web server will run
   port: 8080
+  # Force a specific language for the web panel (leave empty for browser auto-detect)
   force_lang: ""
+  # Server IP to display in the Web Panel
   server_ip: "localhost"
+  # The text displayed on the public landing page of the Web Panel
   public_features_text: |-
     Welcome to the server!
     
@@ -15,4 +23,5 @@ web:
     - Discord server linked to in-game chat.
     - Solo quests and leaderboards.
 
+# Password to access the Admin dashboard on the Web Panel
 admin-password: "gens"

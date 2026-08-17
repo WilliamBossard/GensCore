@@ -1,6 +1,10 @@
+# Minigames Configuration
 minigames:
+  # Fortune Wheel settings
   wheel:
+    # Enable or disable the Casino
     enabled: true
+    # List of possible rewards from the Wheel
     rewards:
       '1':
         name: "10 Diamonds"
@@ -27,5 +31,7 @@ minigames:
         command: "give %player% spawner 1 name:<yellow>Cow_Spawner"
         chance: 1
         color: "#ef4444"
+  # Casino/Slot Machine settings
   casino:
+    # Enable or disable the Casino
     enabled: true

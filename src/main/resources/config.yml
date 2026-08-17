@@ -1,6 +1,8 @@
 # General Configuration for GensCore
+# Global language file to use (e.g., en_US, fr_FR)
 lang: "en_US"
 
 # Database Configuration (SQLite)
+# Local SQLite Database configuration
 database:
   file: "genscore.db"

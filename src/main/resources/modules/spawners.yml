@@ -1,3 +1,4 @@
+# Spawner Module Configuration
 spawners:
   delay: 25
   holograms: true

@@ -1,5 +1,8 @@
+# Discord Bot Integration
 discord:
+  # Your Discord Bot Token (Never share this!)
   bot_token: "YOUR_TOKEN_HERE"
+  # The ID of the channel where in-game chat will be linked
   chat_channel_id: "YOUR_CHANNEL_ID_HERE"
   linked_role_id: "Linked"
   log_channel_id: ""

@@ -1,3 +1,5 @@
+# Enable or disable specific GensCore modules.
+# Set to true to enable, false to disable.
 modules:
   dynamicshop: true
   economy: true

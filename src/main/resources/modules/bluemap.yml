@@ -1,2 +1,4 @@
+# BlueMap Integration
 bluemap:
+  # The URL of your BlueMap instance (used in the Web Panel iframe)
   url: "http://localhost:8100"

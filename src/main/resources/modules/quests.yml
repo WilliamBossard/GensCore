@@ -1,2 +1,4 @@
+# Quests Module Configuration
 quests:
+  # Maximum number of times a player can reroll their quests daily
   max_rerolls_per_day: 3

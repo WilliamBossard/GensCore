@@ -1,3 +1,6 @@
+# Server MOTD Configuration
 motd:
+  # First line of the server MOTD
   line1: "<dark_aqua><bold>A Minecraft Server"
+  # Second line of the server MOTD
   line2: "<gray><bold>>> <yellow>Powered by GensCore"

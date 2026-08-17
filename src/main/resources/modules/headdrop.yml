@@ -1,2 +1,4 @@
+# HeadDrop Module Configuration
 headdrop:
+  # Percentage chance for a mob/player to drop their head on death
   chance: 10.0

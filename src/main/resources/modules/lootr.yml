@@ -1,3 +1,4 @@
+# Instanced Chests (Lootr) Configuration
 lootr:
   prevent-hopper: true
   prevent-break: false
