@@ -96,9 +96,9 @@ public class ChatModule implements Module, Listener {
         if (!plugin.getConfig().getBoolean("chat.custom-join-messages", true)) return;
         
         if (!event.getPlayer().hasPlayedBefore()) {
-            event.setJoinMessage(plugin.getLangManager().getMessage("chat.first_join").replace("<player>", event.getPlayer().getName()));
+            event.joinMessage(plugin.getLangManager().get("chat.first_join", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", event.getPlayer().getName())));
         } else {
-            event.setJoinMessage(plugin.getLangManager().getMessage("chat.join").replace("<player>", event.getPlayer().getName()));
+            event.joinMessage(plugin.getLangManager().get("chat.join", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", event.getPlayer().getName())));
         }
     }
 
@@ -107,6 +107,6 @@ public class ChatModule implements Module, Listener {
         if (!enabled) return;
         if (!plugin.getConfig().getBoolean("chat.custom-join-messages", true)) return;
         
-        event.setQuitMessage(plugin.getLangManager().getMessage("chat.quit").replace("<player>", event.getPlayer().getName()));
+        event.quitMessage(plugin.getLangManager().get("chat.quit", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", event.getPlayer().getName())));
     }
 }
