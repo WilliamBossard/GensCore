@@ -190,7 +190,8 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
           <a style={{cursor: 'pointer'}} className={activeTab === 'players' ? 'active' : ''} onClick={() => { setActiveTab('players'); setIsSidebarOpen(false); }}><Users size={18}/> {t("web.admin.tabs.players") || "Players"}</a>
           <a style={{cursor: 'pointer'}} className={activeTab === 'content' ? 'active' : ''} onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}><FileText size={18}/> {t("web.admin.tabs.content") || "Content"}</a>
         </nav>
-        <div className="admin-sidebar-footer">
+        <div className="admin-sidebar-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+          <a href="/" className="logout-button" style={{textDecoration: 'none'}}><Gamepad2 size={18}/> {t("web.admin.tabs.back_to_game") || "Retour au Jeu"}</a>
           <button className="logout-button" onClick={onLogout}><LogOut size={18}/> {t("web.nav.logout")}</button>
         </div>
       </aside>
@@ -561,6 +562,17 @@ function AdminFiles({ password }: { password: string }) {
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  const fileCategories = [
+    { name: "Principal", files: ["config.yml", "modules.yml"] },
+    { name: "Modules", files: [
+      "modules/web.yml", "modules/economy.yml", "modules/discord.yml", 
+      "modules/motd.yml", "modules/lootr.yml", "modules/quests.yml", 
+      "modules/spawners.yml", "modules/headdrop.yml", "modules/tabboard.yml",
+      "modules/teleport.yml", "modules/tomb.yml", "modules/minigames.yml", "modules/bluemap.yml", "modules/teams.yml", "modules/chat.yml"
+    ]},
+    { name: "Langues", files: ["lang/web_en_US.yml", "lang/web_fr_FR.yml"] }
+  ];
+
   const fetchFile = (fileName: string) => {
     setLoading(true);
     fetch(`${API_URL}/admin/file?path=${fileName}`, { headers: { 'Authorization': `Bearer ${password}` } })
@@ -584,28 +596,68 @@ function AdminFiles({ password }: { password: string }) {
     });
   };
 
-  // Calcul du nombre de lignes pour afficher la gouttière
   const lineCount = content.split('\n').length;
   const lines = Array.from({ length: Math.max(10, lineCount) }, (_, i) => i + 1);
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column', height: '100%', gap: '1rem'}}>
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        <div style={{display: 'flex', gap: '15px', alignItems: 'center'}}>
-          <FileText size={24} color="var(--accent)"/>
-          <h2 style={{margin: 0}}>Éditeur de Fichiers</h2>
+    <div style={{display: 'flex', gap: '20px', height: '100%'}} className="file-editor-container">
+      {/* Sidebar Fichiers */}
+      <div className="admin-card" style={{width: '280px', padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', maxHeight: 'calc(100vh - 120px)'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+          <h3 style={{margin: 0, fontSize: '1.1rem'}}>Fichiers</h3>
+          <button className="btn-icon" onClick={() => fetchFile(currentFile)} title="Actualiser">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color: 'var(--text-main)'}}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
         </div>
         
-        <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-          <select value={currentFile} onChange={(e) => setCurrentFile(e.target.value)} style={{background: 'var(--bg-color)', color: 'var(--text-color)', padding: '10px 15px', borderRadius: '8px', border: '1px solid var(--card-border)', outline: 'none', fontSize: '1rem'}}>
-            <option value="config.yml">config.yml</option>
-          </select>
-          <button className="btn" onClick={saveFile} style={{width: 'auto', background: saved ? '#10b981' : 'var(--accent)', display: 'flex', alignItems: 'center', gap: '8px'}}>
-            {saved ? <Shield size={18}/> : <FileText size={18}/>}
+        {fileCategories.map(cat => (
+          <div key={cat.name} style={{marginBottom: '0.5rem'}}>
+            <div style={{fontSize: '0.8rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1px', marginBottom: '8px'}}>{cat.name}</div>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+              {cat.files.map(f => (
+                <button 
+                  key={f} 
+                  onClick={() => setCurrentFile(f)}
+                  style={{
+                    background: currentFile === f ? 'var(--accent-glow)' : 'transparent',
+                    color: currentFile === f ? 'var(--text-main)' : 'var(--text-muted)',
+                    border: 'none',
+                    textAlign: 'left',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontFamily: 'monospace',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                  onMouseOver={(e) => { if (currentFile !== f) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                  onMouseOut={(e) => { if (currentFile !== f) e.currentTarget.style.background = 'transparent' }}
+                >
+                  <FileText size={14} style={{color: currentFile === f ? 'var(--accent)' : 'var(--text-muted)'}} />
+                  {f.replace('modules/', '')}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Editeur Principal */}
+      <div style={{flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem'}}>
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', padding: '15px 20px', borderRadius: '12px', border: '1px solid var(--card-border)'}}>
+          <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+            <FileText size={20} color="var(--accent)"/>
+            <h2 style={{margin: 0, fontSize: '1.2rem', fontFamily: 'monospace'}}>{currentFile}</h2>
+          </div>
+          
+          <button className="btn" onClick={saveFile} style={{background: saved ? 'var(--success)' : 'var(--accent)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px'}}>
+            {saved ? <Shield size={16}/> : <FileText size={16}/>}
             {saved ? 'Enregistré !' : 'Sauvegarder'}
           </button>
         </div>
-      </div>
       
       {loading ? <div className="loading">Chargement du fichier...</div> : (
         <div style={{
@@ -657,6 +709,7 @@ function AdminFiles({ password }: { password: string }) {
           />
         </div>
       )}
+      </div>
     </div>
   );
 }

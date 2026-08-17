@@ -235,4 +235,6 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   .admin-main { padding: 1.5rem; }
   .admin-header h2 { font-size: 1.5rem; }
   .tabs { flex-wrap: nowrap; overflow-x: auto; }
+  .file-editor-container { flex-direction: column !important; }
+  .file-editor-container .admin-card { width: 100% !important; max-height: 300px !important; }
 }
