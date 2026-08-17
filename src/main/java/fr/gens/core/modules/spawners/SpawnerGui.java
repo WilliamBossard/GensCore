@@ -164,9 +164,8 @@ public class SpawnerGui implements Listener {
                 moduleInstance.getSpawnerManager().updateHologram(data);
                 Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data)); // refresh différé
             } else {
-                plugin.getLangManager().sendMessage(player, "spawnergui.msg_1");
+                moduleInstance.getPlugin().getLangManager().sendMessage(player, "spawnergui.msg_1");
             }
-        } else if (slot == 24) {
             // Coffre Items
             Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> SpawnerLootGui.openGui(player, data, moduleInstance));
         } else if (slot == 38) {
@@ -187,12 +186,12 @@ public class SpawnerGui implements Listener {
         }
         
         if (currentLevel >= 10) {
-            plugin.getLangManager().sendMessage(player, "spawnergui.msg_2");
+            moduleInstance.getPlugin().getLangManager().sendMessage(player, "spawnergui.msg_2");
             return;
         }
         
         if (moduleInstance != null && !moduleInstance.isEnabled()) {
-            plugin.getLangManager().sendMessage(player, "spawnergui.msg_3");
+            moduleInstance.getPlugin().getLangManager().sendMessage(player, "spawnergui.msg_3");
             return;
         }
         
