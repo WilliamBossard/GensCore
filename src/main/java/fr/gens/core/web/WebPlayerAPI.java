@@ -39,36 +39,37 @@ public class WebPlayerAPI implements Listener {
 
     private void loadWheelConfig() {
         wheelRewards.clear();
-        ConfigurationSection wheelSec = plugin.getStorageManager().getConfig().getConfigurationSection("wheel.rewards");
+        org.bukkit.configuration.file.FileConfiguration minigamesConfig = plugin.getConfigManager().getConfig("modules/minigames.yml");
+        ConfigurationSection wheelSec = minigamesConfig.getConfigurationSection("minigames.wheel.rewards");
         if (wheelSec == null) {
-            // Créer la configuration par défaut avec des items
-            plugin.getStorageManager().getConfig().set("wheel.rewards.1.name", "10 Diamants");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.1.command", "give %player% diamond 10");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.1.chance", 40);
-            plugin.getStorageManager().getConfig().set("wheel.rewards.1.color", "#10b981");
+            // Create default configuration
+            minigamesConfig.set("minigames.wheel.rewards.1.name", "10 Diamonds");
+            minigamesConfig.set("minigames.wheel.rewards.1.command", "give %player% diamond 10");
+            minigamesConfig.set("minigames.wheel.rewards.1.chance", 40);
+            minigamesConfig.set("minigames.wheel.rewards.1.color", "#10b981");
 
-            plugin.getStorageManager().getConfig().set("wheel.rewards.2.name", "2 Lingots de Netherite");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.2.command", "give %player% netherite_ingot 2");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.2.chance", 30);
-            plugin.getStorageManager().getConfig().set("wheel.rewards.2.color", "#3b82f6");
+            minigamesConfig.set("minigames.wheel.rewards.2.name", "2 Netherite Ingots");
+            minigamesConfig.set("minigames.wheel.rewards.2.command", "give %player% netherite_ingot 2");
+            minigamesConfig.set("minigames.wheel.rewards.2.chance", 30);
+            minigamesConfig.set("minigames.wheel.rewards.2.color", "#3b82f6");
 
-            plugin.getStorageManager().getConfig().set("wheel.rewards.3.name", "1 Pomme de Notch");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.3.command", "give %player% enchanted_golden_apple 1");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.3.chance", 20);
-            plugin.getStorageManager().getConfig().set("wheel.rewards.3.color", "#f59e0b");
+            minigamesConfig.set("minigames.wheel.rewards.3.name", "1 Enchanted Golden Apple");
+            minigamesConfig.set("minigames.wheel.rewards.3.command", "give %player% enchanted_golden_apple 1");
+            minigamesConfig.set("minigames.wheel.rewards.3.chance", 20);
+            minigamesConfig.set("minigames.wheel.rewards.3.color", "#f59e0b");
 
-            plugin.getStorageManager().getConfig().set("wheel.rewards.4.name", "1 Élytres");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.4.command", "give %player% elytra 1");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.4.chance", 9);
-            plugin.getStorageManager().getConfig().set("wheel.rewards.4.color", "#8b5cf6");
+            minigamesConfig.set("minigames.wheel.rewards.4.name", "1 Elytra");
+            minigamesConfig.set("minigames.wheel.rewards.4.command", "give %player% elytra 1");
+            minigamesConfig.set("minigames.wheel.rewards.4.chance", 9);
+            minigamesConfig.set("minigames.wheel.rewards.4.color", "#8b5cf6");
 
-            plugin.getStorageManager().getConfig().set("wheel.rewards.5.name", "Spawner à Vache");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.5.command", "give %player% spawner 1 name:<yellow>Spawner_à_Vache");
-            plugin.getStorageManager().getConfig().set("wheel.rewards.5.chance", 1);
-            plugin.getStorageManager().getConfig().set("wheel.rewards.5.color", "#ef4444");
+            minigamesConfig.set("minigames.wheel.rewards.5.name", "Cow Spawner");
+            minigamesConfig.set("minigames.wheel.rewards.5.command", "give %player% spawner 1 name:<yellow>Cow_Spawner");
+            minigamesConfig.set("minigames.wheel.rewards.5.chance", 1);
+            minigamesConfig.set("minigames.wheel.rewards.5.color", "#ef4444");
             
-            plugin.getStorageManager().saveConfig();
-            wheelSec = plugin.getStorageManager().getConfig().getConfigurationSection("wheel.rewards");
+            plugin.getConfigManager().saveConfig("modules/minigames.yml");
+            wheelSec = minigamesConfig.getConfigurationSection("minigames.wheel.rewards");
         }
 
         for (String key : wheelSec.getKeys(false)) {

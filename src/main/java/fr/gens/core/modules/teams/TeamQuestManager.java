@@ -53,7 +53,7 @@ public class TeamQuestManager {
     }
 
     private void checkRotation() {
-        org.bukkit.configuration.file.FileConfiguration config = plugin.getStorageManager().getConfig();
+        org.bukkit.configuration.file.FileConfiguration config = plugin.getConfigManager().getConfig("modules/teams.yml");
         long lastRotation = config.getLong("teams.last_rotation", 0);
         long currentWeek = System.currentTimeMillis() / (1000 * 60 * 60 * 24 * 7); // Identifiant unique pour la semaine
         
@@ -66,7 +66,7 @@ public class TeamQuestManager {
             
             config.set("teams.last_rotation", currentWeek);
             config.set("teams.active_quest", activeQuest.id);
-            plugin.getStorageManager().saveConfig();
+            plugin.getConfigManager().saveConfig("modules/teams.yml");
             
             // Clear progress
             try (Connection conn = plugin.getDatabaseManager().getConnection();
