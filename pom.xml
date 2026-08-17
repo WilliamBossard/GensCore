@@ -172,10 +172,7 @@
                                     <pattern>com.fasterxml.jackson</pattern>
                                     <shadedPattern>fr.gens.core.lib.jackson</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>org.sqlite</pattern>
-                                    <shadedPattern>fr.gens.core.lib.sqlite</shadedPattern>
-                                </relocation>
+
                                 <relocation>
                                     <pattern>com.zaxxer.hikari</pattern>
                                     <shadedPattern>fr.gens.core.lib.hikari</shadedPattern>

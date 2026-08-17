@@ -104,7 +104,9 @@ public class CorePlugin extends JavaPlugin {
         if (this.databaseManager != null) {
             this.databaseManager.close();
         }
-        getLangManager().sendConsoleMessage("core.shutdown");
+        if (this.langManager != null) {
+            getLangManager().sendConsoleMessage("core.shutdown");
+        }
     }
 
     public static CorePlugin getInstance() {
