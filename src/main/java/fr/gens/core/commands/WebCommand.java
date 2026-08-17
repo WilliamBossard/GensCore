@@ -109,7 +109,7 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
                 }
 
                 Bukkit.getScheduler().runTask(plugin, () -> {
-                    Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Retraits Web (Récompenses))");
+                    Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Retraits Web (Récompenses)"));
                     int slot = 0;
                     for (WebRewardItem wItem : items) {
                         if (slot >= 54) break;
