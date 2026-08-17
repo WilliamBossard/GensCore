@@ -230,16 +230,11 @@ public class WebManager {
         });
 
         // Texte public de la page d'accueil
-        String defaultPublicText = "Bienvenue aventurier sur la toute nouvelle interface du serveur !\n\n" +
-                "- Système de Métiers (/jobs) pour bosser comme un forcené.\n" +
-                "- Hôtel des Ventes (/ah) pour vos transactions.\n" +
-                "- Map en direct via BlueMap (attention on te voit).\n" +
-                "- Création de Guildes (/team) avec des Quêtes Hebdomadaires en coop !\n" +
-                "- Verrous de coffres (/lock) pour sécuriser vos items ou les partager avec votre guilde.\n" +
-                "- Serveur Discord relié en direct au chat du jeu (avec affichage des Grades et Guildes).\n" +
-                "- Quêtes solos et classements en ligne pour flexer.\n\n" +
-                "NOUVEAU SYSTÈME DE GESTION\n" +
-                "Le plugin est continuellement mis à jour avec de nouvelles fonctionnalités. Rejoignez-nous pour découvrir la suite !";
+        String defaultPublicText = "Welcome to our brand new Minecraft server!\n\n" +
+                "Explore a unique world filled with custom features and an evolving economy. " +
+                "Join a guild, complete daily quests, and level up your jobs to become the wealthiest player on the server.\n\n" +
+                "Our custom web panel allows you to view your stats, check the global leaderboard, and even interact with the in-game economy directly from your browser!\n\n" +
+                "Read the complete documentation below to learn more about our custom features.";
 
         app.get("/api/public/features", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");

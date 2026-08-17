@@ -45,7 +45,7 @@ The Discord module requires a bot Token. For security reasons, this Token must *
 ### BlueMap
 GensCore's Web Panel integrates a BlueMap iframe to display the live map directly to moderators.
 - It fetches the local URL via `bluemap.url: "http://localhost:8100"`, which is customizable in `config.yml`.
-- You can completely disable the BlueMap integration by setting `bluemap.enabled: false`.
+- You can completely disable the BlueMap integration via the Web Panel's Modules tab.
 
 ---
 
