@@ -52,7 +52,7 @@ public class HeadDropModule implements Module, Listener {
         this.dropChance = plugin.getConfig().getDouble("headdrop.chance", 10.0);
         
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[HeadDrop] Module activé avec " + dropChance + "% de chance de drop.");
+        plugin.getLogger().info("[HeadDrop] Module activé avec " + dropChance + "% drop chance.");
     }
 
     @Override

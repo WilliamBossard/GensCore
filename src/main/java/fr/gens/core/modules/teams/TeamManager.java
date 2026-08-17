@@ -66,7 +66,7 @@ public class TeamManager {
                     }
                 }
             }
-            plugin.getLogger().info("Chargé " + teamsById.size() + " équipes en mémoire.");
+            plugin.getLogger().info("Loaded " + teamsById.size() + " teams in memory.");
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("teammanager.log_1");
             e.printStackTrace();

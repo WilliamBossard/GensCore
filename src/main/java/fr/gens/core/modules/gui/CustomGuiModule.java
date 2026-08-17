@@ -60,7 +60,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         loadMenus();
         
         plugin.getCommand("menu").setExecutor(this);
-        plugin.getLogger().info("[CustomGui] Module activé, " + menus.size() + " menus chargés.");
+        plugin.getLogger().info("[CustomGui] Module activé, " + menus.size() + " menus loaded.");
     }
 
     @Override
@@ -229,7 +229,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
             commandMap.register("genscore", command);
             plugin.getLogger().info("[Gui] Commande dynamique enregistrée : /" + cmd);
         } catch (Exception e) {
-            plugin.getLogger().warning("Impossible d'enregistrer la commande dynamique /" + cmd);
+            plugin.getLogger().warning("Failed to register dynamic command /" + cmd);
         }
     }
 

@@ -62,7 +62,7 @@ public class LootManager {
                 chestsCache.put(key, new LootChestData(lootTable, seed, size));
             }
         }
-        plugin.getLogger().info("[Lootr] " + chestsCache.size() + " coffres chargés.");
+        plugin.getLogger().info("[Lootr] " + chestsCache.size() + " chests loaded.");
     }
 
     public void saveChests() {

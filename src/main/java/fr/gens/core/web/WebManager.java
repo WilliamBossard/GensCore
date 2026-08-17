@@ -81,11 +81,11 @@ public class WebManager {
                                 }
                             }
                         }
-                        plugin.getLogger().info("Fichiers web extraits dans " + webDir.getPath());
+                        plugin.getLogger().info("Web files extracted in " + webDir.getPath());
                     }
                 }
             } catch (Exception e) {
-                plugin.getLogger().severe("Erreur lors de l'extraction des fichiers web : " + e.getMessage());
+                plugin.getLogger().severe("Error extracting web files: " + e.getMessage());
             }
         }
 
@@ -281,7 +281,7 @@ public class WebManager {
             plugin.getServer().getScheduler().runTask(plugin, () -> {
                 boolean success = plugin.getModuleManager().toggleModule(moduleName, request.state);
                 if(success) {
-                    plugin.getLogger().info("Le web panel a changé l'état du module " + moduleName + " vers " + request.state);
+                    plugin.getLogger().info("Web panel changed state of module " + moduleName + " to " + request.state);
                 }
             });
             
@@ -406,7 +406,7 @@ public class WebManager {
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
                         target.kickPlayer("<red>Vous avez été expulsé par un Administrateur.\n<gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison"));
-                        plugin.getLogger().info("Le web panel a kick " + req.playerName);
+                        plugin.getLogger().info("Web panel kicked " + req.playerName);
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, Color.ORANGE);
                     }
                 } else if ("ban".equalsIgnoreCase(req.action)) {
@@ -421,7 +421,7 @@ public class WebManager {
                     if (target != null) {
                         target.kickPlayer("<red>Vous avez été banni.\n<gray>Raison : " + reason);
                     }
-                    plugin.getLogger().info("Le web panel a banni " + req.playerName);
+                    plugin.getLogger().info("Web panel banned " + req.playerName);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);
                 } else if ("unban".equalsIgnoreCase(req.action)) {
                     plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).pardon(req.playerName);
@@ -623,7 +623,7 @@ public class WebManager {
                 homeModule.clearAllHomes();
                 ctx.status(200).result("OK");
             } else {
-                ctx.status(404).json("Module CmdHome désactivé");
+                ctx.status(404).json("CmdHome module disabled");
             }
         });
 

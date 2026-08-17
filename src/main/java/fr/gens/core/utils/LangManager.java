@@ -40,12 +40,12 @@ public class LangManager {
 
         langFile = new File(langDir, currentLang + ".yml");
         if (!langFile.exists()) {
-            plugin.getLogger().warning("Fichier de langue " + currentLang + ".yml introuvable. Chargement de fr_FR.yml par defaut.");
+            plugin.getLogger().warning("Language file " + currentLang + ".yml not found. Loading en_US.yml by default.");
             langFile = new File(langDir, "fr_FR.yml");
         }
 
         langConfig = YamlConfiguration.loadConfiguration(langFile);
-        plugin.getLogger().info("Langue chargee : " + langFile.getName());
+        plugin.getLogger().info("Language loaded: " + langFile.getName());
     }
 
     private void createDefaultLangFile(String fileName) {

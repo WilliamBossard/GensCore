@@ -44,7 +44,7 @@ public class LockModule implements Module {
         plugin.getCommand("lock").setExecutor(lockCommand);
         plugin.getCommand("lock").setTabCompleter(lockCommand);
         Bukkit.getPluginManager().registerEvents(lockListener, plugin);
-        plugin.getLogger().info("[Locks] Module activé ! (" + locks.size() + " verrous chargés)");
+        plugin.getLogger().info("[Locks] Module activé ! (" + locks.size() + " locks loaded)");
     }
 
     @Override

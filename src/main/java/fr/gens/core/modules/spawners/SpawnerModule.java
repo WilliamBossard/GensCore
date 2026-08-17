@@ -202,7 +202,7 @@ public class SpawnerModule implements Module {
             plugin.getLangManager().sendConsoleError("spawnermodule.log_3");
             e.printStackTrace();
         }
-        plugin.getLogger().info("[SpawnerModule] " + count + " spawners chargés.");
+        plugin.getLogger().info("[SpawnerModule] " + count + " spawners loaded.");
     }
     
     public void saveSpawnerToDB(SpawnerData data) {

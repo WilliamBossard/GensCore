@@ -90,7 +90,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         // Check Weekly Rewards
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, this::checkWeeklyRewards, 100L);
 
-        plugin.getLogger().info("[Quests] Module activé, " + getTotalQuests() + " quêtes chargées.");
+        plugin.getLogger().info("[Quests] Module activé, " + getTotalQuests() + " quests loaded.");
     }
 
     @Override
@@ -286,7 +286,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                         if (type != null) {
                             categoryQuests.add(new Quest(key, category, name, menuItem, description, type, requiredTargets, requiredAmount, commands));
                         } else {
-                            plugin.getLogger().warning("Type de quête inconnu: " + questTypeStr + " dans " + file.getName());
+                            plugin.getLogger().warning("Unknown quest type: " + questTypeStr + " in " + file.getName());
                         }
                     }
                 }

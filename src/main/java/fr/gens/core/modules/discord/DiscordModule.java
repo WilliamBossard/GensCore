@@ -311,7 +311,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                     }
                 }
             } catch (Exception e) {
-                plugin.getLogger().warning("Erreur lors de la synchro LuckPerms Discord pour " + p.getName());
+                plugin.getLogger().warning("Error synchronizing LuckPerms Discord for " + p.getName());
             }
         });
     }
@@ -401,7 +401,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                     }
                     plugin.getDatabaseManager().setDiscordId(uuid, event.getAuthor().getId());
                 } catch (Exception e) {
-                    plugin.getLogger().warning("Erreur lors de la liaison Discord: " + e.getMessage());
+                    plugin.getLogger().warning("Error linking Discord: " + e.getMessage());
                 }
 
                 // Essayer de donner le rôle sur Discord (Asynchrone)
