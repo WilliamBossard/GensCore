@@ -203,7 +203,7 @@ export function ClientJobs() {
               </h2>
               <p style={{color: 'var(--text)', margin: 0, fontSize: '1.1rem', maxWidth: '600px', lineHeight: '1.5'}}>
                 Le joueur ayant complété le plus de quêtes <strong>à la fin de la semaine</strong> recevra automatiquement la récompense suivante : 
-                <strong style={{color: '#eab308', fontSize: '1.3rem', display: 'block', marginTop: '0.5rem'}}>🎁 {questsData?.reward}</strong>
+                <strong style={{color: '#eab308', fontSize: '1.3rem', display: 'block', marginTop: '0.5rem'}}>{questsData?.reward}</strong>
                 <span style={{display: 'inline-block', marginTop: '0.5rem', fontSize: '0.9rem', color: '#fbbf24', background: 'rgba(234, 179, 8, 0.1)', padding: '4px 8px', borderRadius: '4px'}}>
                   <Clock size={14} style={{display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px'}}/>
                   Temps restant : {questsData?.timeRemaining}

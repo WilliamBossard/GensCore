@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe } from 'lucide-react';
+import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package } from 'lucide-react';
 import { Route, Routes, Link, useLocation } from 'react-router-dom';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
 import { ClientJobs } from './ClientJobs';
@@ -213,7 +213,7 @@ function PlayerGames({ uuid }: { uuid: string }) {
   const [selectedBet, setSelectedBet] = useState<number | null>(null);
   const [casinoResult, setCasinoResult] = useState<string | null>(null);
   const [isRolling, setIsRolling] = useState(false);
-  const [slotReels, setSlotReels] = useState(['❓', '❓', '❓']);
+  const [slotReels, setSlotReels] = useState(['?', '?', '?']);
 
   useEffect(() => {
     fetch(`${API_URL}/games/config`)
@@ -278,7 +278,7 @@ function PlayerGames({ uuid }: { uuid: string }) {
     setCasinoResult(null);
 
     const interval = setInterval(() => {
-        const symbols = ['💎', '🍎', '💰', '❌', '🍒'];
+        const symbols = ['DIAMANT', 'POMME', 'PIECES', 'ECHEC', 'CERISE'];
         setSlotReels([
             symbols[Math.floor(Math.random() * symbols.length)],
             symbols[Math.floor(Math.random() * symbols.length)],
@@ -298,23 +298,23 @@ function PlayerGames({ uuid }: { uuid: string }) {
           clearInterval(interval);
           setIsRolling(false);
           if (res.ok) {
-              if (data.multiplier === 0) {
-                  setSlotReels(['❌', '❌', '❌']);
+              if (data.result === 'LOSS') {
+                  setSlotReels(['ECHEC', 'ECHEC', 'ECHEC']);
                   setCasinoResult("Perdu ! Votre objet a été détruit.");
-              } else if (data.multiplier === 2) {
-                  setSlotReels(['🍒', '🍒', '🍒']);
+              } else if (data.result === 'WIN_SMALL') {
+                  setSlotReels(['CERISE', 'CERISE', 'CERISE']);
                   setCasinoResult("Gagné ! Vous avez doublé (x2) votre objet !");
-              } else if (data.multiplier === 3) {
-                  setSlotReels(['💰', '💰', '💰']);
+              } else if (data.result === 'WIN_MEDIUM') {
+                  setSlotReels(['PIECES', 'PIECES', 'PIECES']);
                   setCasinoResult("Super ! Vous avez triplé (x3) votre objet !");
-              } else if (data.multiplier >= 5) {
-                  setSlotReels(['💎', '💎', '💎']);
+              } else if (data.result === 'JACKPOT') {
+                  setSlotReels(['DIAMANT', 'DIAMANT', 'DIAMANT']);
                   setCasinoResult("JACKPOT ! Gains x5 !");
               }
               setSelectedBet(null);
               fetchCasinoInventory();
           } else {
-              setSlotReels(['❓', '❓', '❓']);
+              setSlotReels(['?', '?', '?']);
               setCasinoResult(data.error || "Erreur de mise.");
           }
       }, 2000);
@@ -384,13 +384,13 @@ function PlayerGames({ uuid }: { uuid: string }) {
             </button>
 
             {error && <div style={{color: '#ef4444', marginTop: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)'}}>{error}</div>}
-            {spinResult && <div style={{color: '#10b981', marginTop: '1.5rem', padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '1.2rem', fontWeight: 'bold'}}>🎉 {spinResult} 🎉</div>}
+            {spinResult && <div style={{color: 'var(--success)', marginTop: '1.5rem', padding: '1rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)', fontSize: '1.2rem', fontWeight: 'bold'}}>{spinResult}</div>}
           </div>
         )}
 
         {config.casinoEnabled && (
           <div className="admin-card" style={{flex: '1 1 400px', maxWidth: '600px'}}>
-            <h3>🎰 Machine à Sous</h3>
+            <h3>Machine à Sous</h3>
             <p style={{color: 'var(--text-muted)', marginBottom: '1rem'}}>
               Déposez un item en jeu avec <code style={{color: 'var(--accent)'}}>/web deposit</code>, pariez-le ici et récupérez vos gains avec <code style={{color: 'var(--accent)'}}>/web withdraw</code>.
             </p>
@@ -422,7 +422,7 @@ function PlayerGames({ uuid }: { uuid: string }) {
                         display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px'
                       }}
                     >
-                      <div style={{fontSize: '2rem', marginBottom: '5px', textShadow: '0 2px 4px rgba(0,0,0,0.5)'}}>📦</div>
+                      <div style={{marginBottom: '5px'}}><Package size={32} color="var(--accent)" /></div>
                       <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{item.material.replace('_', ' ')} x{item.amount}</span>
                     </div>
                   ))}
