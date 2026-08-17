@@ -37,6 +37,8 @@ public class LangManager {
         // Créer les fichiers par défaut s'ils n'existent pas
         createDefaultLangFile("fr_FR.yml");
         createDefaultLangFile("en_US.yml");
+        createDefaultLangFile("web_fr_FR.yml");
+        createDefaultLangFile("web_en_US.yml");
 
         langFile = new File(langDir, currentLang + ".yml");
         if (!langFile.exists()) {

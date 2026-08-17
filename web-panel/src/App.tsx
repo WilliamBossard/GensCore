@@ -1365,6 +1365,11 @@ function PublicHome({ playerData }: { playerData: any }) {
           </div>
         </div>
       </main>
+
+      <footer style={{textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', borderTop: '1px solid var(--card-border)'}}>
+        <p style={{marginBottom: '1rem'}}>GensCore © 2026</p>
+        <Link to="/admin" style={{color: 'var(--text-muted)', textDecoration: 'underline', fontSize: '0.9rem'}}>Accès Administrateur</Link>
+      </footer>
     </div>
   );
 }
