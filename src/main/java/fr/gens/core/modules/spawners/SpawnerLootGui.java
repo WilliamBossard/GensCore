@@ -36,7 +36,7 @@ public class SpawnerLootGui implements Listener {
 
     public static void openGui(Player player, SpawnerData data, SpawnerModule module, int page) {
         setModule(module);
-        Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Loot: <gold>" + data.getType()) + " <gray>(Page " + (page + 1) + ")");
+        Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Loot: <gold>" + data.getType() + " <gray>(Page " + (page + 1) + ")"));
 
         int slot = 0;
         int startIndex = page * 45;

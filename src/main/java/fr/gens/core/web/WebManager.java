@@ -533,7 +533,7 @@ public class WebManager {
             ShopCategory request = ctx.bodyAsClass(ShopCategory.class);
             ShopCategory existing = shop.getCategory(request.getId());
             if (existing != null) {
-                existing.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(request.getDisplayName()));
+                existing.setDisplayName(request.getDisplayName());
                 existing.setIcon(request.getIcon());
             } else {
                 shop.getCategories().add(request);

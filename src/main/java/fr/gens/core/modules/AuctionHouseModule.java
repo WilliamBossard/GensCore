@@ -122,7 +122,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
 
     private void openAhGui(Player p, int page) {
         AhGuiHolder holder = new AhGuiHolder(page);
-        Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Hôtel de Ventes (Page " + (page + 1)) + ")");
+        Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Hôtel de Ventes (Page " + (page + 1) + ")"));
         holder.setInventory(inv);
 
         List<AhItem> items = new ArrayList<>();

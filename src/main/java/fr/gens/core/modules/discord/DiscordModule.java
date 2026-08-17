@@ -442,7 +442,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                         net.luckperms.api.model.user.User user = net.luckperms.api.LuckPermsProvider.get().getUserManager().loadUser(uuid).get();
                         if (user != null) {
                             String lpPrefix = user.getCachedData().getMetaData().getPrefix();
-                            if (lpPrefix != null) prefix = org.bukkit.lpPrefix + " ";
+                            if (lpPrefix != null) prefix = lpPrefix + " ";
                             playerName = user.getUsername() != null ? user.getUsername() : playerName;
                         }
                     } catch (Exception ignored) {}
@@ -452,7 +452,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                 }
                 
                 String finalMessage = "<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>» <gray>" + event.getMessage().getContentDisplay();
-                Bukkit.getServer().broadcastMessage(finalMessage);
+                Bukkit.getServer().broadcast(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(finalMessage.replace("§", "").replace("&", "")));
             });
         }
     }

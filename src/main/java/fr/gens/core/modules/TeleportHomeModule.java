@@ -272,7 +272,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
     private void openHomeGui(Player player) {
         HomeGuiHolder holder = new HomeGuiHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId()), new HashMap<>()).size() + "/" + getMaxHomes(player) + ")");
+        Inventory inv = Bukkit.createInventory(holder, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId(), new HashMap<>()).size() + "/" + getMaxHomes(player) + ")"));
         holder.setInventory(inv);
 
         Map<String, Location> playerHomes = homes.getOrDefault(player.getUniqueId(), new HashMap<>());
