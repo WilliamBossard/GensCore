@@ -1,0 +1,11 @@
+lootr:
+  prevent-hopper: true
+  prevent-break: false
+  particles-enabled: true
+  break-confirm-time: 3
+  messages:
+    break-confirm: "<yellow>Break it again within 3 seconds to confirm!"
+    chest-broken: "<green>Lootr chest removed!"
+    cannot-break: "<red>You cannot break this chest!"
+  inventory:
+    title: "<dark_gray>[<gold><dark_gray>] <yellow>Loot Chest"

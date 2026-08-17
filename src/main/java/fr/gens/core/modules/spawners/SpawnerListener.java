@@ -163,7 +163,7 @@ public class SpawnerListener implements Listener {
                 }
                 
                 // Silk Touch Check
-                if (plugin.getConfig().getBoolean("spawners.vanilla-require-silktouch", true)) {
+                if (plugin.getConfigManager().getConfig("modules/spawners.yml").getBoolean("spawners.vanilla-require-silktouch", true)) {
                     ItemStack hand = player.getInventory().getItemInMainHand();
                     if (hand == null || !hand.containsEnchantment(Enchantment.SILK_TOUCH)) {
                         event.setCancelled(true);
@@ -204,7 +204,7 @@ public class SpawnerListener implements Listener {
         
         ItemStack item = event.getItem();
         
-        int maxStack = plugin.getConfig().getInt("spawners.max-stack", 100000);
+        int maxStack = plugin.getConfigManager().getConfig("modules/spawners.yml").getInt("spawners.max-stack", 100000);
         
         // Stacking logic
         if (item != null && item.getType() == Material.SPAWNER && item.hasItemMeta()) {

@@ -99,7 +99,7 @@ public class LootModule implements Module, Listener {
             config.set("lootr.messages.chest-broken", "<green>Coffre Lootr retiré !");
             config.set("lootr.messages.cannot-break", "<red>Tu ne peux pas casser ce coffre !");
             config.set("lootr.inventory.title", "<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin");
-            plugin.saveConfig();
+            plugin.getConfigManager().saveConfig("modules/lootr.yml");
         }
         
         preventHoppers = config.getBoolean("lootr.prevent-hopper", true);

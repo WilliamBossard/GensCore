@@ -22,9 +22,9 @@ public class StorageManager {
         this.plugin = plugin;
         plugin.saveDefaultConfig(); // Sauvegarde config.yml initiale si elle n'existe pas
         
-        plugin.getConfig().addDefault("modules.tomb.store_xp", true);
-        plugin.getConfig().addDefault("modules.tomb.xp_keep_percentage", 100);
-        plugin.getConfig().addDefault("modules.tomb.expiration_time_seconds", 3600);
+        plugin.getConfigManager().getConfig("modules/tomb.yml").addDefault("modules.tomb.store_xp", true);
+        plugin.getConfigManager().getConfig("modules/tomb.yml").addDefault("modules.tomb.xp_keep_percentage", 100);
+        plugin.getConfigManager().getConfig("modules/tomb.yml").addDefault("modules.tomb.expiration_time_seconds", 3600);
         
         plugin.getConfig().options().copyDefaults(true);
         plugin.saveConfig();

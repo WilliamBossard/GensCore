@@ -1,0 +1,8 @@
+modules:
+  tomb:
+    block_type: CHEST
+    store_xp: true
+    xp_keep_percentage: 100
+    expiration_time_seconds: 3600
+    expiration_action: UNLOCK
+    default_access: OWNER_ONLY

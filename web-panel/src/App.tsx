@@ -663,6 +663,7 @@ function AdminFiles({ password }: { password: string }) {
 
 // === COMPOSANT : GESTION DES MODULES ===
 function AdminModules({ password }: { password: string }) {
+  const { t } = useTranslation();
   const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -690,10 +691,10 @@ function AdminModules({ password }: { password: string }) {
 
   const getCategory = (name: string) => {
     const n = name.toLowerCase();
-    if (['economy', 'shop', 'dynamicshop', 'auctionhouse', 'jobs'].includes(n)) return 'Économie & Commerce';
-    if (['quests', 'stats', 'spawners', 'loot', 'headdrop', 'minigame'].includes(n)) return 'Joueurs & Gameplay';
-    if (['motd', 'tabboard', 'discord', 'gui', 'web'].includes(n)) return 'Interface & Communication';
-    return 'Administration & Utilitaires';
+    if (['economy', 'shop', 'dynamicshop', 'auctionhouse', 'jobs'].includes(n)) return t('web.admin.modules_cat.economy') || 'Économie & Commerce';
+    if (['quests', 'stats', 'spawners', 'loot', 'headdrop', 'minigame'].includes(n)) return t('web.admin.modules_cat.gameplay') || 'Joueurs & Gameplay';
+    if (['motd', 'tabboard', 'discord', 'gui', 'web'].includes(n)) return t('web.admin.modules_cat.interface') || 'Interface & Communication';
+    return t('web.admin.modules_cat.admin') || 'Administration & Utilitaires';
   };
 
   const toggleCategory = (mods: any[], targetState: boolean) => {
@@ -722,8 +723,8 @@ function AdminModules({ password }: { password: string }) {
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--card-border)'}}>
             <h2 style={{fontSize: '1.5rem', margin: 0}}>{catName}</h2>
             <div style={{display: 'flex', gap: '10px'}}>
-              <button className="btn-small" style={{background: '#10b981', color: 'white'}} onClick={() => toggleCategory(mods, true)}>Tout Activer</button>
-              <button className="btn-small" style={{background: '#ef4444', color: 'white'}} onClick={() => toggleCategory(mods, false)}>Tout Désactiver</button>
+              <button className="btn-small" style={{background: '#10b981', color: 'white'}} onClick={() => toggleCategory(mods, true)}>{t('web.admin.modules_cat.enable_all') || 'Tout Activer'}</button>
+              <button className="btn-small" style={{background: '#ef4444', color: 'white'}} onClick={() => toggleCategory(mods, false)}>{t('web.admin.modules_cat.disable_all') || 'Tout Désactiver'}</button>
             </div>
           </div>
           <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem'}}>
@@ -753,7 +754,7 @@ function AdminModules({ password }: { password: string }) {
 
 // === COMPOSANT : GESTION DE LA BOUTIQUE ===
 function AdminShop({ password }: { password: string }) {
-
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEcoEnabled, setIsEcoEnabled] = useState(true);
@@ -859,7 +860,7 @@ function AdminShop({ password }: { password: string }) {
         <div style={{color: 'var(--text-muted)', marginBottom: '1rem'}}>
           <ShoppingCart size={64} style={{opacity: 0.5}} />
         </div>
-        <h2>Boutique Désactivée</h2>
+        <h2>{t('web.public.shop.disabled_title')}</h2>
         <p style={{color: 'var(--text-muted)'}}>Le module Economy ou DynamicShop est actuellement désactivé. Veuillez le réactiver dans l'onglet Modules pour gérer la boutique.</p>
       </div>
     );
@@ -1010,6 +1011,7 @@ function AdminShop({ password }: { password: string }) {
 // === COMPOSANTS : VUE CLIENT ===
 
 export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -1045,19 +1047,19 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
     return (
       <div style={{textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)'}}>
         <ShoppingCart size={48} style={{opacity: 0.5, marginBottom: '1rem'}} />
-        <h2>Boutique Désactivée</h2>
-        <p>Le module de boutique est actuellement désactivé par l'administrateur.</p>
+        <h2>{t('web.public.shop.disabled_title')}</h2>
+        <p>{t('web.public.shop.disabled_desc')}</p>
       </div>
     );
   }
 
-  if (loading) return <div className="loading">Chargement de la Boutique...</div>;
+  if (loading) return <div className="loading">{t('web.public.shop.loading')}</div>;
 
   return (
     <div>
       <div className="client-hero" style={{padding: '2rem 0'}}>
-        <h2>Bourse Dynamique</h2>
-        <p>Suivez les prix de l'économie en temps réel</p>
+        <h2>{t('web.public.shop.title')}</h2>
+        <p>{t('web.public.shop.subtitle')}</p>
       </div>
 
       <div style={{display: 'flex', gap: '2rem', alignItems: 'flex-start'}}>
@@ -1078,14 +1080,14 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
                     onClick={() => loadHistory(item)}
                   >
                     <div style={{fontWeight: 600, marginBottom: '5px'}}>{item.material}</div>
-                    <div style={{fontSize: '0.9rem', color: 'green'}}>Achat: {item.currentBuyPrice?.toFixed(2)} $</div>
+                    <div style={{fontSize: '0.9rem', color: 'green'}}>{t('web.public.shop.buy')}: {item.currentBuyPrice?.toFixed(2)} $</div>
                     {item.baseSellPrice > 0 ? (
-                      <div style={{fontSize: '0.9rem', color: 'red'}}>Vente: {item.currentSellPrice?.toFixed(2)} $</div>
+                      <div style={{fontSize: '0.9rem', color: 'red'}}>{t('web.public.shop.sell')}: {item.currentSellPrice?.toFixed(2)} $</div>
                     ) : (
-                      <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>Invendable</div>
+                      <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>{t('web.public.shop.unsellable')}</div>
                     )}
                     {item.isCommand && (
-                      <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '5px', fontWeight: 'bold'}}>🌟 Grade / Commande</div>
+                      <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '5px', fontWeight: 'bold'}}>🌟 {t('web.public.shop.command_tag')}</div>
                     )}
                   </div>
                 ))}
@@ -1097,7 +1099,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
         <div style={{flex: 1, background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem', position: 'sticky', top: '2rem'}}>
           <h3 style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem'}}>
             <TrendingUp size={20} color="var(--accent)" /> 
-            {selectedItem ? `Historique : ${selectedItem.material}` : 'Sélectionnez un objet'}
+            {selectedItem ? `${t('web.public.shop.history')} : ${selectedItem.material}` : t('web.public.shop.select_item')}
           </h3>
           
           {selectedItem ? (
@@ -1114,12 +1116,12 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div style={{textAlign: 'center', color: 'var(--text-muted)', paddingTop: '4rem'}}>Aucune transaction récente.</div>
+                <div style={{textAlign: 'center', color: 'var(--text-muted)', paddingTop: '4rem'}}>{t('web.public.shop.no_history')}</div>
               )}
             </div>
           ) : (
             <div style={{textAlign: 'center', color: 'var(--text-muted)', paddingTop: '4rem'}}>
-              Cliquez sur un objet pour voir l'évolution de son prix (Inflation/Déflation).
+              {t('web.public.shop.select_item_desc')}
             </div>
           )}
         </div>

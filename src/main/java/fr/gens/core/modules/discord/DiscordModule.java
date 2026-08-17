@@ -81,27 +81,27 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         
         // Initialisation de la config
         boolean configChanged = false;
-        if (!plugin.getConfig().contains("discord.bot_token")) {
-            plugin.getConfig().set("discord.bot_token", "VOTRE_TOKEN_ICI");
+        if (!plugin.getConfigManager().getConfig("modules/discord.yml").contains("discord.bot_token")) {
+            plugin.getConfigManager().getConfig("modules/discord.yml").set("discord.bot_token", "VOTRE_TOKEN_ICI");
             configChanged = true;
         }
-        if (!plugin.getConfig().contains("discord.chat_channel_id")) {
-            plugin.getConfig().set("discord.chat_channel_id", "VOTRE_CHANNEL_ID_ICI");
+        if (!plugin.getConfigManager().getConfig("modules/discord.yml").contains("discord.chat_channel_id")) {
+            plugin.getConfigManager().getConfig("modules/discord.yml").set("discord.chat_channel_id", "VOTRE_CHANNEL_ID_ICI");
             configChanged = true;
         }
-        if (!plugin.getConfig().contains("discord.linked_role_id")) {
-            plugin.getConfig().set("discord.linked_role_id", "Linked"); // Role name or ID
+        if (!plugin.getConfigManager().getConfig("modules/discord.yml").contains("discord.linked_role_id")) {
+            plugin.getConfigManager().getConfig("modules/discord.yml").set("discord.linked_role_id", "Linked"); // Role name or ID
             configChanged = true;
         }
-        if (!plugin.getConfig().contains("discord.log_channel_id")) {
-            plugin.getConfig().set("discord.log_channel_id", "");
+        if (!plugin.getConfigManager().getConfig("modules/discord.yml").contains("discord.log_channel_id")) {
+            plugin.getConfigManager().getConfig("modules/discord.yml").set("discord.log_channel_id", "");
             configChanged = true;
         }
         if (configChanged) {
-            plugin.saveConfig();
+            plugin.getConfigManager().saveConfig("modules/discord.yml");
         }
 
-        String token = plugin.getConfig().getString("discord.bot_token", "");
+        String token = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.bot_token", "");
         if (token == null || token.isEmpty() || token.equals("VOTRE_TOKEN_ICI")) {
             plugin.getLangManager().sendConsoleWarning("discordmodule.log_1");
             return;
@@ -162,7 +162,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
     public void sendBotMessage(String content) {
         if (jda == null) return;
-        String channelId = plugin.getConfig().getString("discord.chat_channel_id");
+        String channelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id");
         if (channelId == null || channelId.isEmpty()) return;
         TextChannel channel = jda.getTextChannelById(channelId);
         if (channel != null) {
@@ -172,7 +172,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
     public void sendBotEmbed(String title, String imageUrl, Color color) {
         if (jda == null || !enabled) return;
-        String channelId = plugin.getConfig().getString("discord.chat_channel_id", "");
+        String channelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id", "");
         if (channelId.isEmpty()) return;
         
         TextChannel channel = jda.getTextChannelById(channelId);
@@ -190,8 +190,8 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
     public void sendBotLogEmbed(String title, String desc, Color color) {
         if (jda == null || !enabled) return;
-        String channelId = plugin.getConfig().getString("discord.log_channel_id", "");
-        if (channelId == null || channelId.isEmpty()) channelId = plugin.getConfig().getString("discord.chat_channel_id", "");
+        String channelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.log_channel_id", "");
+        if (channelId == null || channelId.isEmpty()) channelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id", "");
         if (channelId.isEmpty()) return;
         
         TextChannel channel = jda.getTextChannelById(channelId);
@@ -206,8 +206,8 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
     
     public void logAuthEvent(String playerName, String action, Color color) {
         if (jda == null) return;
-        String logChannelId = plugin.getConfig().getString("discord.log_channel_id");
-        String chatChannelId = plugin.getConfig().getString("discord.chat_channel_id");
+        String logChannelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.log_channel_id");
+        String chatChannelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id");
         String channelId = (logChannelId != null && !logChannelId.isEmpty()) ? logChannelId : chatChannelId;
         
         if (channelId == null || channelId.isEmpty()) return;
@@ -224,7 +224,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
     private void sendChatWebhook(String message, String avatarUrl, String username) {
         if (jda == null) return;
-        String channelId = plugin.getConfig().getString("discord.chat_channel_id");
+        String channelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id");
         if (channelId == null || channelId.isEmpty()) return;
 
         TextChannel channel = jda.getTextChannelById(channelId);
@@ -406,7 +406,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
                 // Essayer de donner le rôle sur Discord (Asynchrone)
                 if (finalTargetGuild != null) {
-                    String roleId = plugin.getConfig().getString("discord.linked_role_id", "Linked");
+                    String roleId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.linked_role_id", "Linked");
                     if (roleId != null && !roleId.isEmpty() && !roleId.equals("ID_DU_ROLE_JOUEUR")) {
                         Role role = null;
                         try {
@@ -429,7 +429,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             });
 
             event.getChannel().sendMessage("Ton compte Minecraft a été lié avec succès !").queue();
-        } else if (event.getChannel().getId().equals(plugin.getConfig().getString("discord.chat_channel_id"))) {
+        } else if (event.getChannel().getId().equals(plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id"))) {
             // Discord -> Minecraft Chat
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                 UUID uuid = plugin.getDatabaseManager().getUuidFromDiscord(event.getAuthor().getId());

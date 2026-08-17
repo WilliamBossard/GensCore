@@ -1,0 +1,4 @@
+modules:
+  home:
+    default_max: 3
+teleport-cooldown: 3

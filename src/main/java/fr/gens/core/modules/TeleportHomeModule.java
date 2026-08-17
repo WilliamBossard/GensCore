@@ -152,7 +152,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     }
 
     private int getMaxHomes(Player p) {
-        int max = plugin.getConfig().getInt("modules.home.default_max", 3); // Default
+        int max = plugin.getConfigManager().getConfig("modules/teleport.yml").getInt("modules.home.default_max", 3); // Default
         for (PermissionAttachmentInfo perm : p.getEffectivePermissions()) {
             String pName = perm.getPermission();
             if (pName.startsWith("genscore.home.limit.")) {

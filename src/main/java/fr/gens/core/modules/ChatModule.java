@@ -93,7 +93,7 @@ public class ChatModule implements Module, Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         if (!enabled) return;
-        if (!plugin.getConfig().getBoolean("chat.custom-join-messages", true)) return;
+        if (!plugin.getConfigManager().getConfig("modules/chat.yml").getBoolean("chat.custom-join-messages", true)) return;
         
         if (!event.getPlayer().hasPlayedBefore()) {
             event.joinMessage(plugin.getLangManager().get("chat.first_join", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", event.getPlayer().getName())));
@@ -105,7 +105,7 @@ public class ChatModule implements Module, Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         if (!enabled) return;
-        if (!plugin.getConfig().getBoolean("chat.custom-join-messages", true)) return;
+        if (!plugin.getConfigManager().getConfig("modules/chat.yml").getBoolean("chat.custom-join-messages", true)) return;
         
         event.quitMessage(plugin.getLangManager().get("chat.quit", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", event.getPlayer().getName())));
     }

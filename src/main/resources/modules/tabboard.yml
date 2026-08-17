@@ -1,0 +1,12 @@
+tabboard:
+  scoreboard:
+    title: "<gold><bold>Server"
+    lines:
+      - ""
+      - "<gray>Money: <yellow>%vault_eco_balance%"
+      - ""
+  tablist:
+    header: "\n<dark_aqua><bold>A Minecraft Server\n"
+    footer: "\n<gray>Online: %online%\n"
+    discord_not_linked: "<red>Discord not linked"
+    discord_linked: "<green>Discord linked"

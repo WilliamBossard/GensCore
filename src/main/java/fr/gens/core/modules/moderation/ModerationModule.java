@@ -114,15 +114,15 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         frozenPlayers.addAll(plugin.getDatabaseManager().loadFrozen());
         
         // Migration from config if needed
-        if (plugin.getConfig().contains("moderation.frozen")) {
-            List<String> frozen = plugin.getConfig().getStringList("moderation.frozen");
+        if (plugin.getConfigManager().getConfig("modules/moderation.yml").contains("moderation.frozen")) {
+            List<String> frozen = plugin.getConfigManager().getConfig("modules/moderation.yml").getStringList("moderation.frozen");
             for (String s : frozen) {
                 try {
                     frozenPlayers.add(UUID.fromString(s));
                 } catch (Exception ignored) {}
             }
-            plugin.getConfig().set("moderation.frozen", null);
-            plugin.saveConfig();
+            plugin.getConfigManager().getConfig("modules/moderation.yml").set("moderation.frozen", null);
+            plugin.getConfigManager().saveConfig("modules/moderation.yml");
         }
     }
 
@@ -131,8 +131,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         mutedPlayers.putAll(plugin.getDatabaseManager().loadMutes());
         
         // Migration from config if needed
-        if (plugin.getConfig().contains("moderation.mutes")) {
-            List<String> mutes = plugin.getConfig().getStringList("moderation.mutes");
+        if (plugin.getConfigManager().getConfig("modules/moderation.yml").contains("moderation.mutes")) {
+            List<String> mutes = plugin.getConfigManager().getConfig("modules/moderation.yml").getStringList("moderation.mutes");
             for (String s : mutes) {
                 try {
                     String[] parts = s.split(";", 3);
@@ -144,8 +144,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                     }
                 } catch (Exception ignored) {}
             }
-            plugin.getConfig().set("moderation.mutes", null);
-            plugin.saveConfig();
+            plugin.getConfigManager().getConfig("modules/moderation.yml").set("moderation.mutes", null);
+            plugin.getConfigManager().saveConfig("modules/moderation.yml");
         }
     }
 

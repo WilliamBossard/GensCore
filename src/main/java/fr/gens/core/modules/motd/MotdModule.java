@@ -34,10 +34,10 @@ public class MotdModule implements Module, Listener {
     @Override
     public void enable() {
         enabled = true;
-        if (!plugin.getConfig().contains("motd.line1")) {
-            plugin.getConfig().set("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien");
-            plugin.getConfig().set("motd.line2", "<gray><bold>>> <yellow>Saison 4 <gray><bold>- <aqua>discord.gg/gensbien");
-            plugin.saveConfig();
+        if (!plugin.getConfigManager().getConfig("modules/motd.yml").contains("motd.line1")) {
+            plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien");
+            plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line2", "<gray><bold>>> <yellow>Saison 4 <gray><bold>- <aqua>discord.gg/gensbien");
+            plugin.getConfigManager().saveConfig("modules/motd.yml");
         }
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getLangManager().sendConsoleMessage("motdmodule.log_1");
@@ -53,8 +53,8 @@ public class MotdModule implements Module, Listener {
     public void onServerPing(ServerListPingEvent event) {
         if (!enabled) return;
 
-        String line1 = plugin.getConfig().getString("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien");
-        String line2 = plugin.getConfig().getString("motd.line2", "");
+        String line1 = plugin.getConfigManager().getConfig("modules/motd.yml").getString("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien");
+        String line2 = plugin.getConfigManager().getConfig("modules/motd.yml").getString("motd.line2", "");
 
         String fullMotdStr = line1 + "\n" + line2;
 

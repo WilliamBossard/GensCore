@@ -66,9 +66,10 @@ public class ModuleManager {
         
         plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 
-        // Charger les états depuis la config et les activer si besoin
+        // Charger les états depuis modules.yml et les activer si besoin
+        org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
         for (Module module : modules.values()) {
-            boolean shouldEnable = plugin.getStorageManager().getConfig().getBoolean("modules." + module.getName() + ".enabled", true);
+            boolean shouldEnable = modulesConfig.getBoolean("modules." + module.getName().toLowerCase() + ".enabled", true);
             if (shouldEnable) {
                 module.enable();
             } else {
@@ -111,8 +112,9 @@ public class ModuleManager {
         }
 
         if (changed) {
-            plugin.getStorageManager().getConfig().set("modules." + module.getName() + ".enabled", state);
-            plugin.getStorageManager().saveConfig();
+            org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
+            modulesConfig.set("modules." + module.getName().toLowerCase() + ".enabled", state);
+            plugin.getConfigManager().saveConfig("modules.yml");
             return true;
         }
         return false;

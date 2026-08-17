@@ -51,22 +51,22 @@ public class SpawnerModule implements Module {
         this.enabled = true;
         
         // Setup config defaults
-        if (!plugin.getConfig().contains("spawners.delay")) {
-            plugin.getConfig().set("spawners.delay", 25); // base seconds not really used now, handled per level
-            plugin.getConfig().set("spawners.holograms", true);
-            plugin.getConfig().set("spawners.hoppers", false);
-            plugin.getConfig().set("spawners.max-stack", 100000);
-            plugin.getConfig().set("spawners.upgrade-base-cost", 1000.0);
+        if (!plugin.getConfigManager().getConfig("modules/spawners.yml").contains("spawners.delay")) {
+            plugin.getConfigManager().getConfig("modules/spawners.yml").set("spawners.delay", 25); // base seconds not really used now, handled per level
+            plugin.getConfigManager().getConfig("modules/spawners.yml").set("spawners.holograms", true);
+            plugin.getConfigManager().getConfig("modules/spawners.yml").set("spawners.hoppers", false);
+            plugin.getConfigManager().getConfig("modules/spawners.yml").set("spawners.max-stack", 100000);
+            plugin.getConfigManager().getConfig("modules/spawners.yml").set("spawners.upgrade-base-cost", 1000.0);
             
             // Clean up old config
-            plugin.getConfig().set("spawners.types", null);
+            plugin.getConfigManager().getConfig("modules/spawners.yml").set("spawners.types", null);
         }
         
-        if (!plugin.getConfig().contains("spawners.vanilla-require-silktouch")) {
-            plugin.getConfig().set("spawners.vanilla-require-silktouch", true);
+        if (!plugin.getConfigManager().getConfig("modules/spawners.yml").contains("spawners.vanilla-require-silktouch")) {
+            plugin.getConfigManager().getConfig("modules/spawners.yml").set("spawners.vanilla-require-silktouch", true);
         }
         
-        plugin.saveConfig();
+        plugin.getConfigManager().saveConfig("modules/spawners.yml");
 
         spawnerManager.loadTypes();
         

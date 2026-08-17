@@ -41,7 +41,7 @@ public class TombListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerDeath(PlayerDeathEvent event) {
-        if (!plugin.getConfig().getBoolean("modules.tomb.enabled", true)) return;
+        if (!plugin.getConfigManager().getConfig("modules/tomb.yml").getBoolean("modules.tomb.enabled", true)) return;
         
         Player player = event.getPlayer();
         if (event.getKeepInventory()) return; // Pas de tombe si le joueur garde son inventaire
@@ -77,7 +77,7 @@ public class TombListener implements Listener {
         ItemStack[] contents = drops.toArray(new ItemStack[0]);
         
         int xp = 0;
-        if (plugin.getConfig().getBoolean("modules.tomb.store_xp", true)) {
+        if (plugin.getConfigManager().getConfig("modules/tomb.yml").getBoolean("modules.tomb.store_xp", true)) {
             // Calculate total XP
             int level = player.getLevel();
             float expProgress = player.getExp();
@@ -92,7 +92,7 @@ public class TombListener implements Listener {
             int expToNextLevel = player.getExpToLevel();
             totalExp += Math.round(expProgress * expToNextLevel);
 
-            int percentage = plugin.getConfig().getInt("modules.tomb.xp_keep_percentage", 100);
+            int percentage = plugin.getConfigManager().getConfig("modules/tomb.yml").getInt("modules.tomb.xp_keep_percentage", 100);
             xp = (int) (totalExp * (percentage / 100.0f));
 
             event.setDroppedExp(0);
@@ -101,14 +101,14 @@ public class TombListener implements Listener {
             event.setNewTotalExp(0);
         }
         
-        long expirationSecs = plugin.getConfig().getLong("modules.tomb.expiration_time_seconds", 3600);
+        long expirationSecs = plugin.getConfigManager().getConfig("modules/tomb.yml").getLong("modules.tomb.expiration_time_seconds", 3600);
         long expirationMs = expirationSecs <= 0 ? -1L : expirationSecs * 1000L;
 
         // Enregistrer la tombe
         module.getTombManager().createTomb(player.getUniqueId(), targetBlock.getLocation(), contents, xp, expirationMs);
         
         // Placer le bloc
-        String blockTypeStr = plugin.getConfig().getString("modules.tomb.block_type", "CHEST").toUpperCase();
+        String blockTypeStr = plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.block_type", "CHEST").toUpperCase();
         Material material;
         try {
             material = Material.valueOf(blockTypeStr);
@@ -146,8 +146,8 @@ public class TombListener implements Listener {
         boolean isOwner = player.getUniqueId().equals(tomb.getOwnerId());
         boolean isExpired = tomb.isExpired();
         
-        String defaultAccess = plugin.getConfig().getString("modules.tomb.default_access", "OWNER_ONLY").toUpperCase();
-        String expirationAction = plugin.getConfig().getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase();
+        String defaultAccess = plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.default_access", "OWNER_ONLY").toUpperCase();
+        String expirationAction = plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase();
 
         boolean canOpen = false;
         
@@ -256,7 +256,7 @@ public class TombListener implements Listener {
                         TextDisplay display = (TextDisplay) entity;
                         String ownerName = Bukkit.getOfflinePlayer(tomb.getOwnerId()).getName();
                         if (ownerName == null) ownerName = "Inconnu";
-                        if (tomb.isExpired() && plugin.getConfig().getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase().equals("UNLOCK")) {
+                        if (tomb.isExpired() && plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase().equals("UNLOCK")) {
                             display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
                         } else {
                             display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée"));

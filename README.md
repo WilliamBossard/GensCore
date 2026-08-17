@@ -30,22 +30,22 @@ GensCore relies on the following plugins to function correctly:
 
 ## Configuration & Networks (Ports)
 
-To avoid hardcoded secrets or addresses, GensCore relies entirely on the `plugins/GensCore/config.yml` configuration file. It is automatically generated upon the first launch and includes crucial settings.
+To avoid hardcoded secrets or addresses, GensCore relies on a modular configuration system located in `plugins/GensCore/`. The main `config.yml` handles core settings (database, language), while a `modules/` folder contains specific files for each feature.
 
 ### Web Panel
 The Web administration panel runs locally on your Minecraft server, alongside the game, using **Javalin**.
 - The default port is **8080**.
-- It can be modified via the `web.port: 8080` option in `config.yml`.
+- It can be modified via the `port: 8080` option in `modules/web.yml`.
 - If your Minecraft server runs on a host (like Pterodactyl), you will need to open a second free port and specify it in the configuration for the Web Panel to be accessible.
 
 ### Discord Bot
 The Discord module requires a bot Token. For security reasons, this Token must **never** be shared or hardcoded in the Java source code.
-- Provide it via the `discord.bot_token: "YOUR_TOKEN"` option in `config.yml`.
+- Provide it via the `bot_token: "YOUR_TOKEN"` option in `modules/discord.yml`.
 
 ### BlueMap
 GensCore's Web Panel integrates a BlueMap iframe to display the live map directly to moderators.
-- It fetches the local URL via `bluemap.url: "http://localhost:8100"`, which is customizable in `config.yml`.
-- You can completely disable the BlueMap integration via the Web Panel's Modules tab.
+- It fetches the local URL via `url: "http://localhost:8100"`, which is customizable in `modules/bluemap.yml`.
+- You can completely disable the BlueMap integration via the Web Panel's Modules tab (which updates `modules.yml`).
 
 ---
 

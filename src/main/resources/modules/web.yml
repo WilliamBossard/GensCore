@@ -1,0 +1,17 @@
+web:
+  enabled: false
+  port: 8080
+  force_lang: ""
+  server_ip: "localhost"
+  public_features_text: |-
+    Welcome to the server!
+    
+    - Jobs System (/jobs) to earn money.
+    - Auction House (/ah) for player trading.
+    - Live Map via BlueMap.
+    - Team & Guild Creation (/team) with co-op Weekly Quests!
+    - Chest locks (/lock) to secure your items.
+    - Discord server linked to in-game chat.
+    - Solo quests and leaderboards.
+
+admin-password: "gens"

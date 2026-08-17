@@ -1,0 +1,4 @@
+shop:
+  inflation_exponent: 0.5
+ah:
+  tax_percentage: 0.0

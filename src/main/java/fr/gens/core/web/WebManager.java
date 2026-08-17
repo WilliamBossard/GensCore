@@ -115,7 +115,7 @@ public class WebManager {
             // Middleware d'authentification pour les routes /api/admin/*
             app.before("/api/admin/*", ctx -> {
                 String authHeader = ctx.header("Authorization");
-                String expectedPassword = plugin.getStorageManager().getConfig().getString("admin-password", "gens");
+                String expectedPassword = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "gens");
                 
                 if (authHeader == null || !authHeader.equals("Bearer " + expectedPassword)) {
                     ctx.status(401).json("Non autorisé: Mot de passe incorrect");
@@ -238,14 +238,14 @@ public class WebManager {
 
         app.get("/api/public/features", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
-            ctx.result(plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText));
+            ctx.result(plugin.getConfigManager().getConfig("modules/web.yml").getString("web.public_features_text", defaultPublicText));
         });
 
         // API de Langue
         app.get("/api/public/lang", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
             
-            String forceLang = plugin.getConfig().getString("web.force_lang", "");
+            String forceLang = plugin.getConfigManager().getConfig("modules/web.yml").getString("web.force_lang", "");
             String lang = (forceLang != null && !forceLang.isEmpty()) ? forceLang : ctx.queryParam("lang");
             if (lang == null || lang.isEmpty() || lang.equals("dev")) lang = plugin.getConfig().getString("lang", "fr_FR");
             if (lang.contains("-")) lang = lang.replace("-", "_"); // i18next envoie fr-FR parfois
@@ -284,58 +284,66 @@ public class WebManager {
         app.get("/api/admin/config", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
             ctx.json(new ConfigResponse(
-                plugin.getConfig().getDouble("shop.inflation_exponent", 0.5),
-                plugin.getConfig().getDouble("ah.tax_percentage", 0.0),
-                plugin.getStorageManager().getConfig().getString("admin-password", "gens"),
-                plugin.getConfig().getDouble("headdrop.chance", 10.0),
-                plugin.getConfig().getInt("quests.max_rerolls_per_day", 3),
-                plugin.getConfig().getBoolean("lootr.prevent-break", false),
-                plugin.getConfig().getBoolean("lootr.prevent-hopper", true),
-                plugin.getConfig().getBoolean("lootr.particles-enabled", true),
-                plugin.getConfig().getString("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien"),
-                plugin.getConfig().getString("motd.line2", "<gray><bold>>> <yellow>Saison 4 <gray><bold>- <aqua>discord.gg/gensbien"),
-                plugin.getStorageManager().getConfig().getBoolean("minigames.wheel.enabled", true),
-                plugin.getStorageManager().getConfig().getBoolean("minigames.casino.enabled", true),
-                plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText),
-                plugin.getConfig().getString("bluemap.url", "http://localhost:8100"),
-                plugin.getConfig().getString("web.server_ip", "gens-core.duckdns.org"),
-                plugin.getConfig().getString("modules.tomb.block_type", "CHEST"),
-                plugin.getConfig().getBoolean("modules.tomb.store_xp", true),
-                plugin.getConfig().getLong("modules.tomb.expiration_time_seconds", 3600),
-                plugin.getConfig().getString("modules.tomb.expiration_action", "UNLOCK"),
-                plugin.getConfig().getString("modules.tomb.default_access", "OWNER_ONLY")
+                plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("shop.inflation_exponent", 0.5),
+                plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0),
+                plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "gens"),
+                plugin.getConfigManager().getConfig("modules/headdrop.yml").getDouble("headdrop.chance", 10.0),
+                plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3),
+                plugin.getConfigManager().getConfig("modules/lootr.yml").getBoolean("lootr.prevent-break", false),
+                plugin.getConfigManager().getConfig("modules/lootr.yml").getBoolean("lootr.prevent-hopper", true),
+                plugin.getConfigManager().getConfig("modules/lootr.yml").getBoolean("lootr.particles-enabled", true),
+                plugin.getConfigManager().getConfig("modules/motd.yml").getString("motd.line1", "<dark_aqua><bold>Le Serveur Des Gens Bien"),
+                plugin.getConfigManager().getConfig("modules/motd.yml").getString("motd.line2", "<gray><bold>>> <yellow>Saison 4 <gray><bold>- <aqua>discord.gg/gensbien"),
+                plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true),
+                plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true),
+                plugin.getConfigManager().getConfig("modules/web.yml").getString("web.public_features_text", defaultPublicText),
+                plugin.getConfigManager().getConfig("modules/bluemap.yml").getString("bluemap.url", "http://localhost:8100"),
+                plugin.getConfigManager().getConfig("modules/web.yml").getString("web.server_ip", "gens-core.duckdns.org"),
+                plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.block_type", "CHEST"),
+                plugin.getConfigManager().getConfig("modules/tomb.yml").getBoolean("modules.tomb.store_xp", true),
+                plugin.getConfigManager().getConfig("modules/tomb.yml").getLong("modules.tomb.expiration_time_seconds", 3600),
+                plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.expiration_action", "UNLOCK"),
+                plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.default_access", "OWNER_ONLY")
             ));
         });
 
         app.post("/api/admin/config", ctx -> {
             ConfigRequest req = ctx.bodyAsClass(ConfigRequest.class);
-            plugin.getConfig().set("shop.inflation_exponent", req.inflationExponent);
-            plugin.getConfig().set("ah.tax_percentage", req.ahTaxPercentage);
-            plugin.getConfig().set("headdrop.chance", req.headDropChance);
-            plugin.getConfig().set("quests.max_rerolls_per_day", req.maxQuestsRerolls);
-            plugin.getConfig().set("lootr.prevent-break", req.lootrPreventBreak);
-            plugin.getConfig().set("lootr.prevent-hopper", req.lootrPreventHopper);
-            plugin.getConfig().set("lootr.particles-enabled", req.lootrParticles);
-            plugin.getConfig().set("motd.line1", req.motdLine1);
-            plugin.getConfig().set("motd.line2", req.motdLine2);
-            if (req.bluemapUrl != null) plugin.getConfig().set("bluemap.url", req.bluemapUrl);
-            if (req.serverIp != null) plugin.getConfig().set("web.server_ip", req.serverIp);
+            plugin.getConfigManager().getConfig("modules/economy.yml").set("shop.inflation_exponent", req.inflationExponent);
+            plugin.getConfigManager().getConfig("modules/economy.yml").set("ah.tax_percentage", req.ahTaxPercentage);
+            plugin.getConfigManager().getConfig("modules/headdrop.yml").set("headdrop.chance", req.headDropChance);
+            plugin.getConfigManager().getConfig("modules/quests.yml").set("quests.max_rerolls_per_day", req.maxQuestsRerolls);
+            plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.prevent-break", req.lootrPreventBreak);
+            plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.prevent-hopper", req.lootrPreventHopper);
+            plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.particles-enabled", req.lootrParticles);
+            plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line1", req.motdLine1);
+            plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line2", req.motdLine2);
+            if (req.bluemapUrl != null) plugin.getConfigManager().getConfig("modules/bluemap.yml").set("bluemap.url", req.bluemapUrl);
+            if (req.serverIp != null) plugin.getConfigManager().getConfig("modules/web.yml").set("web.server_ip", req.serverIp);
             
-            if (req.tombBlockType != null) plugin.getConfig().set("modules.tomb.block_type", req.tombBlockType);
-            plugin.getConfig().set("modules.tomb.store_xp", req.tombStoreXp);
-            plugin.getConfig().set("modules.tomb.expiration_time_seconds", req.tombExpirationSeconds);
-            if (req.tombExpirationAction != null) plugin.getConfig().set("modules.tomb.expiration_action", req.tombExpirationAction);
-            if (req.tombDefaultAccess != null) plugin.getConfig().set("modules.tomb.default_access", req.tombDefaultAccess);
+            if (req.tombBlockType != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.block_type", req.tombBlockType);
+            plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.store_xp", req.tombStoreXp);
+            plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.expiration_time_seconds", req.tombExpirationSeconds);
+            if (req.tombExpirationAction != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.expiration_action", req.tombExpirationAction);
+            if (req.tombDefaultAccess != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.default_access", req.tombDefaultAccess);
             
+            plugin.getConfigManager().saveConfig("modules/economy.yml");
+            plugin.getConfigManager().saveConfig("modules/headdrop.yml");
+            plugin.getConfigManager().saveConfig("modules/quests.yml");
+            plugin.getConfigManager().saveConfig("modules/lootr.yml");
+            plugin.getConfigManager().saveConfig("modules/motd.yml");
+            plugin.getConfigManager().saveConfig("modules/bluemap.yml");
+            plugin.getConfigManager().saveConfig("modules/tomb.yml");
             plugin.saveConfig();
             
-            plugin.getStorageManager().getConfig().set("admin-password", req.adminPassword);
-            plugin.getStorageManager().getConfig().set("minigames.wheel.enabled", req.minigameWheelEnabled);
-            plugin.getStorageManager().getConfig().set("minigames.casino.enabled", req.minigameCasinoEnabled);
+            plugin.getConfigManager().getConfig("modules/web.yml").set("admin-password", req.adminPassword);
+            plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.wheel.enabled", req.minigameWheelEnabled);
+            plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.casino.enabled", req.minigameCasinoEnabled);
             if (req.publicFeaturesText != null) {
-                plugin.getStorageManager().getConfig().set("web.public_features_text", req.publicFeaturesText);
+                plugin.getConfigManager().getConfig("modules/web.yml").set("web.public_features_text", req.publicFeaturesText);
             }
-            plugin.getStorageManager().saveConfig();
+            plugin.getConfigManager().saveConfig("modules/web.yml");
+            plugin.getConfigManager().saveConfig("modules/minigames.yml");
             
             plugin.getLangManager().sendConsoleMessage("webmanager.log_3");
             
@@ -663,11 +671,11 @@ public class WebManager {
           });
 
           app.get("/api/public/bluemap", ctx -> {
-              ctx.result(plugin.getConfig().getString("bluemap.url", "http://localhost:8100"));
+              ctx.result(plugin.getConfigManager().getConfig("modules/bluemap.yml").getString("bluemap.url", "http://localhost:8100"));
           });
 
           app.get("/api/public/server_ip", ctx -> {
-              ctx.result(plugin.getConfig().getString("web.server_ip", "gens-core.duckdns.org"));
+              ctx.result(plugin.getConfigManager().getConfig("modules/web.yml").getString("web.server_ip", "gens-core.duckdns.org"));
           });
 
         // ==========================================

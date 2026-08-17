@@ -223,7 +223,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                         if (deleteFromDb(ahItem.id)) { // S'assurer qu'il n'a pas déjà été acheté
                             eco.takeMoney(p.getUniqueId(), ahItem.price);
                             
-                            double taxRate = plugin.getConfig().getDouble("ah.tax_percentage", 0.0) / 100.0;
+                            double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
                             double taxAmount = ahItem.price * taxRate;
                             double sellerProfit = ahItem.price - taxAmount;
                             eco.giveMoney(UUID.fromString(ahItem.sellerUuid), sellerProfit);

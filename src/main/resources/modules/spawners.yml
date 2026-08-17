@@ -1,0 +1,7 @@
+spawners:
+  delay: 25
+  holograms: true
+  hoppers: false
+  max-stack: 100000
+  upgrade-base-cost: 1000.0
+  vanilla-require-silktouch: true

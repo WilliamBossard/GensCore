@@ -1,0 +1,23 @@
+modules:
+  dynamicshop: true
+  economy: true
+  auctionhouse: true
+  jobs: true
+  stats: true
+  spawners: true
+  quests: true
+  lootr: true
+  headdrop: true
+  minigame: true
+  motd: true
+  tabboard: true
+  discord: true
+  gui: true
+  web: true
+  tomb: false
+  home: true
+  back: true
+  spawn: true
+  tpa: true
+  teams: true
+  lock: true

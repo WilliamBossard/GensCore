@@ -22,6 +22,7 @@ public class CorePlugin extends JavaPlugin {
     private WebManager webManager;
     private StorageManager storageManager;
     private DatabaseManager databaseManager;
+    private fr.gens.core.utils.ConfigManager configManager;
     private fr.gens.core.utils.LangManager langManager;
     private ActionBarManager actionBarManager;
     private TeamManager teamManager;
@@ -37,6 +38,7 @@ public class CorePlugin extends JavaPlugin {
         instance = this;
         // 1. Initialiser le LangManager EN PREMIER car les autres en ont besoin pour logger
         this.langManager = new fr.gens.core.utils.LangManager(this);
+        this.configManager = new fr.gens.core.utils.ConfigManager(this);
         
         getLangManager().sendConsoleMessage("core.startup_header");
 
@@ -66,8 +68,9 @@ public class CorePlugin extends JavaPlugin {
         getCommand("module").setExecutor(moduleCommand);
         getCommand("module").setTabCompleter(moduleCommand);
 
-        if (getConfig().getBoolean("web.enabled", false)) {
-            int webPort = getConfig().getInt("web.port", 8080);
+        org.bukkit.configuration.file.FileConfiguration webConfig = getConfigManager().getConfig("modules/web.yml");
+        if (webConfig.getBoolean("web.enabled", false)) {
+            int webPort = webConfig.getInt("web.port", 8080);
             this.webManager = new WebManager(this, webPort);
             this.webManager.start();
         } else {
@@ -141,5 +144,9 @@ public class CorePlugin extends JavaPlugin {
 
     public fr.gens.core.modules.teams.TeamQuestManager getTeamQuestManager() {
         return teamQuestManager;
+    }
+
+    public fr.gens.core.utils.ConfigManager getConfigManager() {
+        return configManager;
     }
 }

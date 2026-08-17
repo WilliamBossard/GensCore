@@ -249,8 +249,8 @@ public class WebPlayerAPI implements Listener {
         });
 
         app.get("/api/games/config", ctx -> {
-            boolean wheelEnabled = plugin.getStorageManager().getConfig().getBoolean("minigames.wheel.enabled", true);
-            boolean casinoEnabled = plugin.getStorageManager().getConfig().getBoolean("minigames.casino.enabled", true);
+            boolean wheelEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
+            boolean casinoEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
             ctx.json(Map.of("wheelEnabled", wheelEnabled, "casinoEnabled", casinoEnabled));
         });
 

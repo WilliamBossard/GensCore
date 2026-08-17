@@ -45,11 +45,11 @@ public class HeadDropModule implements Module, Listener {
     public void enable() {
         enabled = true;
         // Ajouter la configuration si elle n'existe pas
-        if (!plugin.getConfig().contains("headdrop.chance")) {
-            plugin.getConfig().set("headdrop.chance", 10.0); // 10% par défaut
-            plugin.saveConfig();
+        if (!plugin.getConfigManager().getConfig("modules/headdrop.yml").contains("headdrop.chance")) {
+            plugin.getConfigManager().getConfig("modules/headdrop.yml").set("headdrop.chance", 10.0); // 10% par défaut
+            plugin.getConfigManager().saveConfig("modules/headdrop.yml");
         }
-        this.dropChance = plugin.getConfig().getDouble("headdrop.chance", 10.0);
+        this.dropChance = plugin.getConfigManager().getConfig("modules/headdrop.yml").getDouble("headdrop.chance", 10.0);
         
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getLogger().info("[HeadDrop] Module activé avec " + dropChance + "% drop chance.");

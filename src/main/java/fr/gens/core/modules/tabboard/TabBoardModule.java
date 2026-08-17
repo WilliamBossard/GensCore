@@ -112,7 +112,7 @@ public class TabBoardModule implements Module, Listener {
 
     private void updateScoreboard(Player p, GensScoreboard board) {
         List<String> lines = new ArrayList<>();
-        List<String> configLines = plugin.getConfig().getStringList("tabboard.scoreboard.lines");
+        List<String> configLines = plugin.getConfigManager().getConfig("modules/tabboard.yml").getStringList("tabboard.scoreboard.lines");
         if (configLines == null || configLines.isEmpty()) {
             configLines = new ArrayList<>();
             configLines.add("<gray><strikethrough>--------------------");
@@ -129,12 +129,12 @@ public class TabBoardModule implements Module, Listener {
             configLines.add("<white>En ligne: <aqua>%online%");
             configLines.add("<gray><strikethrough>--------------------");
             configLines.add("<yellow>IP: <white>82.64.129.187");
-            plugin.getConfig().set("tabboard.scoreboard.lines", configLines);
-            plugin.getConfig().set("tabboard.scoreboard.title", "<gold><bold>Serveur");
-            plugin.saveConfig();
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.scoreboard.lines", configLines);
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.scoreboard.title", "<gold><bold>Serveur");
+            plugin.getConfigManager().saveConfig("modules/tabboard.yml");
         }
 
-        String title = plugin.getConfig().getString("tabboard.scoreboard.title", "<gold><bold>Serveur");
+        String title = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.scoreboard.title", "<gold><bold>Serveur");
         board.updateTitle(title);
 
         EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
@@ -188,23 +188,23 @@ public class TabBoardModule implements Module, Listener {
     }
 
     private void updateTabList(Player p) {
-        if (!plugin.getConfig().contains("tabboard.tablist.header")) {
-            plugin.getConfig().set("tabboard.tablist.header", "<strikethrough>                                                                <reset>\n<dark_aqua><bold>Le Serveur Des Gens Bien\n<reset><gray><bold>>> <yellow>Bienvenue <dark_aqua><bold>%player% <gray><bold>! <<\n<reset><gray>Joueurs en ligne: <white>%online%\n<gold>Staff en ligne: <yellow>%staff%");
-            plugin.getConfig().set("tabboard.tablist.footer", "\n<dark_green>Ping: %ping%ms\n<gray><bold>Mémoire: %mem_used% MB / %mem_max% MB\n<gray>Quêtes terminées: <yellow>0\n\n%discord_status%\n<strikethrough>                                                                ");
-            plugin.getConfig().set("tabboard.tablist.discord_not_linked", "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto");
-            plugin.getConfig().set("tabboard.tablist.discord_linked", "<reset><gray>Le Discord: <aqua>discord.gg/gensbien");
-            plugin.saveConfig();
+        if (!plugin.getConfigManager().getConfig("modules/tabboard.yml").contains("tabboard.tablist.header")) {
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.header", "<strikethrough>                                                                <reset>\n<dark_aqua><bold>Le Serveur Des Gens Bien\n<reset><gray><bold>>> <yellow>Bienvenue <dark_aqua><bold>%player% <gray><bold>! <<\n<reset><gray>Joueurs en ligne: <white>%online%\n<gold>Staff en ligne: <yellow>%staff%");
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.footer", "\n<dark_green>Ping: %ping%ms\n<gray><bold>Mémoire: %mem_used% MB / %mem_max% MB\n<gray>Quêtes terminées: <yellow>0\n\n%discord_status%\n<strikethrough>                                                                ");
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.discord_not_linked", "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto");
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.discord_linked", "<reset><gray>Le Discord: <aqua>discord.gg/gensbien");
+            plugin.getConfigManager().saveConfig("modules/tabboard.yml");
         }
 
         long maxMemory = Runtime.getRuntime().maxMemory() / 1048576;
         long usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
 
         String discordStatus = p.hasPermission("genscore.discord.linked") 
-                ? plugin.getConfig().getString("tabboard.tablist.discord_linked", "") 
-                : plugin.getConfig().getString("tabboard.tablist.discord_not_linked", "");
+                ? plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.discord_linked", "") 
+                : plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.discord_not_linked", "");
 
-        String rawHeader = plugin.getConfig().getString("tabboard.tablist.header", "");
-        String rawFooter = plugin.getConfig().getString("tabboard.tablist.footer", "");
+        String rawHeader = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.header", "");
+        String rawFooter = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.footer", "");
 
         Component headerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, rawHeader);
         Component footerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, rawFooter);

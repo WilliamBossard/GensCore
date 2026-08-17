@@ -153,7 +153,7 @@ public class TombManager {
 
     public void checkExpirations() {
         long now = System.currentTimeMillis();
-        String action = plugin.getConfig().getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase();
+        String action = plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase();
         NamespacedKey key = new NamespacedKey(plugin, "tomb_id");
         
         for (TombData tomb : activeTombs.values()) {

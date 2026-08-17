@@ -104,3 +104,71 @@ web:
           desc: The Discord server and the game are fully linked. You can link your
             account via <code>/discord link</code>. Chat is synced both ways and even
             displays your ranks and guild!
+
+  admin:
+    tabs:
+      shop: "Shop"
+      modules: "Modules"
+      files: "Files"
+      settings: "Settings"
+      players: "Players"
+      content: "Content"
+    status: "Status"
+    active: "Active"
+    inactive: "Disabled"
+  public:
+    shop:
+      title: "Dynamic Market"
+      subtitle: "Track real-time economy prices"
+      disabled_title: "Shop Disabled"
+      disabled_desc: "The shop module is currently disabled by the administrator."
+      loading: "Loading Shop..."
+      buy: "Buy"
+      sell: "Sell"
+      unsellable: "Unsellable"
+      command_tag: "Rank / Command"
+      history: "History"
+      select_item: "Select an item"
+      select_item_desc: "Click on an item to see its price evolution (Inflation/Deflation)."
+      no_history: "No recent transactions."
+
+    modules:
+      dynamicshop:
+        name: "DynamicShop"
+        desc: "In-game shop with dynamic inflation driven by supply and demand."
+      economy:
+        name: "Economy"
+        desc: "Money system with /money, /pay, /eco and Vault API."
+      auctionhouse:
+        name: "AuctionHouse"
+        desc: "Player-to-player auction house system."
+      jobs:
+        name: "Jobs"
+        desc: "Job system (Miner, Woodcutter, Hunter, Farmer)."
+      chat:
+        name: "Chat"
+        desc: "Manages chat formatting. Permission: genscore.chat"
+      gui_api:
+        name: "GUI API"
+        desc: "Internal engine for creating interactive inventories."
+      fastleafdecay:
+        name: "FastLeafDecay"
+        desc: "Leaves decay instantly when a tree is chopped down."
+      cmdhome:
+        name: "CmdHome"
+        desc: "Commands /home with secure GUIs, limits and cooldowns."
+      cmdback:
+        name: "CmdBack"
+        desc: "Paid/VIP /back command with interactive death message."
+      cmdspawn:
+        name: "CmdSpawn"
+        desc: "Persistent /spawn and /setspawn commands with cooldowns."
+      cmdtpa:
+        name: "CmdTpa"
+        desc: "Teleportation request commands (/tpa, /tpaccept, /tpdeny, /tpacancel)."
+      tomb:
+        name: "Tomb"
+        desc: "Manages player tombs upon their death."
+      motd:
+        name: "MOTD"
+        desc: "Manages the server MOTD on the multiplayer list."

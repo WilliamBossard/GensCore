@@ -637,7 +637,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     }
                     if (p.hasPermission("genscore.quests.reroll") && !completed) {
                         lore.add(" ");
-                        int limit = plugin.getConfig().getInt("quests.max_rerolls_per_day", 3);
+                        int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
                         int used = plugin.getDatabaseManager().getRerollsDone(p.getUniqueId(), getTodayString());
                         lore.add("<light_purple>» Clic Droit pour Reroll (" + used + "/" + limit + ")");
                     } else if (completed) {
@@ -693,7 +693,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                             if (data.isCompleted(category, questId)) return;
                             
                             // Check limit
-                            int limit = plugin.getConfig().getInt("quests.max_rerolls_per_day", 3);
+                            int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
                             int used = plugin.getDatabaseManager().getRerollsDone(p.getUniqueId(), getTodayString());
                             if (used >= limit) {
                                 p.sendMessage("<red>Vous avez atteint la limite de " + limit + " rerolls pour aujourd'hui !");
