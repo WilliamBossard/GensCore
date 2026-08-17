@@ -1,39 +1,110 @@
 web:
   dashboard:
-    title: "Tableau de Bord"
-    balance: "Solde Actuel"
-    guild: "Guilde"
-    rank: "Grade :"
-    web_inventory: "Inventaire Web"
-    web_inventory_desc: "Récupérez vos objets achetés ou gagnés sur le web."
-    open_inventory: "Ouvrir l'Inventaire"
-    no_guild: "Aucune"
+    title: Tableau de Bord
+    balance: Solde Actuel
+    guild: Guilde
+    rank: 'Grade :'
+    web_inventory: Inventaire Web
+    web_inventory_desc: Récupérez vos objets achetés ou gagnés sur le web.
+    open_inventory: Ouvrir l'Inventaire
+    no_guild: Aucune
   nav:
-    shop: "Boutique Dynamique"
-    ah: "Hôtel des Ventes"
-    map: "Carte du Monde"
-    stats: "Mes Statistiques"
-    games: "Mini-Jeux Web"
-    jobs: "Légendes"
-    admin: "Panel Administrateur"
-    logout: "Déconnexion"
-    new: "NOUVEAU"
-    admin_tag: "ADMIN"
+    shop: Boutique Dynamique
+    ah: Hôtel des Ventes
+    map: Carte du Monde
+    stats: Mes Statistiques
+    games: Mini-Jeux Web
+    jobs: Légendes
+    admin: Panel Administrateur
+    logout: Déconnexion
+    new: NOUVEAU
+    admin_tag: ADMIN
   auth:
-    login_title: "Connexion au Web Panel"
-    username: "Pseudo Minecraft"
-    password: "Mot de passe (/register)"
-    login_btn: "Se Connecter"
-    logging_in: "Connexion..."
+    login_title: Connexion au Web Panel
+    username: Pseudo Minecraft
+    password: Mot de passe (/register)
+    login_btn: Se Connecter
+    logging_in: Connexion...
   admin:
-    title: "Panel Administrateur"
+    title: Panel Administrateur
     tabs:
-      modules: "Modules"
-      settings: "Paramètres"
-      web_inv: "Inv. Web"
-      ranks: "Grades"
-    save: "Sauvegarder"
-    saving: "Sauvegarde..."
+      modules: Modules
+      settings: Paramètres
+      web_inv: Inv. Web
+      ranks: Grades
+    save: Sauvegarder
+    saving: Sauvegarde...
   common:
-    error: "Erreur"
-    success: "Succès"
+    error: Erreur
+    success: Succès
+  public:
+    hero_title: Bienvenue sur le Serveur
+    hero_subtitle: Rejoignez l'aventure dès maintenant !
+    ip: IP
+    features_title: Fonctionnalités & Nouveautés
+    loading: Chargement...
+    learn_more: En savoir plus sur nos systèmes
+    admin_access: Accès Administrateur
+    leaderboard_title: Classement Global des Joueurs
+    leaderboard_subtitle: Les meilleurs joueurs du serveur avec leurs statistiques
+      détaillées
+    stats_disabled: Le module de statistiques est actuellement désactivé par l'administrateur.
+    table_player: Joueur
+    table_quests: Quêtes
+    table_blocks: Blocs Minés
+    table_mobs: Mobs Tués
+    table_playtime: Temps de jeu (h)
+    table_empty: Aucun joueur enregistré pour le moment.
+    profile_btn: Mon Profil
+    docs:
+      title: Documentation Complète
+      subtitle: Découvrez toutes les fonctionnalités exclusives du serveur Gens.
+      back_btn: Retour à l'accueil
+      sections:
+        management:
+          title: Système de Gestion Autonome
+          desc: Le serveur dispose d'un système de panel web unique permettant au
+            propriétaire de gérer les joueurs, la boutique, l'économie, et les paramètres
+            du serveur <strong>en temps réel</strong> sans avoir besoin de redémarrer.
+        economy:
+          title: Économie & Boutique Dynamique
+          desc: L'économie réagit aux actions des joueurs. Les prix de la boutique
+            (<code>/shop</code>) s'ajustent automatiquement selon l'offre et la demande.
+            Vous pouvez aussi vendre vos objets entre joueurs via l'Hôtel des Ventes
+            (<code>/ah</code>).
+        quests:
+          title: Quêtes Quotidiennes
+          desc: Des défis quotidiens (<code>/quests</code>) sont générés pour chaque
+            joueur. Tuez des monstres, minez des blocs ou craftez des objets pour
+            gagner de l'argent et de l'expérience de métier.
+        jobs:
+          title: Métiers & Spawners
+          desc: Progressez dans vos métiers (<code>/jobs</code>) pour devenir le meilleur
+            artisan du serveur. De plus, vous avez la capacité de récupérer les <strong>Spawners</strong>
+            avec une pioche Silk Touch et de les replacer n'importe où pour vos fermes
+            personnelles !
+        bluemap:
+          title: Intégration BlueMap
+          desc: Visualisez le monde en 3D depuis votre navigateur grâce à BlueMap.
+            L'intégration au panel permet même aux administrateurs de traquer les
+            joueurs en temps réel si besoin.
+        loot:
+          title: Têtes de Monstres & Loot Personnalisé
+          desc: Collectionnez les têtes des monstres que vous tuez, et profitez d'un
+            système de coffres personnalisés (Loot) instanciés pour chaque joueur.
+            Les premiers arrivés ne volent plus tout le loot !
+        guilds:
+          title: Guildes & Quêtes Hebdomadaires
+          desc: Créez votre propre Guilde (<code>/team</code>) et invitez vos amis.
+            Ensemble, participez à la quête hebdomadaire pour gagner des récompenses
+            exclusives et monter en haut du classement global !
+        locks:
+          title: Verrous de Coffres (Locks)
+          desc: Sécurisez vos coffres avec la commande <code>/lock</code>. Vous pouvez
+            créer des verrous privés, ou utiliser <code>/lock guild</code> pour partager
+            l'accès à un coffre avec tous les membres de votre guilde.
+        discord:
+          title: Pont Discord-Minecraft
+          desc: Le serveur Discord et le jeu sont entièrement reliés. Vous pouvez
+            lier votre compte via <code>/discord link</code>. Le chat est synchronisé
+            dans les deux sens et affiche même vos grades et votre guilde !

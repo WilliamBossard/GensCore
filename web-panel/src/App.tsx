@@ -22,7 +22,6 @@ interface ConfigState {
   minigameWheelEnabled: boolean;
   minigameCasinoEnabled: boolean;
   publicFeaturesText: string;
-  bluemapEnabled: boolean;
   bluemapUrl: string;
   serverIp: string;
   tombBlockType: string;
@@ -118,7 +117,6 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     minigameWheelEnabled: true,
     minigameCasinoEnabled: true,
     publicFeaturesText: "",
-    bluemapEnabled: true,
     bluemapUrl: "http://localhost:8100",
     serverIp: "gens-core.duckdns.org",
     tombBlockType: "CHEST",
@@ -227,13 +225,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                   <label>Taxe de l'Hôtel des Ventes (en %)</label>
                   <input type="number" step="0.1" value={config.ahTaxPercentage} onChange={e => setConfig({...config, ahTaxPercentage: parseFloat(e.target.value)})} required className="login-input" />
                 </div>
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row' }}>
-                  <label className="switch">
-                    <input type="checkbox" checked={config.bluemapEnabled !== false} onChange={e => setConfig({...config, bluemapEnabled: e.target.checked})} />
-                    <span className="slider"></span>
-                  </label>
-                  <span style={{ fontWeight: 500 }}>Activer BlueMap</span>
-                </div>
+
                 <div className="form-group">
                   <label>URL BlueMap (IP Serveur)</label>
                   <input type="text" value={config.bluemapUrl || ""} onChange={e => setConfig({...config, bluemapUrl: e.target.value})} required className="login-input" />
@@ -999,7 +991,7 @@ function AdminShop({ password }: { password: string }) {
                       setCmdExec(item.commandToExecute || '');
                       setIsEnabled(item.isEnabled ?? true);
                       setShowItemModal(true);
-                    }} style={{marginRight: '10px', background: 'var(--accent)', color: 'black'}}>�0diter</button>
+                    }} style={{marginRight: '10px', background: 'var(--accent)', color: 'black'}}>Éditer</button>
                     <button className="btn-icon" onClick={() => deleteItem(cat.id, item.material)} title="Supprimer"><Trash2 size={18}/></button>
                   </td>
                 </tr>
@@ -1093,7 +1085,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
                       <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>Invendable</div>
                     )}
                     {item.isCommand && (
-                      <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '5px', fontWeight: 'bold'}}>�S� Grade / Commande</div>
+                      <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '5px', fontWeight: 'bold'}}>🌟 Grade / Commande</div>
                     )}
                   </div>
                 ))}
@@ -1227,7 +1219,8 @@ export function ClientMap() {
   );
 }
 
-export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
+function Leaderboard({ isEnabled }: { isEnabled?: boolean }) {
+  const { t } = useTranslation();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -1244,21 +1237,20 @@ export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
 
   if (isEnabled === false) {
     return (
-      <div style={{textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)'}}>
-        <Target size={48} style={{opacity: 0.5, marginBottom: '1rem'}} />
-        <h2>Classement Désactivé</h2>
-        <p>Le module de statistiques est actuellement désactivé par l'administrateur.</p>
+      <div style={{padding: '4rem 2rem', textAlign: 'center', color: 'var(--text-muted)'}}>
+        <h2>{t('web.public.leaderboard_title')}</h2>
+        <p>{t('web.public.stats_disabled')}</p>
       </div>
     );
   }
 
-  if (loading) return <div className="loading">Chargement du Classement...</div>;
+  if (loading) return <div className="loading">{t('web.public.loading')}</div>;
 
   return (
     <div>
       <div className="client-hero" style={{padding: '2rem 0'}}>
-        <h2>Classement Global des Joueurs</h2>
-        <p>Les meilleurs joueurs du serveur avec leurs statistiques détaillées</p>
+        <h2>{t('web.public.leaderboard_title')}</h2>
+        <p>{t('web.public.leaderboard_subtitle')}</p>
       </div>
 
       <div style={{maxWidth: '1000px', margin: '0 auto', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem', overflowX: 'auto'}}>
@@ -1266,11 +1258,11 @@ export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
           <thead>
             <tr>
               <th style={{width: '50px', textAlign: 'center'}}>#</th>
-              <th>Joueur</th>
-              <th style={{textAlign: 'right'}}>Quêtes</th>
-              <th style={{textAlign: 'right'}}>Blocs Minés</th>
-              <th style={{textAlign: 'right'}}>Mobs Tués</th>
-              <th style={{textAlign: 'right'}}>Temps de jeu (h)</th>
+              <th>{t('web.public.table_player')}</th>
+              <th style={{textAlign: 'right'}}>{t('web.public.table_quests')}</th>
+              <th style={{textAlign: 'right'}}>{t('web.public.table_blocks')}</th>
+              <th style={{textAlign: 'right'}}>{t('web.public.table_mobs')}</th>
+              <th style={{textAlign: 'right'}}>{t('web.public.table_playtime')}</th>
             </tr>
           </thead>
           <tbody>
@@ -1300,7 +1292,7 @@ export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
             {leaderboard.length === 0 && (
               <tr>
                 <td colSpan={6} style={{textAlign: 'center', padding: '2rem', color: 'var(--text-muted)'}}>
-                  Aucun joueur enregistré pour le moment.
+                  {t('web.public.table_empty')}
                 </td>
               </tr>
             )}
@@ -1312,6 +1304,7 @@ export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
 }
 
 function PublicHome({ playerData }: { playerData: any }) {
+  const { t } = useTranslation();
   const [featuresText, setFeaturesText] = useState('');
   const [serverIp, setServerIp] = useState('gens-core.duckdns.org');
 
@@ -1339,36 +1332,36 @@ function PublicHome({ playerData }: { playerData: any }) {
         {playerData ? (
           <Link to="/dashboard" className="btn" style={{display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 20px', background: 'var(--card-bg)', border: '1px solid var(--card-border)'}}>
             <img src={`https://mc-heads.net/avatar/${playerData.username}`} alt="avatar" style={{width: '24px', height: '24px', borderRadius: '4px'}} />
-            Mon Profil
+            {t('web.public.profile_btn')}
           </Link>
         ) : (
-          <Link to="/login" className="btn">Se Connecter</Link>
+          <Link to="/login" className="btn">{t('web.auth.login_btn')}</Link>
         )}
       </header>
 
       <main style={{flex: 1, padding: '4rem 2rem', maxWidth: '1000px', margin: '0 auto', width: '100%'}}>
         <div className="client-hero" style={{textAlign: 'center', marginBottom: '4rem', padding: '5rem 2rem', background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, rgba(0,0,0,0) 100%)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)'}}>
-          <h2 style={{fontSize: '4.5rem', marginBottom: '1.5rem', background: 'linear-gradient(to right, #a855f7, #3b82f6)', WebkitBackgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))'}}>Bienvenue sur le Serveur</h2>
-          <p style={{fontSize: '1.3rem', color: 'var(--text-muted)', maxWidth: '650px', margin: '0 auto'}}>Rejoignez l'aventure dès maintenant !<br/><strong style={{color: '#fff', fontSize: '1.5rem', display: 'block', marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)'}}>IP : {serverIp}</strong></p>
+          <h2 style={{fontSize: '4.5rem', marginBottom: '1.5rem', background: 'linear-gradient(to right, #a855f7, #3b82f6)', WebkitBackgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))'}}>{t('web.public.hero_title')}</h2>
+          <p style={{fontSize: '1.3rem', color: 'var(--text-muted)', maxWidth: '650px', margin: '0 auto'}}>{t('web.public.hero_subtitle')}<br/><strong style={{color: '#fff', fontSize: '1.5rem', display: 'block', marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)'}}>{t('web.public.ip')}: {serverIp}</strong></p>
         </div>
 
         <div className="admin-card" style={{padding: '3rem', position: 'relative', overflow: 'hidden'}}>
           <div style={{position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--accent)'}}></div>
           <h2 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}>
-            <FileText color="var(--accent)"/> Fonctionnalités & Nouveautés
+            <FileText color="var(--accent)"/> {t('web.public.features_title')}
           </h2>
           <div style={{lineHeight: '1.8', fontSize: '1.1rem', color: 'var(--text-muted)', whiteSpace: 'pre-wrap'}}>
-            {featuresText || "Chargement..."}
+            {featuresText || t('web.public.loading')}
           </div>
           <div style={{marginTop: '2rem', textAlign: 'center'}}>
-            <Link to="/docs" className="btn" style={{padding: '12px 30px', fontSize: '1.1rem'}}>En savoir plus sur nos systèmes</Link>
+            <Link to="/docs" className="btn" style={{padding: '12px 30px', fontSize: '1.1rem'}}>{t('web.public.learn_more')}</Link>
           </div>
         </div>
       </main>
 
       <footer style={{textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', borderTop: '1px solid var(--card-border)'}}>
         <p style={{marginBottom: '1rem'}}>GensCore © 2026</p>
-        <Link to="/admin" style={{color: 'var(--text-muted)', textDecoration: 'underline', fontSize: '0.9rem'}}>Accès Administrateur</Link>
+        <Link to="/admin" style={{color: 'var(--text-muted)', textDecoration: 'underline', fontSize: '0.9rem'}}>{t('web.public.admin_access')}</Link>
       </footer>
     </div>
   );

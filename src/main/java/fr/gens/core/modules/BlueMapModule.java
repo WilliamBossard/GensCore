@@ -30,11 +30,6 @@ public class BlueMapModule implements Module, Listener {
 
     @Override
     public void enable() {
-        if (!plugin.getConfig().getBoolean("bluemap.enabled", true)) {
-            enabled = false;
-            return;
-        }
-        
         enabled = true;
         // Ne rien faire si le serveur s'arrête
         if (!plugin.isEnabled()) return;

@@ -1,39 +1,106 @@
 web:
   dashboard:
-    title: "Dashboard"
-    balance: "Current Balance"
-    guild: "Guild"
-    rank: "Rank:"
-    web_inventory: "Web Inventory"
-    web_inventory_desc: "Retrieve your items bought or won on the web."
-    open_inventory: "Open Inventory"
-    no_guild: "None"
+    title: Dashboard
+    balance: Current Balance
+    guild: Guild
+    rank: 'Rank:'
+    web_inventory: Web Inventory
+    web_inventory_desc: Retrieve your items bought or won on the web.
+    open_inventory: Open Inventory
+    no_guild: None
   nav:
-    shop: "Dynamic Shop"
-    ah: "Auction House"
-    map: "World Map"
-    stats: "My Statistics"
-    games: "Web Mini-Games"
-    jobs: "Legends"
-    admin: "Admin Panel"
-    logout: "Logout"
-    new: "NEW"
-    admin_tag: "ADMIN"
+    shop: Dynamic Shop
+    ah: Auction House
+    map: World Map
+    stats: My Statistics
+    games: Web Mini-Games
+    jobs: Legends
+    admin: Admin Panel
+    logout: Logout
+    new: NEW
+    admin_tag: ADMIN
   auth:
-    login_title: "Web Panel Login"
-    username: "Minecraft Username"
-    password: "Password (/register)"
-    login_btn: "Login"
-    logging_in: "Logging in..."
+    login_title: Web Panel Login
+    username: Minecraft Username
+    password: Password (/register)
+    login_btn: Login
+    logging_in: Logging in...
   admin:
-    title: "Admin Panel"
+    title: Admin Panel
     tabs:
-      modules: "Modules"
-      settings: "Settings"
-      web_inv: "Web Inv."
-      ranks: "Ranks"
-    save: "Save"
-    saving: "Saving..."
+      modules: Modules
+      settings: Settings
+      web_inv: Web Inv.
+      ranks: Ranks
+    save: Save
+    saving: Saving...
   common:
-    error: "Error"
-    success: "Success"
+    error: Error
+    success: Success
+  public:
+    hero_title: Welcome to the Server
+    hero_subtitle: Join the adventure right now!
+    ip: IP
+    features_title: Features & News
+    loading: Loading...
+    learn_more: Learn more about our systems
+    admin_access: Administrator Access
+    leaderboard_title: Global Player Leaderboard
+    leaderboard_subtitle: The best players on the server with their detailed statistics
+    stats_disabled: The statistics module is currently disabled by the administrator.
+    table_player: Player
+    table_quests: Quests
+    table_blocks: Blocks Broken
+    table_mobs: Mobs Killed
+    table_playtime: Playtime (h)
+    table_empty: No players registered yet.
+    profile_btn: My Profile
+    docs:
+      title: Complete Documentation
+      subtitle: Discover all the exclusive features of the Gens server.
+      back_btn: Back to Home
+      sections:
+        management:
+          title: Autonomous Management System
+          desc: The server has a unique web panel system allowing the owner to manage
+            players, the shop, the economy, and server settings <strong>in real time</strong>
+            without needing to restart.
+        economy:
+          title: Economy & Dynamic Shop
+          desc: The economy reacts to player actions. Shop prices (<code>/shop</code>)
+            automatically adjust according to supply and demand. You can also sell
+            items to other players via the Auction House (<code>/ah</code>).
+        quests:
+          title: Daily Quests
+          desc: Daily challenges (<code>/quests</code>) are generated for each player.
+            Kill monsters, mine blocks, or craft items to earn money and job experience.
+        jobs:
+          title: Jobs & Spawners
+          desc: Progress in your jobs (<code>/jobs</code>) to become the best craftsman
+            on the server. Plus, you have the ability to retrieve <strong>Spawners</strong>
+            with a Silk Touch pickaxe and place them anywhere for your personal farms!
+        bluemap:
+          title: BlueMap Integration
+          desc: Visualize the world in 3D from your browser thanks to BlueMap. Panel
+            integration even allows administrators to track players in real time if
+            needed.
+        loot:
+          title: Monster Heads & Custom Loot
+          desc: Collect the heads of monsters you kill, and enjoy a custom instantiated
+            chest (Loot) system for each player. First comers no longer steal all
+            the loot!
+        guilds:
+          title: Guilds & Weekly Quests
+          desc: Create your own Guild (<code>/team</code>) and invite your friends.
+            Together, participate in the weekly quest to earn exclusive rewards and
+            climb to the top of the global leaderboard!
+        locks:
+          title: Chest Locks (Locks)
+          desc: Secure your chests with the <code>/lock</code> command. You can create
+            private locks, or use <code>/lock guild</code> to share access to a chest
+            with all members of your guild.
+        discord:
+          title: Discord-Minecraft Bridge
+          desc: The Discord server and the game are fully linked. You can link your
+            account via <code>/discord link</code>. Chat is synced both ways and even
+            displays your ranks and guild!
