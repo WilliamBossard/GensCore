@@ -35,17 +35,19 @@ public class CorePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        // 1. Initialiser le LangManager EN PREMIER car les autres en ont besoin pour logger
+        this.langManager = new fr.gens.core.utils.LangManager(this);
+        
+        getLangManager().sendConsoleMessage("core.startup_header");
+
         this.storageManager = new StorageManager(this);
         this.databaseManager = new DatabaseManager(this);
-        this.langManager = new fr.gens.core.utils.LangManager(this);
         this.teamManager = new TeamManager(this);
         this.teamQuestManager = new fr.gens.core.modules.teams.TeamQuestManager(this);
         this.actionBarManager = new ActionBarManager(this);
         this.actionBarManager.start();
         
-        getLangManager().sendConsoleMessage("core.startup_header");
-
-        // 1. Initialiser le gestionnaire de modules
+        // 2. Initialiser le gestionnaire de modules
         this.moduleManager = new ModuleManager(this);
         
         // 2. Enregistrer les modules
