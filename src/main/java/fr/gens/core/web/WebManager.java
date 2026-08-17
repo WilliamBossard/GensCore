@@ -31,10 +31,28 @@ public class WebManager {
     private final CorePlugin plugin;
     private final int port;
     private Javalin app;
+    private String[] corsOrigins;
 
     public WebManager(CorePlugin plugin, int port) {
         this.plugin = plugin;
         this.port = port;
+    }
+
+    public void setCorsOrigins(String[] origins) {
+        this.corsOrigins = origins;
+    }
+
+    private java.util.Map<String, Object> convertToMap(org.bukkit.configuration.ConfigurationSection section) {
+        java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+        for (String key : section.getKeys(false)) {
+            Object value = section.get(key);
+            if (value instanceof org.bukkit.configuration.ConfigurationSection) {
+                map.put(key, convertToMap((org.bukkit.configuration.ConfigurationSection) value));
+            } else {
+                map.put(key, value);
+            }
+        }
+        return map;
     }
 
     public void start() {
@@ -234,18 +252,21 @@ public class WebManager {
         // API de Langue
         app.get("/api/public/lang", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
-            String lang = ctx.queryParam("lang");
-            if (lang == null) lang = plugin.getConfig().getString("lang", "fr_FR");
             
-            java.io.File langFile = new java.io.File(plugin.getDataFolder() + java.io.File.separator + "lang", lang + ".yml");
+            String forceLang = plugin.getConfig().getString("web.force_lang", "");
+            String lang = (forceLang != null && !forceLang.isEmpty()) ? forceLang : ctx.queryParam("lang");
+            if (lang == null || lang.isEmpty() || lang.equals("dev")) lang = plugin.getConfig().getString("lang", "fr_FR");
+            if (lang.contains("-")) lang = lang.replace("-", "_"); // i18next envoie fr-FR parfois
+            
+            java.io.File langFile = new java.io.File(plugin.getDataFolder() + java.io.File.separator + "lang", "web_" + lang + ".yml");
             if (!langFile.exists()) {
-                langFile = new java.io.File(plugin.getDataFolder() + java.io.File.separator + "lang", "fr_FR.yml");
+                langFile = new java.io.File(plugin.getDataFolder() + java.io.File.separator + "lang", "web_fr_FR.yml");
             }
             if (langFile.exists()) {
                 org.bukkit.configuration.file.FileConfiguration langConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(langFile);
-                ctx.json(langConfig.getValues(true)); // Transforme les clés YAML en JSON "a.b": "value"
+                ctx.json(convertToMap(langConfig));
             } else {
-                ctx.status(404).json("Language file not found");
+                ctx.status(404).json(new java.util.HashMap<>()); // Retourne objet vide au lieu d'une erreur
             }
         });
 

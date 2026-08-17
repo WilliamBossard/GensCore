@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import './i18n';
 import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, TrendingUp, Shield, ToggleLeft, ToggleRight, FileText, Target, Gamepad2, Users, UserX, Gavel, Mic, MicOff, MessageSquare, Menu, X } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PlayerLogin, PlayerDashboard } from './PlayerPortal';
@@ -55,6 +57,7 @@ const API_URL = '/api';
 
 // === COMPOSANT : LOGIN ADMIN ===
 function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -67,10 +70,10 @@ function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
       if (res.ok) {
         onLogin(password);
       } else {
-        setError('Mot de passe incorrect');
+        setError(t("web.auth.invalid_password") || "Invalid password");
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      setError(t("web.auth.connection_error") || "Connection error");
     }
   };
 
@@ -78,19 +81,19 @@ function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-icon"><Lock size={48} /></div>
-        <h2>Accès Administrateur</h2>
-        <p>Veuillez entrer le mot de passe défini dans config.yml</p>
+        <h2>{t('web.auth.login_title')}</h2>
+        <p>GensCore Admin</p>
         
         <form onSubmit={handleSubmit}>
           <input 
             type="password" 
-            placeholder="Mot de passe..." 
+            placeholder={t("web.auth.password")} 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="login-input"
           />
           {error && <div className="login-error">{error}</div>}
-          <button type="submit" className="login-button">Connexion</button>
+          <button type="submit" className="login-button">{t("web.auth.login_btn")}</button>
         </form>
       </div>
     </div>
@@ -99,6 +102,7 @@ function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
 
 // === COMPOSANT : VUE ADMIN (LAYOUT AVEC SIDEBAR) ===
 function AdminLayout({ password, onLogout }: { password: string, onLogout: () => void }) {
+  const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'shop' | 'settings' | 'modules' | 'files' | 'players' | 'content'>((localStorage.getItem('gens_admin_tab') as any) || 'shop');
   const [config, setConfig] = useState<ConfigState>({
@@ -181,15 +185,15 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
           </button>
         </div>
         <nav className="admin-nav">
-          <a style={{cursor: 'pointer'}} className={activeTab === 'shop' ? 'active' : ''} onClick={() => { setActiveTab('shop'); setIsSidebarOpen(false); }}><ShoppingCart size={18}/> Boutique</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'modules' ? 'active' : ''} onClick={() => { setActiveTab('modules'); setIsSidebarOpen(false); }}><Package size={18}/> Modules</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'files' ? 'active' : ''} onClick={() => { setActiveTab('files'); setIsSidebarOpen(false); }}><FileText size={18}/> Fichiers (Avancé)</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'settings' ? 'active' : ''} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}><Settings size={18}/> Paramètres</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'players' ? 'active' : ''} onClick={() => { setActiveTab('players'); setIsSidebarOpen(false); }}><Users size={18}/> Joueurs</a>
-          <a style={{cursor: 'pointer'}} className={activeTab === 'content' ? 'active' : ''} onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}><FileText size={18}/> Page d'Accueil</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'shop' ? 'active' : ''} onClick={() => { setActiveTab('shop'); setIsSidebarOpen(false); }}><ShoppingCart size={18}/> {t("web.admin.tabs.shop") || "Shop"}</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'modules' ? 'active' : ''} onClick={() => { setActiveTab('modules'); setIsSidebarOpen(false); }}><Package size={18}/> {t("web.admin.tabs.modules") || "Modules"}</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'files' ? 'active' : ''} onClick={() => { setActiveTab('files'); setIsSidebarOpen(false); }}><FileText size={18}/> {t("web.admin.tabs.files") || "Files"}</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'settings' ? 'active' : ''} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}><Settings size={18}/> {t("web.admin.tabs.settings") || "Settings"}</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'players' ? 'active' : ''} onClick={() => { setActiveTab('players'); setIsSidebarOpen(false); }}><Users size={18}/> {t("web.admin.tabs.players") || "Players"}</a>
+          <a style={{cursor: 'pointer'}} className={activeTab === 'content' ? 'active' : ''} onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}><FileText size={18}/> {t("web.admin.tabs.content") || "Content"}</a>
         </nav>
         <div className="admin-sidebar-footer">
-          <button className="logout-button" onClick={onLogout}><LogOut size={18}/> Quitter</button>
+          <button className="logout-button" onClick={onLogout}><LogOut size={18}/> {t("web.nav.logout")}</button>
         </div>
       </aside>
       
@@ -757,6 +761,7 @@ function AdminModules({ password }: { password: string }) {
 
 // === COMPOSANT : GESTION DE LA BOUTIQUE ===
 function AdminShop({ password }: { password: string }) {
+
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEcoEnabled, setIsEcoEnabled] = useState(true);

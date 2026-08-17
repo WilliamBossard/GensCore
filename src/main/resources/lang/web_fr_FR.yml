@@ -1,0 +1,39 @@
+web:
+  dashboard:
+    title: "Tableau de Bord"
+    balance: "Solde Actuel"
+    guild: "Guilde"
+    rank: "Grade :"
+    web_inventory: "Inventaire Web"
+    web_inventory_desc: "Récupérez vos objets achetés ou gagnés sur le web."
+    open_inventory: "Ouvrir l'Inventaire"
+    no_guild: "Aucune"
+  nav:
+    shop: "Boutique Dynamique"
+    ah: "Hôtel des Ventes"
+    map: "Carte du Monde"
+    stats: "Mes Statistiques"
+    games: "Mini-Jeux Web"
+    jobs: "Légendes"
+    admin: "Panel Administrateur"
+    logout: "Déconnexion"
+    new: "NOUVEAU"
+    admin_tag: "ADMIN"
+  auth:
+    login_title: "Connexion au Web Panel"
+    username: "Pseudo Minecraft"
+    password: "Mot de passe (/register)"
+    login_btn: "Se Connecter"
+    logging_in: "Connexion..."
+  admin:
+    title: "Panel Administrateur"
+    tabs:
+      modules: "Modules"
+      settings: "Paramètres"
+      web_inv: "Inv. Web"
+      ranks: "Grades"
+    save: "Sauvegarder"
+    saving: "Sauvegarde..."
+  common:
+    error: "Erreur"
+    success: "Succès"

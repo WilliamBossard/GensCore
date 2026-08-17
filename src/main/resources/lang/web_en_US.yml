@@ -1,0 +1,39 @@
+web:
+  dashboard:
+    title: "Dashboard"
+    balance: "Current Balance"
+    guild: "Guild"
+    rank: "Rank:"
+    web_inventory: "Web Inventory"
+    web_inventory_desc: "Retrieve your items bought or won on the web."
+    open_inventory: "Open Inventory"
+    no_guild: "None"
+  nav:
+    shop: "Dynamic Shop"
+    ah: "Auction House"
+    map: "World Map"
+    stats: "My Statistics"
+    games: "Web Mini-Games"
+    jobs: "Legends"
+    admin: "Admin Panel"
+    logout: "Logout"
+    new: "NEW"
+    admin_tag: "ADMIN"
+  auth:
+    login_title: "Web Panel Login"
+    username: "Minecraft Username"
+    password: "Password (/register)"
+    login_btn: "Login"
+    logging_in: "Logging in..."
+  admin:
+    title: "Admin Panel"
+    tabs:
+      modules: "Modules"
+      settings: "Settings"
+      web_inv: "Web Inv."
+      ranks: "Ranks"
+    save: "Save"
+    saving: "Saving..."
+  common:
+    error: "Error"
+    success: "Success"

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package } from 'lucide-react';
 import { Route, Routes, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
 import { ClientJobs } from './ClientJobs';
 
@@ -464,6 +465,7 @@ function PlayerGames({ uuid }: { uuid: string }) {
 }
 
 export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onLogout: () => void }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [modules, setModules] = useState<any[]>([]);
@@ -497,23 +499,23 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
         </div>
         
         <nav className="admin-nav" style={{marginTop: '2rem'}}>
-          <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}><ShoppingCart size={18}/> Boutique Dynamique</Link>
-          <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''}><ShoppingCart size={18}/> Hôtel des Ventes</Link>
-          {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''}><Map size={18}/> Carte du Monde</Link>}
-          <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''}><BarChart2 size={18}/> Mes Statistiques</Link>
-          <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''}><Gamepad2 size={18}/> Mini-Jeux Web <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>NOUVEAU</span></Link>
-          <Link to="/dashboard/jobs" className={location.pathname === '/dashboard/jobs' ? 'active' : ''}><Target size={18}/> Légendes</Link>
+          <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}><ShoppingCart size={18}/> {t('web.nav.shop')}</Link>
+          <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
+          {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''}><Map size={18}/> {t('web.nav.map')}</Link>}
+          <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''}><BarChart2 size={18}/> {t('web.nav.stats')}</Link>
+          <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''}><Gamepad2 size={18}/> {t('web.nav.games')} <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>{t('web.nav.new')}</span></Link>
+          <Link to="/dashboard/jobs" className={location.pathname === '/dashboard/jobs' ? 'active' : ''}><Target size={18}/> {t('web.nav.jobs')}</Link>
           
           {playerData.isOp && (
             <div style={{marginTop: '2rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem'}}>
-              <Link to="/admin" className={location.pathname.startsWith('/admin') ? 'active' : ''} style={{color: '#fbbf24'}}><Shield size={18}/> Panel Administrateur</Link>
+              <Link to="/admin" className={location.pathname.startsWith('/admin') ? 'active' : ''} style={{color: '#fbbf24'}}><Shield size={18}/> {t('web.nav.admin')}</Link>
             </div>
           )}
           
           <button onClick={onLogout} style={{marginTop: 'auto', background: 'transparent', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', width: '100%', borderRadius: '8px', transition: 'background 0.2s'}} 
             onMouseOver={e=>e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'} 
             onMouseOut={e=>e.currentTarget.style.background='transparent'}>
-            <LogOut size={18}/> Déconnexion
+            <LogOut size={18}/> {t('web.nav.logout')}
           </button>
         </nav>
       </aside>

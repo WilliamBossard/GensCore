@@ -3,9 +3,16 @@ lang: "en_US"
 # Administrative Web Panel Configuration
 web:
   # Enable or disable the web panel
-  enabled: false
+  enabled: true
   # Port on which the panel will be accessible (e.g., http://server-ip:8080)
   port: 8080
+  # Force a specific language for the web panel (e.g. "fr_FR" or "en_US"). Leave empty to detect user's browser language.
+  force_lang: ""
+
+# MOTD
+motd:
+  line1: '&#00aaff&lA Minecraft Server'
+  line2: '&7&l>> &ePowered by GensCore'
 
 # Password to access the Admin Web Panel
 admin-password: "gens"
