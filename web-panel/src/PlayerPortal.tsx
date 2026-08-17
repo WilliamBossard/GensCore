@@ -486,7 +486,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
   return (
     <div className="admin-layout">
       {/* Sidebar Mobile Toggle */}
-      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{position: 'fixed', top: '15px', right: '15px', zIndex: 101, background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', cursor: 'pointer', display: 'none'}}>
+      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{position: 'fixed', top: '15px', left: '15px', zIndex: 101, background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', cursor: 'pointer', display: 'none'}}>
         {sidebarOpen ? <X size={24}/> : <Menu size={24}/>}
       </button>
 
@@ -531,13 +531,13 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
       {/* Main Content */}
       <main className="admin-main">
         <Routes>
-          <Route path="/" element={<ClientShop isEnabled={isModuleEnabled('DynamicShop')} />} />
-          <Route path="/ah" element={<ClientAh isEnabled={isModuleEnabled('AuctionHouse')} />} />
-          <Route path="/quests" element={<ClientQuests isEnabled={isModuleEnabled('Quests')} />} />
-          <Route path="/jobs" element={<ClientJobs />} />
-          <Route path="/map" element={<ClientMap />} />
-          <Route path="/stats" element={<PlayerStats uuid={playerData.uuid} isEcoEnabled={isModuleEnabled('Economy')} />} />
-          <Route path="/games" element={<PlayerGames uuid={playerData.uuid} />} />
+          <Route index element={<ClientShop isEnabled={isModuleEnabled('DynamicShop')} />} />
+          <Route path="ah" element={<ClientAh isEnabled={isModuleEnabled('AuctionHouse')} />} />
+          <Route path="quests" element={<ClientQuests isEnabled={isModuleEnabled('Quests')} />} />
+          <Route path="jobs" element={<ClientJobs />} />
+          <Route path="map" element={<ClientMap />} />
+          <Route path="stats" element={<PlayerStats uuid={playerData.uuid} isEcoEnabled={isModuleEnabled('Economy')} />} />
+          <Route path="games" element={<PlayerGames uuid={playerData.uuid} />} />
         </Routes>
       </main>
     </div>

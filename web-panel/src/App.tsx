@@ -191,7 +191,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
           <a style={{cursor: 'pointer'}} className={activeTab === 'content' ? 'active' : ''} onClick={() => { setActiveTab('content'); setIsSidebarOpen(false); }}><FileText size={18}/> {t("web.admin.tabs.content") || "Content"}</a>
         </nav>
         <div className="admin-sidebar-footer" style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-          <a href="/" className="logout-button" style={{textDecoration: 'none'}}><Gamepad2 size={18}/> {t("web.admin.tabs.back_to_game") || "Retour au Jeu"}</a>
+          <Link to="/dashboard" className="logout-button" style={{textDecoration: 'none'}}><Gamepad2 size={18}/> {t("web.admin.tabs.back_to_game") || "Retour au Jeu"}</Link>
           <button className="logout-button" onClick={onLogout}><LogOut size={18}/> {t("web.nav.logout")}</button>
         </div>
       </aside>
@@ -1115,41 +1115,43 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
         <p>{t('web.public.shop.subtitle')}</p>
       </div>
 
-      <div style={{display: 'flex', gap: '2rem', alignItems: 'flex-start'}}>
-        <div style={{flex: 1}}>
-          {categories.map(cat => (
-            <div key={cat.id} className="shop-category-card">
-              <div className="shop-category-header">
-                <h3>{cat.displayName}</h3>
+      <div className="dashboard-split" style={{display: 'grid', gridTemplateColumns: categories.length > 0 ? '1fr 1fr' : '1fr', gap: '2rem', alignItems: 'flex-start'}}>
+        {categories.length > 0 && (
+          <div style={{display: 'flex', flexDirection: 'column', gap: '2rem'}}>
+            {categories.map(cat => (
+              <div key={cat.id} className="shop-category-card">
+                <div className="shop-category-header">
+                  <h3>{cat.displayName}</h3>
+                </div>
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+                  {(cat.items || []).filter(i => i.isEnabled !== false).map(item => (
+                    <div 
+                      key={item.material} 
+                      style={{
+                        background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer',
+                        border: selectedItem?.material === item.material ? '1px solid var(--accent)' : '1px solid transparent'
+                      }}
+                      onClick={() => loadHistory(item)}
+                    >
+                      <div style={{fontWeight: 600, marginBottom: '5px'}}>{item.material}</div>
+                      <div style={{fontSize: '0.9rem', color: 'green'}}>{t('web.public.shop.buy')}: {item.currentBuyPrice?.toFixed(2)} $</div>
+                      {item.baseSellPrice > 0 ? (
+                        <div style={{fontSize: '0.9rem', color: 'red'}}>{t('web.public.shop.sell')}: {item.currentSellPrice?.toFixed(2)} $</div>
+                      ) : (
+                        <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>{t('web.public.shop.unsellable')}</div>
+                      )}
+                      {item.isCommand && (
+                        <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '5px', fontWeight: 'bold'}}>🌟 {t('web.public.shop.command_tag')}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
-                {(cat.items || []).filter(i => i.isEnabled !== false).map(item => (
-                  <div 
-                    key={item.material} 
-                    style={{
-                      background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer',
-                      border: selectedItem?.material === item.material ? '1px solid var(--accent)' : '1px solid transparent'
-                    }}
-                    onClick={() => loadHistory(item)}
-                  >
-                    <div style={{fontWeight: 600, marginBottom: '5px'}}>{item.material}</div>
-                    <div style={{fontSize: '0.9rem', color: 'green'}}>{t('web.public.shop.buy')}: {item.currentBuyPrice?.toFixed(2)} $</div>
-                    {item.baseSellPrice > 0 ? (
-                      <div style={{fontSize: '0.9rem', color: 'red'}}>{t('web.public.shop.sell')}: {item.currentSellPrice?.toFixed(2)} $</div>
-                    ) : (
-                      <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>{t('web.public.shop.unsellable')}</div>
-                    )}
-                    {item.isCommand && (
-                      <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '5px', fontWeight: 'bold'}}>🌟 {t('web.public.shop.command_tag')}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        <div style={{flex: 1, background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem', position: 'sticky', top: '2rem'}}>
+        <div style={{background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem', position: 'sticky', top: '2rem'}}>
           <h3 style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem'}}>
             <TrendingUp size={20} color="var(--accent)" /> 
             {selectedItem ? `${t('web.public.shop.history')} : ${selectedItem.material}` : t('web.public.shop.select_item')}
