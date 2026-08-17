@@ -2,71 +2,82 @@
 
 ![GensCore Banner](https://img.shields.io/badge/GensCore-Paper_Plugin-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.1+-red.svg)
 
-**GensCore** est un plugin de base ultra-complet developpe specifiquement pour le serveur Survie/Faction *GensBien*. Il regroupe toutes les mecaniques essentielles du serveur en un seul plugin optimise, offrant ainsi d'excellentes performances tout en evitant d'avoir a gerer des dizaines de petits plugins separes.
+**GensCore** is a comprehensive core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all the essential server mechanics into a single, optimized plugin, offering excellent performance while avoiding the need to manage dozens of separate small plugins.
 
-## Fonctionnalites Incluses
+## Included Features
 
-Ce plugin est modulable et gere les aspects suivants du serveur :
-* **Economie & Metiers (Jobs) :** Gestion de l'argent (`/money`, `/pay`) et des metiers.
-* **Guildes (Teams) :** Creation, invitation et gestion des guildes (`/team`).
-* **Quetes & Statistiques :** Quetes journalieres et statistiques globales des joueurs.
-* **Web Panel & BlueMap :** Un panel d'administration Web reactif avec integration de BlueMap, tournant via Javalin.
-* **Discord Bot :** Synchronisation complete avec Discord via l'API JDA.
-* **Moderation :** Commandes de base (`/mute`, `/ban`, `/freeze`, `/openinv`).
-* **Utilitaires de Survie :** Commandes essentielles comme `/spawn`, `/sethome`, `/back`, `/tpa`, `/ec`.
-* **Loot & Spawners :** Systeme de loot personnalise et gestion des spawners.
+This plugin is modular and manages the following server aspects:
+* **Economy & Jobs:** Money management (`/money`, `/pay`) and job progression.
+* **Guilds (Teams):** Guild creation, invitation, and management (`/team`).
+* **Quests & Statistics:** Daily quests and global player statistics.
+* **Web Panel & BlueMap:** A reactive Web administration panel with BlueMap integration, running via Javalin.
+* **Discord Bot:** Full synchronization with Discord via the JDA API.
+* **Moderation:** Basic commands (`/mute`, `/ban`, `/freeze`, `/openinv`).
+* **Survival Utilities:** Essential commands like `/spawn`, `/sethome`, `/back`, `/tpa`, `/ec`.
+* **Loot & Spawners:** Custom loot system and spawner management.
 
 ---
 
-## Configuration & Reseaux (Ports)
+## Required Dependencies
 
-Afin d'eviter d'avoir des elements confidentiels ou des adresses codees en dur, GensCore repose entierement sur le fichier de configuration `plugins/GensCore/config.yml`. Celui-ci se genere automatiquement au premier lancement et inclut les parametres cruciaux.
+GensCore relies on the following plugins to function correctly:
+* **[LuckPerms](https://luckperms.net/):** Used to manage player ranks, prefixes in chat, and the Scoreboard. Without LuckPerms, GensCore cannot resolve player display names and permissions correctly.
+* **[Vault](https://dev.bukkit.org/projects/vault):** The standard economy and permissions API for Bukkit. GensCore hooks into Vault to allow compatibility with other plugins that might need to read or modify player balances.
+
+> **Note:** If either of these plugins is missing from your `plugins/` folder, GensCore will refuse to load to prevent severe errors during runtime.
+
+---
+
+## Configuration & Networks (Ports)
+
+To avoid hardcoded secrets or addresses, GensCore relies entirely on the `plugins/GensCore/config.yml` configuration file. It is automatically generated upon the first launch and includes crucial settings.
 
 ### Web Panel
-Le panel d'administration Web s'execute localement sur votre serveur Minecraft, en parallele du jeu, en utilisant **Javalin**. 
-- Le port par defaut est **8080**.
-- Il peut etre modifie via l'option `web.port: 8080` dans le `config.yml`.
-- Si votre serveur Minecraft tourne sur un hebergeur (Pterodactyl), vous devrez ouvrir un second port de libre et indiquer ce port dans la configuration pour que le Panel Web soit accessible.
+The Web administration panel runs locally on your Minecraft server, alongside the game, using **Javalin**.
+- The default port is **8080**.
+- It can be modified via the `web.port: 8080` option in `config.yml`.
+- If your Minecraft server runs on a host (like Pterodactyl), you will need to open a second free port and specify it in the configuration for the Web Panel to be accessible.
 
 ### Discord Bot
-Le module Discord necessite un Token de bot. Pour des raisons de securite, ce Token ne doit **jamais** etre partage ou hardcode dans le code source Java.
-- Indiquez-le via l'option `discord.bot_token: "VOTRE_TOKEN"` dans le `config.yml`.
+The Discord module requires a bot Token. For security reasons, this Token must **never** be shared or hardcoded in the Java source code.
+- Provide it via the `discord.bot_token: "YOUR_TOKEN"` option in `config.yml`.
 
 ### BlueMap
-Le Panel Web de GensCore integre une frame iFrame de BlueMap pour afficher la carte directement aux moderateurs.
-- Il recupere l'URL locale via `bluemap.url: "http://localhost:8100"` modifiable dans le `config.yml`.
+GensCore's Web Panel integrates a BlueMap iframe to display the live map directly to moderators.
+- It fetches the local URL via `bluemap.url: "http://localhost:8100"`, which is customizable in `config.yml`.
+- You can completely disable the BlueMap integration by setting `bluemap.enabled: false`.
 
 ---
 
-## Architecture Interne du Code
+## Internal Code Architecture
 
-Pour les developpeurs qui souhaitent modifier ou comprendre le plugin, voici les pilliers de l'architecture interne :
+For developers wishing to modify or understand the plugin, here are the pillars of its internal architecture:
 
-1. **Le `ModuleManager`** : C'est le systeme central. Au lieu d'avoir un plugin monolithique, GensCore est divise en de dizaines de "Modules" (comme `EconomyModule`, `TeamsModule`, `DiscordModule`). Ils heritent tous de l'interface `Module` et peuvent etre actives ou desactives dynamiquement.
-2. **La base de donnees locale (`DatabaseManager.java`)** : Pour rester autonome, GensCore n'utilise pas MySQL mais une base de donnees **SQLite locale** (`genscore.db`), qui sauvegarde tout : les soldes des joueurs, les inventaires des guildes, la progression des quetes, les historiques de connexion.
-3. **L'API Web REST (`WebManager.java` & `WebPlayerAPI.java`)** : Javalin est utilise en arriere-plan pour lever un micro-serveur HTTP sur le port 8080. Le code React du dossier `/web-panel` est compile et mis dans `/src/main/resources/public/`. A chaque fois qu'un admin va sur la page web, Javalin sert ces fichiers HTML/JS, et communique par API JSON avec React.
+1. **The `ModuleManager`**: This is the core system. Instead of being a monolithic plugin, GensCore is divided into dozens of "Modules" (such as `EconomyModule`, `TeamsModule`, `DiscordModule`). They all inherit from the `Module` interface and can be dynamically enabled or disabled.
+2. **Local Database (`DatabaseManager.java`)**: To remain autonomous, GensCore doesn't use MySQL but a **local SQLite database** (`genscore.db`), which saves everything: player balances, guild inventories, quest progression, and connection histories.
+3. **REST Web API (`WebManager.java` & `WebPlayerAPI.java`)**: Javalin is used in the background to spin up an HTTP micro-server on port 8080. The React code in the `/web-panel` folder is built and placed into `/src/main/resources/public/`. Every time an admin visits the web page, Javalin serves these HTML/JS files and communicates with React via a JSON API.
 
 ---
 
-## Compilation & Installation
+## Build & Installation
 
-Si vous souhaitez compiler GensCore, l'environnement ideal est **Java 21**, gere par **Maven**.
+If you wish to compile GensCore, the ideal environment is **Java 25**, managed by **Maven**.
 
-### Compilation Manuelle (Locale)
+### Manual Build (Local)
 ```bash
 git clone https://github.com/WilliamBossard/GensCore.git
 cd GensCore
-mvn clean package
+mvn clean package -DskipTests
 ```
-Le fichier final se trouvera dans `target/GensCore-1.0-SNAPSHOT-shaded.jar`. (Le plugin utilise le Maven Shade Plugin pour empaqueter les librairies externes comme Javalin et JDA directement dans l'archive).
+The final file will be located in `target/GensCore-1.0-SNAPSHOT.jar`.
 
-### Compilation via GitHub Actions
-GensCore possede un Workflow configure (dans `.github/workflows/release.yml`). 
-1. Allez sur votre Depot GitHub, dans l'onglet **"Actions"**.
-2. Selectionnez **"Build and Release GensCore"** a gauche.
-3. Cliquez sur **"Run workflow"**.
-4. GitHub va compiler le projet sur ses serveurs (gratuitement) en quelques secondes, puis creer un **Brouillon de Release (Draft Release)**. 
-5. Il ne vous reste plus qu'a telecharger le fichier `.jar` depuis la Release GitHub sans avoir besoin d'installer Java ou Maven sur votre ordinateur !
+### Build via GitHub Actions
+GensCore has a configured Workflow (in `.github/workflows/release.yml`).
+1. Go to your GitHub Repository, in the **"Actions"** tab.
+2. Select **"Build and Release GensCore"** on the left.
+3. Click on **"Run workflow"**.
+4. GitHub will compile the project on its servers (for free) in a few seconds, then create a **Draft Release**.
+5. All you have to do is download the `.jar` file from the GitHub Release without needing to install Java or Maven on your computer!
 
 ---
-*Plugin developpe avec passion pour GensBien.*
+*Plugin developed with passion for GensBien.*
