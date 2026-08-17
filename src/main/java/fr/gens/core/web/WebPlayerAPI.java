@@ -113,8 +113,15 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
 
-            String hashedInput = AuthModule.hashPassword(req.password, data.salt);
-            if (!hashedInput.equals(data.hash)) {
+            boolean isPasswordCorrect = false;
+            if (data.hash.startsWith("$2a$") || data.hash.startsWith("$2b$") || data.hash.startsWith("$2y$")) {
+                isPasswordCorrect = org.mindrot.jbcrypt.BCrypt.checkpw(req.password, data.hash);
+            } else {
+                String hashedInput = AuthModule.hashPassword(req.password, data.salt);
+                isPasswordCorrect = hashedInput.equals(data.hash);
+            }
+
+            if (!isPasswordCorrect) {
                 ctx.status(401).json(Map.of("error", "Mot de passe incorrect."));
                 return;
             }
