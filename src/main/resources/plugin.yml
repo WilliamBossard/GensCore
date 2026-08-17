@@ -102,7 +102,6 @@ commands:
   mute:
     description: Rend un joueur muet
     usage: /mute <joueur> [durée] [raison]
-    description: Mute un joueur
   unmute:
     description: Demute un joueur
   ban:

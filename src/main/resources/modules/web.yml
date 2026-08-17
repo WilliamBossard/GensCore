@@ -1,5 +1,6 @@
 web:
   enabled: false
+  auto_update_panel: true
   port: 8080
   force_lang: ""
   server_ip: "localhost"

@@ -28,12 +28,19 @@ web:
   admin:
     title: Admin Panel
     tabs:
-      modules: Modules
-      settings: Settings
+      shop: "Shop"
+      modules: "Modules"
+      files: "Files"
+      settings: "Settings"
+      players: "Players"
+      content: "Content"
       web_inv: Web Inv.
       ranks: Ranks
     save: Save
     saving: Saving...
+    status: "Status"
+    active: "Active"
+    inactive: "Disabled"
   common:
     error: Error
     success: Success
@@ -55,6 +62,20 @@ web:
     table_playtime: Playtime (h)
     table_empty: No players registered yet.
     profile_btn: My Profile
+    shop:
+      title: "Dynamic Market"
+      subtitle: "Track real-time economy prices"
+      disabled_title: "Shop Disabled"
+      disabled_desc: "The shop module is currently disabled by the administrator."
+      loading: "Loading Shop..."
+      buy: "Buy"
+      sell: "Sell"
+      unsellable: "Unsellable"
+      command_tag: "Rank / Command"
+      history: "History"
+      select_item: "Select an item"
+      select_item_desc: "Click on an item to see its price evolution (Inflation/Deflation)."
+      no_history: "No recent transactions."
     docs:
       title: Complete Documentation
       subtitle: Discover all the exclusive features of the Gens server.
@@ -105,32 +126,8 @@ web:
             account via <code>/discord link</code>. Chat is synced both ways and even
             displays your ranks and guild!
 
-  admin:
-    tabs:
-      shop: "Shop"
-      modules: "Modules"
-      files: "Files"
-      settings: "Settings"
-      players: "Players"
-      content: "Content"
-    status: "Status"
-    active: "Active"
-    inactive: "Disabled"
-  public:
-    shop:
-      title: "Dynamic Market"
-      subtitle: "Track real-time economy prices"
-      disabled_title: "Shop Disabled"
-      disabled_desc: "The shop module is currently disabled by the administrator."
-      loading: "Loading Shop..."
-      buy: "Buy"
-      sell: "Sell"
-      unsellable: "Unsellable"
-      command_tag: "Rank / Command"
-      history: "History"
-      select_item: "Select an item"
-      select_item_desc: "Click on an item to see its price evolution (Inflation/Deflation)."
-      no_history: "No recent transactions."
+
+
 
     modules:
       dynamicshop:

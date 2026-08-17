@@ -28,12 +28,19 @@ web:
   admin:
     title: Panel Administrateur
     tabs:
-      modules: Modules
-      settings: Paramètres
+      shop: "Boutique"
+      modules: "Modules"
+      files: "Fichiers"
+      settings: "Paramètres"
+      players: "Joueurs"
+      content: "Contenu"
       web_inv: Inv. Web
       ranks: Grades
     save: Sauvegarder
     saving: Sauvegarde...
+    status: "Statut"
+    active: "Actif"
+    inactive: "Désactivé"
   common:
     error: Erreur
     success: Succès
@@ -56,6 +63,20 @@ web:
     table_playtime: Temps de jeu (h)
     table_empty: Aucun joueur enregistré pour le moment.
     profile_btn: Mon Profil
+    shop:
+      title: "Bourse Dynamique"
+      subtitle: "Suivez les prix de l'économie en temps réel"
+      disabled_title: "Boutique Désactivée"
+      disabled_desc: "Le module de boutique est actuellement désactivé par l'administrateur."
+      loading: "Chargement de la Boutique..."
+      buy: "Achat"
+      sell: "Vente"
+      unsellable: "Invendable"
+      command_tag: "Grade / Commande"
+      history: "Historique"
+      select_item: "Sélectionnez un objet"
+      select_item_desc: "Cliquez sur un objet pour voir l'évolution de son prix (Inflation/Déflation)."
+      no_history: "Aucune transaction récente."
     docs:
       title: Documentation Complète
       subtitle: Découvrez toutes les fonctionnalités exclusives du serveur Gens.
@@ -109,29 +130,4 @@ web:
             lier votre compte via <code>/discord link</code>. Le chat est synchronisé
             dans les deux sens et affiche même vos grades et votre guilde !
 
-  admin:
-    tabs:
-      shop: "Boutique"
-      modules: "Modules"
-      files: "Fichiers"
-      settings: "Paramètres"
-      players: "Joueurs"
-      content: "Contenu"
-    status: "Statut"
-    active: "Actif"
-    inactive: "Désactivé"
-  public:
-    shop:
-      title: "Bourse Dynamique"
-      subtitle: "Suivez les prix de l'économie en temps réel"
-      disabled_title: "Boutique Désactivée"
-      disabled_desc: "Le module de boutique est actuellement désactivé par l'administrateur."
-      loading: "Chargement de la Boutique..."
-      buy: "Achat"
-      sell: "Vente"
-      unsellable: "Invendable"
-      command_tag: "Grade / Commande"
-      history: "Historique"
-      select_item: "Sélectionnez un objet"
-      select_item_desc: "Cliquez sur un objet pour voir l'évolution de son prix (Inflation/Déflation)."
-      no_history: "Aucune transaction récente."
+

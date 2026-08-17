@@ -60,7 +60,10 @@ public class WebManager {
         File webDir = new File(plugin.getDataFolder(), "web");
         File indexFile = new File(webDir, "index.html");
         
-        if (!webDir.exists() || !indexFile.exists()) {
+        org.bukkit.configuration.file.FileConfiguration webConfig = plugin.getConfigManager().getConfig("modules/web.yml");
+        boolean autoUpdate = webConfig.getBoolean("web.auto_update_panel", true);
+        
+        if (!webDir.exists() || !indexFile.exists() || autoUpdate) {
             webDir.mkdirs();
             try {
                 java.net.URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
