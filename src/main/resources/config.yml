@@ -17,6 +17,15 @@ motd:
 # Password to access the Admin Web Panel
 admin-password: "gens"
 
+# Database Configuration (SQLite)
+database:
+  file: "genscore.db"
+
+# Chat Configuration
+chat:
+  # Enable or disable custom join/quit/first_join messages
+  custom-join-messages: true
+
 # Discord Configuration (JDA Module)
 discord:
   # Discord Bot Token (VOTRE_TOKEN_ICI to disable the bot)

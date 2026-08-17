@@ -144,12 +144,12 @@ authmodule:
   msg_19: "{prefix}<green>Votre mot de passe a été mis à jour avec succès !"
   msg_20: "{prefix}<red>L'ancien mot de passe est incorrect."
   msg_21: "{prefix}<red>============================="
-  msg_22: "{prefix}<red>Bienvenue sur GensBien !"
+  msg_22: "{prefix}<red>Bienvenue sur le serveur !"
   msg_23: "{prefix}<yellow>Veuillez vous enregistrer avec:"
   msg_24: "{prefix}<aqua>/register <mdp> <confirmer mdp>"
   msg_25: "{prefix}<red>============================="
   msg_26: "{prefix}<red>============================="
-  msg_27: "{prefix}<red>Bienvenue sur GensBien !"
+  msg_27: "{prefix}<red>Bienvenue sur le serveur !"
   msg_28: "{prefix}<yellow>Veuillez vous connecter avec:"
   msg_29: "{prefix}<aqua>/login <mdp>"
   msg_30: "{prefix}<red>============================="
@@ -304,3 +304,8 @@ webmanager:
   log_3: "Configuration serveur mise à jour depuis le panel Web !"
   log_4: "Configuration rechargée depuis le WebPanel !"
   msg_1: "{prefix}<green><b>Vous avez retrouvé l'usage de la parole."
+
+chat:
+  join: "<dark_gray>[<green>+</green>]</dark_gray> <gray><player></gray> <green>a rejoint le serveur.</green>"
+  quit: "<dark_gray>[<red>-</red>]</dark_gray> <gray><player></gray> <red>a quitté le serveur.</red>"
+  first_join: "\n<yellow>⭐ <gold><bold>BIENVENUE</bold></gold> ⭐</yellow>\n<white>Bienvenue à <green><player></green> sur le serveur !</white>\n<gray>C'est sa toute première connexion !</gray>\n"

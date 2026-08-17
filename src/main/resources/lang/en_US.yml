@@ -145,12 +145,12 @@ authmodule:
   msg_19: "{prefix}<green>Your password has been successfully updated!"
   msg_20: "{prefix}<red>Old password is incorrect."
   msg_21: "{prefix}<red>============================="
-  msg_22: "{prefix}<red>Welcome to GensBien!"
+  msg_22: "{prefix}<red>Welcome to the server!"
   msg_23: "{prefix}<yellow>Please register using:"
   msg_24: "{prefix}<aqua>/register <password> <confirm password>"
   msg_25: "{prefix}<red>============================="
   msg_26: "{prefix}<red>============================="
-  msg_27: "{prefix}<red>Welcome to GensBien!"
+  msg_27: "{prefix}<red>Welcome to the server!"
   msg_28: "{prefix}<yellow>Please log in using:"
   msg_29: "{prefix}<aqua>/login <password>"
   msg_30: "{prefix}<red>============================="
@@ -214,7 +214,9 @@ moderationmodule:
   msg_13: "{prefix}<red>This player has no registered password."
   msg_14: "{prefix}<red>You don't have permission."
   msg_15: "{prefix}<red>Usage: /mute <player> [duration] [reason]"
-  msg_16: "{prefix}<red>Player not found."
+  not_found: "{prefix}<red>Player not found.</red>"
+  stats_cleared: "{prefix}<green>All stats for <gold><player></gold> have been cleared.</green>"
+
   msg_17: "{prefix}<green><b>You have regained the ability to speak."
   msg_18: "{prefix}<red>You don't have permission."
 motdmodule:
@@ -305,3 +307,8 @@ webmanager:
   log_3: "Server configuration updated from Web panel!"
   log_4: "Configuration reloaded from Web panel!"
   msg_1: "{prefix}<green><b>You have regained the ability to speak."
+
+chat:
+  join: "<dark_gray>[<green>+</green>]</dark_gray> <gray><player></gray> <green>joined the server.</green>"
+  quit: "<dark_gray>[<red>-</red>]</dark_gray> <gray><player></gray> <red>left the server.</red>"
+  first_join: "\n<yellow>⭐ <gold><bold>WELCOME</bold></gold> ⭐</yellow>\n<white>Welcome <green><player></green> to the server!</white>\n<gray>This is their first time joining!</gray>\n"

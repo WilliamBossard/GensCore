@@ -95,7 +95,7 @@ public class TabBoardModule implements Module, Listener {
     }
 
     private void setupBoard(Player player) {
-        GensScoreboard board = new GensScoreboard(player, "§6§lGensBienV4");
+        GensScoreboard board = new GensScoreboard(player, "§6§lServeur");
         boards.put(player.getUniqueId(), board);
     }
 
@@ -130,11 +130,11 @@ public class TabBoardModule implements Module, Listener {
             configLines.add("&7&m--------------------");
             configLines.add("&eIP: &f82.64.129.187");
             plugin.getConfig().set("tabboard.scoreboard.lines", configLines);
-            plugin.getConfig().set("tabboard.scoreboard.title", "&6&lGensBienV4");
+            plugin.getConfig().set("tabboard.scoreboard.title", "&6&lServeur");
             plugin.saveConfig();
         }
 
-        String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("tabboard.scoreboard.title", "&6&lGensBienV4"));
+        String title = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("tabboard.scoreboard.title", "&6&lServeur"));
         board.updateTitle(title);
 
         EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");

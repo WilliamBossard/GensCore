@@ -93,23 +93,20 @@ public class ChatModule implements Module, Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         if (!enabled) return;
+        if (!plugin.getConfig().getBoolean("chat.custom-join-messages", true)) return;
         
         if (!event.getPlayer().hasPlayedBefore()) {
-            event.setJoinMessage(
-                " \n" +
-                "§e§l⭐ §6§lBIENVENUE §e§l⭐\n" +
-                "§fBienvenue à §a" + event.getPlayer().getName() + " §fsur le serveur Gens !\n" +
-                "§7C'est sa toute première connexion !\n" +
-                " "
-            );
+            event.setJoinMessage(plugin.getLangManager().getMessage("chat.first_join").replace("<player>", event.getPlayer().getName()));
         } else {
-            event.setJoinMessage("§8[§a+§8] §7" + event.getPlayer().getName() + " §aa rejoint le serveur.");
+            event.setJoinMessage(plugin.getLangManager().getMessage("chat.join").replace("<player>", event.getPlayer().getName()));
         }
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         if (!enabled) return;
-        event.setQuitMessage("§8[§c-§8] §7" + event.getPlayer().getName() + " §ca quitté le serveur.");
+        if (!plugin.getConfig().getBoolean("chat.custom-join-messages", true)) return;
+        
+        event.setQuitMessage(plugin.getLangManager().getMessage("chat.quit").replace("<player>", event.getPlayer().getName()));
     }
 }

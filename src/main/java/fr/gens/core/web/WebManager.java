@@ -233,7 +233,7 @@ public class WebManager {
         });
 
         // Texte public de la page d'accueil
-        String defaultPublicText = "Bienvenue aventurier sur la toute nouvelle interface du serveur Gens !\n\n" +
+        String defaultPublicText = "Bienvenue aventurier sur la toute nouvelle interface du serveur !\n\n" +
                 "- Système de Métiers (/jobs) pour bosser comme un forcené.\n" +
                 "- Hôtel des Ventes (/ah) pour vos transactions.\n" +
                 "- Map en direct via BlueMap (attention on te voit).\n" +
