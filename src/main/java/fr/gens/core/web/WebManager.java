@@ -131,6 +131,7 @@ public class WebManager {
         public boolean minigameWheelEnabled;
         public boolean minigameCasinoEnabled;
         public String publicFeaturesText;
+        public boolean bluemapEnabled;
         public String bluemapUrl;
         public String serverIp;
         public String tombBlockType;
@@ -139,7 +140,7 @@ public class WebManager {
         public String tombExpirationAction;
         public String tombDefaultAccess;
 
-        public ConfigResponse(double inf, double ahTax, String pass, double hDrop, int qRerolls, boolean lootrPreventBreak, boolean lootrPreventHopper, boolean lootrParticles, String motdLine1, String motdLine2, boolean wheel, boolean casino, String publicFeaturesText, String bluemapUrl, String serverIp, String tombBlockType, boolean tombStoreXp, long tombExpirationSeconds, String tombExpirationAction, String tombDefaultAccess) {
+        public ConfigResponse(double inf, double ahTax, String pass, double hDrop, int qRerolls, boolean lootrPreventBreak, boolean lootrPreventHopper, boolean lootrParticles, String motdLine1, String motdLine2, boolean wheel, boolean casino, String publicFeaturesText, boolean bluemapEnabled, String bluemapUrl, String serverIp, String tombBlockType, boolean tombStoreXp, long tombExpirationSeconds, String tombExpirationAction, String tombDefaultAccess) {
             this.inflationExponent = inf;
             this.ahTaxPercentage = ahTax;
             this.adminPassword = pass;
@@ -153,6 +154,7 @@ public class WebManager {
             this.minigameWheelEnabled = wheel;
             this.minigameCasinoEnabled = casino;
             this.publicFeaturesText = publicFeaturesText;
+            this.bluemapEnabled = bluemapEnabled;
             this.bluemapUrl = bluemapUrl;
             this.serverIp = serverIp;
             this.tombBlockType = tombBlockType;
@@ -177,6 +179,7 @@ public class WebManager {
         public boolean minigameWheelEnabled;
         public boolean minigameCasinoEnabled;
         public String publicFeaturesText;
+        public Boolean bluemapEnabled;
         public String bluemapUrl;
         public String serverIp;
         public String tombBlockType;
@@ -281,6 +284,7 @@ public class WebManager {
                 plugin.getStorageManager().getConfig().getBoolean("minigames.wheel.enabled", true),
                 plugin.getStorageManager().getConfig().getBoolean("minigames.casino.enabled", true),
                 plugin.getStorageManager().getConfig().getString("web.public_features_text", defaultPublicText),
+                plugin.getConfig().getBoolean("bluemap.enabled", true),
                 plugin.getConfig().getString("bluemap.url", "http://localhost:8100"),
                 plugin.getConfig().getString("web.server_ip", "gens-core.duckdns.org"),
                 plugin.getConfig().getString("modules.tomb.block_type", "CHEST"),
@@ -302,6 +306,7 @@ public class WebManager {
             plugin.getConfig().set("lootr.particles-enabled", req.lootrParticles);
             plugin.getConfig().set("motd.line1", req.motdLine1);
             plugin.getConfig().set("motd.line2", req.motdLine2);
+            if (req.bluemapEnabled != null) plugin.getConfig().set("bluemap.enabled", req.bluemapEnabled);
             if (req.bluemapUrl != null) plugin.getConfig().set("bluemap.url", req.bluemapUrl);
             if (req.serverIp != null) plugin.getConfig().set("web.server_ip", req.serverIp);
             

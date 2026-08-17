@@ -4,6 +4,7 @@ main: fr.gens.core.CorePlugin
 api-version: 1.26
 authors: [wboss]
 description: Le coeur du réseau Gens (GensBien / GensMauvais).
+depend: [Vault, LuckPerms]
 commands:
   money:
     description: Voir son argent

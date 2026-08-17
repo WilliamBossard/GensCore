@@ -17,6 +17,8 @@ discord:
 
 # BlueMap Configuration
 bluemap:
+  # Enable or disable the BlueMap module
+  enabled: true
   # The URL where your BlueMap is hosted (used by the web panel)
   url: "http://localhost:8100"
 

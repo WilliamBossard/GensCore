@@ -499,7 +499,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
         <nav className="admin-nav" style={{marginTop: '2rem'}}>
           <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}><ShoppingCart size={18}/> Boutique Dynamique</Link>
           <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''}><ShoppingCart size={18}/> Hôtel des Ventes</Link>
-          <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''}><Map size={18}/> Carte du Monde</Link>
+          {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''}><Map size={18}/> Carte du Monde</Link>}
           <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''}><BarChart2 size={18}/> Mes Statistiques</Link>
           <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''}><Gamepad2 size={18}/> Mini-Jeux Web <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'black', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>NOUVEAU</span></Link>
           <Link to="/dashboard/jobs" className={location.pathname === '/dashboard/jobs' ? 'active' : ''}><Target size={18}/> Légendes</Link>

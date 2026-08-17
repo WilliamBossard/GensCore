@@ -20,6 +20,7 @@ interface ConfigState {
   minigameWheelEnabled: boolean;
   minigameCasinoEnabled: boolean;
   publicFeaturesText: string;
+  bluemapEnabled: boolean;
   bluemapUrl: string;
   serverIp: string;
   tombBlockType: string;
@@ -113,6 +114,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     minigameWheelEnabled: true,
     minigameCasinoEnabled: true,
     publicFeaturesText: "",
+    bluemapEnabled: true,
     bluemapUrl: "http://localhost:8100",
     serverIp: "gens-core.duckdns.org",
     tombBlockType: "CHEST",
@@ -220,6 +222,13 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                 <div className="form-group">
                   <label>Taxe de l'Hôtel des Ventes (en %)</label>
                   <input type="number" step="0.1" value={config.ahTaxPercentage} onChange={e => setConfig({...config, ahTaxPercentage: parseFloat(e.target.value)})} required className="login-input" />
+                </div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row' }}>
+                  <label className="switch">
+                    <input type="checkbox" checked={config.bluemapEnabled !== false} onChange={e => setConfig({...config, bluemapEnabled: e.target.checked})} />
+                    <span className="slider"></span>
+                  </label>
+                  <span style={{ fontWeight: 500 }}>Activer BlueMap</span>
                 </div>
                 <div className="form-group">
                   <label>URL BlueMap (IP Serveur)</label>
