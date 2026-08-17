@@ -1379,7 +1379,7 @@ function PublicHome({ playerData }: { playerData: any }) {
 
   return (
     <div style={{minHeight: '100vh', background: 'var(--bg-color)', color: 'var(--text-color)', display: 'flex', flexDirection: 'column'}}>
-      <header style={{padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(9, 9, 11, 0.8)', backdropFilter: 'blur(10px)', borderBottom: '1px solid var(--card-border)', position: 'sticky', top: 0, zIndex: 100}}>
+      <header className="public-header" style={{padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(9, 9, 11, 0.8)', backdropFilter: 'blur(10px)', borderBottom: '1px solid var(--card-border)', position: 'sticky', top: 0, zIndex: 100}}>
         <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
           <Package size={32} color="var(--accent)" />
           <h1 style={{margin: 0, fontSize: '1.5rem', fontFamily: 'Outfit'}}>GensCore</h1>
@@ -1395,8 +1395,8 @@ function PublicHome({ playerData }: { playerData: any }) {
       </header>
 
       <main style={{flex: 1, padding: '4rem 2rem', maxWidth: '1000px', margin: '0 auto', width: '100%'}}>
-        <div className="client-hero" style={{textAlign: 'center', marginBottom: '4rem', padding: '5rem 2rem', background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, rgba(0,0,0,0) 100%)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)'}}>
-          <h2 style={{fontSize: '4.5rem', marginBottom: '1.5rem', background: 'linear-gradient(to right, #a855f7, #3b82f6)', WebkitBackgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))'}}>{t('web.public.hero_title')}</h2>
+        <div className="client-hero hero-container" style={{textAlign: 'center', marginBottom: '4rem', padding: '5rem 2rem', background: 'linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, rgba(0,0,0,0) 100%)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.03)'}}>
+          <h2 className="hero-title" style={{fontSize: '4.5rem', marginBottom: '1.5rem', background: 'linear-gradient(to right, #a855f7, #3b82f6)', WebkitBackgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.3))'}}>{t('web.public.hero_title')}</h2>
           <p style={{fontSize: '1.3rem', color: 'var(--text-muted)', maxWidth: '650px', margin: '0 auto'}}>{t('web.public.hero_subtitle')}<br/><strong style={{color: '#fff', fontSize: '1.5rem', display: 'block', marginTop: '1rem', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)'}}>{t('web.public.ip')}: {serverIp}</strong></p>
         </div>
 

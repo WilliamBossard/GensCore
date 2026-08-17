@@ -228,13 +228,18 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 }
 
 @media (max-width: 768px) {
-  .admin-sidebar { position: fixed; left: -100%; top: 0; bottom: 0; transition: left 0.3s; width: 280px; }
+  .admin-sidebar { position: fixed; left: -100%; top: 0; bottom: 0; transition: left 0.3s; width: 280px; z-index: 100 !important; }
   .admin-sidebar.open { left: 0; }
   .mobile-menu-btn { display: block !important; }
   .mobile-close-btn { display: block !important; }
+  .mobile-toggle { display: block !important; }
   .admin-main { padding: 1.5rem; }
   .admin-header h2 { font-size: 1.5rem; }
   .tabs { flex-wrap: nowrap; overflow-x: auto; }
   .file-editor-container { flex-direction: column !important; }
   .file-editor-container .admin-card { width: 100% !important; max-height: 300px !important; }
+  .dashboard-split { grid-template-columns: 1fr !important; }
+  .hero-title { font-size: 2.5rem !important; }
+  .hero-container { padding: 3rem 1rem !important; }
+  .public-header { padding: 15px 20px !important; }
 }

@@ -36,6 +36,14 @@ web:
       content: "Content"
       web_inv: Web Inv.
       ranks: Ranks
+      back_to_game: "Back to Game"
+    modules_cat:
+      economy: "Economy & Trade"
+      gameplay: "Players & Gameplay"
+      interface: "Interface & Communication"
+      admin: "Admin & Utilities"
+      enable_all: "Enable All"
+      disable_all: "Disable All"
     save: Save
     saving: Saving...
     status: "Status"

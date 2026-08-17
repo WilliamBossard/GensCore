@@ -36,6 +36,14 @@ web:
       content: "Contenu"
       web_inv: Inv. Web
       ranks: Grades
+      back_to_game: "Retour au Jeu"
+    modules_cat:
+      economy: "Économie & Commerce"
+      gameplay: "Joueurs & Gameplay"
+      interface: "Interface & Communication"
+      admin: "Administration & Utilitaires"
+      enable_all: "Tout Activer"
+      disable_all: "Tout Désactiver"
     save: Sauvegarder
     saving: Sauvegarde...
     status: "Statut"

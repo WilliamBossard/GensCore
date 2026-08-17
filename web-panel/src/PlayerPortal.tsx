@@ -124,7 +124,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
         
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
+      <div className="dashboard-split" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
         {/* GRAPHIQUE QUETES */}
         <div className="admin-card" style={{padding: '1.5rem'}}>
           <h3 style={{marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px'}}><TrendingUp size={20} color="var(--accent)"/> Quêtes (7 derniers jours)</h3>
@@ -337,7 +337,7 @@ function PlayerGames({ uuid }: { uuid: string }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center' }}>
         
         {config.wheelEnabled && (
-          <div className="admin-card" style={{flex: '1 1 400px', maxWidth: '600px', position: 'relative'}}>
+          <div className="admin-card" style={{flex: '1 1 280px', maxWidth: '600px', position: 'relative'}}>
             <h3>La Roue de la Fortune</h3>
             <p style={{color: 'var(--text-muted)', marginBottom: '2rem'}}>Tournez la roue une fois par jour pour gagner des récompenses !</p>
             
@@ -390,7 +390,7 @@ function PlayerGames({ uuid }: { uuid: string }) {
         )}
 
         {config.casinoEnabled && (
-          <div className="admin-card" style={{flex: '1 1 400px', maxWidth: '600px'}}>
+          <div className="admin-card" style={{flex: '1 1 280px', maxWidth: '600px'}}>
             <h3>Machine à Sous</h3>
             <p style={{color: 'var(--text-muted)', marginBottom: '1rem'}}>
               Déposez un item en jeu avec <code style={{color: 'var(--accent)'}}>/web deposit</code>, pariez-le ici et récupérez vos gains avec <code style={{color: 'var(--accent)'}}>/web withdraw</code>.
@@ -486,9 +486,17 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
   return (
     <div className="admin-layout">
       {/* Sidebar Mobile Toggle */}
-      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{position: 'fixed', top: '15px', right: '15px', zIndex: 100, background: 'var(--card-bg)', border: '1px solid var(--card-border)', padding: '10px', borderRadius: '8px', cursor: 'pointer', display: 'none'}}>
-        {sidebarOpen ? <X/> : <Menu/>}
+      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{position: 'fixed', top: '15px', right: '15px', zIndex: 101, background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', cursor: 'pointer', display: 'none'}}>
+        {sidebarOpen ? <X size={24}/> : <Menu size={24}/>}
       </button>
+
+      {/* Overlay mobile */}
+      {sidebarOpen && (
+        <div 
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
@@ -499,12 +507,12 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
         </div>
         
         <nav className="admin-nav" style={{marginTop: '2rem'}}>
-          <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}><ShoppingCart size={18}/> {t('web.nav.shop')}</Link>
-          <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
-          {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''}><Map size={18}/> {t('web.nav.map')}</Link>}
-          <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''}><BarChart2 size={18}/> {t('web.nav.stats')}</Link>
-          <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''}><Gamepad2 size={18}/> {t('web.nav.games')} <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>{t('web.nav.new')}</span></Link>
-          <Link to="/dashboard/jobs" className={location.pathname === '/dashboard/jobs' ? 'active' : ''}><Target size={18}/> {t('web.nav.jobs')}</Link>
+          <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.shop')}</Link>
+          <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
+          {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Map size={18}/> {t('web.nav.map')}</Link>}
+          <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><BarChart2 size={18}/> {t('web.nav.stats')}</Link>
+          <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Gamepad2 size={18}/> {t('web.nav.games')} <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>{t('web.nav.new')}</span></Link>
+          <Link to="/dashboard/jobs" className={location.pathname === '/dashboard/jobs' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Target size={18}/> {t('web.nav.jobs')}</Link>
           
           {playerData.isOp && (
             <div style={{marginTop: '2rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem'}}>
