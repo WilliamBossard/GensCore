@@ -319,3 +319,50 @@ web:
     table_player: Player
     table_playtime: Playtime (h)
     table_quests: Quests
+    ah:
+      disabled_title: Auction House Disabled
+      disabled_desc: The Auction House module is currently disabled by the administrator.
+      loading: Loading Auction House...
+      title: Auction House (AH)
+      subtitle: Browse items listed for sale by players in real time
+      offer: "Offer #"
+      seller: Seller
+      price: Price
+      expire_in: Expires in
+      days: days
+      empty: The Auction House is currently empty. Log in and use /ah sell to sell!
+    map:
+      title: Interactive Map
+      open_fullscreen: Open map fullscreen
+    games:
+      title: Mini-Games
+      wheel_title: Fortune Wheel
+      wheel_desc: Spin the wheel once a day to win rewards!
+      wheel_spinning: Spinning...
+      wheel_spin_btn: Spin the Wheel!
+      casino_title: Slot Machine
+      casino_desc_1: Deposit an item in-game with
+      casino_desc_2: ", bet it here and collect your winnings with"
+      casino_desc_3: "."
+      casino_inventory: Your Bet Inventory
+      casino_empty: Empty. Log in and use /web deposit!
+      casino_rolling: Rolling...
+      casino_bet_btn: Bet this item!
+      casino_select: Select an item to bet
+      casino_loss: Lost! Your item was destroyed.
+      casino_win_small: "Won! Your item was doubled (x2)!"
+      casino_win_medium: "Great! Your item was tripled (x3)!"
+      casino_jackpot: "JACKPOT! x5 winnings!"
+      casino_error: Bet error.
+      loss_symbol: FAIL
+      win_small_symbol: CHERRY
+      win_medium_symbol: COINS
+      jackpot_symbol: DIAMOND
+  admin:
+    badge: Administrator
+    settings:
+      shop_title: Shop Management
+      modules_title: Module Management
+      files_title: File Editor
+      players_title: Moderation
+      title: Server Configuration

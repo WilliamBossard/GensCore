@@ -201,6 +201,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
 }
 
 function PlayerGames({ uuid }: { uuid: string }) {
+  const { t } = useTranslation();
   const [config, setConfig] = useState({ wheelEnabled: true, casinoEnabled: true });
   
   // Wheel State
@@ -301,23 +302,23 @@ function PlayerGames({ uuid }: { uuid: string }) {
           setIsRolling(false);
           if (res.ok) {
               if (data.result === 'LOSS') {
-                  setSlotReels(['ECHEC', 'ECHEC', 'ECHEC']);
-                  setCasinoResult("Perdu ! Votre objet a été détruit.");
+                  setSlotReels([t('web.public.games.loss_symbol'), t('web.public.games.loss_symbol'), t('web.public.games.loss_symbol')]);
+                  setCasinoResult(t('web.public.games.casino_loss'));
               } else if (data.result === 'WIN_SMALL') {
-                  setSlotReels(['CERISE', 'CERISE', 'CERISE']);
-                  setCasinoResult("Gagné ! Vous avez doublé (x2) votre objet !");
+                  setSlotReels([t('web.public.games.win_small_symbol'), t('web.public.games.win_small_symbol'), t('web.public.games.win_small_symbol')]);
+                  setCasinoResult(t('web.public.games.casino_win_small'));
               } else if (data.result === 'WIN_MEDIUM') {
-                  setSlotReels(['PIECES', 'PIECES', 'PIECES']);
-                  setCasinoResult("Super ! Vous avez triplé (x3) votre objet !");
+                  setSlotReels([t('web.public.games.win_medium_symbol'), t('web.public.games.win_medium_symbol'), t('web.public.games.win_medium_symbol')]);
+                  setCasinoResult(t('web.public.games.casino_win_medium'));
               } else if (data.result === 'JACKPOT') {
-                  setSlotReels(['DIAMANT', 'DIAMANT', 'DIAMANT']);
-                  setCasinoResult("JACKPOT ! Gains x5 !");
+                  setSlotReels([t('web.public.games.jackpot_symbol'), t('web.public.games.jackpot_symbol'), t('web.public.games.jackpot_symbol')]);
+                  setCasinoResult(t('web.public.games.casino_jackpot'));
               }
               setSelectedBet(null);
               fetchCasinoInventory();
           } else {
               setSlotReels(['?', '?', '?']);
-              setCasinoResult(data.error || "Erreur de mise.");
+              setCasinoResult(data.error || t('web.public.games.casino_error'));
           }
       }, 2000);
 
@@ -333,14 +334,14 @@ function PlayerGames({ uuid }: { uuid: string }) {
 
   return (
     <div className="dashboard-content" style={{padding: '2rem', textAlign: 'center'}}>
-      <h2 style={{marginBottom: '2rem'}}><Gamepad2/> Mini-Jeux</h2>
+      <h2 style={{marginBottom: '2rem'}}><Gamepad2/> {t('web.public.games.title')}</h2>
       
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'center' }}>
         
         {config.wheelEnabled && (
           <div className="admin-card" style={{flex: '1 1 280px', maxWidth: '600px', position: 'relative'}}>
-            <h3>La Roue de la Fortune</h3>
-            <p style={{color: 'var(--text-muted)', marginBottom: '2rem'}}>Tournez la roue une fois par jour pour gagner des récompenses !</p>
+            <h3>{t('web.public.games.wheel_title')}</h3>
+            <p style={{color: 'var(--text-muted)', marginBottom: '2rem'}}>{t('web.public.games.wheel_desc')}</p>
             
             {rewards.length > 0 ? (
               <div style={{position: 'relative', width: '300px', height: '300px', margin: '0 auto 3rem auto'}}>
@@ -378,11 +379,11 @@ function PlayerGames({ uuid }: { uuid: string }) {
                 </div>
               </div>
             ) : (
-              <p>Chargement de la roue...</p>
+              <p>{t('web.public.loading')}</p>
             )}
 
             <button className="login-button" onClick={playWheel} disabled={isSpinning || rewards.length === 0} style={{padding: '12px 30px', fontSize: '1.1rem', background: 'linear-gradient(to right, #3b82f6, #8b5cf6)', border: 'none'}}>
-              {isSpinning ? 'La roue tourne...' : 'Tourner la Roue !'}
+              {isSpinning ? t('web.public.games.wheel_spinning') : t('web.public.games.wheel_spin_btn')}
             </button>
 
             {error && <div style={{color: '#ef4444', marginTop: '1.5rem', padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)'}}>{error}</div>}
@@ -392,9 +393,9 @@ function PlayerGames({ uuid }: { uuid: string }) {
 
         {config.casinoEnabled && (
           <div className="admin-card" style={{flex: '1 1 280px', maxWidth: '600px'}}>
-            <h3>Machine à Sous</h3>
+            <h3>{t('web.public.games.casino_title')}</h3>
             <p style={{color: 'var(--text-muted)', marginBottom: '1rem'}}>
-              Déposez un item en jeu avec <code style={{color: 'var(--accent)'}}>/web deposit</code>, pariez-le ici et récupérez vos gains avec <code style={{color: 'var(--accent)'}}>/web withdraw</code>.
+              {t('web.public.games.casino_desc_1')} <code style={{color: 'var(--accent)'}}>/web deposit</code>{t('web.public.games.casino_desc_2')} <code style={{color: 'var(--accent)'}}>/web withdraw</code>{t('web.public.games.casino_desc_3')}
             </p>
 
             <div style={{
@@ -408,9 +409,9 @@ function PlayerGames({ uuid }: { uuid: string }) {
             </div>
 
             <div style={{textAlign: 'left', marginBottom: '1.5rem'}}>
-              <h4 style={{marginBottom: '0.5rem'}}>Votre inventaire de Paris :</h4>
+              <h4 style={{marginBottom: '0.5rem'}}>{t('web.public.games.casino_inventory')} :</h4>
               {casinoInventory.length === 0 ? (
-                <p style={{color: 'var(--text-muted)', fontStyle: 'italic', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px'}}>Vide. Connectez-vous et utilisez /web deposit !</p>
+                <p style={{color: 'var(--text-muted)', fontStyle: 'italic', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px'}}>{t('web.public.games.casino_empty')}</p>
               ) : (
                 <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
                   {casinoInventory.map(item => (
@@ -442,7 +443,7 @@ function PlayerGames({ uuid }: { uuid: string }) {
                 border: 'none', color: (!selectedBet || isRolling) ? 'var(--text-muted)' : 'white', width: '100%'
               }}
             >
-              {isRolling ? 'Lancement...' : selectedBet ? 'Parier cet objet !' : 'Sélectionnez un objet à parier'}
+              {isRolling ? t('web.public.games.casino_rolling') : selectedBet ? t('web.public.games.casino_bet_btn') : t('web.public.games.casino_select')}
             </button>
 
             {casinoResult && (

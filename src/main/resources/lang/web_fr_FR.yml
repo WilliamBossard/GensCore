@@ -284,3 +284,50 @@ web:
     table_player: Joueur
     table_playtime: Temps de jeu (h)
     table_quests: Quêtes
+    ah:
+      disabled_title: Hôtel des Ventes Désactivé
+      disabled_desc: Le module d'Hôtel des Ventes est actuellement désactivé par l'administrateur.
+      loading: Chargement de l'Hôtel des Ventes...
+      title: Hôtel des Ventes (AH)
+      subtitle: Découvrez les objets mis en vente par les joueurs en direct
+      offer: "Offre n°"
+      seller: Vendeur
+      price: Prix
+      expire_in: Expire dans
+      days: jours
+      empty: L'Hôtel des Ventes est actuellement vide. Connectez-vous et utilisez /ah sell pour vendre !
+    map:
+      title: Carte Interactive
+      open_fullscreen: Ouvrir la carte en plein écran
+    games:
+      title: Mini-Jeux
+      wheel_title: La Roue de la Fortune
+      wheel_desc: Tournez la roue une fois par jour pour gagner des récompenses !
+      wheel_spinning: La roue tourne...
+      wheel_spin_btn: Tourner la Roue !
+      casino_title: Machine à Sous
+      casino_desc_1: Déposez un item en jeu avec
+      casino_desc_2: ", pariez-le ici et récupérez vos gains avec"
+      casino_desc_3: "."
+      casino_inventory: Votre inventaire de Paris
+      casino_empty: Vide. Connectez-vous et utilisez /web deposit !
+      casino_rolling: Lancement...
+      casino_bet_btn: Parier cet objet !
+      casino_select: Sélectionnez un objet à parier
+      casino_loss: Perdu ! Votre objet a été détruit.
+      casino_win_small: "Gagné ! Vous avez doublé (x2) votre objet !"
+      casino_win_medium: "Super ! Vous avez triplé (x3) votre objet !"
+      casino_jackpot: "JACKPOT ! Gains x5 !"
+      casino_error: Erreur de mise.
+      loss_symbol: ECHEC
+      win_small_symbol: CERISE
+      win_medium_symbol: PIECES
+      jackpot_symbol: DIAMANT
+  admin:
+    badge: Administrateur
+    settings:
+      shop_title: Gestion de la Boutique
+      modules_title: Gestion des Modules
+      files_title: Éditeur de Fichiers
+      players_title: Modération
+      title: Configuration du Serveur

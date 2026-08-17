@@ -206,9 +206,9 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
             >
               <Menu size={24} />
             </button>
-            <h2>{activeTab === 'shop' ? 'Gestion de la Boutique' : activeTab === 'modules' ? 'Gestion des Modules' : activeTab === 'files' ? 'Éditeur de Fichiers' : activeTab === 'players' ? 'Modération' : activeTab === 'content' ? 'Édition de l\'Accueil' : 'Configuration du Serveur'}</h2>
+            <h2>{activeTab === 'shop' ? t('web.admin.settings.shop_title') : activeTab === 'modules' ? t('web.admin.settings.modules_title') : activeTab === 'files' ? t('web.admin.settings.files_title') : activeTab === 'players' ? t('web.admin.settings.players_title') : activeTab === 'content' ? t('web.admin.content.title') : t('web.admin.settings.title')}</h2>
           </div>
-          <div className="admin-user"><Shield size={18}/> Administrateur</div>
+          <div className="admin-user"><Shield size={18}/> {t('web.admin.badge')}</div>
         </header>
 
         {activeTab === 'shop' && <AdminShop password={password} />}
@@ -1187,6 +1187,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 }
 
 export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -1205,19 +1206,19 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
     return (
       <div style={{textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)'}}>
         <Package size={48} style={{opacity: 0.5, marginBottom: '1rem'}} />
-        <h2>Hôtel des Ventes Désactivé</h2>
-        <p>Le module d'Hôtel des Ventes est actuellement désactivé par l'administrateur.</p>
+        <h2>{t('web.public.ah.disabled_title')}</h2>
+        <p>{t('web.public.ah.disabled_desc')}</p>
       </div>
     );
   }
 
-  if (loading) return <div className="loading">Chargement de l'Hôtel des Ventes...</div>;
+  if (loading) return <div className="loading">{t('web.public.ah.loading')}</div>;
 
   return (
     <div>
       <div className="client-hero" style={{padding: '2rem 0'}}>
-        <h2>Hôtel des Ventes (AH)</h2>
-        <p>Découvrez les objets mis en vente par les joueurs en direct</p>
+        <h2>{t('web.public.ah.title')}</h2>
+        <p>{t('web.public.ah.subtitle')}</p>
       </div>
 
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem'}}>
@@ -1225,18 +1226,18 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
           <div key={item.id} style={{background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem'}}>
             <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem'}}>
               <Package size={24} color="var(--accent)" />
-              <div style={{fontWeight: 'bold', fontSize: '1.1rem'}}>Offre n°{item.id}</div>
+              <div style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{t('web.public.ah.offer')}{item.id}</div>
             </div>
-            <div style={{color: 'var(--text-muted)', marginBottom: '5px'}}>Vendeur : <span style={{color: '#fff'}}>{item.sellerName}</span></div>
-            <div style={{color: 'var(--text-muted)', marginBottom: '15px'}}>Prix : <span style={{color: '#10b981', fontWeight: 'bold'}}>{item.price.toFixed(2)} $</span></div>
+            <div style={{color: 'var(--text-muted)', marginBottom: '5px'}}>{t('web.public.ah.seller')} : <span style={{color: '#fff'}}>{item.sellerName}</span></div>
+            <div style={{color: 'var(--text-muted)', marginBottom: '15px'}}>{t('web.public.ah.price')} : <span style={{color: '#10b981', fontWeight: 'bold'}}>{item.price.toFixed(2)} $</span></div>
             <div style={{fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid var(--card-border)', paddingTop: '10px'}}>
-              Expire dans : {Math.max(0, Math.floor((item.expireTime - Date.now()) / (1000 * 60 * 60 * 24)))} jours
+              {t('web.public.ah.expire_in')} : {Math.max(0, Math.floor((item.expireTime - Date.now()) / (1000 * 60 * 60 * 24)))} {t('web.public.ah.days')}
             </div>
           </div>
         ))}
         {items.length === 0 && (
           <div style={{gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-muted)', padding: '3rem 0'}}>
-            L'Hôtel des Ventes est actuellement vide. Connectez-vous et utilisez /ah sell pour vendre !
+            {t('web.public.ah.empty')}
           </div>
         )}
       </div>
@@ -1245,6 +1246,7 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
 }
 
 export function ClientMap() {
+  const { t } = useTranslation();
   const [mapUrl, setMapUrl] = useState("http://localhost:8100");
 
   useEffect(() => {
@@ -1265,9 +1267,9 @@ export function ClientMap() {
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: '1rem'}}>
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        <h2 style={{margin: 0}}>Carte Interactive</h2>
+        <h2 style={{margin: 0}}>{t('web.public.map.title')}</h2>
         <a href={mapUrl} target="_blank" rel="noopener noreferrer" className="btn" style={{textDecoration: 'none', padding: '10px 20px', background: 'var(--accent)', color: '#fff', borderRadius: '8px', fontWeight: 'bold'}}>
-          Ouvrir la carte en plein écran
+          {t('web.public.map.open_fullscreen')}
         </a>
       </div>
       <div style={{width: '100%', height: '70vh', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--card-border)'}}>
