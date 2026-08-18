@@ -141,6 +141,12 @@ web:
     login_title: Connexion au Web Panel
     password: Mot de passe (/register)
     username: Pseudo Minecraft
+    player_login_title: Connexion Joueur
+    player_login_desc: Connectez-vous avec vos identifiants Minecraft (/register en jeu)
+    username_placeholder: Pseudo Minecraft
+    password_placeholder: Mot de passe
+    invalid_credentials: Identifiants incorrects.
+    network_error: Erreur réseau.
   common:
     error: Erreur
     success: Succès

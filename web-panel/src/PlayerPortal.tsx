@@ -8,6 +8,7 @@ import { ClientJobs } from './ClientJobs';
 const API_URL = '/api';
 
 export function PlayerLogin({ onLogin }: { onLogin: (data: any) => void }) {
+  const { t } = useTranslation();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,10 +25,10 @@ export function PlayerLogin({ onLogin }: { onLogin: (data: any) => void }) {
       if (res.ok) {
         onLogin(data);
       } else {
-        setError(data.error || 'Identifiants incorrects.');
+        setError(data.error || t('web.auth.invalid_credentials'));
       }
     } catch (err) {
-      setError('Erreur réseau.');
+      setError(t('web.auth.network_error'));
     }
   };
 
@@ -35,14 +36,14 @@ export function PlayerLogin({ onLogin }: { onLogin: (data: any) => void }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-icon"><Gamepad2 size={48} /></div>
-        <h2>Connexion Joueur</h2>
-        <p>Connectez-vous avec vos identifiants Minecraft (/register en jeu)</p>
+        <h2>{t('web.auth.player_login_title')}</h2>
+        <p>{t('web.auth.player_login_desc')}</p>
         
         <form onSubmit={handleSubmit}>
-          <input type="text" placeholder="Pseudo Minecraft" value={username} onChange={e=>setUsername(e.target.value)} className="login-input" />
-          <input type="password" placeholder="Mot de passe" value={password} onChange={e=>setPassword(e.target.value)} className="login-input" />
+          <input type="text" placeholder={t('web.auth.username_placeholder')} value={username} onChange={e=>setUsername(e.target.value)} className="login-input" />
+          <input type="password" placeholder={t('web.auth.password_placeholder')} value={password} onChange={e=>setPassword(e.target.value)} className="login-input" />
           {error && <div className="login-error">{error}</div>}
-          <button type="submit" className="login-button">Se Connecter</button>
+          <button type="submit" className="login-button">{t('web.auth.login_btn')}</button>
         </form>
       </div>
     </div>

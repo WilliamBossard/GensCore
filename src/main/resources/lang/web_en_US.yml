@@ -140,6 +140,12 @@ web:
     login_title: Web Panel Login
     password: Password (/register)
     username: Minecraft Username
+    player_login_title: Player Login
+    player_login_desc: Log in with your Minecraft credentials (/register in game)
+    username_placeholder: Minecraft Username
+    password_placeholder: Password
+    invalid_credentials: Invalid credentials.
+    network_error: Network error.
   common:
     error: Error
     success: Success
