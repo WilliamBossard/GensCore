@@ -114,6 +114,14 @@ web:
     shop:
       new_cat: New Category
       title: Shop Management
+    files:
+      sidebar_title: Files
+      refresh: Refresh
+      save: Save
+      saved: Saved!
+      cat_main: Main
+      cat_modules: Modules
+      cat_langs: Languages
     status: Status
     tabs:
       back_to_game: Back to Game

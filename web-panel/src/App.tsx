@@ -558,20 +558,21 @@ function AdminPlayers({ password }: { password: string }) {
 }
 
 function AdminFiles({ password }: { password: string }) {
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const [currentFile, setCurrentFile] = useState('config.yml');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
   const fileCategories = [
-    { name: "Principal", files: ["config.yml", "modules.yml"] },
-    { name: "Modules", files: [
+    { name: t('web.admin.files.cat_main'), files: ["config.yml", "modules.yml"] },
+    { name: t('web.admin.files.cat_modules'), files: [
       "modules/web.yml", "modules/economy.yml", "modules/discord.yml", 
       "modules/motd.yml", "modules/lootr.yml", "modules/quests.yml", 
       "modules/spawners.yml", "modules/headdrop.yml", "modules/tabboard.yml",
       "modules/teleport.yml", "modules/tomb.yml", "modules/minigames.yml", "modules/bluemap.yml", "modules/teams.yml", "modules/chat.yml"
     ]},
-    { name: "Langues", files: ["lang/web_en_US.yml", "lang/web_fr_FR.yml"] }
+    { name: t('web.admin.files.cat_langs'), files: ["lang/web_en_US.yml", "lang/web_fr_FR.yml"] }
   ];
 
   const fetchFile = (fileName: string) => {
@@ -605,8 +606,8 @@ function AdminFiles({ password }: { password: string }) {
       {/* Sidebar Fichiers */}
       <div className="admin-card" style={{width: '280px', padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', maxHeight: 'calc(100vh - 120px)'}}>
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
-          <h3 style={{margin: 0, fontSize: '1.1rem'}}>Fichiers</h3>
-          <button className="btn-icon" onClick={() => fetchFile(currentFile)} title="Actualiser">
+          <h3 style={{margin: 0, fontSize: '1.1rem'}}>{t('web.admin.files.sidebar_title')}</h3>
+          <button className="btn-icon" onClick={() => fetchFile(currentFile)} title={t('web.admin.files.refresh')}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{color: 'var(--text-main)'}}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           </button>
         </div>
@@ -656,11 +657,11 @@ function AdminFiles({ password }: { password: string }) {
           
           <button className="btn" onClick={saveFile} style={{background: saved ? 'var(--success)' : 'var(--accent)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px'}}>
             {saved ? <Shield size={16}/> : <FileText size={16}/>}
-            {saved ? 'Enregistré !' : 'Sauvegarder'}
+            {saved ? t('web.admin.files.saved') : t('web.admin.files.save')}
           </button>
         </div>
       
-      {loading ? <div className="loading">Chargement du fichier...</div> : (
+      {loading ? <div className="loading">{t('web.public.loading')}</div> : (
         <div style={{
             flex: 1, 
             display: 'flex', 
@@ -924,7 +925,7 @@ function AdminShop({ password }: { password: string }) {
     <div>
       <div style={{marginBottom: '20px'}}>
         <button className="btn-small btn-primary" onClick={() => { setCatId(''); setCatName(''); setCatIcon('BRICKS'); setShowCatModal(true); }}>
-          <Plus size={16}/> Nouvelle Catégorie
+          <Plus size={16}/> {t('web.admin.shop.new_cat')}
         </button>
       </div>
 

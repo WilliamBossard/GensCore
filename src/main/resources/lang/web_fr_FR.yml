@@ -115,6 +115,14 @@ web:
     shop:
       new_cat: Nouvelle Catégorie
       title: Gestion de la Boutique
+    files:
+      sidebar_title: Fichiers
+      refresh: Actualiser
+      save: Sauvegarder
+      saved: Enregistré !
+      cat_main: Principal
+      cat_modules: Modules
+      cat_langs: Langues
     status: Statut
     tabs:
       back_to_game: Retour au Jeu
