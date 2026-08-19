@@ -12,7 +12,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
@@ -25,7 +24,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -36,13 +35,11 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.Webhook;
 
 import java.awt.Color;
-
+import java.security.SecureRandom;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -52,9 +49,12 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
     private boolean enabled = false;
     private JDA jda;
     private WebhookClient webhookClient;
-    
-    // Map code -> UUID of player
-    private final Map<String, UUID> pendingLinks = new HashMap<>();
+
+    // Code liaison Discord → {UUID, timestamp d'expiration}
+    private record PendingLink(UUID uuid, long expiresAt) {}
+    private final Map<String, PendingLink> pendingLinks = new HashMap<>();
+    private static final long LINK_EXPIRY_MS = 10L * 60 * 1000; // 10 minutes
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public DiscordModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -254,7 +254,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
     }
 
     @EventHandler
-    public void onChat(AsyncPlayerChatEvent event) {
+    public void onChat(AsyncChatEvent event) {
         if (!enabled) return;
         
         String prefix = "";
@@ -274,8 +274,9 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         if (team != null) guild = "[" + team.getName() + "] ";
         
         String username = prefix + guild + event.getPlayer().getName();
+        String messageText = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.message());
         
-        sendChatWebhook(event.getMessage(), "https://mc-heads.net/avatar/" + event.getPlayer().getName(), username);
+        sendChatWebhook(messageText, "https://mc-heads.net/avatar/" + event.getPlayer().getName(), username);
     }
 
     @EventHandler
@@ -286,7 +287,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         
         // Synchroniser le badge Discord
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            String discordId = plugin.getDatabaseManager().getDiscordId(p.getUniqueId());
+            String discordId = plugin.getDatabaseManager().getStatsDAO().getDiscordId(p.getUniqueId());
             boolean isLinked = (discordId != null && !discordId.isEmpty());
             
             try {
@@ -352,13 +353,14 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         Player p = (Player) sender;
 
         if (args.length > 0 && args[0].equalsIgnoreCase("link")) {
-            if (p.hasPermission("genscore.discord.linked") && plugin.getDatabaseManager().getDiscordId(p.getUniqueId()) != null) {
+            if (p.hasPermission("genscore.discord.linked") && plugin.getDatabaseManager().getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
                 plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
                 return true;
             }
 
-            String code = String.format("%04d", new Random().nextInt(10000));
-            pendingLinks.put(code, p.getUniqueId());
+            // Code sécurisé : 6 chiffres via SecureRandom = 1 000 000 combinaisons
+            String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+            pendingLinks.put(code, new PendingLink(p.getUniqueId(), System.currentTimeMillis() + LINK_EXPIRY_MS));
             
             plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
             p.sendMessage("<yellow>!link " + code);
@@ -378,12 +380,16 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         if (args[0].equalsIgnoreCase("!link") && args.length == 2) {
             String code = args[1];
 
-            if (!pendingLinks.containsKey(code)) {
-                event.getChannel().sendMessage("Code invalide ou expiré.").queue();
+            // Purger les codes expirés
+            pendingLinks.entrySet().removeIf(e -> System.currentTimeMillis() > e.getValue().expiresAt());
+
+            PendingLink link = pendingLinks.remove(code);
+            if (link == null || System.currentTimeMillis() > link.expiresAt()) {
+                event.getChannel().sendMessage("Code invalide ou expiré (10 min max). Utilisez `/discord link` en jeu pour en générer un nouveau.").queue();
                 return;
             }
 
-            UUID uuid = pendingLinks.remove(code);
+            UUID uuid = link.uuid();
             Guild finalTargetGuild = event.getGuild();
 
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -399,7 +405,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                             plugin.getLangManager().sendMessage(p, "discordmodule.msg_5");
                         }
                     }
-                    plugin.getDatabaseManager().setDiscordId(uuid, event.getAuthor().getId());
+                    plugin.getDatabaseManager().getStatsDAO().setDiscordId(uuid, event.getAuthor().getId());
                 } catch (Exception e) {
                     plugin.getLogger().warning("Error linking Discord: " + e.getMessage());
                 }
@@ -432,7 +438,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         } else if (event.getChannel().getId().equals(plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id"))) {
             // Discord -> Minecraft Chat
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                UUID uuid = plugin.getDatabaseManager().getUuidFromDiscord(event.getAuthor().getId());
+                UUID uuid = plugin.getDatabaseManager().getStatsDAO().getUuidFromDiscord(event.getAuthor().getId());
                 String prefix = "<gray>[Joueur] ";
                 String guild = "";
                 String playerName = event.getAuthor().getName();
@@ -462,7 +468,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         if (event.getName().equals("resetpassword")) {
             String newPassword = event.getOption("nouveau_mdp").getAsString();
             String discordId = event.getUser().getId();
-            UUID uuid = plugin.getDatabaseManager().getUuidFromDiscord(discordId);
+            UUID uuid = plugin.getDatabaseManager().getStatsDAO().getUuidFromDiscord(discordId);
             
             if (uuid == null) {
                 event.reply("Vous n'avez lié aucun compte Minecraft à ce compte Discord.").setEphemeral(true).queue();
@@ -476,7 +482,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
             String salt = fr.gens.core.modules.auth.AuthModule.generateSalt();
             String hash = fr.gens.core.modules.auth.AuthModule.hashPassword(newPassword, salt);
-            plugin.getDatabaseManager().updatePassword(uuid, hash, salt);
+            plugin.getDatabaseManager().getAuthDAO().updatePassword(uuid, hash, salt);
             
             fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
             if (authModule != null) {

@@ -9,14 +9,19 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.NamespacedKey;
 
 import org.bukkit.command.TabCompleter;
 
@@ -31,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter {
+public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
@@ -43,7 +48,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
     @Override
     public String getName() {
-        return "CmdHome";
+        return "home";
     }
 
     @Override
@@ -59,7 +64,13 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     @Override
     public void enable() {
         enabled = true;
-        loadHomes();
+        // Chargement lazy : les homes sont chargés à la connexion du joueur
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        // Précharger les homes des joueurs déjà connectés (reload en jeu)
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            final UUID uuid = p.getUniqueId();
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadHomesForPlayer(uuid));
+        }
         plugin.getLangManager().sendConsoleMessage("teleporthomemodule.log_1");
     }
 
@@ -78,20 +89,69 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     @Override
     public void disable() {
         enabled = false;
-        saveHomes();
+        homes.clear();
+        HandlerList.unregisterAll(this);
         plugin.getLangManager().sendConsoleMessage("teleporthomemodule.log_2");
     }
 
-    private void loadHomes() {
+
+    private void saveHomeToDB(UUID uuid, String name, Location loc) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "INSERT INTO player_homes (uuid, name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
+                         "ON CONFLICT(uuid, name) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, name);
+                ps.setString(3, loc.getWorld().getName());
+                ps.setDouble(4, loc.getX());
+                ps.setDouble(5, loc.getY());
+                ps.setDouble(6, loc.getZ());
+                ps.setFloat(7, loc.getYaw());
+                ps.setFloat(8, loc.getPitch());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void deleteHomeFromDB(UUID uuid, String name) {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes WHERE uuid = ? AND name = ?")) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, name);
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void clearAllHomes() {
         homes.clear();
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes")) {
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    // Chargement lazy : uniquement les homes d'un joueur donné
+    private void loadHomesForPlayer(UUID uuid) {
+        if (homes.containsKey(uuid)) return; // Déjà chargé
+        Map<String, Location> playerHomes = new HashMap<>();
+        String sql = "SELECT * FROM player_homes WHERE uuid = ?";
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM player_homes");
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                UUID uuid = UUID.fromString(rs.getString("uuid"));
-                String name = rs.getString("name");
-                String worldName = rs.getString("world");
-                if (Bukkit.getWorld(worldName) != null) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String worldName = rs.getString("world");
+                    if (Bukkit.getWorld(worldName) == null) continue;
                     Location loc = new Location(
                             Bukkit.getWorld(worldName),
                             rs.getDouble("x"),
@@ -100,55 +160,29 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
                             rs.getFloat("yaw"),
                             rs.getFloat("pitch")
                     );
-                    homes.computeIfAbsent(uuid, k -> new HashMap<>()).put(name, loc);
+                    playerHomes.put(rs.getString("name"), loc);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        homes.put(uuid, playerHomes);
     }
 
-    private void saveHomeToDB(UUID uuid, String name, Location loc) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO player_homes (uuid, name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
-                     "ON CONFLICT(uuid, name) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
-            ps.setString(1, uuid.toString());
-            ps.setString(2, name);
-            ps.setString(3, loc.getWorld().getName());
-            ps.setDouble(4, loc.getX());
-            ps.setDouble(5, loc.getY());
-            ps.setDouble(6, loc.getZ());
-            ps.setFloat(7, loc.getYaw());
-            ps.setFloat(8, loc.getPitch());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        if (!enabled) return;
+        final UUID uuid = event.getPlayer().getUniqueId();
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadHomesForPlayer(uuid));
     }
 
-    private void deleteHomeFromDB(UUID uuid, String name) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes WHERE uuid = ? AND name = ?")) {
-            ps.setString(1, uuid.toString());
-            ps.setString(2, name);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        homes.remove(event.getPlayer().getUniqueId());
     }
 
-    public void clearAllHomes() {
-        homes.clear();
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes")) {
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
     private void saveHomes() {
-        // Sauvegarde synchrone (déjà gérée en temps réel, mais on pourrait tout dump ici si besoin)
+        // Sauvegarde gérée en temps réel (saveHomeToDB appelé à chaque modification)
     }
 
     private int getMaxHomes(Player p) {
@@ -286,6 +320,8 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
                 List<String> lore = new ArrayList<>();
                 lore.add("<gray>Cliquez pour Gérer ce Home");
                 meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+                NamespacedKey key = new NamespacedKey(plugin, "home_name");
+                meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, homeName);
                 item.setItemMeta(meta);
             }
             inv.setItem(slot++, item);
@@ -315,7 +351,10 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
             if (clicked == null || clicked.getType() != Material.WHITE_BED) return;
             if (clicked.getItemMeta() == null) return;
 
-            String homeName = clicked.getItemMeta().getDisplayName().replace("<green><bold>", "");
+            NamespacedKey key = new NamespacedKey(plugin, "home_name");
+            if (!clicked.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING)) return;
+            
+            String homeName = clicked.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
             Map<String, Location> playerHomes = homes.get(p.getUniqueId());
             
             if (playerHomes != null && playerHomes.containsKey(homeName)) {
@@ -389,7 +428,9 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
                 if (playerHomes != null) {
                     playerHomes.remove(homeName);
                     deleteHomeFromDB(p.getUniqueId(), homeName);
-                    p.sendMessage("<red>Home " + homeName + " supprimé.");
+                    plugin.getLangManager().sendMessage(p, "home.delete", 
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+                    );
                 }
                 openHomeGui(p);
             } else if (clicked.getType() == Material.BARRIER) {

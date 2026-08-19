@@ -1,10 +1,11 @@
 package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -47,7 +48,7 @@ public class ChatModule implements Module, Listener {
     }
 
     @EventHandler
-    public void onChat(AsyncPlayerChatEvent event) {
+    public void onChat(AsyncChatEvent event) {
         if (!enabled) return;
         
         // Exige la permission pour parler
@@ -58,7 +59,7 @@ public class ChatModule implements Module, Listener {
         }
 
         // Récupérer le préfixe depuis LuckPerms
-        String prefix = "<gray>[Joueur] ";
+        String resolvedPrefix;
         try {
             net.luckperms.api.LuckPerms api = net.luckperms.api.LuckPermsProvider.get();
             net.luckperms.api.model.user.User user = api.getUserManager().getUser(event.getPlayer().getUniqueId());
@@ -66,28 +67,34 @@ public class ChatModule implements Module, Listener {
                 String lpPrefix = user.getCachedData().getMetaData().getPrefix();
                 if (lpPrefix != null) {
                     net.kyori.adventure.text.Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix);
-                    String legacyPrefix = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.builder()
+                    resolvedPrefix = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.builder()
                         .character('§')
                         .hexColors()
                         .build()
-                        .serialize(prefixComp);
-                    prefix = legacyPrefix + " ";
+                        .serialize(prefixComp) + " ";
+                } else {
+                    resolvedPrefix = "<gray>[Joueur] ";
                 }
+            } else {
+                resolvedPrefix = "<gray>[Joueur] ";
             }
         } catch (Exception e) {
-            if (event.getPlayer().hasPermission("genscore.admin")) {
-                prefix = "<red>[Admin] ";
-            }
+            resolvedPrefix = event.getPlayer().hasPermission("genscore.admin") ? "<red>[Admin] " : "<gray>[Joueur] ";
         }
         
         // Ajout du tag de guilde si le joueur en a une
-        String guildTag = "";
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
-        if (team != null) {
-            guildTag = "<yellow>[" + team.getName() + "] ";
-        }
+        final String guildTag = (team != null) ? "<yellow>[" + team.getName() + "] " : "";
         
-        event.setFormat(prefix + guildTag + "<white>%1$s <dark_gray>» <gray>%2$s");
+        // Variables effectively final pour le lambda
+        final String finalPrefix = resolvedPrefix;
+        final String messageText = PlainTextComponentSerializer.plainText().serialize(event.message());
+
+        // AsyncChatEvent utilise un ChatRenderer pour formater le message
+        event.renderer((source, sourceDisplayName, message, viewer) ->
+            net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
+                .deserialize(finalPrefix + guildTag + "<white>" + source.getName() + " <dark_gray>» <gray>" + messageText)
+        );
     }
 
     @EventHandler

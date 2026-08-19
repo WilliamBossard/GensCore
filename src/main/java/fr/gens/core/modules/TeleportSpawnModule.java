@@ -26,7 +26,7 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
 
     @Override
     public String getName() {
-        return "CmdSpawn";
+        return "spawn";
     }
 
     @Override

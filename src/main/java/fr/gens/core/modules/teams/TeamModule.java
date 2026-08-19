@@ -6,7 +6,6 @@ import org.bukkit.Bukkit;
 
 public class TeamModule implements Module {
     private final CorePlugin plugin;
-    private TeamCommand teamCommand;
     private TeamListener teamListener;
     private TeamGui teamGui;
     private boolean enabled;

@@ -23,3 +23,8 @@ modules:
   tpa: true
   teams: true
   lock: true
+  auth: true
+  moderation: true
+  chat: true
+  bluemap: false
+  fastleafdecay: true

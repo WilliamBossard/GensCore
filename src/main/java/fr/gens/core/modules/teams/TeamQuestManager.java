@@ -4,10 +4,6 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.quests.QuestType;
 import org.bukkit.Bukkit;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,13 +64,7 @@ public class TeamQuestManager {
             config.set("teams.active_quest", activeQuest.id);
             plugin.getConfigManager().saveConfig("modules/teams.yml");
             
-            // Clear progress
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_team_quests")) {
-                stmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            plugin.getDatabaseManager().getTeamDAO().clearTeamQuests();
             teamProgress.clear();
         } else {
             activeQuest = questPool.stream().filter(q -> q.id.equals(savedId)).findFirst().orElse(questPool.get(0));
@@ -82,34 +72,12 @@ public class TeamQuestManager {
     }
 
     private void loadProgress() {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT team_id, progress FROM genscore_team_quests WHERE quest_id = ?")) {
-            stmt.setString(1, activeQuest.id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    teamProgress.put(rs.getInt("team_id"), rs.getInt("progress"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        teamProgress.putAll(plugin.getDatabaseManager().getTeamDAO().loadTeamQuestProgress(activeQuest.id));
     }
 
     public void saveProgress(int teamId, int progress) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(
-                         "INSERT INTO genscore_team_quests (team_id, quest_id, progress) VALUES (?, ?, ?) " +
-                         "ON CONFLICT(team_id) DO UPDATE SET progress = ?, quest_id = ?")) {
-                stmt.setInt(1, teamId);
-                stmt.setString(2, activeQuest.id);
-                stmt.setInt(3, progress);
-                stmt.setInt(4, progress);
-                stmt.setString(5, activeQuest.id);
-                stmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            plugin.getDatabaseManager().getTeamDAO().saveTeamQuestProgress(teamId, activeQuest.id, progress);
         });
     }
 
@@ -132,15 +100,7 @@ public class TeamQuestManager {
             
             // Sauvegarder les points dans la DB
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement stmt = conn.prepareStatement("UPDATE genscore_team_stats SET weekly_points = ?, total_points = ? WHERE team_id = ?")) {
-                    stmt.setInt(1, team.getWeeklyPoints());
-                    stmt.setInt(2, team.getTotalPoints());
-                    stmt.setInt(3, team.getTeamId());
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                plugin.getDatabaseManager().getTeamDAO().saveTeamStats(team.getTeamId(), team.getWeeklyPoints(), team.getTotalPoints());
                 
                 // Distribuer les récompenses
                 fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
@@ -149,10 +109,10 @@ public class TeamQuestManager {
                 String rewardItem = !ecoEnabled ? "DIAMOND_BLOCK:4" : "";
                 
                 for (java.util.UUID memberId : team.getMembers()) {
-                    plugin.getDatabaseManager().addPendingReward(memberId, rewardAmount, rewardItem);
+                    plugin.getDatabaseManager().getRewardDAO().addPendingReward(memberId, rewardAmount, rewardItem);
                     org.bukkit.entity.Player p = Bukkit.getPlayer(memberId);
                     if (p != null && p.isOnline()) {
-                        Bukkit.getScheduler().runTask(plugin, () -> plugin.getDatabaseManager().processPendingRewards(p));
+                        Bukkit.getScheduler().runTask(plugin, () -> plugin.getDatabaseManager().getRewardDAO().processPendingRewards(p));
                     }
                 }
             });

@@ -8,16 +8,14 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.List;
 
 public class GensScoreboard {
 
+    private final Player player;
     private final Scoreboard scoreboard;
     private final Objective objective;
-    private final Player player;
 
     public GensScoreboard(Player player, String title) {
         this.player = player;

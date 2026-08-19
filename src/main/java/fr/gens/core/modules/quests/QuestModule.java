@@ -32,11 +32,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.meta.SkullMeta;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class QuestModule implements Module, CommandExecutor, TabCompleter, Listener {
@@ -571,7 +566,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         for(int s : cyanSlots) if(s < 45) inv.setItem(s, cyanPane);
 
         // Player Head Stats
-        int completedTotal = plugin.getDatabaseManager().getQuestsCompletedTotal(p.getUniqueId());
+        int completedTotal = plugin.getDatabaseManager().getQuestDAO().getQuestsCompletedTotal(p.getUniqueId());
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta sm = (SkullMeta) head.getItemMeta();
         sm.setOwningPlayer(p);
@@ -638,7 +633,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     if (p.hasPermission("genscore.quests.reroll") && !completed) {
                         lore.add(" ");
                         int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
-                        int used = plugin.getDatabaseManager().getRerollsDone(p.getUniqueId(), getTodayString());
+                        int used = plugin.getDatabaseManager().getQuestDAO().getRerollsDone(p.getUniqueId(), getTodayString());
                         lore.add("<light_purple>» Clic Droit pour Reroll (" + used + "/" + limit + ")");
                     } else if (completed) {
                         lore.add(" ");
@@ -694,14 +689,14 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                             
                             // Check limit
                             int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
-                            int used = plugin.getDatabaseManager().getRerollsDone(p.getUniqueId(), getTodayString());
+                            int used = plugin.getDatabaseManager().getQuestDAO().getRerollsDone(p.getUniqueId(), getTodayString());
                             if (used >= limit) {
                                 p.sendMessage("<red>Vous avez atteint la limite de " + limit + " rerolls pour aujourd'hui !");
                                 return;
                             }
                             
                             // Reroll this specific quest
-                            plugin.getDatabaseManager().setRerollsDone(p.getUniqueId(), used + 1, getTodayString());
+                            plugin.getDatabaseManager().getQuestDAO().setRerollsDone(p.getUniqueId(), used + 1, getTodayString());
                             rerollQuest(p, category, questId, data);
                             return;
                         }

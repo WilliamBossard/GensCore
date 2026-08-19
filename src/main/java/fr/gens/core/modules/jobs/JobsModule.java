@@ -208,12 +208,11 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         currentXp += amount;
         double nextXp = getXpNeededForNextLevel(currentLevel);
         
-        boolean leveledUp = false;
         if (currentXp >= nextXp) {
             currentXp -= nextXp;
             currentLevel++;
             playerLevel.get(uuid).put(type, currentLevel);
-            leveledUp = true;
+            boolean leveledUp = true;
             
             player.sendMessage("<dark_gray>[<gold>Métiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le métier " + type.getColor() + type.getDisplayName() + " <green>!");
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);

@@ -1,9 +1,9 @@
 package fr.gens.core.web;
 
 import fr.gens.core.CorePlugin;
-import fr.gens.core.utils.DatabaseManager;
+import fr.gens.core.database.AuthDAO;
 import fr.gens.core.modules.auth.AuthModule;
-import io.javalin.Javalin;
+import static io.javalin.apibuilder.ApiBuilder.*;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -26,12 +25,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
 public class WebPlayerAPI implements Listener {
 
     private final CorePlugin plugin;
-    private final Javalin app;
-    private final List<WheelReward> wheelRewards = new ArrayList<>();
+    private final List<WheelReward> wheelRewards;
 
-    public WebPlayerAPI(CorePlugin plugin, Javalin app) {
+    public WebPlayerAPI(CorePlugin plugin) {
         this.plugin = plugin;
-        this.app = app;
+        this.wheelRewards = new ArrayList<>();
         Bukkit.getPluginManager().registerEvents(this, plugin);
         
         loadWheelConfig();
@@ -82,7 +80,7 @@ public class WebPlayerAPI implements Listener {
     }
 
     public void registerRoutes() {
-        app.post("/api/player/login", ctx -> {
+        post("/api/player/login", ctx -> {
             LoginRequest req = ctx.bodyAsClass(LoginRequest.class);
             
             UUID playerUUID = null;
@@ -108,7 +106,7 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
 
-            DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(playerUUID);
+            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(playerUUID);
             if (data == null) {
                 ctx.status(401).json(Map.of("error", "Aucun compte enregistré (/register en jeu)."));
                 return;
@@ -141,7 +139,7 @@ public class WebPlayerAPI implements Listener {
             ctx.json(response);
         });
 
-        app.get("/api/player/stats", ctx -> {
+        get("/api/player/stats", ctx -> {
             String uuidStr = ctx.queryParam("uuid");
             if (uuidStr == null) {
                 ctx.status(400).json("UUID manquant");
@@ -151,7 +149,7 @@ public class WebPlayerAPI implements Listener {
             Map<String, Object> stats = new HashMap<>();
             
             // Quetes
-            int questsCompleted = plugin.getDatabaseManager().getQuestsCompletedTotal(UUID.fromString(uuidStr));
+            int questsCompleted = plugin.getDatabaseManager().getQuestDAO().getQuestsCompletedTotal(UUID.fromString(uuidStr));
             stats.put("questsCompleted", questsCompleted);
 
             // Eco
@@ -235,7 +233,7 @@ public class WebPlayerAPI implements Listener {
               ctx.json(stats);
         });
 
-        app.get("/api/player/info", ctx -> {
+        get("/api/player/info", ctx -> {
             String uuidStr = ctx.queryParam("uuid");
             if (uuidStr == null) {
                 ctx.status(400).json("UUID manquant");
@@ -249,13 +247,13 @@ public class WebPlayerAPI implements Listener {
             ctx.json(Map.of("isOp", isOp));
         });
 
-        app.get("/api/games/config", ctx -> {
+        get("/api/games/config", ctx -> {
             boolean wheelEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
             boolean casinoEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
             ctx.json(Map.of("wheelEnabled", wheelEnabled, "casinoEnabled", casinoEnabled));
         });
 
-        app.get("/api/games/casino/inventory", ctx -> {
+        get("/api/games/casino/inventory", ctx -> {
             String uuidStr = ctx.queryParam("uuid");
             if (uuidStr == null) {
                 ctx.status(400).json("UUID manquant");
@@ -277,7 +275,7 @@ public class WebPlayerAPI implements Listener {
             ctx.json(items);
         });
 
-        app.post("/api/games/casino/play", ctx -> {
+        post("/api/games/casino/play", ctx -> {
             CasinoPlayRequest req = ctx.bodyAsClass(CasinoPlayRequest.class);
             if (req.uuid == null || req.betId <= 0) {
                 ctx.status(400).json(Map.of("error", "Requête invalide"));
@@ -369,12 +367,12 @@ public class WebPlayerAPI implements Listener {
             ctx.json(Map.of("success", true, "multiplier", multiplier));
         });
 
-        app.get("/api/games/wheel", ctx -> {
+        get("/api/games/wheel", ctx -> {
             List<WheelReward> activeRewards = getActiveWheelRewards();
             ctx.json(activeRewards);
         });
         
-        app.post("/api/games/play", ctx -> {
+        post("/api/games/play", ctx -> {
             PlayRequest req = ctx.bodyAsClass(PlayRequest.class);
             UUID playerUUID = UUID.fromString(req.uuid);
             

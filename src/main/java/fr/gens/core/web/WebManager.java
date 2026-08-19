@@ -4,6 +4,7 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
 import io.javalin.Javalin;
 import io.javalin.http.staticfiles.Location;
+import static io.javalin.apibuilder.ApiBuilder.*;
 import fr.gens.core.modules.EconomyModule;
 import fr.gens.core.modules.shop.ShopCategory;
 import fr.gens.core.modules.shop.ShopItem;
@@ -12,16 +13,12 @@ import fr.gens.core.modules.headdrop.HeadDropModule;
 import fr.gens.core.modules.discord.DiscordModule;
 import org.bukkit.Material;
 import java.awt.Color;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.Calendar;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
@@ -31,15 +28,9 @@ public class WebManager {
     private final CorePlugin plugin;
     private final int port;
     private Javalin app;
-    private String[] corsOrigins;
-
     public WebManager(CorePlugin plugin, int port) {
         this.plugin = plugin;
         this.port = port;
-    }
-
-    public void setCorsOrigins(String[] origins) {
-        this.corsOrigins = origins;
     }
 
     private java.util.Map<String, Object> convertToMap(org.bukkit.configuration.ConfigurationSection section) {
@@ -113,21 +104,24 @@ public class WebManager {
                 // Gérer le routage SPA (Single Page Application)
                 config.spaRoot.addFile("/", new File(webDir, "index.html").getAbsolutePath(), Location.EXTERNAL);
 
+                config.routes.apiBuilder(() -> {
+                    // Middleware d'authentification pour les routes /api/admin/*
+                    before("/api/admin/*", ctx -> {
+                        String authHeader = ctx.header("Authorization");
+                        String expectedPassword = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "gens");
+                        
+                        if (authHeader == null || !authHeader.equals("Bearer " + expectedPassword)) {
+                            ctx.status(401).json("Non autorisé: Mot de passe incorrect");
+                        }
+                    });
+                    
+                    WebPlayerAPI playerAPI = new WebPlayerAPI(plugin);
+                    playerAPI.registerRoutes();
+
+                    setupRoutes();
+                });
+
             }).start(port);
-
-            // Middleware d'authentification pour les routes /api/admin/*
-            app.before("/api/admin/*", ctx -> {
-                String authHeader = ctx.header("Authorization");
-                String expectedPassword = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "gens");
-                
-                if (authHeader == null || !authHeader.equals("Bearer " + expectedPassword)) {
-                    ctx.status(401).json("Non autorisé: Mot de passe incorrect");
-                }
-            });
-            WebPlayerAPI playerAPI = new WebPlayerAPI(plugin, app);
-            playerAPI.registerRoutes();
-
-            setupRoutes();
             
         } catch (Exception e) {
             plugin.getLangManager().sendConsoleError("webmanager.log_1");
@@ -220,7 +214,7 @@ public class WebManager {
 
     private void setupRoutes() {
         // Route API pour récupérer la liste des modules (Public)
-        app.get("/api/modules", ctx -> {
+        get("/api/modules", ctx -> {
             List<Map<String, Object>> modulesList = new ArrayList<>();
             for (Module m : plugin.getModuleManager().getModules()) {
                 Map<String, Object> moduleData = new HashMap<>();
@@ -239,13 +233,13 @@ public class WebManager {
                 "Our custom web panel allows you to view your stats, check the global leaderboard, and even interact with the in-game economy directly from your browser!\n\n" +
                 "Read the complete documentation below to learn more about our custom features.";
 
-        app.get("/api/public/features", ctx -> {
+        get("/api/public/features", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
             ctx.result(plugin.getConfigManager().getConfig("modules/web.yml").getString("web.public_features_text", defaultPublicText));
         });
 
         // API de Langue
-        app.get("/api/public/lang", ctx -> {
+        get("/api/public/lang", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
             
             String forceLang = plugin.getConfigManager().getConfig("modules/web.yml").getString("web.force_lang", "");
@@ -266,7 +260,7 @@ public class WebManager {
         });
 
         // Route API pour activer/désactiver un module (Protégée Admin)
-        app.post("/api/admin/modules/{name}/toggle", ctx -> {
+        post("/api/admin/modules/{name}/toggle", ctx -> {
             String moduleName = ctx.pathParam("name");
             
             // On récupère le body {"state": true/false}
@@ -284,7 +278,7 @@ public class WebManager {
         });
 
         // Configuration Routes
-        app.get("/api/admin/config", ctx -> {
+        get("/api/admin/config", ctx -> {
             ctx.header("Cache-Control", "no-cache, no-store, must-revalidate");
             ctx.json(new ConfigResponse(
                 plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("shop.inflation_exponent", 0.5),
@@ -310,7 +304,7 @@ public class WebManager {
             ));
         });
 
-        app.post("/api/admin/config", ctx -> {
+        post("/api/admin/config", ctx -> {
             ConfigRequest req = ctx.bodyAsClass(ConfigRequest.class);
             plugin.getConfigManager().getConfig("modules/economy.yml").set("shop.inflation_exponent", req.inflationExponent);
             plugin.getConfigManager().getConfig("modules/economy.yml").set("ah.tax_percentage", req.ahTaxPercentage);
@@ -364,7 +358,7 @@ public class WebManager {
         });
 
         // Modération Joueurs
-        app.get("/api/admin/players", ctx -> {
+        get("/api/admin/players", ctx -> {
             List<Map<String, Object>> players = new ArrayList<>();
             fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
             for (org.bukkit.OfflinePlayer op : plugin.getServer().getOfflinePlayers()) {
@@ -386,17 +380,19 @@ public class WebManager {
                     map.put("maxHealth", 20.0);
                 }
                 
-                map.put("isBanned", plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).isBanned(op.getName()));
+                org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(op.getUniqueId(), op.getName());
+                org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = plugin.getServer().getBanList(org.bukkit.BanList.Type.PROFILE);
+                map.put("isBanned", banList.isBanned(profile));
                 map.put("isMuted", mod != null && mod.isMuted(op.getUniqueId()));
 
-                long playtime = plugin.getDatabaseManager().getPlaytimeMinutes(op.getUniqueId());
+                long playtime = plugin.getDatabaseManager().getStatsDAO().getPlaytimeMinutes(op.getUniqueId());
                 map.put("playtime", playtime);
                 players.add(map);
             }
             ctx.json(players);
         });
 
-        app.post("/api/admin/players/action", ctx -> {
+        post("/api/admin/players/action", ctx -> {
             PlayerActionRequest req = ctx.bodyAsClass(PlayerActionRequest.class);
             plugin.getServer().getScheduler().runTask(plugin, () -> {
                 DiscordModule discord = (DiscordModule) plugin.getModuleManager().getModule("Discord");
@@ -406,7 +402,7 @@ public class WebManager {
 
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.kickPlayer("<red>Vous avez été expulsé par un Administrateur.\n<gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison"));
+                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
                         plugin.getLogger().info("Web panel kicked " + req.playerName);
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, Color.ORANGE);
                     }
@@ -418,14 +414,18 @@ public class WebManager {
                     java.util.Date expires = durationMs > 0 ? new java.util.Date(System.currentTimeMillis() + durationMs) : null;
                     String reason = req.reason != null && !req.reason.isEmpty() ? req.reason : "Banni par un Administrateur";
                     
-                    plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).addBan(req.playerName, "<red>" + reason, expires, "WebAdmin");
+                    org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
+                    org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = plugin.getServer().getBanList(org.bukkit.BanList.Type.PROFILE);
+                    banList.addBan(profile, "<red>" + reason, expires, "WebAdmin");
                     if (target != null) {
-                        target.kickPlayer("<red>Vous avez été banni.\n<gray>Raison : " + reason);
+                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été banni.<br><gray>Raison : " + reason));
                     }
                     plugin.getLogger().info("Web panel banned " + req.playerName);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);
                 } else if ("unban".equalsIgnoreCase(req.action)) {
-                    plugin.getServer().getBanList(org.bukkit.BanList.Type.NAME).pardon(req.playerName);
+                    org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
+                    org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = plugin.getServer().getBanList(org.bukkit.BanList.Type.PROFILE);
+                    banList.pardon(profile);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("UNBAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin", Color.GREEN);
                 } else if ("mute".equalsIgnoreCase(req.action)) {
                     if (mod != null && targetOffline != null && targetOffline.getUniqueId() != null) {
@@ -458,7 +458,7 @@ public class WebManager {
         });
 
         // Édition de fichiers
-        app.get("/api/admin/file", ctx -> {
+        get("/api/admin/file", ctx -> {
             String path = ctx.queryParam("path");
             if (path == null || path.contains("..")) {
                 ctx.status(400).result("Invalid path");
@@ -473,7 +473,7 @@ public class WebManager {
             ctx.result(content);
         });
 
-        app.post("/api/admin/file", ctx -> {
+        post("/api/admin/file", ctx -> {
             String path = ctx.queryParam("path");
             if (path == null || path.contains("..")) {
                 ctx.status(400).result("Invalid path");
@@ -496,7 +496,7 @@ public class WebManager {
         // ROUTES SHOP & ECONOMIE
         // ==========================================
 
-        app.get("/api/economy/stats", ctx -> {
+        get("/api/economy/stats", ctx -> {
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null) {
                 // Pour simplifier, on ne peut pas iterer directement sur les UUIDs sans reflection si balances est privé
@@ -508,7 +508,7 @@ public class WebManager {
             }
         });
 
-        app.get("/api/shop/categories", ctx -> {
+        get("/api/shop/categories", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
             if (shop != null) {
                 ctx.json(shop.getCategories());
@@ -517,7 +517,7 @@ public class WebManager {
             }
         });
 
-        app.get("/api/shop/history/{material}", ctx -> {
+        get("/api/shop/history/{material}", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
             if (shop != null) {
                 String material = ctx.pathParam("material").toUpperCase();
@@ -527,7 +527,7 @@ public class WebManager {
             }
         });
 
-        app.post("/api/admin/shop/category", ctx -> {
+        post("/api/admin/shop/category", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
             if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
             
@@ -543,7 +543,7 @@ public class WebManager {
             ctx.status(200).result("OK");
         });
 
-        app.post("/api/admin/shop/item", ctx -> {
+        post("/api/admin/shop/item", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
             if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
             
@@ -577,7 +577,7 @@ public class WebManager {
             }
         });
 
-        app.delete("/api/admin/shop/item/{category}/{material}", ctx -> {
+        delete("/api/admin/shop/item/{category}/{material}", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
             if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
             
@@ -601,7 +601,7 @@ public class WebManager {
             }
         });
 
-        app.delete("/api/admin/shop/category/{id}", ctx -> {
+        delete("/api/admin/shop/category/{id}", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
             if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
             
@@ -618,7 +618,7 @@ public class WebManager {
             }
         });
 
-        app.delete("/api/admin/homes", ctx -> {
+        delete("/api/admin/homes", ctx -> {
             fr.gens.core.modules.TeleportHomeModule homeModule = (fr.gens.core.modules.TeleportHomeModule) plugin.getModuleManager().getModule("CmdHome");
             if (homeModule != null) {
                 homeModule.clearAllHomes();
@@ -631,7 +631,7 @@ public class WebManager {
         // ==============================================
         // Teams Stats API
         // ==============================================
-        app.get("/api/stats/teams/best", ctx -> {
+        get("/api/stats/teams/best", ctx -> {
             fr.gens.core.modules.teams.TeamManager tm = plugin.getTeamManager();
             if (tm != null) {
                 java.util.Map<String, Object> bestTeam = tm.getBestTeamStats();
@@ -645,7 +645,7 @@ public class WebManager {
             }
         });
 
-        app.get("/api/stats/teams", ctx -> {
+        get("/api/stats/teams", ctx -> {
             fr.gens.core.modules.teams.TeamManager tm = plugin.getTeamManager();
             if (tm != null) {
                 ctx.json(tm.getAllTeamStats());
@@ -657,7 +657,7 @@ public class WebManager {
         // ==========================================
         // ROUTES AUCTION HOUSE (AH)
         // ==========================================
-        app.get("/api/ah/items", ctx -> {
+        get("/api/ah/items", ctx -> {
             fr.gens.core.modules.AuctionHouseModule ah = (fr.gens.core.modules.AuctionHouseModule) plugin.getModuleManager().getModule("auctionhouse");
             if (ah != null) {
                 ctx.json(ah.getAuctionItemsForWeb());
@@ -669,30 +669,30 @@ public class WebManager {
           // ==========================================
           // ROUTE PAGE PUBLIQUE
           // ==========================================
-          app.get("/api/public/news", ctx -> {
+          get("/api/public/news", ctx -> {
               ctx.result(plugin.getConfig().getString("publicPageContent", "Bienvenue sur notre serveur !\nNous sommes heureux de vous accueillir."));
           });
 
-          app.get("/api/public/bluemap", ctx -> {
+          get("/api/public/bluemap", ctx -> {
               ctx.result(plugin.getConfigManager().getConfig("modules/bluemap.yml").getString("bluemap.url", "http://localhost:8100"));
           });
 
-          app.get("/api/public/server_ip", ctx -> {
+          get("/api/public/server_ip", ctx -> {
               ctx.result(plugin.getConfigManager().getConfig("modules/web.yml").getString("web.server_ip", "gens-core.duckdns.org"));
           });
 
         // ==========================================
         // ROUTES LEADERBOARD
         // ==========================================
-        app.get("/api/stats/leaderboard", ctx -> {
-            ctx.json(plugin.getDatabaseManager().getGlobalLeaderboard());
+        get("/api/stats/leaderboard", ctx -> {
+            ctx.json(plugin.getDatabaseManager().getStatsDAO().getGlobalLeaderboard());
         });
 
-        app.get("/api/stats/quests/leaderboard", ctx -> {
-            ctx.json(plugin.getDatabaseManager().getQuestsLeaderboardData());
+        get("/api/stats/quests/leaderboard", ctx -> {
+            ctx.json(plugin.getDatabaseManager().getQuestDAO().getQuestsLeaderboardData());
         });
 
-        app.get("/api/stats/jobs", ctx -> {
+        get("/api/stats/jobs", ctx -> {
             ctx.json(plugin.getDatabaseManager().getJobsLeaderboardData());
         });
     }

@@ -2,7 +2,6 @@ package fr.gens.core.modules.motd;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
-import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerListPingEvent;

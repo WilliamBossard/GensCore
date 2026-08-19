@@ -1,25 +1,21 @@
 package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
-import fr.gens.core.modules.shop.ShopModule;
-import fr.gens.core.modules.headdrop.HeadDropModule;
-import fr.gens.core.modules.tabboard.TabBoardModule;
-import fr.gens.core.modules.discord.DiscordModule;
-import fr.gens.core.modules.AuctionHouseModule;
-import fr.gens.core.modules.loot.LootModule;
 import fr.gens.core.modules.auth.AuthModule;
-import fr.gens.core.modules.utils.UtilsModule;
-import fr.gens.core.modules.shop.ShopModule;
+import fr.gens.core.modules.discord.DiscordModule;
 import fr.gens.core.modules.gui.CustomGuiModule;
-import fr.gens.core.modules.quests.QuestModule;
-import fr.gens.core.modules.EconomyModule;
 import fr.gens.core.modules.headdrop.HeadDropModule;
-import fr.gens.core.modules.spawners.SpawnerModule;
 import fr.gens.core.modules.jobs.JobsModule;
-import fr.gens.core.modules.moderation.ModerationModule;
-import fr.gens.core.modules.stats.StatsModule;
-import fr.gens.core.modules.teams.TeamModule;
 import fr.gens.core.modules.lock.LockModule;
+import fr.gens.core.modules.loot.LootModule;
+import fr.gens.core.modules.moderation.ModerationModule;
+import fr.gens.core.modules.quests.QuestModule;
+import fr.gens.core.modules.shop.ShopModule;
+import fr.gens.core.modules.spawners.SpawnerModule;
+import fr.gens.core.modules.stats.StatsModule;
+import fr.gens.core.modules.tabboard.TabBoardModule;
+import fr.gens.core.modules.teams.TeamModule;
+import fr.gens.core.modules.utils.UtilsModule;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -54,8 +50,7 @@ public class ModuleManager {
         addModule(new QuestModule(plugin));
         addModule(new AuthModule(plugin));
         addModule(new UtilsModule(plugin));
-        addModule(new fr.gens.core.modules.shop.ShopModule(plugin));
-        addModule(new fr.gens.core.modules.loot.LootModule(plugin));
+        addModule(new LootModule(plugin));
         addModule(new SpawnerModule(plugin));
         addModule(new BlueMapModule(plugin));
         addModule(new ModerationModule(plugin));
@@ -69,7 +64,8 @@ public class ModuleManager {
         // Charger les états depuis modules.yml et les activer si besoin
         org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
         for (Module module : modules.values()) {
-            boolean shouldEnable = modulesConfig.getBoolean("modules." + module.getName().toLowerCase() + ".enabled", true);
+            // Lecture au format plat : modules.economy: true
+            boolean shouldEnable = modulesConfig.getBoolean("modules." + module.getName().toLowerCase(), true);
             if (shouldEnable) {
                 module.enable();
             } else {
@@ -83,7 +79,9 @@ public class ModuleManager {
     }
 
     public void disableAllModules() {
-        for (Module module : modules.values()) {
+        java.util.List<Module> reversedModules = new java.util.ArrayList<>(modules.values());
+        java.util.Collections.reverse(reversedModules);
+        for (Module module : reversedModules) {
             if (module.isEnabled()) {
                 module.disable();
             }

@@ -1,19 +1,14 @@
 package fr.gens.core;
 
 import fr.gens.core.modules.ModuleManager;
-import fr.gens.core.modules.auth.AuthModule;
-import fr.gens.core.modules.utils.UtilsModule;
-import fr.gens.core.modules.gui.CustomGuiModule;
 import fr.gens.core.modules.teams.TeamManager;
 import fr.gens.core.utils.DatabaseManager;
 import fr.gens.core.utils.ActionBarManager;
-import fr.gens.core.StorageManager;
 import fr.gens.core.web.WebManager;
 import fr.gens.core.commands.WebCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 
 public class CorePlugin extends JavaPlugin {
 

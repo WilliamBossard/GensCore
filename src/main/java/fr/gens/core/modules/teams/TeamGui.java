@@ -1,8 +1,6 @@
 package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
-import fr.gens.core.modules.gui.CustomGuiModule;
-import fr.gens.core.utils.ItemSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;

@@ -1,7 +1,6 @@
 package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;

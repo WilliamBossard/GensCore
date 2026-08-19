@@ -72,7 +72,7 @@ public class PlaceholderUtils {
         resolvers.add(Placeholder.parsed("player_name", p.getName()));
 
         // Quests
-        int completedQuests = plugin.getDatabaseManager().getQuestsCompletedTotal(p.getUniqueId());
+        int completedQuests = plugin.getDatabaseManager().getQuestDAO().getQuestsCompletedTotal(p.getUniqueId());
         resolvers.add(Placeholder.parsed("quests", String.valueOf(completedQuests)));
         resolvers.add(Placeholder.parsed("quests_completed", String.valueOf(completedQuests)));
 

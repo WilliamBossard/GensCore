@@ -2,7 +2,6 @@ package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -125,7 +124,7 @@ public class TeamListener implements Listener {
     public void onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event) {
         // Process pending rewards for the player asynchronously to avoid lagging main thread
         org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            plugin.getDatabaseManager().processPendingRewards(event.getPlayer());
+            plugin.getDatabaseManager().getRewardDAO().processPendingRewards(event.getPlayer());
         });
     }
 }

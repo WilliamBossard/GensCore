@@ -4,24 +4,78 @@ import fr.gens.core.CorePlugin;
 
 import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.UUID;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import fr.gens.core.database.AuthDAO;
+import fr.gens.core.database.StatsDAO;
+import fr.gens.core.database.QuestDAO;
+import fr.gens.core.database.RewardDAO;
+import fr.gens.core.database.ModerationDAO;
+import fr.gens.core.database.EconomyDAO;
+import fr.gens.core.database.ShopDAO;
+import fr.gens.core.database.TeamDAO;
 
 public class DatabaseManager {
 
     private final CorePlugin plugin;
     private HikariDataSource dataSource;
+    private final AuthDAO authDAO;
+    private final StatsDAO statsDAO;
+    private final QuestDAO questDAO;
+    private final RewardDAO rewardDAO;
+    private final ModerationDAO moderationDAO;
+    private final EconomyDAO economyDAO;
+    private final ShopDAO shopDAO;
+    private final TeamDAO teamDAO;
 
     public DatabaseManager(CorePlugin plugin) {
         this.plugin = plugin;
         connect();
         initTables();
+        this.authDAO = new AuthDAO(plugin);
+        this.statsDAO = new StatsDAO(plugin);
+        this.questDAO = new QuestDAO(plugin);
+        this.rewardDAO = new RewardDAO(plugin);
+        this.moderationDAO = new ModerationDAO(plugin);
+        this.economyDAO = new EconomyDAO(plugin);
+        this.shopDAO = new ShopDAO(plugin);
+        this.teamDAO = new TeamDAO(plugin);
+    }
+
+    public AuthDAO getAuthDAO() {
+        return authDAO;
+    }
+
+    public StatsDAO getStatsDAO() {
+        return statsDAO;
+    }
+
+    public QuestDAO getQuestDAO() {
+        return questDAO;
+    }
+
+    public RewardDAO getRewardDAO() {
+        return rewardDAO;
+    }
+
+    public ModerationDAO getModerationDAO() {
+        return moderationDAO;
+    }
+
+    public EconomyDAO getEconomyDAO() {
+        return economyDAO;
+    }
+
+    public ShopDAO getShopDAO() {
+        return shopDAO;
+    }
+
+    public TeamDAO getTeamDAO() {
+        return teamDAO;
     }
 
     private void connect() {
@@ -287,19 +341,18 @@ public class DatabaseManager {
                     ");");
 
             // Récompenses en attente (Quêtes de guilde par ex)
+            // Note : ancienne table 'pending_rewards' fusionnée ici — seule genscore_pending_rewards est conservée
             statement.execute("CREATE TABLE IF NOT EXISTS genscore_pending_rewards (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "uuid VARCHAR(36) NOT NULL, " +
                     "amount DOUBLE, " +
+                    "command TEXT, " +
+                    "message TEXT, " +
                     "item_data TEXT" +
                     ");");
 
-            statement.execute("CREATE TABLE IF NOT EXISTS pending_rewards (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    "uuid VARCHAR(36), " +
-                    "command TEXT, " +
-                    "message TEXT" +
-                    ")");
+            // Migration silencieuse : si l'ancienne table pending_rewards existe, on la supprime
+            try { statement.execute("DROP TABLE IF EXISTS pending_rewards;"); } catch (Exception ignored) {}
 
             // Table Teams (Guildes)
             statement.execute("CREATE TABLE IF NOT EXISTS genscore_teams (" +
@@ -358,6 +411,17 @@ public class DatabaseManager {
                     "uuid VARCHAR(36) PRIMARY KEY" +
                     ")");
 
+            // --- Index de performance ---
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_quests_history_uuid     ON player_quests_history(uuid);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_quests_history_date     ON player_quests_history(completion_date);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_global_stats_uuid       ON player_global_stats(uuid);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_auction_expire          ON auction_house(expire_time);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_auction_seller          ON auction_house(seller_uuid);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_economy_balance         ON players_economy(balance DESC);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_player_homes_uuid       ON player_homes(uuid);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_transactions_uuid       ON player_transactions_history(uuid);");
+            statement.execute("CREATE INDEX IF NOT EXISTS idx_pending_rewards_uuid    ON genscore_pending_rewards(uuid);");
+
             plugin.getLangManager().sendConsoleMessage("db.tables_init_success");
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("db.tables_init_error");
@@ -376,455 +440,8 @@ public class DatabaseManager {
         }
     }
 
-    // --- NOUVELLES METHODES REROLLS & STATS ---
+    // Methodes de Quetes, Recompenses et Moderation ont été deplacées dans leurs DAO respectifs
 
-    public int getQuestsCompletedTotal(UUID uuid) {
-        try (Connection conn = getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement("SELECT quests_completed FROM player_quests_stats WHERE uuid = ?")) {
-                stmt.setString(1, uuid.toString());
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        return rs.getInt("quests_completed");
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    public int getRerollsDone(UUID uuid, String today) {
-        boolean needsReset = false;
-        int count = 0;
-
-        try (Connection conn = getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement("SELECT rerolls_done, last_reroll_date FROM player_quests_stats WHERE uuid = ?")) {
-                stmt.setString(1, uuid.toString());
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        String lastDate = rs.getString("last_reroll_date");
-                        if (today.equals(lastDate)) {
-                            count = rs.getInt("rerolls_done");
-                        } else {
-                            // C'est un nouveau jour, on reset plus tard
-                            needsReset = true;
-                        }
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        if (needsReset) {
-            setRerollsDone(uuid, 0, today);
-            return 0;
-        }
-
-        return count;
-    }
-
-    public void setRerollsDone(UUID uuid, int count, String today) {
-        try (Connection conn = getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(
-                    "UPDATE player_quests_stats SET rerolls_done = ?, last_reroll_date = ? WHERE uuid = ?")) {
-                stmt.setInt(1, count);
-                stmt.setString(2, today);
-                stmt.setString(3, uuid.toString());
-                stmt.executeUpdate();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // --- AUTHENTICATION & DISCORD EXTENSIONS ---
-
-    public void setDiscordId(UUID uuid, String discordId) {
-        String sql = "INSERT INTO player_stats (uuid, discord_id) VALUES (?, ?) " +
-                     "ON CONFLICT(uuid) DO UPDATE SET discord_id = excluded.discord_id;";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, uuid.toString());
-            pstmt.setString(2, discordId);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la mise a jour du Discord ID", e);
-        }
-    }
-
-    public UUID getUuidFromDiscord(String discordId) {
-        String sql = "SELECT uuid FROM player_stats WHERE discord_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, discordId);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                String u = rs.getString("uuid");
-                if (u != null && !u.isEmpty()) return UUID.fromString(u);
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la recuperation de l'UUID via Discord", e);
-        }
-        return null;
-    }
-
-    public String getDiscordId(UUID uuid) {
-        String sql = "SELECT discord_id FROM player_stats WHERE uuid = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, uuid.toString());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getString("discord_id");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static class AuthData {
-        public String hash;
-        public String salt;
-        public String lastIp;
-        public long lastLogin;
-        public AuthData(String hash, String salt, String lastIp, long lastLogin) {
-            this.hash = hash;
-            this.salt = salt;
-            this.lastIp = lastIp;
-            this.lastLogin = lastLogin;
-        }
-    }
-
-    public AuthData getAuthData(UUID uuid) {
-        String sql = "SELECT password_hash, salt, last_ip, last_login FROM genscore_auth WHERE uuid = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, uuid.toString());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return new AuthData(
-                        rs.getString("password_hash"),
-                        rs.getString("salt"),
-                        rs.getString("last_ip"),
-                        rs.getLong("last_login")
-                );
-            }
-        } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la lecture des donnees d'auth", e);
-        }
-        return null;
-    }
-
-    public void removeAuthData(UUID uuid) {
-        String sql = "DELETE FROM genscore_auth WHERE uuid = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, uuid.toString());
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void registerPlayer(UUID uuid, String hash, String salt, String ip) {
-        String sql = "INSERT INTO genscore_auth (uuid, password_hash, salt, last_ip, last_login) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, uuid.toString());
-            pstmt.setString(2, hash);
-            pstmt.setString(3, salt);
-            pstmt.setString(4, ip);
-            pstmt.setLong(5, System.currentTimeMillis());
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de l'enregistrement (register)", e);
-        }
-    }
-
-    public void updateLogin(UUID uuid, String ip) {
-        String sql = "UPDATE genscore_auth SET last_ip = ?, last_login = ? WHERE uuid = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, ip);
-            pstmt.setLong(2, System.currentTimeMillis());
-            pstmt.setString(3, uuid.toString());
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la mise a jour de la connexion (login)", e);
-        }
-    }
-
-    public void updatePassword(UUID uuid, String hash, String salt) {
-        String sql = "UPDATE genscore_auth SET password_hash = ?, salt = ?, last_ip = NULL WHERE uuid = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, hash);
-            pstmt.setString(2, salt);
-            pstmt.setString(3, uuid.toString());
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la mise a jour du mot de passe", e);
-        }
-    }
-    public void addPendingReward(UUID uuid, double amount, String itemData) {
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("INSERT INTO genscore_pending_rewards (uuid, amount, item_data) VALUES (?, ?, ?)")) {
-            stmt.setString(1, uuid.toString());
-            stmt.setDouble(2, amount);
-            stmt.setString(3, itemData);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void processPendingRewards(org.bukkit.entity.Player player) {
-        try (Connection conn = getConnection()) {
-            boolean hasRewards = false;
-            try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM genscore_pending_rewards WHERE uuid = ?")) {
-                stmt.setString(1, player.getUniqueId().toString());
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    hasRewards = true;
-                    double amount = rs.getDouble("amount");
-                    String itemData = rs.getString("item_data");
-                    
-                    if (amount > 0) {
-                        fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
-                        if (eco != null && eco.isEnabled()) {
-                            eco.addMoney(player.getUniqueId(), amount);
-                            plugin.getLangManager().sendMessage(player, "economy.pending_reward", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)));
-                        }
-                    }
-                    if (itemData != null && !itemData.isEmpty()) {
-                        String[] parts = itemData.split(":");
-                        if (parts.length == 2) {
-                            try {
-                                org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
-                                int count = Integer.parseInt(parts[1]);
-                                org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(mat, count);
-                                
-                                java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> excess = player.getInventory().addItem(item);
-                                for (org.bukkit.inventory.ItemStack drop : excess.values()) {
-                                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
-                                }
-                                plugin.getLangManager().sendMessage(player, "guild.reward_received");
-                            } catch (Exception e) {
-                                plugin.getLangManager().sendMessage(player, "error.invalid_reward");
-                            }
-                        }
-                    }
-                }
-            }
-            if (hasRewards) {
-                try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_pending_rewards WHERE uuid = ?")) {
-                    stmt.setString(1, player.getUniqueId().toString());
-                    stmt.executeUpdate();
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // --- MODERATION ---
-    public void saveMutes(java.util.Map<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> mutes) {
-        String deleteSql = "DELETE FROM moderation_mutes";
-        String insertSql = "INSERT INTO moderation_mutes (uuid, expiration, reason) VALUES (?, ?, ?)";
-        try (Connection conn = getConnection();
-             java.sql.Statement stmt = conn.createStatement();
-             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-            stmt.executeUpdate(deleteSql);
-            for (java.util.Map.Entry<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> entry : mutes.entrySet()) {
-                pstmt.setString(1, entry.getKey().toString());
-                pstmt.setLong(2, entry.getValue().expiration);
-                pstmt.setString(3, entry.getValue().reason);
-                pstmt.addBatch();
-            }
-            pstmt.executeBatch();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void saveFrozen(java.util.Set<UUID> frozen) {
-        String deleteSql = "DELETE FROM moderation_frozen";
-        String insertSql = "INSERT INTO moderation_frozen (uuid) VALUES (?)";
-        try (Connection conn = getConnection();
-             java.sql.Statement stmt = conn.createStatement();
-             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-            stmt.executeUpdate(deleteSql);
-            for (UUID uuid : frozen) {
-                pstmt.setString(1, uuid.toString());
-                pstmt.addBatch();
-            }
-            pstmt.executeBatch();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public java.util.Map<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> loadMutes() {
-        java.util.Map<UUID, fr.gens.core.modules.moderation.ModerationModule.MuteData> mutes = new java.util.HashMap<>();
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM moderation_mutes");
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                mutes.put(UUID.fromString(rs.getString("uuid")), new fr.gens.core.modules.moderation.ModerationModule.MuteData(rs.getString("reason"), rs.getLong("expiration")));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return mutes;
-    }
-
-    public java.util.Set<UUID> loadFrozen() {
-        java.util.Set<UUID> frozen = new java.util.HashSet<>();
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM moderation_frozen");
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                frozen.add(UUID.fromString(rs.getString("uuid")));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return frozen;
-    }
-
-    // --- WEB STATS EXTENSIONS ---
-
-    public long getPlaytimeMinutes(UUID uuid) {
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT playtime_minutes FROM player_global_stats WHERE uuid = ?")) {
-            ps.setString(1, uuid.toString());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getLong("playtime_minutes");
-            }
-        } catch (SQLException e) {
-            plugin.getLangManager().sendConsoleError("db.query_error");
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    public java.util.List<java.util.Map<String, Object>> getGlobalLeaderboard() {
-        java.util.List<java.util.Map<String, Object>> leaderboard = new java.util.ArrayList<>();
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT q.player_name, p.username, q.quests_completed, q.uuid, " +
-                     "COALESCE(g.blocks_broken, 0) as blocks, " +
-                     "COALESCE(g.mobs_killed, 0) as mobs, " +
-                     "COALESCE(g.playtime_minutes, 0) as playtime " +
-                     "FROM player_quests_stats q " +
-                     "LEFT JOIN player_global_stats g ON q.uuid = g.uuid " +
-                     "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
-                     "ORDER BY q.quests_completed DESC, g.blocks_broken DESC LIMIT 50")) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    java.util.Map<String, Object> playerStat = new java.util.HashMap<>();
-                    String name = rs.getString("username");
-                    if (name == null) name = rs.getString("player_name");
-                    playerStat.put("playerName", name);
-                    playerStat.put("questsCompleted", rs.getInt("quests_completed"));
-                    playerStat.put("uuid", rs.getString("uuid"));
-                    playerStat.put("blocksBroken", rs.getInt("blocks"));
-                    playerStat.put("mobsKilled", rs.getInt("mobs"));
-                    playerStat.put("playtime", rs.getLong("playtime"));
-                    leaderboard.add(playerStat);
-                }
-            }
-        } catch (SQLException e) {
-            plugin.getLangManager().sendConsoleError("db.query_error");
-            e.printStackTrace();
-        }
-        return leaderboard;
-    }
-
-    public java.util.Map<String, Object> getQuestsLeaderboardData() {
-        java.util.Map<String, Object> result = new java.util.HashMap<>();
-        try (Connection conn = getConnection()) {
-            // Current Reward
-            java.util.Calendar cal = java.util.Calendar.getInstance();
-            cal.set(java.util.Calendar.DAY_OF_WEEK, java.util.Calendar.MONDAY);
-            cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-            cal.set(java.util.Calendar.MINUTE, 0);
-            cal.set(java.util.Calendar.SECOND, 0);
-            cal.set(java.util.Calendar.MILLISECOND, 0);
-            String currentWeek = String.valueOf(cal.getTimeInMillis());
-            String reward = "Aucune";
-            
-            try (PreparedStatement ps = conn.prepareStatement("SELECT reward_description FROM weekly_rewards WHERE week_id = ?")) {
-                ps.setString(1, currentWeek);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) reward = rs.getString("reward_description");
-                }
-            }
-            result.put("reward", reward);
-            
-            long now = System.currentTimeMillis();
-            long dayStart = now - (24L * 60L * 60L * 1000L);
-            long weekStart = cal.getTimeInMillis();
-            long monthStart = now - (30L * 24L * 60L * 60L * 1000L);
-            
-            long endOfWeek = weekStart + (7L * 24L * 60L * 60L * 1000L);
-            long timeRemainingMs = endOfWeek - now;
-            if (timeRemainingMs < 0) timeRemainingMs = 0;
-            long days = timeRemainingMs / (1000 * 60 * 60 * 24);
-            long hours = (timeRemainingMs / (1000 * 60 * 60)) % 24;
-            long minutes = (timeRemainingMs / (1000 * 60)) % 60;
-            result.put("timeRemaining", days + "j " + hours + "h " + minutes + "m");
-            
-            // Helper function to query
-            java.util.function.BiFunction<Long, Long, java.util.List<java.util.Map<String, Object>>> getLeaderboard = (start, end) -> {
-                java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
-                String sql = "SELECT player_name, COUNT(*) as count FROM player_quests_history WHERE completion_date >= ? AND completion_date <= ? GROUP BY uuid ORDER BY count DESC LIMIT 10";
-                try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setLong(1, start);
-                    ps.setLong(2, end);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        while (rs.next()) {
-                            java.util.Map<String, Object> map = new java.util.HashMap<>();
-                            map.put("playerName", rs.getString("player_name"));
-                            map.put("count", rs.getInt("count"));
-                            list.add(map);
-                        }
-                    }
-                } catch (SQLException e) { e.printStackTrace(); }
-                return list;
-            };
-            
-            result.put("daily", getLeaderboard.apply(dayStart, now));
-            result.put("weekly", getLeaderboard.apply(weekStart, now));
-            result.put("monthly", getLeaderboard.apply(monthStart, now));
-            
-            java.util.List<java.util.Map<String, Object>> totalList = new java.util.ArrayList<>();
-            try (PreparedStatement ps = conn.prepareStatement(
-                "SELECT q.player_name, p.username, q.quests_completed " +
-                "FROM player_quests_stats q " +
-                "LEFT JOIN player_profiles p ON q.uuid = p.uuid " +
-                "ORDER BY quests_completed DESC LIMIT 10")) {
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        java.util.Map<String, Object> map = new java.util.HashMap<>();
-                        String name = rs.getString("username");
-                        if (name == null) name = rs.getString("player_name");
-                        map.put("playerName", name);
-                        map.put("count", rs.getInt("quests_completed"));
-                        totalList.add(map);
-                    }
-                }
-            }
-            result.put("total", totalList);
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
 
     public java.util.Map<String, java.util.List<java.util.Map<String, Object>>> getJobsLeaderboardData() {
         java.util.Map<String, java.util.List<java.util.Map<String, Object>>> jobsLeaderboard = new java.util.HashMap<>();

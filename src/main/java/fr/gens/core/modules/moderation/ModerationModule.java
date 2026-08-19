@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.BanList;
+
 import fr.gens.core.modules.discord.DiscordModule;
+import io.papermc.paper.event.player.AsyncChatEvent;
 
 public class ModerationModule implements Module, CommandExecutor, TabCompleter, Listener {
 
@@ -103,15 +103,15 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         this.enabled = false;
         
         // Save to Database instead of config
-        plugin.getDatabaseManager().saveFrozen(frozenPlayers);
-        plugin.getDatabaseManager().saveMutes(mutedPlayers);
+        plugin.getDatabaseManager().getModerationDAO().saveFrozen(frozenPlayers);
+        plugin.getDatabaseManager().getModerationDAO().saveMutes(mutedPlayers);
         
         plugin.getLangManager().sendConsoleMessage("moderationmodule.log_2");
     }
     
     public void loadFrozenPlayers() {
         frozenPlayers.clear();
-        frozenPlayers.addAll(plugin.getDatabaseManager().loadFrozen());
+        frozenPlayers.addAll(plugin.getDatabaseManager().getModerationDAO().loadFrozen());
         
         // Migration from config if needed
         if (plugin.getConfigManager().getConfig("modules/moderation.yml").contains("moderation.frozen")) {
@@ -128,7 +128,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
     public void loadMutedPlayers() {
         mutedPlayers.clear();
-        mutedPlayers.putAll(plugin.getDatabaseManager().loadMutes());
+        mutedPlayers.putAll(plugin.getDatabaseManager().getModerationDAO().loadMutes());
         
         // Migration from config if needed
         if (plugin.getConfigManager().getConfig("modules/moderation.yml").contains("moderation.mutes")) {
@@ -277,12 +277,12 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 return true;
             }
             
-            if (plugin.getDatabaseManager().getAuthData(targetUUID) == null) {
+            if (plugin.getDatabaseManager().getAuthDAO().getAuthData(targetUUID) == null) {
                 plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_13");
                 return true;
             }
             
-            plugin.getDatabaseManager().removeAuthData(targetUUID);
+            plugin.getDatabaseManager().getAuthDAO().removeAuthData(targetUUID);
             
             if (targetOnline != null) {
                 Module authMod = plugin.getModuleManager().getModule("auth");
@@ -380,11 +380,13 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             }
             
             java.util.Date expires = durationMs > 0 ? new java.util.Date(System.currentTimeMillis() + durationMs) : null;
-            Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(target.getName(), reason, expires, sender.getName());
+            org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
+            org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = Bukkit.getBanList(org.bukkit.BanList.Type.PROFILE);
+            banList.addBan(profile, reason, expires, sender.getName());
             
             Player online = target.getPlayer();
             if (online != null) {
-                online.kickPlayer("<red>Vous avez été banni du serveur.\n<white>Raison : " + reason);
+                online.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été banni du serveur.<br><white>Raison : " + reason));
             }
             sender.sendMessage("<green>Le joueur " + target.getName() + " a été banni.");
             sendDiscordLog("BAN", target.getName(), sender.getName(), reason, durationMs);
@@ -396,7 +398,9 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             if (args.length < 1) return false;
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
             if (target != null && target.getName() != null) {
-                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).pardon(target.getName());
+                org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
+                org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = Bukkit.getBanList(org.bukkit.BanList.Type.PROFILE);
+                banList.pardon(profile);
                 sender.sendMessage("<green>Le joueur " + target.getName() + " a été débanni.");
                 sendDiscordLog("UNBAN", target.getName(), sender.getName(), "Pardonné", 0);
             }
@@ -466,7 +470,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
     // --- EVÉNEMENTS POUR LE FREEZE ET MUTE ---
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
+    public void onAsyncPlayerChat(AsyncChatEvent event) {
         if (!enabled) return;
         if (isMuted(event.getPlayer().getUniqueId())) {
             MuteData data = getMuteData(event.getPlayer().getUniqueId());

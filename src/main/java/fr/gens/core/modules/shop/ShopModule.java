@@ -16,11 +16,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -86,158 +81,33 @@ public class ShopModule implements Module, CommandExecutor {
 
     public void loadShop() {
         categories.clear();
-        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-            // Charger les catégories
-            try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM shop_categories");
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ShopCategory cat = new ShopCategory(
-                            rs.getString("id"),
-                            rs.getString("displayName"),
-                            Material.valueOf(rs.getString("icon"))
-                    );
-                    categories.add(cat);
-                }
-            }
-
-            // Charger les items
-            try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM shop_items");
-                 ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ShopCategory cat = getCategory(rs.getString("category_id"));
-                    if (cat != null) {
-                        ShopItem item = new ShopItem(
-                                Material.valueOf(rs.getString("material")),
-                                rs.getDouble("buyPrice"),
-                                rs.getDouble("sellPrice")
-                        );
-                        item.setStock(rs.getInt("stock"));
-                        item.setTargetStock(rs.getInt("targetStock"));
-                        item.setCommand(rs.getBoolean("isCommand"));
-                        item.setCommandToExecute(rs.getString("commandToExecute"));
-                        item.setEnabled(rs.getBoolean("isEnabled"));
-                        cat.addItem(item);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        categories.addAll(plugin.getDatabaseManager().getShopDAO().loadShopCategories());
+        plugin.getDatabaseManager().getShopDAO().loadShopItems(categories);
     }
 
     public void saveShop() {
-        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-            for (ShopCategory cat : categories) {
-                try (PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO shop_categories (id, displayName, icon) VALUES (?, ?, ?) " +
-                        "ON CONFLICT(id) DO UPDATE SET displayName=excluded.displayName, icon=excluded.icon")) {
-                    ps.setString(1, cat.getId());
-                    ps.setString(2, cat.getDisplayName());
-                    ps.setString(3, cat.getIcon().name());
-                    ps.executeUpdate();
-                }
-
-                for (ShopItem item : cat.getItems()) {
-                    try (PreparedStatement ps = conn.prepareStatement(
-                            "INSERT INTO shop_items (material, category_id, buyPrice, sellPrice, stock, targetStock, isCommand, commandToExecute, isEnabled) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                            "ON CONFLICT(material) DO UPDATE SET category_id=excluded.category_id, buyPrice=excluded.buyPrice, " +
-                            "sellPrice=excluded.sellPrice, stock=excluded.stock, targetStock=excluded.targetStock, " +
-                            "isCommand=excluded.isCommand, commandToExecute=excluded.commandToExecute, isEnabled=excluded.isEnabled")) {
-                        ps.setString(1, item.getMaterial().name());
-                        ps.setString(2, cat.getId());
-                        ps.setDouble(3, item.getBaseBuyPrice());
-                        ps.setDouble(4, item.getBaseSellPrice());
-                        ps.setInt(5, item.getStock());
-                        ps.setInt(6, item.getTargetStock());
-                        ps.setBoolean(7, item.isCommand());
-                        ps.setString(8, item.getCommandToExecute());
-                        ps.setBoolean(9, item.isEnabled());
-                        ps.executeUpdate();
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getDatabaseManager().getShopDAO().saveShop(categories);
     }
 
     public void logTransaction(ShopItem item) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO shop_history (material, timestamp, buyPrice, sellPrice, stock) VALUES (?, ?, ?, ?, ?)")) {
-            ps.setString(1, item.getMaterial().name());
-            ps.setLong(2, System.currentTimeMillis());
-            ps.setDouble(3, item.getCurrentBuyPrice());
-            ps.setDouble(4, item.getCurrentSellPrice());
-            ps.setInt(5, item.getStock());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getDatabaseManager().getShopDAO().logTransaction(item);
     }
 
     public void logPlayerTransaction(UUID uuid, String type, String material, int amount, double price) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO player_transactions_history (uuid, type, material, amount, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)"
-             )) {
-            ps.setString(1, uuid.toString());
-            ps.setString(2, type);
-            ps.setString(3, material);
-            ps.setInt(4, amount);
-            ps.setDouble(5, price);
-            ps.setLong(6, System.currentTimeMillis());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getDatabaseManager().getShopDAO().logPlayerTransaction(uuid, type, material, amount, price);
     }
 
     // --- WEB EXTENSION ---
     public java.util.List<java.util.Map<String, Object>> getHistory(String material) {
-        java.util.List<java.util.Map<String, Object>> history = new java.util.ArrayList<>();
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT timestamp, buyPrice, sellPrice, stock FROM shop_history WHERE material = ? ORDER BY timestamp ASC LIMIT 50")) {
-            ps.setString(1, material);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    java.util.Map<String, Object> point = new java.util.HashMap<>();
-                    point.put("timestamp", rs.getLong("timestamp"));
-                    point.put("buyPrice", rs.getDouble("buyPrice"));
-                    point.put("sellPrice", rs.getDouble("sellPrice"));
-                    point.put("stock", rs.getInt("stock"));
-                    history.add(point);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return history;
+        return plugin.getDatabaseManager().getShopDAO().getHistory(material);
     }
 
     public boolean deleteItem(String categoryId, String materialName) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_items WHERE material = ? AND category_id = ?")) {
-            ps.setString(1, materialName);
-            ps.setString(2, categoryId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return plugin.getDatabaseManager().getShopDAO().deleteItem(categoryId, materialName);
     }
 
     public boolean deleteCategory(String categoryId) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM shop_categories WHERE id = ?")) {
-            ps.setString(1, categoryId);
-            return ps.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return plugin.getDatabaseManager().getShopDAO().deleteCategory(categoryId);
     }
 
     @Override

@@ -2,7 +2,8 @@ package fr.gens.core.modules.auth;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
-import fr.gens.core.utils.DatabaseManager;
+import fr.gens.core.database.AuthDAO;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -19,8 +20,12 @@ import org.bukkit.event.player.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.mindrot.jbcrypt.BCrypt;
@@ -33,6 +38,15 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     private boolean enabled;
     private final Set<UUID> authenticated = new HashSet<>();
     private final long SESSION_TIMEOUT = 30L * 24L * 60L * 60L * 1000L; // 30 days
+
+    // Rate-limiting sur /login
+    private final Map<UUID, Integer> loginAttempts = new HashMap<>();
+    private final Map<UUID, Long>    loginLockout  = new HashMap<>();
+    private static final int  MAX_LOGIN_ATTEMPTS = 5;
+    private static final long LOGIN_LOCKOUT_MS   = 5L * 60 * 1000; // 5 minutes
+
+    // Tâches planifiées gérées par ce module
+    private final List<Integer> taskIds = new ArrayList<>();
 
     public AuthModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -64,7 +78,11 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     public void disable() {
         this.enabled = false;
         authenticated.clear();
-        Bukkit.getScheduler().cancelTasks(plugin);
+        loginAttempts.clear();
+        loginLockout.clear();
+        // Annuler uniquement les tâches de ce module (et non toutes les tâches du plugin)
+        taskIds.forEach(id -> Bukkit.getScheduler().cancelTask(id));
+        taskIds.clear();
         plugin.getLangManager().sendConsoleMessage("authmodule.log_2");
     }
     
@@ -95,7 +113,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_3");
                 return true;
             }
-            DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(uuid);
+            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
             if (data != null) {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_4");
                 return true;
@@ -109,7 +127,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 return true;
             }
             String password = args[0];
-            if (password.length() < 4) {
+            if (password.length() < 8) {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_7");
                 return true;
             }
@@ -118,7 +136,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
             String hash = BCrypt.hashpw(password, BCrypt.gensalt());
             String ip = p.getAddress().getAddress().getHostAddress();
 
-            plugin.getDatabaseManager().registerPlayer(uuid, hash, salt, ip);
+            plugin.getDatabaseManager().getAuthDAO().registerPlayer(uuid, hash, salt, ip);
             authenticated.add(uuid);
             plugin.getLangManager().sendMessage(p, "authmodule.msg_8");
             
@@ -134,7 +152,24 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_9");
                 return true;
             }
-            DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(uuid);
+
+            // --- Rate-limiting : vérifier le lockout avant toute chose ---
+            if (loginLockout.containsKey(uuid)) {
+                long remaining = (loginLockout.get(uuid) + LOGIN_LOCKOUT_MS) - System.currentTimeMillis();
+                if (remaining > 0) {
+                    long minutes = remaining / 60000;
+                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
+                        "<red>Trop de tentatives. Réessayez dans <bold>" + (minutes + 1) + " min</bold>.</red>"
+                    ));
+                    return true;
+                } else {
+                    loginLockout.remove(uuid);
+                    loginAttempts.remove(uuid);
+                }
+            }
+            // --- Fin rate-limiting ---
+
+            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
             if (data == null) {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_10");
                 return true;
@@ -165,12 +200,15 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 
                 if (needsMigration) {
                     String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
-                    plugin.getDatabaseManager().updatePassword(uuid, newHash, "");
+                    plugin.getDatabaseManager().getAuthDAO().updatePassword(uuid, newHash, "");
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_12");
                 }
                 
-                plugin.getDatabaseManager().updateLogin(uuid, ip);
+                plugin.getDatabaseManager().getAuthDAO().updateLogin(uuid, ip);
                 authenticated.add(uuid);
+                // Réinitialiser les compteurs d'échecs
+                loginAttempts.remove(uuid);
+                loginLockout.remove(uuid);
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_13");
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
@@ -178,10 +216,20 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                     discord.logAuthEvent(p.getName(), "Connexion Réussie", java.awt.Color.GREEN);
                 }
             } else {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_14");
-                String discordId = plugin.getDatabaseManager().getDiscordId(uuid);
-                if (discordId != null && !discordId.isEmpty()) {
-                    plugin.getLangManager().sendMessage(p, "authmodule.msg_15");
+                // Incrémenter le compteur d'échecs
+                int attempts = loginAttempts.merge(uuid, 1, Integer::sum);
+                if (attempts >= MAX_LOGIN_ATTEMPTS) {
+                    loginLockout.put(uuid, System.currentTimeMillis());
+                    loginAttempts.remove(uuid);
+                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
+                        "<red><bold>Compte temporairement verrouillé</bold> (5 tentatives). Réessayez dans 5 minutes.</red>"
+                    ));
+                } else {
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_14");
+                    String discordId = plugin.getDatabaseManager().getStatsDAO().getDiscordId(uuid);
+                    if (discordId != null && !discordId.isEmpty()) {
+                        plugin.getLangManager().sendMessage(p, "authmodule.msg_15");
+                    }
                 }
             }
             return true;
@@ -199,7 +247,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
             String oldPass = args[0];
             String newPass = args[1];
 
-            DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(uuid);
+            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
             if (data != null) {
                 boolean isOldPasswordCorrect = false;
                 if (data.hash.startsWith("$2a$") || data.hash.startsWith("$2b$") || data.hash.startsWith("$2y$")) {
@@ -210,12 +258,12 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 }
                 
                 if (isOldPasswordCorrect) {
-                    if (newPass.length() < 4) {
+                    if (newPass.length() < 8) {
                         plugin.getLangManager().sendMessage(p, "authmodule.msg_18");
                         return true;
                     }
                     String newHash = BCrypt.hashpw(newPass, BCrypt.gensalt());
-                    plugin.getDatabaseManager().updatePassword(uuid, newHash, "");
+                    plugin.getDatabaseManager().getAuthDAO().updatePassword(uuid, newHash, "");
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_19");
                 } else {
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_20");
@@ -228,7 +276,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     }
 
     private void requireAuth(Player p) {
-        DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(p.getUniqueId());
+        AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(p.getUniqueId());
         if (data == null) {
             plugin.getLangManager().sendMessage(p, "authmodule.msg_21");
             plugin.getLangManager().sendMessage(p, "authmodule.msg_22");
@@ -250,14 +298,14 @@ public class AuthModule implements Module, Listener, CommandExecutor {
         Player p = event.getPlayer();
         UUID uuid = p.getUniqueId();
         
-        DatabaseManager.AuthData data = plugin.getDatabaseManager().getAuthData(uuid);
+        AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
         if (data != null) {
             String currentIp = p.getAddress().getAddress().getHostAddress();
             long timeSinceLastLogin = System.currentTimeMillis() - data.lastLogin;
             
             if (currentIp.equals(data.lastIp) && timeSinceLastLogin < SESSION_TIMEOUT) {
                 authenticated.add(uuid);
-                plugin.getDatabaseManager().updateLogin(uuid, currentIp);
+                plugin.getDatabaseManager().getAuthDAO().updateLogin(uuid, currentIp);
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_31");
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
@@ -274,7 +322,10 @@ public class AuthModule implements Module, Listener, CommandExecutor {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        authenticated.remove(event.getPlayer().getUniqueId());
+        UUID uuid = event.getPlayer().getUniqueId();
+        authenticated.remove(uuid);
+        loginAttempts.remove(uuid);
+        loginLockout.remove(uuid);
     }
 
     // Blocking events
@@ -295,7 +346,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onChat(AsyncPlayerChatEvent event) {
+    public void onChat(AsyncChatEvent event) {
         if (!enabled) return;
         if (!isAuth(event.getPlayer())) {
             event.setCancelled(true);

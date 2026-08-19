@@ -1,46 +1,121 @@
 name: Build and Release GensCore
 
 on:
-  workflow_dispatch: # Permet de lancer l'action manuellement depuis l'onglet Actions
+  # Mode 1 : Déclenchement manuel avec paramètres personnalisables
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (ex: 1.2.3 — sans le "v")'
+        required: true
+        default: '1.0.0'
+      release_name:
+        description: 'Nom de la release (optionnel — défaut: "GensCore vX.Y.Z")'
+        required: false
+        default: ''
+      draft:
+        description: 'Créer en brouillon ?'
+        type: boolean
+        default: true
+      prerelease:
+        description: 'Marquer comme pre-release (alpha/beta) ?'
+        type: boolean
+        default: false
+
+  # Mode 2 : Déclenchement automatique sur push d'un tag vX.Y.Z
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build:
-    name: Build Plugin
+    name: Build & Release GensCore
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Résoudre la version finale (tag Git ou input manuel)
+      - name: Resolve Version & Release Metadata
+        id: meta
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            # Mode automatique via tag : ex. "v1.2.3" → "1.2.3"
+            VERSION="${GITHUB_REF_NAME#v}"
+            RELEASE_NAME="GensCore v${VERSION}"
+            IS_DRAFT="false"
+            IS_PRERELEASE="false"
+          else
+            # Mode manuel via workflow_dispatch
+            VERSION="${{ github.event.inputs.version }}"
+            CUSTOM_NAME="${{ github.event.inputs.release_name }}"
+            # Utiliser le nom personnalisé ou générer un nom par défaut
+            RELEASE_NAME="${CUSTOM_NAME:-GensCore v${VERSION}}"
+            IS_DRAFT="${{ github.event.inputs.draft }}"
+            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
+          fi
+          echo "version=${VERSION}"              >> $GITHUB_OUTPUT
+          echo "release_name=${RELEASE_NAME}"    >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}"                 >> $GITHUB_OUTPUT
+          echo "is_draft=${IS_DRAFT}"            >> $GITHUB_OUTPUT
+          echo "is_prerelease=${IS_PRERELEASE}"  >> $GITHUB_OUTPUT
+          echo "✅ Version: ${VERSION} | Release: ${RELEASE_NAME} | Draft: ${IS_DRAFT} | Pre-release: ${IS_PRERELEASE}"
+
       - name: Setup Java 25
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           java-version: '25'
           distribution: 'temurin'
           cache: maven
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: web-panel/package-lock.json
 
       - name: Build Web Panel (React)
         run: |
           cd web-panel
-          npm install
+          npm ci
           npm run build
+
+      # Mettre à jour la version dans pom.xml pour que le JAR porte le bon numéro
+      - name: Set Plugin Version in pom.xml
+        run: |
+          mvn versions:set -DnewVersion="${{ steps.meta.outputs.version }}" -DgenerateBackupPoms=false
 
       - name: Build with Maven
         run: mvn clean package -DskipTests
-        
-      - name: Create GitHub Release (Draft)
+
+      # Renommer le JAR pour inclure la version dans le nom du fichier
+      - name: Rename JAR with Version
+        id: jar
+        run: |
+          SRC=$(ls target/GensCore-*.jar | grep -v original | head -n1)
+          DST="target/GensCore-v${{ steps.meta.outputs.version }}.jar"
+          mv "$SRC" "$DST"
+          echo "✅ JAR: ${DST}"
+          echo "path=${DST}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "GensCore v1.0 (Brouillon)"
-          tag_name: "v1.0"
-          draft: true
-          files: target/GensCore-1.0-SNAPSHOT.jar
+          name: ${{ steps.meta.outputs.release_name }}
+          tag_name: ${{ steps.meta.outputs.tag }}
+          draft: ${{ steps.meta.outputs.is_draft }}
+          prerelease: ${{ steps.meta.outputs.is_prerelease }}
+          generate_release_notes: true
+          files: ${{ steps.jar.outputs.path }}
+          body: |
+            ## 📦 GensCore ${{ steps.meta.outputs.version }}
+
+            **Compatibilité :** Minecraft 26.1+ · Paper 26.x · Java 25+
+
+            > Les notes de changements sont générées automatiquement depuis les commits.
+            > Pour une release manuelle détaillée, éditez ce brouillon avant de le publier.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

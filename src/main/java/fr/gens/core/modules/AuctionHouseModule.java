@@ -1,12 +1,10 @@
 package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
-import fr.gens.core.modules.EconomyModule;
 import fr.gens.core.modules.GuiModule.GensGuiHolder;
 import fr.gens.core.utils.ItemSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

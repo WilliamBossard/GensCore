@@ -25,7 +25,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.Bukkit;
 import java.util.UUID;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 

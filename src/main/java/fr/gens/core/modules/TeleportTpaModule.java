@@ -30,7 +30,7 @@ public class TeleportTpaModule implements Module, CommandExecutor {
 
     @Override
     public String getName() {
-        return "CmdTpa";
+        return "tpa";
     }
 
     @Override

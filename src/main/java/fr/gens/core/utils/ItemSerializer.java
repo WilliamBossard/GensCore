@@ -1,34 +1,35 @@
 package fr.gens.core.utils;
 
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.io.BukkitObjectInputStream;
-import org.bukkit.util.io.BukkitObjectOutputStream;
-import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 public class ItemSerializer {
 
     public static String toBase64(ItemStack item) {
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            BukkitObjectOutputStream dataOutput = new BukkitObjectOutputStream(outputStream);
-            dataOutput.writeObject(item);
-            dataOutput.close();
-            return Base64Coder.encodeLines(outputStream.toByteArray());
-        } catch (Exception e) {
-            throw new IllegalStateException("Unable to save item stacks.", e);
-        }
+        if (item == null) return null;
+        return java.util.Base64.getEncoder().encodeToString(item.serializeAsBytes());
     }
 
+    @SuppressWarnings("deprecation")
     public static ItemStack fromBase64(String data) {
+        if (data == null || data.isEmpty()) return null;
+        
+        // Si les données proviennent de l'ancien format (Base64Coder + BukkitObjectOutputStream)
+        if (data.startsWith("rO0AB") || data.contains("\n") || data.contains("\r")) {
+            try {
+                java.io.ByteArrayInputStream inputStream = new java.io.ByteArrayInputStream(org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder.decodeLines(data));
+                org.bukkit.util.io.BukkitObjectInputStream dataInput = new org.bukkit.util.io.BukkitObjectInputStream(inputStream);
+                ItemStack item = (ItemStack) dataInput.readObject();
+                dataInput.close();
+                return item;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        
+        // Nouveau format natif Paper
         try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
-            BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
-            ItemStack item = (ItemStack) dataInput.readObject();
-            dataInput.close();
-            return item;
+            return ItemStack.deserializeBytes(java.util.Base64.getDecoder().decode(data));
         } catch (Exception e) {
             e.printStackTrace();
             return null;

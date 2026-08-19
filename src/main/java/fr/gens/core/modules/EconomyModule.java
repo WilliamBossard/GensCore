@@ -8,16 +8,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
 
-import org.bukkit.plugin.ServicePriority;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -89,16 +82,7 @@ public class EconomyModule implements Module, CommandExecutor, TabCompleter {
     }
     private void loadBalances() {
         balances.clear();
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT uuid, balance FROM players_economy");
-             ResultSet rs = ps.executeQuery()) {
-            
-            while (rs.next()) {
-                balances.put(UUID.fromString(rs.getString("uuid")), rs.getDouble("balance"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        balances.putAll(plugin.getDatabaseManager().getEconomyDAO().loadBalances());
     }
 
     private void saveBalances() {
@@ -106,16 +90,7 @@ public class EconomyModule implements Module, CommandExecutor, TabCompleter {
     }
 
     private void savePlayerBalance(UUID uuid, double balance) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO players_economy (uuid, balance) VALUES (?, ?) " +
-                     "ON CONFLICT(uuid) DO UPDATE SET balance=excluded.balance")) {
-            ps.setString(1, uuid.toString());
-            ps.setDouble(2, balance);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getDatabaseManager().getEconomyDAO().savePlayerBalance(uuid, balance);
     }
 
     public void setBalance(UUID uuid, double amount) {
@@ -164,20 +139,18 @@ public class EconomyModule implements Module, CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("baltop")) {
             plugin.getLangManager().sendMessage(sender, "economymodule.msg_1");
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement ps = conn.prepareStatement("SELECT uuid, balance FROM players_economy ORDER BY balance DESC LIMIT 10");
-                     ResultSet rs = ps.executeQuery()) {
-                    
+                try {
+                    Map<UUID, Double> top = plugin.getDatabaseManager().getEconomyDAO().getTopBalances(10);
                     int rank = 1;
-                    while (rs.next()) {
-                        UUID uuid = UUID.fromString(rs.getString("uuid"));
-                        double bal = rs.getDouble("balance");
+                    for (Map.Entry<UUID, Double> entry : top.entrySet()) {
+                        UUID uuid = entry.getKey();
+                        double bal = entry.getValue();
                         OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
                         String name = p.getName() != null ? p.getName() : "Inconnu";
                         sender.sendMessage("<yellow>" + rank + ". <gray>" + name + " <dark_gray>- <gold>" + String.format("%.2f", bal) + " $");
                         rank++;
                     }
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     plugin.getLangManager().sendMessage(sender, "economymodule.msg_2");
                     e.printStackTrace();
                 }

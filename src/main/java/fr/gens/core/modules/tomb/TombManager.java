@@ -1,7 +1,6 @@
 package fr.gens.core.modules.tomb;
 
 import fr.gens.core.CorePlugin;
-import fr.gens.core.utils.DatabaseManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
