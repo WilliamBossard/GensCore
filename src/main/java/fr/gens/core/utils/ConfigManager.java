@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class ConfigManager {
 
     private final CorePlugin plugin;
@@ -46,11 +47,11 @@ public class ConfigManager {
             try {
                 plugin.saveResource(fileName, false);
             } catch (IllegalArgumentException e) {
-                // Le fichier n'existe pas dans le jar, on le crée vide
+                // Le fichier n'existe pas dans le jar, on le crÃƒÆ’Ã‚Â©e vide
                 try {
                     file.createNewFile();
                 } catch (IOException ex) {
-                    plugin.getLogger().severe("Impossible de créer le fichier de configuration: " + fileName);
+                    plugin.getLogger().severe("Impossible de crÃƒÆ’Ã‚Â©er le fichier de configuration: " + fileName);
                 }
             }
         }
@@ -96,3 +97,4 @@ public class ConfigManager {
         }
     }
 }
+

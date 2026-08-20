@@ -34,6 +34,7 @@ import java.util.UUID;
 import fr.gens.core.modules.discord.DiscordModule;
 import io.papermc.paper.event.player.AsyncChatEvent;
 
+
 public class ModerationModule implements Module, CommandExecutor, TabCompleter, Listener {
 
     public static class MuteData {
@@ -49,6 +50,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
     private boolean enabled;
     private final Set<UUID> frozenPlayers = new HashSet<>();
     private final Map<UUID, MuteData> mutedPlayers = new HashMap<>();
+    
+    private fr.gens.core.database.ModerationDAO moderationDAO;
 
     public ModerationModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -69,27 +72,40 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         return enabled;
     }
 
+    public fr.gens.core.database.ModerationDAO getModerationDAO() {
+        return moderationDAO;
+    }
+
+    @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS moderation_mutes (uuid VARCHAR(36) PRIMARY KEY, expiration BIGINT NOT NULL, reason TEXT NOT NULL);");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS moderation_frozen (uuid VARCHAR(36) PRIMARY KEY);");
+    }
+
     @Override
     public void enable() {
         this.enabled = true;
         
-        plugin.getCommand("freeze").setExecutor(this);
-        plugin.getCommand("freeze").setTabCompleter(this);
+        this.moderationDAO = new fr.gens.core.database.ModerationDAO(plugin);
+        this.moderationDAO.initDatabase();
         
-        plugin.getCommand("openinv").setExecutor(this);
-        plugin.getCommand("openinv").setTabCompleter(this);
+        org.bukkit.command.PluginCommand cmd_freeze = plugin.getCommand("freeze");
+        if (cmd_freeze != null) { cmd_freeze.setExecutor(this); cmd_freeze.setTabCompleter(this); }
         
-        plugin.getCommand("resetmdp").setExecutor(this);
-        plugin.getCommand("resetmdp").setTabCompleter(this);
+        org.bukkit.command.PluginCommand cmd_openinv = plugin.getCommand("openinv");
+        if (cmd_openinv != null) { cmd_openinv.setExecutor(this); cmd_openinv.setTabCompleter(this); }
         
-        plugin.getCommand("mute").setExecutor(this);
-        plugin.getCommand("mute").setTabCompleter(this);
-        plugin.getCommand("unmute").setExecutor(this);
-        plugin.getCommand("unmute").setTabCompleter(this);
-        plugin.getCommand("ban").setExecutor(this);
-        plugin.getCommand("ban").setTabCompleter(this);
-        plugin.getCommand("unban").setExecutor(this);
-        plugin.getCommand("unban").setTabCompleter(this);
+        org.bukkit.command.PluginCommand cmd_resetmdp = plugin.getCommand("resetmdp");
+        if (cmd_resetmdp != null) { cmd_resetmdp.setExecutor(this); cmd_resetmdp.setTabCompleter(this); }
+        
+        org.bukkit.command.PluginCommand cmd_mute = plugin.getCommand("mute");
+        if (cmd_mute != null) { cmd_mute.setExecutor(this); cmd_mute.setTabCompleter(this); }
+        org.bukkit.command.PluginCommand cmd_unmute = plugin.getCommand("unmute");
+        if (cmd_unmute != null) { cmd_unmute.setExecutor(this); cmd_unmute.setTabCompleter(this); }
+        org.bukkit.command.PluginCommand cmd_ban = plugin.getCommand("ban");
+        if (cmd_ban != null) { cmd_ban.setExecutor(this); cmd_ban.setTabCompleter(this); }
+        org.bukkit.command.PluginCommand cmd_unban = plugin.getCommand("unban");
+        if (cmd_unban != null) { cmd_unban.setExecutor(this); cmd_unban.setTabCompleter(this); }
 
         loadFrozenPlayers();
         loadMutedPlayers();
@@ -100,18 +116,19 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
         
         // Save to Database instead of config
-        plugin.getDatabaseManager().getModerationDAO().saveFrozen(frozenPlayers);
-        plugin.getDatabaseManager().getModerationDAO().saveMutes(mutedPlayers);
+        this.moderationDAO.saveFrozen(frozenPlayers);
+        this.moderationDAO.saveMutes(mutedPlayers);
         
         plugin.getLangManager().sendConsoleMessage("moderationmodule.log_2");
     }
     
     public void loadFrozenPlayers() {
         frozenPlayers.clear();
-        frozenPlayers.addAll(plugin.getDatabaseManager().getModerationDAO().loadFrozen());
+        frozenPlayers.addAll(this.moderationDAO.loadFrozen());
         
         // Migration from config if needed
         if (plugin.getConfigManager().getConfig("modules/moderation.yml").contains("moderation.frozen")) {
@@ -128,7 +145,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
     public void loadMutedPlayers() {
         mutedPlayers.clear();
-        mutedPlayers.putAll(plugin.getDatabaseManager().getModerationDAO().loadMutes());
+        mutedPlayers.putAll(this.moderationDAO.loadMutes());
         
         // Migration from config if needed
         if (plugin.getConfigManager().getConfig("modules/moderation.yml").contains("moderation.mutes")) {
@@ -187,7 +204,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         if (mod instanceof DiscordModule && mod.isEnabled()) {
             DiscordModule discord = (DiscordModule) mod;
             String dur = durationMs > 0 ? "Temporaire" : "Permanent";
-            String msg = "Action : **" + action + "**\nJoueur : " + player + "\nAdmin : " + admin + "\nRaison : " + reason + "\nDurée : " + dur;
+            String msg = "Action : **" + action + "**\nJoueur : " + player + "\nAdmin : " + admin + "\nRaison : " + reason + "\nDurÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e : " + dur;
             discord.sendBotLogEmbed(action, msg, java.awt.Color.RED);
         }
     }
@@ -214,12 +231,12 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             if (frozenPlayers.contains(uuid)) {
                 frozenPlayers.remove(uuid);
                 target.setGravity(true);
-                sender.sendMessage("<green>Le joueur " + target.getName() + " a été dégelé.");
+                sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©gelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.");
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_4");
             } else {
                 frozenPlayers.add(uuid);
                 target.setGravity(false); // Geler en l'air
-                sender.sendMessage("<green>Le joueur " + target.getName() + " a été gelé.");
+                sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© gelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.");
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_5");
             }
             return true;
@@ -265,7 +282,9 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 targetUUID = targetOnline.getUniqueId();
             } else {
                 for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-                    if (op.getName() != null && op.getName().equalsIgnoreCase(args[0])) {
+            if (op == null) continue;
+                    String name = op.getName();
+                    if (name != null && name.equalsIgnoreCase(args[0])) {
                         targetUUID = op.getUniqueId();
                         break;
                     }
@@ -277,12 +296,13 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 return true;
             }
             
-            if (plugin.getDatabaseManager().getAuthDAO().getAuthData(targetUUID) == null) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_13");
+            fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
+            if (authModule == null || authModule.getAuthDAO().getAuthData(targetUUID) == null) {
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_41");
                 return true;
             }
             
-            plugin.getDatabaseManager().getAuthDAO().removeAuthData(targetUUID);
+            authModule.getAuthDAO().removeAuthData(targetUUID);
             
             if (targetOnline != null) {
                 Module authMod = plugin.getModuleManager().getModule("auth");
@@ -291,7 +311,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 }
             }
             
-            sender.sendMessage("<green>Le mot de passe de " + args[0] + " a été supprimé.");
+            sender.sendMessage("<green>Le mot de passe de " + args[0] + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© supprimÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.");
             return true;
         }
 
@@ -332,9 +352,9 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             sender.sendMessage("<green>Vous avez rendu muet " + target.getName());
             Player online = target.getPlayer();
             if (online != null) {
-                online.sendMessage("<red><bold>Vous avez été rendu muet par un modérateur ! Raison : " + reason);
+                online.sendMessage("<red><bold>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© rendu muet par un modÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rateur ! Raison : " + reason);
             }
-            sendDiscordLog("MUTE", target.getName(), sender.getName(), reason, duration);
+            if (target.getName() != null) sendDiscordLog("MUTE", target.getName(), sender.getName(), reason, duration);
             return true;
         }
 
@@ -347,7 +367,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
                 sender.sendMessage("<green>Le joueur " + target.getName() + " n'est plus muet.");
                 Player online = target.getPlayer();
                 if (online != null) plugin.getLangManager().sendMessage(online, "moderationmodule.msg_17");
-                sendDiscordLog("UNMUTE", target.getName(), sender.getName(), "Pardonné", 0);
+                sendDiscordLog("UNMUTE", target.getName(), sender.getName(), "PardonnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©", 0);
             }
             return true;
         }
@@ -380,15 +400,15 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             }
             
             java.util.Date expires = durationMs > 0 ? new java.util.Date(System.currentTimeMillis() + durationMs) : null;
-            org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
-            org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = Bukkit.getBanList(org.bukkit.BanList.Type.PROFILE);
+            com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
+            org.bukkit.ban.ProfileBanList banList = Bukkit.getBanList(io.papermc.paper.ban.BanListType.PROFILE);
             banList.addBan(profile, reason, expires, sender.getName());
             
             Player online = target.getPlayer();
             if (online != null) {
-                online.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été banni du serveur.<br><white>Raison : " + reason));
+                online.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© banni du serveur.<br><white>Raison : " + reason));
             }
-            sender.sendMessage("<green>Le joueur " + target.getName() + " a été banni.");
+            sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© banni.");
             sendDiscordLog("BAN", target.getName(), sender.getName(), reason, durationMs);
             return true;
         }
@@ -398,11 +418,11 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             if (args.length < 1) return false;
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
             if (target != null && target.getName() != null) {
-                org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
-                org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = Bukkit.getBanList(org.bukkit.BanList.Type.PROFILE);
+                com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
+                org.bukkit.ban.ProfileBanList banList = Bukkit.getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                 banList.pardon(profile);
-                sender.sendMessage("<green>Le joueur " + target.getName() + " a été débanni.");
-                sendDiscordLog("UNBAN", target.getName(), sender.getName(), "Pardonné", 0);
+                sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©banni.");
+                sendDiscordLog("UNBAN", target.getName(), sender.getName(), "PardonnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©", 0);
             }
             return true;
         }
@@ -418,7 +438,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         if (command.getName().equalsIgnoreCase("freeze") && sender.hasPermission("genscore.freeze")) {
             if (args.length == 1) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
+            if (p == null) continue;
+                    if (p != null && p.getName() != null && p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                         completions.add(p.getName());
                     }
                 }
@@ -427,7 +448,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         else if (command.getName().equalsIgnoreCase("openinv") && sender.hasPermission("genscore.openinv")) {
             if (args.length == 1) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
+            if (p == null) continue;
+                    if (p != null && p.getName() != null && p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                         completions.add(p.getName());
                     }
                 }
@@ -436,7 +458,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         else if (command.getName().equalsIgnoreCase("resetmdp") && sender.hasPermission("genscore.admin")) {
             if (args.length == 1) {
                 for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-                    if (op.getName() != null && op.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
+            if (op == null) continue;
+                    if (op != null && op.getName() != null && op.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                         completions.add(op.getName());
                     }
                 }
@@ -445,7 +468,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         else if ((command.getName().equalsIgnoreCase("ban") || command.getName().equalsIgnoreCase("mute")) && sender.hasPermission("genscore.ban")) {
             if (args.length == 1) {
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
+            if (p == null) continue;
+                    if (p != null && p.getName() != null && p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                         completions.add(p.getName());
                     }
                 }
@@ -458,7 +482,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         else if ((command.getName().equalsIgnoreCase("unban") || command.getName().equalsIgnoreCase("unmute")) && sender.hasPermission("genscore.ban")) {
             if (args.length == 1) {
                 for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-                    if (op.getName() != null && op.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
+            if (op == null) continue;
+                    if (op != null && op.getName() != null && op.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                         completions.add(op.getName());
                     }
                 }
@@ -467,14 +492,14 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         return completions;
     }
 
-    // --- EVÉNEMENTS POUR LE FREEZE ET MUTE ---
+    // --- EVÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°NEMENTS POUR LE FREEZE ET MUTE ---
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onAsyncPlayerChat(AsyncChatEvent event) {
         if (!enabled) return;
         if (isMuted(event.getPlayer().getUniqueId())) {
             MuteData data = getMuteData(event.getPlayer().getUniqueId());
-            event.getPlayer().sendMessage("<red>Vous êtes rendu muet sur le serveur ! Raison : " + data.reason);
+            event.getPlayer().sendMessage("<red>Vous ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªtes rendu muet sur le serveur ! Raison : " + data.reason);
             event.setCancelled(true);
         }
     }
@@ -482,7 +507,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         if (frozenPlayers.contains(event.getPlayer().getUniqueId())) {
-            // Empêcher les mouvements de caméra ou X/Z/Y mais autoriser la caméra
+            // EmpÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªcher les mouvements de camÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ra ou X/Z/Y mais autoriser la camÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ra
             if (event.getFrom().getX() != event.getTo().getX() || 
                 event.getFrom().getY() != event.getTo().getY() || 
                 event.getFrom().getZ() != event.getTo().getZ()) {
@@ -550,3 +575,6 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         }
     }
 }
+
+
+

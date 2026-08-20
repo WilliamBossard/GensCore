@@ -11,6 +11,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.UUID;
 
+
 public class TeamListener implements Listener {
     private final CorePlugin plugin;
     private final TeamGui teamGui;
@@ -22,7 +23,7 @@ public class TeamListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().startsWith("§8Guilde : ")) {
+        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Guilde : ")) {
             event.setCancelled(true);
             if (!(event.getWhoClicked() instanceof Player)) return;
             Player player = (Player) event.getWhoClicked();
@@ -71,7 +72,7 @@ public class TeamListener implements Listener {
         }
     }
     private void openTeamQuestGui(Player player, TeamData team) {
-        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<blue><bold>Quête de Guilde"));
+        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<blue><bold>QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte de Guilde"));
         
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
@@ -83,14 +84,14 @@ public class TeamListener implements Listener {
         if (tqm != null) {
             ItemStack questItem = new ItemStack(Material.NETHER_STAR);
             org.bukkit.inventory.meta.ItemMeta qmeta = questItem.getItemMeta();
-            qmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>Quête Hebdomadaire"));
+            qmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte Hebdomadaire"));
             java.util.List<String> lore = new java.util.ArrayList<>();
             lore.add("<gray>" + tqm.getDesc());
             lore.add("");
             int progress = tqm.getProgress(team.getTeamId());
             int goal = tqm.getGoal();
             if (progress >= goal) {
-                lore.add("<green><bold>TERMINÉE !");
+                lore.add("<green><bold>TERMINÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°E !");
             } else {
                 lore.add("<yellow>Progression: <white>" + progress + " <yellow>/ <white>" + goal);
             }
@@ -115,7 +116,7 @@ public class TeamListener implements Listener {
 
     @EventHandler
     public void onQuestGuiClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().equals("§9§lQuête de Guilde")) {
+        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde")) {
             event.setCancelled(true);
         }
     }
@@ -124,7 +125,10 @@ public class TeamListener implements Listener {
     public void onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event) {
         // Process pending rewards for the player asynchronously to avoid lagging main thread
         org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            plugin.getDatabaseManager().getRewardDAO().processPendingRewards(event.getPlayer());
+            TeamModule module = (TeamModule) plugin.getModuleManager().getModule("teams");
+            if (module != null) {
+                module.getTeamDAO().processPendingRewards(event.getPlayer());
+            }
         });
     }
 }

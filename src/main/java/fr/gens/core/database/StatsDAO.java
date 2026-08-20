@@ -12,12 +12,58 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class StatsDAO {
 
     private final CorePlugin plugin;
 
     public StatsDAO(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void initDatabase() {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             java.sql.Statement stmt = conn.createStatement()) {
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_stats (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "discord_id VARCHAR(50)" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_profiles (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "username VARCHAR(16) NOT NULL" +
+                    ");");
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_global_stats (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "blocks_broken INTEGER DEFAULT 0, " +
+                    "mobs_killed INTEGER DEFAULT 0, " +
+                    "playtime_minutes INTEGER DEFAULT 0, " +
+                    "deaths INTEGER DEFAULT 0, " +
+                    "player_kills INTEGER DEFAULT 0, " +
+                    "last_updated BIGINT DEFAULT 0" +
+                    ");");
+            
+            try { stmt.execute("ALTER TABLE player_global_stats ADD COLUMN deaths INTEGER DEFAULT 0;"); } catch (Exception ignored) {}
+            try { stmt.execute("ALTER TABLE player_global_stats ADD COLUMN player_kills INTEGER DEFAULT 0;"); } catch (Exception ignored) {}
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_transactions_history (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "uuid VARCHAR(36) NOT NULL, " +
+                    "type VARCHAR(10) NOT NULL, " +
+                    "material VARCHAR(50) NOT NULL, " +
+                    "amount INTEGER NOT NULL, " +
+                    "price DOUBLE NOT NULL, " +
+                    "timestamp BIGINT NOT NULL" +
+                    ");");
+            
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_global_stats_uuid       ON player_global_stats(uuid);");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_transactions_uuid       ON player_transactions_history(uuid);");
+
+        } catch (SQLException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables stats", e);
+        }
     }
 
     public void setDiscordId(UUID uuid, String discordId) {
@@ -64,6 +110,24 @@ public class StatsDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<Map<String, Object>> getAllKnownPlayers() {
+        List<Map<String, Object>> players = new ArrayList<>();
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT uuid, username FROM player_profiles")) {
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> p = new HashMap<>();
+                    p.put("uuid", rs.getString("uuid"));
+                    p.put("name", rs.getString("username"));
+                    players.add(p);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return players;
     }
 
     public long getPlaytimeMinutes(UUID uuid) {
@@ -113,3 +177,4 @@ public class StatsDAO {
         return leaderboard;
     }
 }
+

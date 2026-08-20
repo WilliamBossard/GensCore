@@ -21,13 +21,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class StatsModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled;
     private int taskId;
+    private fr.gens.core.database.StatsDAO statsDAO;
 
-    // Cache pour éviter de spammer la BDD
+    // Cache pour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©viter de spammer la BDD
     private final Map<UUID, PlayerStats> statsCache = new HashMap<>();
 
     public StatsModule(CorePlugin plugin) {
@@ -49,14 +51,28 @@ public class StatsModule implements Module, Listener {
         return enabled;
     }
 
+    public fr.gens.core.database.StatsDAO getStatsDAO() {
+        return statsDAO;
+    }
+
+    @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_stats (uuid VARCHAR(36) PRIMARY KEY, discord_id VARCHAR(50));");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_global_stats (uuid VARCHAR(36) PRIMARY KEY, blocks_broken INTEGER DEFAULT 0, mobs_killed INTEGER DEFAULT 0, playtime_minutes INTEGER DEFAULT 0, deaths INTEGER DEFAULT 0, player_kills INTEGER DEFAULT 0, last_updated BIGINT DEFAULT 0);");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_global_stats_uuid ON player_global_stats(uuid);");
+    }
+
     @Override
     public void enable() {
         this.enabled = true;
+        this.statsDAO = new fr.gens.core.database.StatsDAO(plugin);
+        this.statsDAO.initDatabase();
         Bukkit.getPluginManager().registerEvents(this, plugin);
 
-        // Tâche asynchrone toutes les minutes pour ajouter le playtime et sauvegarder le cache
+        // TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢che asynchrone toutes les minutes pour ajouter le playtime et sauvegarder le cache
         taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
                 PlayerStats stats = getStats(p.getUniqueId());
                 stats.playtimeMinutes += 1;
             }
@@ -68,6 +84,7 @@ public class StatsModule implements Module, Listener {
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
         Bukkit.getScheduler().cancelTask(taskId);
         saveAllToDatabase();
@@ -196,3 +213,5 @@ public class StatsModule implements Module, Listener {
         public int playerKills = 0;
     }
 }
+
+

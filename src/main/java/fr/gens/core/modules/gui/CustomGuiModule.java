@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class CustomGuiModule implements Module, Listener, CommandExecutor {
 
     private final CorePlugin plugin;
@@ -43,7 +44,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
 
     @Override
     public String getDescription() {
-        return "Génère des menus interactifs depuis les fichiers YAML.";
+        return "GÃƒÆ’Ã‚Â©nÃƒÆ’Ã‚Â¨re des menus interactifs depuis les fichiers YAML.";
     }
 
     @Override
@@ -57,12 +58,14 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         loadMenus();
         
-        plugin.getCommand("menu").setExecutor(this);
-        plugin.getLogger().info("[CustomGui] Module activé, " + menus.size() + " menus loaded.");
+        org.bukkit.command.PluginCommand cmd_menu = plugin.getCommand("menu");
+        if (cmd_menu != null) cmd_menu.setExecutor(this);
+        plugin.getLogger().info("[CustomGui] Module activÃƒÆ’Ã‚Â©, " + menus.size() + " menus loaded.");
     }
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
         menus.clear();
         plugin.getLangManager().sendConsoleMessage("customguimodule.log_1");
@@ -88,7 +91,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
                 int rows = settings.getInt("rows", 3);
                 String customCommand = settings.getString("command");
                 
-                CustomMenu menu = new CustomMenu(title, rows * 9, menuName, customCommand);
+                CustomMenu menu = new CustomMenu(title, rows * 9);
 
                 // Register dynamically for autocompletion
                 if (customCommand != null && !customCommand.isEmpty()) {
@@ -169,8 +172,8 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
     }
 
     public void openMenu(Player player, CustomMenu menu) {
-        String parsedTitle = PlaceholderUtils.setPlaceholders(plugin, player, menu.getTitle());
-        Inventory inv = Bukkit.createInventory(null, menu.getSize(), net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(parsedTitle));
+        net.kyori.adventure.text.Component parsedTitle = PlaceholderUtils.setPlaceholdersComponent(plugin, player, menu.getTitle());
+        Inventory inv = Bukkit.createInventory(null, menu.getSize(), parsedTitle);
 
         for (Map.Entry<Integer, CustomMenu.MenuItem> entry : menu.getItems().entrySet()) {
             CustomMenu.MenuItem mi = entry.getValue();
@@ -189,18 +192,19 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
                 if (meta.hasDisplayName()) {
-                    String name = PlaceholderUtils.setPlaceholders(plugin, player, meta.getDisplayName());
-                    meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
+                    net.kyori.adventure.text.Component name = PlaceholderUtils.setPlaceholdersComponent(plugin, player, net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(meta.displayName()));
+                    meta.displayName(name);
                 }
                 if (meta.hasLore()) {
-                    List<String> newLore = new ArrayList<>();
-                    for (String line : meta.getLore()) {
-                        String parsedLine = PlaceholderUtils.setPlaceholders(plugin, player, line);
-                        if (parsedLine != null && !parsedLine.contains("REMOVE_LINE")) {
-                            newLore.add(parsedLine);
+                    List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
+                    for (net.kyori.adventure.text.Component compLine : meta.lore()) {
+                        if (compLine == null) continue;
+                        String line = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(compLine);
+                        if (!line.contains("REMOVE_LINE")) {
+                            newLore.add(PlaceholderUtils.setPlaceholdersComponent(plugin, player, line));
                         }
                     }
-                    meta.lore(java.util.Optional.ofNullable(newLore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+                    meta.lore(newLore);
                 }
                 item.setItemMeta(meta);
             }
@@ -225,7 +229,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
                 }
             };
             commandMap.register("genscore", command);
-            plugin.getLogger().info("[Gui] Commande dynamique enregistrée : /" + cmd);
+            plugin.getLogger().info("[Gui] Commande dynamique enregistrÃƒÆ’Ã‚Â©e : /" + cmd);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to register dynamic command /" + cmd);
         }
@@ -237,11 +241,12 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player p = (Player) event.getWhoClicked();
 
-        String title = event.getView().getTitle();
+        String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         CustomMenu clickedMenu = null;
         for (CustomMenu menu : menus.values()) {
-            String parsedTitle = PlaceholderUtils.setPlaceholders(plugin, p, menu.getTitle());
-            if (parsedTitle.equals(title)) {
+            net.kyori.adventure.text.Component parsedTitle = PlaceholderUtils.setPlaceholdersComponent(plugin, p, menu.getTitle());
+            String parsedTitleStr = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(parsedTitle);
+            if (parsedTitleStr.equals(title)) {
                 clickedMenu = menu;
                 break;
             }
@@ -287,15 +292,11 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
     public static class CustomMenu {
         private final String title;
         private final int size;
-        private final String id;
-        private final String customCommand;
         private final Map<Integer, MenuItem> items = new HashMap<>();
 
-        public CustomMenu(String title, int size, String id, String customCommand) {
+        public CustomMenu(String title, int size) {
             this.title = title;
             this.size = size;
-            this.id = id;
-            this.customCommand = customCommand;
         }
 
         public String getTitle() { return title; }
@@ -335,3 +336,5 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         }
     }
 }
+
+

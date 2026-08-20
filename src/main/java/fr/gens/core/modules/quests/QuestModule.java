@@ -32,7 +32,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.meta.SkullMeta;
-import java.util.*;
+
+
 
 public class QuestModule implements Module, CommandExecutor, TabCompleter, Listener {
 
@@ -43,6 +44,8 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     private final Map<String, List<Quest>> questsPool = new HashMap<>();
     // Player UUID -> PlayerQuestData
     private final Map<UUID, PlayerQuestData> playerData = new HashMap<>();
+    
+    private fr.gens.core.database.QuestDAO questDAO;
 
     // How many quests per category? Default to 3
     private final int QUESTS_PER_CATEGORY = 3;
@@ -58,7 +61,11 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
 
     @Override
     public String getDescription() {
-        return "Système de quêtes journalières (Remplace ODailyQuests).";
+        return "SystÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me de quÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtes journaliÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨res (Remplace ODailyQuests).";
+    }
+
+    public fr.gens.core.database.QuestDAO getQuestDAO() {
+        return questDAO;
     }
 
     @Override
@@ -67,29 +74,45 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     }
 
     @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_quests_stats (uuid VARCHAR(36) PRIMARY KEY, player_name VARCHAR(16) NOT NULL, quests_completed INTEGER DEFAULT 0, rerolls_done INTEGER DEFAULT 0, last_reroll_date VARCHAR(255) DEFAULT '');");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_quests_history (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid VARCHAR(36) NOT NULL, player_name VARCHAR(16) NOT NULL, completion_date BIGINT NOT NULL);");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS weekly_rewards (week_id VARCHAR(20) PRIMARY KEY, reward_description TEXT NOT NULL, winner_uuid VARCHAR(36), is_distributed INTEGER DEFAULT 0);");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_active_quests (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid VARCHAR(36) NOT NULL, date_assigned VARCHAR(10) NOT NULL, category VARCHAR(20) NOT NULL, quest_id VARCHAR(50) NOT NULL, progress INTEGER DEFAULT 0, completed BOOLEAN DEFAULT 0);");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_quests_history_uuid ON player_quests_history(uuid);");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_quests_history_date ON player_quests_history(completion_date);");
+    }
+
+    @Override
     public void enable() {
         enabled = true;
+        
+        this.questDAO = new fr.gens.core.database.QuestDAO(plugin);
+        this.questDAO.initDatabase();
 
         migrateFromODailyQuests();
         loadQuests();
 
-        plugin.getCommand("quests").setExecutor(this);
+        org.bukkit.command.PluginCommand cmd_quests = plugin.getCommand("quests");
+        if (cmd_quests != null) cmd_quests.setExecutor(this);
         plugin.getServer().getPluginManager().registerEvents(new QuestListener(this), plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin); // For GUI clicks
 
         // Load data for currently online players (if reload)
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             loadPlayerData(p.getUniqueId(), p.getName());
         }
 
         // Check Weekly Rewards
         Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, this::checkWeeklyRewards, 100L);
 
-        plugin.getLogger().info("[Quests] Module activé, " + getTotalQuests() + " quests loaded.");
+        plugin.getLogger().info("[Quests] Module activÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©, " + getTotalQuests() + " quests loaded.");
     }
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
         saveAllData();
         questsPool.clear();
@@ -126,7 +149,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     ps.setString(2, randomReward);
                     ps.executeUpdate();
                 }
-                plugin.getLogger().info("[Quests] Nouvelle récompense de la semaine générée: " + randomReward);
+                plugin.getLogger().info("[Quests] Nouvelle rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©compense de la semaine gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e: " + randomReward);
             }
             
             // Distribute old rewards
@@ -164,13 +187,10 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                             else if (rewardDesc.contains("Emeraude")) giveCmd = "give %player% emerald 10";
                             else if (rewardDesc.contains("$")) giveCmd = "eco give %player% 1000";
                             
-                            try (PreparedStatement savePending = conn.prepareStatement("INSERT INTO pending_rewards (uuid, command, message) VALUES (?, ?, ?)")) {
-                                savePending.setString(1, winnerUuid);
-                                savePending.setString(2, giveCmd);
-                                savePending.setString(3, "<green>Vous avez gagné le classement de quêtes de la semaine ! Voici votre lot : " + rewardDesc);
-                                savePending.executeUpdate();
-                            }
-                            plugin.getLogger().info("[Quests] Récompense de la semaine distribuée au joueur " + winnerUuid);
+                            fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
+                            pcd.initDatabase(); // just to ensure table exists
+                            pcd.addPendingCommand(UUID.fromString(winnerUuid), giveCmd, "<green>Vous avez gagnÃƒÆ’Ã‚Â© le classement de quÃƒÆ’Ã‚Âªtes de la semaine ! Voici votre lot : " + rewardDesc);
+                            plugin.getLogger().info("[Quests] RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©compense de la semaine distribuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e au joueur " + winnerUuid);
                         } else {
                             try (PreparedStatement update = conn.prepareStatement("UPDATE weekly_rewards SET is_distributed = 1 WHERE week_id = ?")) {
                                 update.setString(1, weekId);
@@ -186,35 +206,9 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     }
 
     public void checkPendingRewards(Player p) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement("SELECT * FROM pending_rewards WHERE uuid = ?")) {
-                ps.setString(1, p.getUniqueId().toString());
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        int id = rs.getInt("id");
-                        String cmd = rs.getString("command");
-                        String msg = rs.getString("message");
-                        
-                        Bukkit.getScheduler().runTask(plugin, () -> {
-                            if (cmd != null && !cmd.isEmpty()) {
-                                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", p.getName()));
-                            }
-                            if (msg != null && !msg.isEmpty()) {
-                                p.sendMessage(msg);
-                            }
-                        });
-                        
-                        try (PreparedStatement del = conn.prepareStatement("DELETE FROM pending_rewards WHERE id = ?")) {
-                            del.setInt(1, id);
-                            del.executeUpdate();
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+        fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
+        pcd.initDatabase(); // just to ensure table exists
+        pcd.processPendingCommands(p);
     }
 
     private void migrateFromODailyQuests() {
@@ -408,7 +402,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                         data.setCompleted(category, questId, true);
                         giveRewards(p, quest);
                         incrementStats(p);
-                        p.sendMessage("§a§lQuête Terminée ! §7Vous avez fini: " + quest.getName().replace("&", "§"));
+                        p.sendMessage("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§aÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§lQuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte TerminÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e ! ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§7Vous avez fini: " + quest.getName().replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§"));
                     }
                     data.setProgress(category, questId, newProgress);
                     updated = true;
@@ -416,7 +410,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     // Action Bar
                     boolean isDone = newProgress >= quest.getRequiredAmount();
                     String color = isDone ? "<green>" : "<yellow>";
-                    Component msg = Component.text("§8[§bQuêtes§8] §f" + quest.getName().replace("&", "§") + " §8» " + color + newProgress + " §7/ " + quest.getRequiredAmount());
+                    Component msg = Component.text("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§8[ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§bQuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂªtesÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§8] ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§f" + quest.getName().replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§") + " ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§8ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â» " + color + newProgress + " ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§7/ " + quest.getRequiredAmount());
                     plugin.getActionBarManager().sendMessage(p, "quests", msg, 40);
                     
                     // Async save
@@ -441,7 +435,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
 
         if (updated) {
             // Update GUI if open
-            if (p.getOpenInventory().getTitle().equals("§9§lQuêtes Journalières")) {
+            if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(p.getOpenInventory().title()).equals("Quêtes Journalières")) {
                 openQuestsMenu(p);
             }
         }
@@ -546,7 +540,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     }
 
     public void openQuestsMenu(Player p) {
-        Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<blue><bold>Quêtes Journalières"));
+        Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<blue><bold>QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtes JournaliÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨res"));
         PlayerQuestData data = playerData.get(p.getUniqueId());
         
         if (data == null) {
@@ -566,7 +560,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         for(int s : cyanSlots) if(s < 45) inv.setItem(s, cyanPane);
 
         // Player Head Stats
-        int completedTotal = plugin.getDatabaseManager().getQuestDAO().getQuestsCompletedTotal(p.getUniqueId());
+        int completedTotal = questDAO.getQuestsCompletedTotal(p.getUniqueId());
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta sm = (SkullMeta) head.getItemMeta();
         sm.setOwningPlayer(p);
@@ -586,8 +580,8 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
             totalDay += act.size();
         }
         
-        hl.add(" <dark_aqua><bold>| <gray>Quêtes accomplies : <aqua>" + achieved + "<dark_aqua>/<aqua>" + totalDay);
-        hl.add(" <dark_aqua><bold>| <gray>Total complété : <aqua>" + completedTotal);
+        hl.add(" <dark_aqua><bold>| <gray>QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtes accomplies : <aqua>" + achieved + "<dark_aqua>/<aqua>" + totalDay);
+        hl.add(" <dark_aqua><bold>| <gray>Total complÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : <aqua>" + completedTotal);
         sm.lore(java.util.Optional.ofNullable(hl).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
         head.setItemMeta(sm);
         inv.setItem(4, head);
@@ -617,27 +611,27 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                 ItemStack item = new ItemStack(mat);
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null) {
-                    meta.setDisplayName(q.getName().replace("&", "§"));
+                    meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(q.getName()));
                     List<String> lore = new ArrayList<>();
                     for (String l : q.getDescription()) {
                         l = l.replace("%required%", String.valueOf(q.getRequiredAmount()));
                         if (l.contains("%status%")) {
                             if (completed) {
-                                l = l.replace("%status%", "<aqua>TERMINÉ");
+                                l = l.replace("%status%", "<aqua>TERMINÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°");
                             } else {
                                 l = l.replace("%status%", "<aqua>" + qEntry.getValue() + "<dark_aqua>/<aqua>" + q.getRequiredAmount());
                             }
                         }
-                        lore.add(l.replace("&", "§"));
+                        lore.add(l.replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§"));
                     }
                     if (p.hasPermission("genscore.quests.reroll") && !completed) {
                         lore.add(" ");
                         int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
-                        int used = plugin.getDatabaseManager().getQuestDAO().getRerollsDone(p.getUniqueId(), getTodayString());
-                        lore.add("<light_purple>» Clic Droit pour Reroll (" + used + "/" + limit + ")");
+                        int used = questDAO.getRerollsDone(p.getUniqueId(), getTodayString());
+                        lore.add("<light_purple>ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â» Clic Droit pour Reroll (" + used + "/" + limit + ")");
                     } else if (completed) {
                         lore.add(" ");
-                        lore.add("<green> Récompenses récupérées !");
+                        lore.add("<green> RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©compenses rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©es !");
                         meta.addEnchant(org.bukkit.enchantments.Enchantment.LURE, 1, true);
                         meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
                     }
@@ -663,7 +657,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!enabled) return;
-        if (event.getView().getTitle().equals("§9§lQuêtes Journalières")) {
+        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quêtes Journalières")) {
             event.setCancelled(true);
             
             if (event.getClick() == ClickType.RIGHT) {
@@ -672,8 +666,7 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                 
                 ItemStack item = event.getCurrentItem();
                 if (item == null || !item.hasItemMeta()) return;
-                
-                String displayName = item.getItemMeta().getDisplayName();
+                net.kyori.adventure.text.Component displayName = item.getItemMeta().displayName();
                 
                 PlayerQuestData data = playerData.get(p.getUniqueId());
                 if (data == null) return;
@@ -683,20 +676,20 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
                     String category = catEntry.getKey();
                     for (String questId : catEntry.getValue().keySet()) {
                         Quest q = getQuest(category, questId);
-                        if (q != null && q.getName().replace("&", "§").equals(displayName)) {
+                        if (q != null && fr.gens.core.utils.PlaceholderUtils.parseToComponent(q.getName()).equals(displayName)) {
                             // Check completed
                             if (data.isCompleted(category, questId)) return;
                             
                             // Check limit
                             int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
-                            int used = plugin.getDatabaseManager().getQuestDAO().getRerollsDone(p.getUniqueId(), getTodayString());
+                            int used = questDAO.getRerollsDone(p.getUniqueId(), getTodayString());
                             if (used >= limit) {
                                 p.sendMessage("<red>Vous avez atteint la limite de " + limit + " rerolls pour aujourd'hui !");
                                 return;
                             }
                             
                             // Reroll this specific quest
-                            plugin.getDatabaseManager().getQuestDAO().setRerollsDone(p.getUniqueId(), used + 1, getTodayString());
+                            questDAO.setRerollsDone(p.getUniqueId(), used + 1, getTodayString());
                             rerollQuest(p, category, questId, data);
                             return;
                         }
@@ -754,3 +747,5 @@ public class QuestModule implements Module, CommandExecutor, TabCompleter, Liste
         });
     }
 }
+
+

@@ -28,6 +28,7 @@ import java.util.UUID;
 import java.util.Iterator;
 import java.util.List;
 
+
 public class TombListener implements Listener {
 
     private final CorePlugin plugin;
@@ -38,7 +39,8 @@ public class TombListener implements Listener {
         this.module = module;
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST)
+    @SuppressWarnings("deprecation")
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (!plugin.getConfigManager().getConfig("modules/tomb.yml").getBoolean("modules.tomb.enabled", true)) return;
         
@@ -46,14 +48,14 @@ public class TombListener implements Listener {
         if (event.getKeepInventory()) return; // Pas de tombe si le joueur garde son inventaire
         
         List<ItemStack> drops = event.getDrops();
-        if (drops.isEmpty() && event.getDroppedExp() == 0) return; // Rien à sauver
+        if (drops.isEmpty() && event.getDroppedExp() == 0) return; // Rien ÃƒÆ’Ã‚Â  sauver
 
+        if (player.getLocation() == null) return;
         Location loc = player.getLocation().getBlock().getLocation();
-        
         // Trouver un emplacement libre (Air, Eau, Lave)
         Block targetBlock = loc.getBlock();
         
-        // Si on est dans un bloc solide ou non-remplaçable (herbe haute, dalles, etc.), on monte
+        // Si on est dans un bloc solide ou non-remplaÃƒÆ’Ã‚Â§able (herbe haute, dalles, etc.), on monte
         while (!targetBlock.getType().isAir() && targetBlock.getType() != Material.WATER && targetBlock.getType() != Material.LAVA) {
             if (targetBlock.getY() >= targetBlock.getWorld().getMaxHeight() - 1) {
                 break;
@@ -61,7 +63,7 @@ public class TombListener implements Listener {
             targetBlock = targetBlock.getRelative(0, 1, 0);
         }
         
-        // Si on est dans l'air/eau, on s'assure d'être sur un bloc solide
+        // Si on est dans l'air/eau, on s'assure d'ÃƒÆ’Ã‚Âªtre sur un bloc solide
         if (targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER || targetBlock.getType() == Material.LAVA) {
             while (targetBlock.getY() > targetBlock.getWorld().getMinHeight()) {
                 Block below = targetBlock.getRelative(0, -1, 0);
@@ -72,7 +74,7 @@ public class TombListener implements Listener {
             }
         }
 
-        // On crée un tableau avec les items
+        // On crÃƒÆ’Ã‚Â©e un tableau avec les items
         ItemStack[] contents = drops.toArray(new ItemStack[0]);
         
         int xp = 0;
@@ -120,13 +122,15 @@ public class TombListener implements Listener {
             org.bukkit.block.BlockState state = targetBlock.getState();
             if (state instanceof org.bukkit.block.Skull) {
                 org.bukkit.block.Skull skull = (org.bukkit.block.Skull) state;
-                skull.setPlayerProfile(player.getPlayerProfile());
+                // Use setOwningPlayer for better compatibility since Paper deprecated all Bukkit methods
+                org.bukkit.OfflinePlayer owningPlayer = player;
+                skull.setOwningPlayer(owningPlayer);
                 skull.update();
             }
         }
 
-        event.getDrops().clear(); // On empêche les items de tomber par terre
-        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Votre tombe a été placée en " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "."));
+        event.getDrops().clear(); // On empÃƒÆ’Ã‚Âªche les items de tomber par terre
+        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Votre tombe a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© placÃƒÆ’Ã‚Â©e en " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "."));
     }
 
     @EventHandler
@@ -159,7 +163,7 @@ public class TombListener implements Listener {
         }
 
         if (canOpen) {
-            // Rendre l'inventaire et auto-équiper si possible
+            // Rendre l'inventaire et auto-ÃƒÆ’Ã‚Â©quiper si possible
             for (ItemStack item : tomb.getContents()) {
                 if (item != null && item.getType() != Material.AIR) {
                     boolean equipped = false;
@@ -195,7 +199,7 @@ public class TombListener implements Listener {
             }
 
             module.getTombManager().removeTomb(tomb.getId());
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Vous avez récupéré le contenu de la tombe."));
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Vous avez rÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â© le contenu de la tombe."));
         } else {
             player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Cette tombe ne vous appartient pas."));
         }
@@ -256,9 +260,9 @@ public class TombListener implements Listener {
                         String ownerName = Bukkit.getOfflinePlayer(tomb.getOwnerId()).getName();
                         if (ownerName == null) ownerName = "Inconnu";
                         if (tomb.isExpired() && plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase().equals("UNLOCK")) {
-                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
+                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte ÃƒÆ’Ã‚Â  tous"));
                         } else {
-                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée"));
+                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>ProtÃƒÆ’Ã‚Â©gÃƒÆ’Ã‚Â©e"));
                         }
                     }
                 } catch (Exception e) {
@@ -268,3 +272,4 @@ public class TombListener implements Listener {
         }
     }
 }
+

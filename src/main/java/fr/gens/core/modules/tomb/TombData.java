@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
+
 public class TombData {
     private final UUID id;
     private final UUID ownerId;
@@ -51,3 +52,4 @@ public class TombData {
         return System.currentTimeMillis() > expirationTime;
     }
 }
+

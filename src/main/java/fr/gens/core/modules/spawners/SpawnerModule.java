@@ -1,19 +1,22 @@
 package fr.gens.core.modules.spawners;
 
+import org.bukkit.Bukkit;
+
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
-import org.bukkit.Bukkit;
+
 import org.bukkit.Location;
-import org.bukkit.World;
+
 import org.bukkit.scheduler.BukkitTask;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+
+
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 public class SpawnerModule implements Module {
 
@@ -25,6 +28,7 @@ public class SpawnerModule implements Module {
     
     private final Map<Location, SpawnerData> activeSpawners = new ConcurrentHashMap<>();
     private final SpawnerManager spawnerManager;
+    private fr.gens.core.database.SpawnerDAO spawnerDAO;
 
     public SpawnerModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -38,12 +42,17 @@ public class SpawnerModule implements Module {
 
     @Override
     public String getDescription() {
-        return "Générateurs d'objets et d'expérience (remplacement de SmartSpawner)";
+        return "GÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rateurs d'objets et d'expÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rience (remplacement de SmartSpawner)";
     }
 
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS spawners (id VARCHAR(36) PRIMARY KEY, world VARCHAR(255) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, type VARCHAR(50) NOT NULL, stack_count INTEGER NOT NULL DEFAULT 1, stored_exp INTEGER NOT NULL DEFAULT 0, stored_items TEXT NOT NULL, last_interacted VARCHAR(16), storage_level INTEGER DEFAULT 0, exp_level INTEGER DEFAULT 0, speed_level INTEGER DEFAULT 0, is_loot_chest INTEGER DEFAULT 0);");
     }
 
     @Override
@@ -69,6 +78,9 @@ public class SpawnerModule implements Module {
         plugin.getConfigManager().saveConfig("modules/spawners.yml");
 
         spawnerManager.loadTypes();
+        
+        this.spawnerDAO = new fr.gens.core.database.SpawnerDAO(plugin);
+        this.spawnerDAO.initDatabase();
         
         // Load from DB
         Bukkit.getScheduler().runTaskAsynchronously(plugin, this::loadSpawnersFromDB);
@@ -117,13 +129,13 @@ public class SpawnerModule implements Module {
             saveTask = null;
         }
         
-        // Mettre à jour les holograms pour afficher "Désactivé"
+        // Mettre ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  jour les holograms pour afficher "DÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©"
         for (SpawnerData data : activeSpawners.values()) {
             spawnerManager.updateHologram(data);
         }
         
         saveAllSpawnersToDB();
-        // On ne clear() pas activeSpawners pour continuer de protéger les blocs
+        // On ne clear() pas activeSpawners pour continuer de protÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ger les blocs
         
         plugin.getLangManager().sendConsoleMessage("spawnermodule.log_2");
     }
@@ -160,74 +172,20 @@ public class SpawnerModule implements Module {
     }
     
     private void loadSpawnersFromDB() {
-        int count = 0;
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM spawners");
-             ResultSet rs = stmt.executeQuery()) {
-             
-            while (rs.next()) {
-                UUID id = UUID.fromString(rs.getString("id"));
-                World world = Bukkit.getWorld(rs.getString("world"));
-                if (world == null) continue; // Skip if world not loaded
-                
-                double x = rs.getDouble("x");
-                double y = rs.getDouble("y");
-                double z = rs.getDouble("z");
-                Location loc = new Location(world, x, y, z);
-                
-                String type = rs.getString("type");
-                int stackCount = rs.getInt("stack_count");
-                int exp = rs.getInt("stored_exp");
-                String itemsJson = rs.getString("stored_items");
-                String lastInteracted = rs.getString("last_interacted");
-                int storageLvl = rs.getInt("storage_level");
-                int expLvl = rs.getInt("exp_level");
-                int speedLvl = rs.getInt("speed_level");
-                
-                SpawnerData data = new SpawnerData(id, loc, type, stackCount, exp, itemsJson, lastInteracted, storageLvl, expLvl, speedLvl);
-                
-                boolean isLootChest = false;
-                try {
-                    isLootChest = rs.getInt("is_loot_chest") == 1;
-                } catch (SQLException ignored) {}
-                data.setLootChest(isLootChest);
-                
-                activeSpawners.put(loc, data);
-                count++;
-                
-                // Need to spawn holograms synchronously
-                Bukkit.getScheduler().runTask(plugin, () -> spawnerManager.updateHologram(data));
+        int count = this.spawnerDAO.loadSpawners(activeSpawners);
+        
+        // Need to spawn holograms synchronously for the loaded spawners
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            for (SpawnerData data : activeSpawners.values()) {
+                spawnerManager.updateHologram(data);
             }
-        } catch (SQLException e) {
-            plugin.getLangManager().sendConsoleError("spawnermodule.log_3");
-            e.printStackTrace();
-        }
+        });
+        
         plugin.getLogger().info("[SpawnerModule] " + count + " spawners loaded.");
     }
     
     public void saveSpawnerToDB(SpawnerData data) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("INSERT OR REPLACE INTO spawners (id, world, x, y, z, type, stack_count, stored_exp, stored_items, last_interacted, storage_level, exp_level, speed_level, is_loot_chest) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-             
-            stmt.setString(1, data.getId().toString());
-            stmt.setString(2, data.getLocation().getWorld().getName());
-            stmt.setDouble(3, data.getLocation().getX());
-            stmt.setDouble(4, data.getLocation().getY());
-            stmt.setDouble(5, data.getLocation().getZ());
-            stmt.setString(6, data.getType());
-            stmt.setInt(7, data.getStackCount());
-            stmt.setInt(8, data.getStoredExp());
-            stmt.setString(9, data.getItemsJson());
-            stmt.setString(10, data.getLastInteractedPlayer());
-            stmt.setInt(11, data.getStorageLevel());
-            stmt.setInt(12, data.getExpLevel());
-            stmt.setInt(13, data.getSpeedLevel());
-            stmt.setInt(14, data.isLootChest() ? 1 : 0);
-            
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        this.spawnerDAO.saveSpawner(data);
     }
     
     private void saveAllSpawnersToDB() {
@@ -237,12 +195,7 @@ public class SpawnerModule implements Module {
     }
     
     private void deleteSpawnerFromDB(UUID id) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("DELETE FROM spawners WHERE id = ?")) {
-            stmt.setString(1, id.toString());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        this.spawnerDAO.deleteSpawner(id);
     }
 }
+

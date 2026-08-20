@@ -7,7 +7,14 @@ public interface Module {
     void enable();
     void disable();
     
+    default void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        // Optionnel : les modules peuvent créer leurs tables SQL ici
+    }
+    
     default void registerCommands(fr.gens.core.CorePlugin plugin) {
-        // Optionnel : les modules peuvent surcharger cette méthode pour enregistrer leurs propres commandes
+        // Enregistre automatiquement les commandes annotées avec Cloud
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 }

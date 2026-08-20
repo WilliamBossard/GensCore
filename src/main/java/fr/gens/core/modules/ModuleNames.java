@@ -2,12 +2,12 @@ package fr.gens.core.modules;
 
 /**
  * Constantes pour les noms de modules GensCore.
- * Utiliser ces constantes au lieu de strings littérales pour éviter les fautes de frappe.
+ * Utiliser ces constantes au lieu de strings littÃƒÂ©rales pour ÃƒÂ©viter les fautes de frappe.
  * Exemple : plugin.getModuleManager().getModule(ModuleNames.ECONOMY)
  */
 public final class ModuleNames {
 
-    // Économie
+    // Ãƒâ€°conomie
     public static final String ECONOMY      = "economy";
     public static final String DYNAMIC_SHOP = "dynamicshop";
     public static final String AUCTION      = "auctionhouse";
@@ -17,11 +17,11 @@ public final class ModuleNames {
     public static final String CHAT         = "chat";
     public static final String MOTD         = "motd";
 
-    // Sécurité
+    // SÃƒÂ©curitÃƒÂ©
     public static final String AUTH         = "auth";
     public static final String MODERATION   = "moderation";
 
-    // Téléportation
+    // TÃƒÂ©lÃƒÂ©portation
     public static final String HOME         = "home";
     public static final String BACK         = "back";
     public static final String SPAWN        = "spawn";
@@ -47,7 +47,7 @@ public final class ModuleNames {
     public static final String GUI          = "gui";
     public static final String TAB_BOARD    = "tabboard";
 
-    // Intégrations
+    // IntÃƒÂ©grations
     public static final String BLUE_MAP     = "bluemap";
     public static final String WEB          = "web";
 

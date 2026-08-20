@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class TabBoardModule implements Module, Listener {
 
     private final CorePlugin plugin;
@@ -42,7 +43,7 @@ public class TabBoardModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Gère le Scoreboard, la Tablist et les Nametags sans PlaceholderAPI.";
+        return "GÃƒÆ’Ã‚Â¨re le Scoreboard, la Tablist et les Nametags sans PlaceholderAPI.";
     }
 
     @Override
@@ -55,24 +56,27 @@ public class TabBoardModule implements Module, Listener {
         enabled = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
-        // Initialisation pour les joueurs déjà en ligne (ex: reload)
+        // Initialisation pour les joueurs dÃƒÆ’Ã‚Â©jÃƒÆ’Ã‚Â  en ligne (ex: reload)
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             setupBoard(p);
         }
 
-        // Tâche de mise à jour toutes les secondes (20 ticks)
+        // TÃƒÆ’Ã‚Â¢che de mise ÃƒÆ’Ã‚Â  jour toutes les secondes (20 ticks)
         taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::updateAll, 20L, 20L);
         plugin.getLangManager().sendConsoleMessage("tabboardmodule.log_1");
     }
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
         if (taskId != -1) {
             Bukkit.getScheduler().cancelTask(taskId);
             taskId = -1;
         }
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         }
         boards.clear();
@@ -98,6 +102,7 @@ public class TabBoardModule implements Module, Listener {
 
     private void updateAll() {
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             GensScoreboard board = boards.get(p.getUniqueId());
             if (board != null) {
                 updateScoreboard(p, board);
@@ -116,12 +121,12 @@ public class TabBoardModule implements Module, Listener {
             configLines.add("<white>Joueur: <yellow>%player%");
             configLines.add("<white>Grade: %prefix%");
             configLines.add("");
-            configLines.add("<gold> Économie:");
+            configLines.add("<gold> ÃƒÆ’Ã¢â‚¬Â°conomie:");
             configLines.add("<white>Argent: <green>%money%$");
             configLines.add("<white>Bourse: <gray>/shop");
             configLines.add("");
-            configLines.add("<aqua> Quêtes:");
-            configLines.add("<white>Terminées: <dark_aqua>0");
+            configLines.add("<aqua> QuÃƒÆ’Ã‚Âªtes:");
+            configLines.add("<white>TerminÃƒÆ’Ã‚Â©es: <dark_aqua>0");
             configLines.add("");
             configLines.add("<white>En ligne: <aqua>%online%");
             configLines.add("<gray><strikethrough>--------------------");
@@ -138,29 +143,29 @@ public class TabBoardModule implements Module, Listener {
         boolean ecoEnabled = eco != null && eco.isEnabled();
 
         for (String line : configLines) {
-            if (!ecoEnabled && (line.contains("%money%") || line.contains("Économie") || line.contains("/shop") || line.contains("Bourse"))) {
-                if (line.contains("Économie")) {
-                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "<gold>\u2694 Statistiques:"));
+            if (!ecoEnabled && (line.contains("%money%") || line.contains("ÃƒÆ’Ã¢â‚¬Â°conomie") || line.contains("/shop") || line.contains("Bourse"))) {
+                if (line.contains("ÃƒÆ’Ã¢â‚¬Â°conomie")) {
+                    lines.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, "<gold>\u2694 Statistiques:")));
                 } else if (line.contains("%money%")) {
                     int playMinutes = p.getStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE) / 1200;
                     int playHours = playMinutes / 60;
                     int playMins = playMinutes % 60;
-                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "<white>Temps de jeu: <yellow>" + playHours + "h" + playMins + "m"));
+                    lines.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, "<white>Temps de jeu: <yellow>" + playHours + "h" + playMins + "m")));
                 } else if (line.contains("Bourse")) {
                     int mobKills = p.getStatistic(org.bukkit.Statistic.MOB_KILLS);
-                    lines.add(PlaceholderUtils.setPlaceholders(plugin, p, "<white>Mobs tués: <red>" + mobKills));
+                    lines.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, "<white>Mobs tués: <red>" + mobKills)));
                 }
                 continue;
             }
             
-            String parsed = PlaceholderUtils.setPlaceholders(plugin, p, line);
+            String parsed = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, line));
             lines.add(parsed);
             
             // Inject Jobs after Economy if it's the blank line before Quests, or just dynamically
-            if (line.equals("&b Quêtes:")) {
+            if (line.equals("&b QuÃƒÆ’Ã‚Âªtes:")) {
                 // Insert Jobs before Quests
                 int insertIdx = lines.size() - 1;
-                lines.add(insertIdx, "<green> Métiers:");
+                lines.add(insertIdx, "<green> MÃƒÆ’Ã‚Â©tiers:");
                 fr.gens.core.modules.jobs.JobsModule jobsMod = (fr.gens.core.modules.jobs.JobsModule) plugin.getModuleManager().getModule("jobs");
                 if (jobsMod != null && jobsMod.isEnabled()) {
                     boolean hasJob = false;
@@ -173,7 +178,7 @@ public class TabBoardModule implements Module, Listener {
                         }
                     }
                     if (!hasJob) {
-                        lines.add(insertIdx + 1, "<gray>Aucun métier");
+                        lines.add(insertIdx + 1, "<gray>Aucun mÃƒÆ’Ã‚Â©tier");
                         insertIdx++;
                     }
                 }
@@ -187,18 +192,12 @@ public class TabBoardModule implements Module, Listener {
     private void updateTabList(Player p) {
         if (!plugin.getConfigManager().getConfig("modules/tabboard.yml").contains("tabboard.tablist.header")) {
             plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.header", "<strikethrough>                                                                <reset>\n<dark_aqua><bold>Le Serveur Des Gens Bien\n<reset><gray><bold>>> <yellow>Bienvenue <dark_aqua><bold>%player% <gray><bold>! <<\n<reset><gray>Joueurs en ligne: <white>%online%\n<gold>Staff en ligne: <yellow>%staff%");
-            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.footer", "\n<dark_green>Ping: %ping%ms\n<gray><bold>Mémoire: %mem_used% MB / %mem_max% MB\n<gray>Quêtes terminées: <yellow>0\n\n%discord_status%\n<strikethrough>                                                                ");
-            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.discord_not_linked", "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto");
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.footer", "\n<dark_green>Ping: %ping%ms\n<gray><bold>MÃƒÆ’Ã‚Â©moire: %mem_used% MB / %mem_max% MB\n<gray>QuÃƒÆ’Ã‚Âªtes terminÃƒÆ’Ã‚Â©es: <yellow>0\n\n%discord_status%\n<strikethrough>                                                                ");
+            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.discord_not_linked", "<yellow><bold> <red>Discord non liÃƒÆ’Ã‚Â© ! <aqua>/linktuto");
             plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.discord_linked", "<reset><gray>Le Discord: <aqua>discord.gg/gensbien");
             plugin.getConfigManager().saveConfig("modules/tabboard.yml");
         }
 
-        long maxMemory = Runtime.getRuntime().maxMemory() / 1048576;
-        long usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-
-        String discordStatus = p.hasPermission("genscore.discord.linked") 
-                ? plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.discord_linked", "") 
-                : plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.discord_not_linked", "");
 
         String rawHeader = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.header", "");
         String rawFooter = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.footer", "");
@@ -211,6 +210,7 @@ public class TabBoardModule implements Module, Listener {
 
     private void updateNametags(Player p, Scoreboard scoreboard) {
         for (Player target : Bukkit.getOnlinePlayers()) {
+            if (target == null) continue;
             String teamName = getTeamWeight(target) + "_" + target.getName();
             // Maximum 16 characters for team names in older versions, safe in 1.21+
             if (teamName.length() > 16) teamName = teamName.substring(0, 16);
@@ -254,23 +254,6 @@ public class TabBoardModule implements Module, Listener {
         return "99";
     }
 
-    private int getStaffCount() {
-        int count = 0;
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p.hasPermission("group.owner") || p.hasPermission("group.admin") || p.hasPermission("group.mod") || p.hasPermission("group.helper")) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private String getBalance(Player p) {
-        EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
-        if (eco != null) {
-            return String.format("%.0f", eco.getBalance(p.getUniqueId()));
-        }
-        return "0";
-    }
 
     private String getLuckPermsPrefix(Player p) {
         try {
@@ -292,3 +275,5 @@ public class TabBoardModule implements Module, Listener {
         return "<gray>Joueur";
     }
 }
+
+

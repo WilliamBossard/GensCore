@@ -1,11 +1,13 @@
 package fr.gens.core.modules.tomb;
 
-import fr.gens.core.CorePlugin;
 import org.bukkit.Bukkit;
+
+import fr.gens.core.CorePlugin;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.World;
+
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -14,13 +16,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+
+
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 public class TombManager {
 
@@ -38,36 +41,7 @@ public class TombManager {
         activeTombs.clear();
         tombsByLocation.clear();
         
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tombs");
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                UUID id = UUID.fromString(rs.getString("id"));
-                UUID ownerId = UUID.fromString(rs.getString("owner_id"));
-                World world = Bukkit.getWorld(rs.getString("world"));
-                double x = rs.getDouble("x");
-                double y = rs.getDouble("y");
-                double z = rs.getDouble("z");
-                
-                if (world == null) {
-                    plugin.getLogger().warning("Tomb world not found: " + rs.getString("world"));
-                    continue;
-                }
-                
-                Location loc = new Location(world, x, y, z);
-                String base64Contents = rs.getString("contents");
-                ItemStack[] contents = plugin.getStorageManager().itemStackArrayFromBase64(base64Contents);
-                int xp = rs.getInt("xp");
-                long expirationTime = rs.getLong("expiration_time");
-
-                TombData tomb = new TombData(id, ownerId, loc, contents, xp, expirationTime);
-                activeTombs.put(id, tomb);
-                tombsByLocation.put(loc.getBlock().getLocation(), id);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        module.getTombDAO().loadTombs(activeTombs, tombsByLocation);
     }
 
     public TombData createTomb(UUID ownerId, Location location, ItemStack[] contents, int xp, long expirationMs) {
@@ -83,27 +57,13 @@ public class TombManager {
             TextDisplay display = (TextDisplay) location.getWorld().spawnEntity(holoLoc, EntityType.TEXT_DISPLAY);
             String ownerName = Bukkit.getOfflinePlayer(ownerId).getName();
             if (ownerName == null) ownerName = "Inconnu";
-            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée"));
+            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>ProtÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e"));
             display.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             display.getPersistentDataContainer().set(new NamespacedKey(plugin, "tomb_id"), PersistentDataType.STRING, id.toString());
         });
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement stmt = conn.prepareStatement("INSERT INTO tombs (id, owner_id, world, x, y, z, contents, xp, expiration_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
-                stmt.setString(1, id.toString());
-                stmt.setString(2, ownerId.toString());
-                stmt.setString(3, location.getWorld().getName());
-                stmt.setDouble(4, location.getX());
-                stmt.setDouble(5, location.getY());
-                stmt.setDouble(6, location.getZ());
-                stmt.setString(7, plugin.getStorageManager().itemStackArrayToBase64(contents));
-                stmt.setInt(8, xp);
-                stmt.setLong(9, expirationTime);
-                stmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            module.getTombDAO().createTomb(id, ownerId, location, contents, xp, expirationTime);
         });
 
         return tomb;
@@ -131,13 +91,7 @@ public class TombManager {
             });
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement stmt = conn.prepareStatement("DELETE FROM tombs WHERE id = ?")) {
-                    stmt.setString(1, id.toString());
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                module.getTombDAO().deleteTomb(id);
             });
         }
     }
@@ -188,17 +142,17 @@ public class TombManager {
                             if (ownerName == null) ownerName = "Inconnu";
 
                             if (isExpired && action.equals("UNLOCK")) {
-                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
+                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  tous"));
                             } else if (!isExpired) {
                                 String timeStr = "";
                                 if (hasExpiration) {
                                     if (remainingSecs >= 60) {
-                                        timeStr = "<br><gray>⏱ <white>" + (remainingSecs / 60) + "m " + (remainingSecs % 60) + "s";
+                                        timeStr = "<br><gray>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â± <white>" + (remainingSecs / 60) + "m " + (remainingSecs % 60) + "s";
                                     } else {
-                                        timeStr = "<br><gray>⏱ <white>" + remainingSecs + "s";
+                                        timeStr = "<br><gray>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â± <white>" + remainingSecs + "s";
                                     }
                                 }
-                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée" + timeStr));
+                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>ProtÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e" + timeStr));
                             }
                         }
                     }
@@ -207,3 +161,4 @@ public class TombManager {
         }
     }
 }
+

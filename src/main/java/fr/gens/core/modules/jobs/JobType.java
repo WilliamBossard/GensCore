@@ -2,9 +2,9 @@ package fr.gens.core.modules.jobs;
 
 public enum JobType {
     MINEUR("Mineur", "<gray>", "Pioche"),
-    BUCHERON("Bûcheron", "<green>", "Hache"),
+    BUCHERON("BÃƒÂ»cheron", "<green>", "Hache"),
     FERMIER("Fermier", "<yellow>", "Houe"),
-    CHASSEUR("Chasseur", "<red>", "Épée");
+    CHASSEUR("Chasseur", "<red>", "Ãƒâ€°pÃƒÂ©e");
 
     private final String displayName;
     private final String color;

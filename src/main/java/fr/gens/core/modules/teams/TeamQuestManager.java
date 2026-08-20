@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import java.util.HashMap;
 import java.util.Map;
 
+
 public class TeamQuestManager {
     private final CorePlugin plugin;
     
@@ -29,12 +30,12 @@ public class TeamQuestManager {
     }
 
     private final java.util.List<QuestDef> questPool = java.util.Arrays.asList(
-        new QuestDef("weekly_1", QuestType.BREAK, "STONE", 25000, 1000, "Mine 25 000 blocs de roche en équipe !"),
-        new QuestDef("weekly_2", QuestType.KILL, "ZOMBIE", 2500, 1000, "Tuez 2 500 zombies en équipe !"),
-        new QuestDef("weekly_3", QuestType.BREAK, "OAK_LOG", 5000, 1000, "Coupez 5 000 bûches de chêne en équipe !"),
-        new QuestDef("weekly_4", QuestType.BREAK, "WHEAT", 10000, 1000, "Récoltez 10 000 blés en équipe !"),
-        new QuestDef("weekly_5", QuestType.KILL, "SKELETON", 2500, 1000, "Éliminez 2 500 squelettes en équipe !"),
-        new QuestDef("weekly_6", QuestType.BREAK, "NETHERRACK", 50000, 1000, "Mine 50 000 blocs de netherrack en équipe !")
+        new QuestDef("weekly_1", QuestType.BREAK, "STONE", 25000, 1000, "Mine 25 000 blocs de roche en ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quipe !"),
+        new QuestDef("weekly_2", QuestType.KILL, "ZOMBIE", 2500, 1000, "Tuez 2 500 zombies en ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quipe !"),
+        new QuestDef("weekly_3", QuestType.BREAK, "OAK_LOG", 5000, 1000, "Coupez 5 000 bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â»ches de chÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªne en ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quipe !"),
+        new QuestDef("weekly_4", QuestType.BREAK, "WHEAT", 10000, 1000, "RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©coltez 10 000 blÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s en ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quipe !"),
+        new QuestDef("weekly_5", QuestType.KILL, "SKELETON", 2500, 1000, "ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°liminez 2 500 squelettes en ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quipe !"),
+        new QuestDef("weekly_6", QuestType.BREAK, "NETHERRACK", 50000, 1000, "Mine 50 000 blocs de netherrack en ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quipe !")
     );
 
     private QuestDef activeQuest;
@@ -64,7 +65,8 @@ public class TeamQuestManager {
             config.set("teams.active_quest", activeQuest.id);
             plugin.getConfigManager().saveConfig("modules/teams.yml");
             
-            plugin.getDatabaseManager().getTeamDAO().clearTeamQuests();
+            fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+            if (module != null) module.getTeamDAO().clearTeamQuests();
             teamProgress.clear();
         } else {
             activeQuest = questPool.stream().filter(q -> q.id.equals(savedId)).findFirst().orElse(questPool.get(0));
@@ -72,12 +74,14 @@ public class TeamQuestManager {
     }
 
     private void loadProgress() {
-        teamProgress.putAll(plugin.getDatabaseManager().getTeamDAO().loadTeamQuestProgress(activeQuest.id));
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) teamProgress.putAll(module.getTeamDAO().loadTeamQuestProgress(activeQuest.id));
     }
 
     public void saveProgress(int teamId, int progress) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            plugin.getDatabaseManager().getTeamDAO().saveTeamQuestProgress(teamId, activeQuest.id, progress);
+            fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+            if (module != null) module.getTeamDAO().saveTeamQuestProgress(teamId, activeQuest.id, progress);
         });
     }
 
@@ -87,12 +91,12 @@ public class TeamQuestManager {
         if (!target.equalsIgnoreCase(activeQuest.target)) return;
 
         int current = teamProgress.getOrDefault(team.getTeamId(), 0);
-        if (current >= activeQuest.amount) return; // Déjà fini
+        if (current >= activeQuest.amount) return; // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  fini
 
         current += amount;
         if (current >= activeQuest.amount) {
             current = activeQuest.amount;
-            team.broadcast("<green><bold> Votre guilde a terminé la Quête Hebdomadaire !");
+            team.broadcast("<green><bold> Votre guilde a terminÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© la QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte Hebdomadaire !");
             team.broadcast("<yellow>+" + activeQuest.points + " Points de Guilde !");
             
             // Ajouter les points
@@ -100,19 +104,25 @@ public class TeamQuestManager {
             
             // Sauvegarder les points dans la DB
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                plugin.getDatabaseManager().getTeamDAO().saveTeamStats(team.getTeamId(), team.getWeeklyPoints(), team.getTotalPoints());
+                fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+                if (module != null) module.getTeamDAO().saveTeamStats(team.getTeamId(), team.getWeeklyPoints(), team.getTotalPoints());
                 
-                // Distribuer les récompenses
+                // Distribuer les rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©compenses
                 fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
                 boolean ecoEnabled = (eco != null && eco.isEnabled());
                 double rewardAmount = ecoEnabled ? 50000.0 : 0.0;
                 String rewardItem = !ecoEnabled ? "DIAMOND_BLOCK:4" : "";
                 
                 for (java.util.UUID memberId : team.getMembers()) {
-                    plugin.getDatabaseManager().getRewardDAO().addPendingReward(memberId, rewardAmount, rewardItem);
+
+                    if (module != null) {
+                        module.getTeamDAO().addPendingReward(memberId, rewardAmount, rewardItem);
+                    }
                     org.bukkit.entity.Player p = Bukkit.getPlayer(memberId);
                     if (p != null && p.isOnline()) {
-                        Bukkit.getScheduler().runTask(plugin, () -> plugin.getDatabaseManager().getRewardDAO().processPendingRewards(p));
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            if (module != null) module.getTeamDAO().processPendingRewards(p);
+                        });
                     }
                 }
             });
@@ -134,6 +144,7 @@ public class TeamQuestManager {
         fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
         boolean ecoEnabled = (eco != null && eco.isEnabled());
         String rewardStr = ecoEnabled ? "50 000 $ / membre" : "4 Blocs de Diamant / membre";
-        return activeQuest.desc + " (Récompense: " + rewardStr + ")";
+        return activeQuest.desc + " (RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©compense: " + rewardStr + ")";
     }
 }
+

@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Location;
 
+
 public class LockModule implements Module {
     private final CorePlugin plugin;
     private LockListener lockListener;
@@ -29,10 +30,15 @@ public class LockModule implements Module {
     public String getName() { return "Locks"; }
 
     @Override
-    public String getDescription() { return "Système de verrouillage de conteneurs avec support de guildes."; }
+    public String getDescription() { return "SystÃƒÆ’Ã‚Â¨me de verrouillage de conteneurs avec support de guildes."; }
 
     @Override
     public boolean isEnabled() { return enabled; }
+
+    @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_locks (location VARCHAR(255) PRIMARY KEY, owner_uuid VARCHAR(36), team_id INTEGER);");
+    }
 
     @Override
     public void enable() {
@@ -41,10 +47,12 @@ public class LockModule implements Module {
         lockCommand = new LockCommand(plugin, this);
         lockListener = new LockListener(plugin, this);
 
-        plugin.getCommand("lock").setExecutor(lockCommand);
-        plugin.getCommand("lock").setTabCompleter(lockCommand);
+        org.bukkit.command.PluginCommand cmd_lock = plugin.getCommand("lock");
+        if (cmd_lock != null) cmd_lock.setExecutor(lockCommand);
+        org.bukkit.command.PluginCommand cmd_lock_tc = plugin.getCommand("lock");
+        if (cmd_lock_tc != null) cmd_lock_tc.setTabCompleter(lockCommand);
         Bukkit.getPluginManager().registerEvents(lockListener, plugin);
-        plugin.getLogger().info("[Locks] Module activé ! (" + locks.size() + " locks loaded)");
+        plugin.getLogger().info("[Locks] Module activÃƒÆ’Ã‚Â© ! (" + locks.size() + " locks loaded)");
     }
 
     @Override
@@ -109,3 +117,4 @@ public class LockModule implements Module {
         return loc.getWorld().getName() + "," + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ();
     }
 }
+

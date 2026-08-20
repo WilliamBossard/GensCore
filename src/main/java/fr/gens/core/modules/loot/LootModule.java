@@ -1,4 +1,4 @@
-package fr.gens.core.modules.loot;
+﻿package fr.gens.core.modules.loot;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
@@ -31,6 +31,7 @@ import org.bukkit.loot.Lootable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class LootModule implements Module, Listener {
 
     private final CorePlugin plugin;
@@ -49,9 +50,9 @@ public class LootModule implements Module, Listener {
     private boolean particlesEnabled = true;
     private int breakConfirmTime = 3;
     private String breakConfirmMsg = "<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !";
-    private String chestBrokenMsg = "<green>Coffre Lootr retiré !";
+    private String chestBrokenMsg = "<green>Coffre Lootr retirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !";
     private String cannotBreakMsg = "<red>Tu ne peux pas casser ce coffre !";
-    private String inventoryTitle = "<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin";
+    private String inventoryTitle = "<dark_gray>[<gold><dark_gray>] <yellow>Coffre ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  Butin";
 
     public LootModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -64,12 +65,18 @@ public class LootModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Système de coffres instanciés pour chaque joueur";
+        return "SystÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me de coffres instanciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s pour chaque joueur";
     }
 
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_pending_rewards (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid VARCHAR(36) NOT NULL, amount DOUBLE, command TEXT, message TEXT, item_data TEXT);");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_pending_rewards_uuid ON genscore_pending_rewards(uuid);");
     }
 
     @Override
@@ -96,9 +103,9 @@ public class LootModule implements Module, Listener {
             config.set("lootr.particles-enabled", true);
             config.set("lootr.break-confirm-time", 3);
             config.set("lootr.messages.break-confirm", "<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !");
-            config.set("lootr.messages.chest-broken", "<green>Coffre Lootr retiré !");
+            config.set("lootr.messages.chest-broken", "<green>Coffre Lootr retirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !");
             config.set("lootr.messages.cannot-break", "<red>Tu ne peux pas casser ce coffre !");
-            config.set("lootr.inventory.title", "<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin");
+            config.set("lootr.inventory.title", "<dark_gray>[<gold><dark_gray>] <yellow>Coffre ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  Butin");
             plugin.getConfigManager().saveConfig("modules/lootr.yml");
         }
         
@@ -106,14 +113,15 @@ public class LootModule implements Module, Listener {
         preventBreak = config.getBoolean("lootr.prevent-break", false);
         particlesEnabled = config.getBoolean("lootr.particles-enabled", true);
         breakConfirmTime = config.getInt("lootr.break-confirm-time", 3);
-        breakConfirmMsg = config.getString("lootr.messages.break-confirm", "&eCasse-le encore une fois dans les 3 secondes pour confirmer !").replace("&", "§");
-        chestBrokenMsg = config.getString("lootr.messages.chest-broken", "&aCoffre Lootr retiré !").replace("&", "§");
-        cannotBreakMsg = config.getString("lootr.messages.cannot-break", "&cTu ne peux pas casser ce coffre !").replace("&", "§");
-        inventoryTitle = config.getString("lootr.inventory.title", "&8[&6&8] &eCoffre à Butin").replace("&", "§");
+        breakConfirmMsg = config.getString("lootr.messages.break-confirm", "&eCasse-le encore une fois dans les 3 secondes pour confirmer !").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
+        chestBrokenMsg = config.getString("lootr.messages.chest-broken", "&aCoffre Lootr retirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
+        cannotBreakMsg = config.getString("lootr.messages.cannot-break", "&cTu ne peux pas casser ce coffre !").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
+        inventoryTitle = config.getString("lootr.inventory.title", "&8[&6&8] &eCoffre ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  Butin").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
     }
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
         if (particleTaskId != -1) {
             Bukkit.getScheduler().cancelTask(particleTaskId);
@@ -122,6 +130,7 @@ public class LootModule implements Module, Listener {
         
         // Force close all virtual inventories to save them
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             if (openVirtualInventories.containsKey(p.getOpenInventory().getTopInventory())) {
                 p.closeInventory();
             }
@@ -136,7 +145,9 @@ public class LootModule implements Module, Listener {
     private void startParticleTask() {
         particleTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                Location pLoc = p.getLocation();
+            if (p == null) continue;
+                Location pLoc = p != null ? p.getLocation() : null;
+            if (pLoc == null) return;
                 for (Map.Entry<String, LootManager.LootChestData> entry : lootManager.getChestsCache().entrySet()) {
                     Location chestLoc = lootManager.stringToLoc(entry.getKey());
                     if (chestLoc != null && chestLoc.getWorld().equals(pLoc.getWorld())) {
@@ -317,3 +328,6 @@ public class LootModule implements Module, Listener {
         }
     }
 }
+
+
+

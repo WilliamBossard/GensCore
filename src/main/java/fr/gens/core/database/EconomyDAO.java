@@ -10,12 +10,27 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.LinkedHashMap;
 
+
 public class EconomyDAO {
 
     private final CorePlugin plugin;
 
     public EconomyDAO(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void initDatabase() {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             java.sql.Statement stmt = conn.createStatement()) {
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS players_economy (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "balance DOUBLE NOT NULL DEFAULT 0.0" +
+                    ");");
+                    
+        } catch (SQLException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table economy", e);
+        }
     }
 
     public Map<UUID, Double> loadBalances() {
@@ -31,6 +46,22 @@ public class EconomyDAO {
             e.printStackTrace();
         }
         return balances;
+    }
+
+    public double getBalance(UUID uuid) {
+        double balance = 0.0;
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT balance FROM players_economy WHERE uuid = ?")) {
+            ps.setString(1, uuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    balance = rs.getDouble("balance");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return balance;
     }
 
     public void savePlayerBalance(UUID uuid, double balance) {
@@ -62,3 +93,4 @@ public class EconomyDAO {
         return top;
     }
 }
+

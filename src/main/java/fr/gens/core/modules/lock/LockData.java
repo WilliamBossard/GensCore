@@ -2,6 +2,7 @@ package fr.gens.core.modules.lock;
 
 import java.util.UUID;
 
+
 public class LockData {
     private String location;
     private UUID ownerUuid;
@@ -17,3 +18,4 @@ public class LockData {
     public UUID getOwnerUuid() { return ownerUuid; }
     public int getTeamId() { return teamId; }
 }
+

@@ -23,14 +23,20 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.charset.StandardCharsets;
 
+
 public class WebManager {
 
     private final CorePlugin plugin;
     private final int port;
     private Javalin app;
+    private final java.util.Map<String, Long> activeSessions = new java.util.concurrent.ConcurrentHashMap<>();
+
     public WebManager(CorePlugin plugin, int port) {
         this.plugin = plugin;
         this.port = port;
+        
+        fr.gens.core.database.WebDAO webDAO = new fr.gens.core.database.WebDAO(plugin);
+        webDAO.initDatabase();
     }
 
     private java.util.Map<String, Object> convertToMap(org.bukkit.configuration.ConfigurationSection section) {
@@ -47,11 +53,20 @@ public class WebManager {
     }
 
     public void start() {
+        // Hachage du mot de passe admin si nÃ©cessaire
+        org.bukkit.configuration.file.FileConfiguration webConfig = plugin.getConfigManager().getConfig("modules/web.yml");
+        String adminPassword = webConfig.getString("admin-password", "gens");
+        if (adminPassword != null && !adminPassword.startsWith("$2a$") && !adminPassword.startsWith("$2b$")) {
+            String hashed = org.mindrot.jbcrypt.BCrypt.hashpw(adminPassword, org.mindrot.jbcrypt.BCrypt.gensalt());
+            webConfig.set("admin-password", hashed);
+            plugin.getConfigManager().saveConfig("modules/web.yml");
+            plugin.getLogger().info("The default web admin password was in plain text. It has been hashed for security.");
+        }
+
         // Extraction des fichiers web s'ils n'existent pas ou si index.html manque
         File webDir = new File(plugin.getDataFolder(), "web");
         File indexFile = new File(webDir, "index.html");
         
-        org.bukkit.configuration.file.FileConfiguration webConfig = plugin.getConfigManager().getConfig("modules/web.yml");
         boolean autoUpdate = webConfig.getBoolean("web.auto_update_panel", true);
         
         if (!webDir.exists() || !indexFile.exists() || autoUpdate) {
@@ -87,7 +102,7 @@ public class WebManager {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         
         try {
-            // Forcer le ClassLoader de Javalin pour éviter les conflits dans un plugin
+            // Forcer le ClassLoader de Javalin pour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©viter les conflits dans un plugin
             Thread.currentThread().setContextClassLoader(Javalin.class.getClassLoader());
 
             app = Javalin.create(config -> {
@@ -101,17 +116,35 @@ public class WebManager {
                 // Servir le site web depuis le dossier plugins/GensCore/web/
                 config.staticFiles.add(webDir.getAbsolutePath(), Location.EXTERNAL);
 
-                // Gérer le routage SPA (Single Page Application)
+                // GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer le routage SPA (Single Page Application)
                 config.spaRoot.addFile("/", new File(webDir, "index.html").getAbsolutePath(), Location.EXTERNAL);
 
                 config.routes.apiBuilder(() -> {
                     // Middleware d'authentification pour les routes /api/admin/*
                     before("/api/admin/*", ctx -> {
-                        String authHeader = ctx.header("Authorization");
-                        String expectedPassword = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "gens");
+                        if (ctx.path().equals("/api/admin/login")) return; // skip for login
                         
-                        if (authHeader == null || !authHeader.equals("Bearer " + expectedPassword)) {
-                            ctx.status(401).json("Non autorisé: Mot de passe incorrect");
+                        String authHeader = ctx.header("Authorization");
+                        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.unauthorized"));
+                            return;
+                        }
+                        String token = authHeader.substring(7);
+                        if (!activeSessions.containsKey(token) || activeSessions.get(token) < System.currentTimeMillis()) {
+                            activeSessions.remove(token);
+                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.session_expired"));
+                        }
+                    });
+
+                    post("/api/admin/login", ctx -> {
+                        LoginRequest req = ctx.bodyAsClass(LoginRequest.class);
+                        String storedHash = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "");
+                        if (org.mindrot.jbcrypt.BCrypt.checkpw(req.password, storedHash)) {
+                            String token = java.util.UUID.randomUUID().toString();
+                            activeSessions.put(token, System.currentTimeMillis() + (24L * 60 * 60 * 1000L)); // 24 hours
+                            ctx.json(new LoginResponse(token));
+                        } else {
+                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.unauthorized"));
                         }
                     });
                     
@@ -213,7 +246,7 @@ public class WebManager {
     }
 
     private void setupRoutes() {
-        // Route API pour récupérer la liste des modules (Public)
+        // Route API pour rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer la liste des modules (Public)
         get("/api/modules", ctx -> {
             List<Map<String, Object>> modulesList = new ArrayList<>();
             for (Module m : plugin.getModuleManager().getModules()) {
@@ -259,14 +292,14 @@ public class WebManager {
             }
         });
 
-        // Route API pour activer/désactiver un module (Protégée Admin)
+        // Route API pour activer/dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactiver un module (ProtÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e Admin)
         post("/api/admin/modules/{name}/toggle", ctx -> {
             String moduleName = ctx.pathParam("name");
             
-            // On récupère le body {"state": true/false}
+            // On rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re le body {"state": true/false}
             ToggleRequest request = ctx.bodyAsClass(ToggleRequest.class);
             
-            // On exécute l'activation sur le thread principal de Bukkit (Très important !)
+            // On exÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cute l'activation sur le thread principal de Bukkit (TrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s important !)
             plugin.getServer().getScheduler().runTask(plugin, () -> {
                 boolean success = plugin.getModuleManager().toggleModule(moduleName, request.state);
                 if(success) {
@@ -357,17 +390,26 @@ public class WebManager {
             ctx.status(200).result("OK");
         });
 
-        // Modération Joueurs
+        // ModÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ration Joueurs
         get("/api/admin/players", ctx -> {
             List<Map<String, Object>> players = new ArrayList<>();
             fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
-            for (org.bukkit.OfflinePlayer op : plugin.getServer().getOfflinePlayers()) {
-                if (op.getName() == null) continue; // Skip invalid
-                Map<String, Object> map = new HashMap<>();
-                map.put("name", op.getName());
-                map.put("uuid", op.getUniqueId().toString());
+            fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+            
+            List<Map<String, Object>> knownPlayers = (statsModule != null) ? statsModule.getStatsDAO().getAllKnownPlayers() : new ArrayList<>();
+            org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
+            
+            for (Map<String, Object> known : knownPlayers) {
+                String uuidStr = (String) known.get("uuid");
+                String name = (String) known.get("name");
+                if (uuidStr == null || name == null) continue;
+                java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
                 
-                org.bukkit.entity.Player p = op.getPlayer();
+                Map<String, Object> map = new HashMap<>();
+                map.put("name", name);
+                map.put("uuid", uuidStr);
+                
+                org.bukkit.entity.Player p = plugin.getServer().getPlayer(uuid);
                 if (p != null && p.isOnline()) {
                     map.put("online", true);
                     map.put("ping", p.getPing());
@@ -380,13 +422,11 @@ public class WebManager {
                     map.put("maxHealth", 20.0);
                 }
                 
-                org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(op.getUniqueId(), op.getName());
-                org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = plugin.getServer().getBanList(org.bukkit.BanList.Type.PROFILE);
+                com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(uuid, name);
                 map.put("isBanned", banList.isBanned(profile));
-                map.put("isMuted", mod != null && mod.isMuted(op.getUniqueId()));
-
-                long playtime = plugin.getDatabaseManager().getStatsDAO().getPlaytimeMinutes(op.getUniqueId());
-                map.put("playtime", playtime);
+                map.put("isMuted", mod != null && mod.isMuted(uuid));
+                map.put("playtime", known.getOrDefault("playtime", 0L));
+                
                 players.add(map);
             }
             ctx.json(players);
@@ -402,7 +442,7 @@ public class WebManager {
 
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
+                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© expulsÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
                         plugin.getLogger().info("Web panel kicked " + req.playerName);
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, Color.ORANGE);
                     }
@@ -414,17 +454,17 @@ public class WebManager {
                     java.util.Date expires = durationMs > 0 ? new java.util.Date(System.currentTimeMillis() + durationMs) : null;
                     String reason = req.reason != null && !req.reason.isEmpty() ? req.reason : "Banni par un Administrateur";
                     
-                    org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
-                    org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = plugin.getServer().getBanList(org.bukkit.BanList.Type.PROFILE);
+                    com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
+                    org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                     banList.addBan(profile, "<red>" + reason, expires, "WebAdmin");
                     if (target != null) {
-                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été banni.<br><gray>Raison : " + reason));
+                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© banni.<br><gray>Raison : " + reason));
                     }
                     plugin.getLogger().info("Web panel banned " + req.playerName);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);
                 } else if ("unban".equalsIgnoreCase(req.action)) {
-                    org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
-                    org.bukkit.BanList<org.bukkit.profile.PlayerProfile> banList = plugin.getServer().getBanList(org.bukkit.BanList.Type.PROFILE);
+                    com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
+                    org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                     banList.pardon(profile);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("UNBAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin", Color.GREEN);
                 } else if ("mute".equalsIgnoreCase(req.action)) {
@@ -436,7 +476,7 @@ public class WebManager {
                         mod.mutePlayer(targetOffline.getUniqueId(), reason, durationMs);
                         
                         if (target != null) {
-                            target.sendMessage("<red><bold>Vous avez été rendu muet par le WebAdmin ! Raison : " + reason);
+                            target.sendMessage("<red><bold>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© rendu muet par le WebAdmin ! Raison : " + reason);
                         }
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("MUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.YELLOW);
                     }
@@ -454,10 +494,10 @@ public class WebManager {
                     }
                 }
             });
-            ctx.status(200).json("Action effectuée");
+            ctx.status(200).json("Action effectuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e");
         });
 
-        // Édition de fichiers
+        // ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°dition de fichiers
         get("/api/admin/file", ctx -> {
             String path = ctx.queryParam("path");
             if (path == null || path.contains("..")) {
@@ -499,12 +539,12 @@ public class WebManager {
         get("/api/economy/stats", ctx -> {
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null) {
-                // Pour simplifier, on ne peut pas iterer directement sur les UUIDs sans reflection si balances est privé
+                // Pour simplifier, on ne peut pas iterer directement sur les UUIDs sans reflection si balances est privÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
                 // Je vais utiliser un raccourci ou demander au module
                 // TODO: Ajouter une methode getTotalMoney dans EconomyModule
                 ctx.json(Map.of("status", "ok", "message", "Endpoint economie a implementer"));
             } else {
-                ctx.status(404).json("Module economie desactive");
+                ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.module_disabled"));
             }
         });
 
@@ -513,7 +553,7 @@ public class WebManager {
             if (shop != null) {
                 ctx.json(shop.getCategories());
             } else {
-                ctx.status(404).json("Shop desactive");
+                ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled"));
             }
         });
 
@@ -523,13 +563,13 @@ public class WebManager {
                 String material = ctx.pathParam("material").toUpperCase();
                 ctx.json(shop.getHistory(material));
             } else {
-                ctx.status(404).json("Shop desactive");
+                ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled"));
             }
         });
 
         post("/api/admin/shop/category", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
             
             ShopCategory request = ctx.bodyAsClass(ShopCategory.class);
             ShopCategory existing = shop.getCategory(request.getId());
@@ -545,7 +585,7 @@ public class WebManager {
 
         post("/api/admin/shop/item", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
             
             ItemRequest req = ctx.bodyAsClass(ItemRequest.class);
             ShopCategory cat = shop.getCategory(req.categoryId);
@@ -579,7 +619,7 @@ public class WebManager {
 
         delete("/api/admin/shop/item/{category}/{material}", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
             
             String catId = ctx.pathParam("category");
             String matName = ctx.pathParam("material").toUpperCase();
@@ -603,7 +643,7 @@ public class WebManager {
 
         delete("/api/admin/shop/category/{id}", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json("Shop desactive"); return; }
+            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
             
             String catId = ctx.pathParam("id");
             ShopCategory cat = shop.getCategory(catId);
@@ -638,10 +678,10 @@ public class WebManager {
                 if (bestTeam != null) {
                     ctx.json(bestTeam);
                 } else {
-                    ctx.status(404).result("Aucune guilde trouvée.");
+                    ctx.status(404).result("Aucune guilde trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e.");
                 }
             } else {
-                ctx.status(404).result("Team manager non trouvé.");
+                ctx.status(404).result("Team manager non trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©.");
             }
         });
 
@@ -650,7 +690,7 @@ public class WebManager {
             if (tm != null) {
                 ctx.json(tm.getAllTeamStats());
             } else {
-                ctx.status(404).result("Team manager non trouvé.");
+                ctx.status(404).result("Team manager non trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©.");
             }
         });
 
@@ -685,19 +725,22 @@ public class WebManager {
         // ROUTES LEADERBOARD
         // ==========================================
         get("/api/stats/leaderboard", ctx -> {
-            ctx.json(plugin.getDatabaseManager().getStatsDAO().getGlobalLeaderboard());
+            fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+            ctx.json(statsModule != null ? statsModule.getStatsDAO().getGlobalLeaderboard() : java.util.Collections.emptyList());
         });
 
         get("/api/stats/quests/leaderboard", ctx -> {
-            ctx.json(plugin.getDatabaseManager().getQuestDAO().getQuestsLeaderboardData());
+            fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin.getModuleManager().getModule("quests");
+            ctx.json(questModule != null ? questModule.getQuestDAO().getQuestsLeaderboardData() : java.util.Collections.emptyMap());
         });
 
         get("/api/stats/jobs", ctx -> {
-            ctx.json(plugin.getDatabaseManager().getJobsLeaderboardData());
+            fr.gens.core.modules.jobs.JobsModule jobsModule = (fr.gens.core.modules.jobs.JobsModule) plugin.getModuleManager().getModule("jobs");
+            ctx.json(jobsModule != null ? jobsModule.getJobsDAO().getJobsLeaderboardData() : java.util.Collections.emptyMap());
         });
     }
     
-    // Classe DTO pour parser le JSON envoyé par React
+    // Classe DTO pour parser le JSON envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par React
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class PlayerActionRequest {
         public String action; // kick, ban, mute, message
@@ -723,4 +766,15 @@ public class WebManager {
         public String commandToExecute;
         public boolean isEnabled = true;
     }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class LoginRequest {
+        public String password;
+    }
+
+    public static class LoginResponse {
+        public String token;
+        public LoginResponse(String token) { this.token = token; }
+    }
 }
+

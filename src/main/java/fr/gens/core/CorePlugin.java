@@ -5,14 +5,14 @@ import fr.gens.core.modules.teams.TeamManager;
 import fr.gens.core.utils.DatabaseManager;
 import fr.gens.core.utils.ActionBarManager;
 import fr.gens.core.web.WebManager;
-import fr.gens.core.commands.WebCommand;
+
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+
 public class CorePlugin extends JavaPlugin {
 
-    private static CorePlugin instance;
     private ModuleManager moduleManager;
     private WebManager webManager;
     private StorageManager storageManager;
@@ -22,15 +22,15 @@ public class CorePlugin extends JavaPlugin {
     private ActionBarManager actionBarManager;
     private TeamManager teamManager;
     private fr.gens.core.modules.teams.TeamQuestManager teamQuestManager;
+    private fr.gens.core.utils.CommandManager commandManager;
 
     @Override
     public void onLoad() {
-        // Le log SLF4J est géré par simplelogger.properties
+        // Le log SLF4J est gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par simplelogger.properties
     }
 
     @Override
     public void onEnable() {
-        instance = this;
         // 1. Initialiser le LangManager EN PREMIER car les autres en ont besoin pour logger
         this.langManager = new fr.gens.core.utils.LangManager(this);
         this.configManager = new fr.gens.core.utils.ConfigManager(this);
@@ -44,24 +44,25 @@ public class CorePlugin extends JavaPlugin {
         this.actionBarManager = new ActionBarManager(this);
         this.actionBarManager.start();
         
+        // 1.5 Initialiser le gestionnaire de commandes Cloud
+        this.commandManager = new fr.gens.core.utils.CommandManager(this);
+        
         // 2. Initialiser le gestionnaire de modules
         this.moduleManager = new ModuleManager(this);
         
         // 2. Enregistrer les modules
         this.moduleManager.registerModules();
         
-        // Demande à chaque module d'enregistrer ses commandes
+        // Demande ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  chaque module d'enregistrer ses commandes
         for (fr.gens.core.modules.Module module : this.moduleManager.getModules()) {
             module.registerCommands(this);
         }
 
-        WebCommand webCommand = new WebCommand(this);
-        getCommand("web").setExecutor(webCommand);
-        getCommand("web").setTabCompleter(webCommand);
-
-        fr.gens.core.commands.ModuleCommand moduleCommand = new fr.gens.core.commands.ModuleCommand(this);
-        getCommand("module").setExecutor(moduleCommand);
-        getCommand("module").setTabCompleter(moduleCommand);
+        // Register non-module commands
+        if (this.commandManager != null && this.commandManager.getAnnotationParser() != null) {
+            this.commandManager.getAnnotationParser().parse(new fr.gens.core.commands.WebCommand(this));
+            this.commandManager.getAnnotationParser().parse(new fr.gens.core.commands.ModuleCommand(this));
+        }
 
         org.bukkit.configuration.file.FileConfiguration webConfig = getConfigManager().getConfig("modules/web.yml");
         if (webConfig.getBoolean("web.enabled", false)) {
@@ -75,6 +76,7 @@ public class CorePlugin extends JavaPlugin {
         // 4. Lancer les rappels automatiques (Discord et Guilde)
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
                 // Rappel Discord si pas de perm
                 if (!p.hasPermission("genscore.discord.linked")) {
                     getLangManager().sendMessage(p, "reminder.discord");
@@ -109,9 +111,7 @@ public class CorePlugin extends JavaPlugin {
         }
     }
 
-    public static CorePlugin getInstance() {
-        return instance;
-    }
+
 
     public ModuleManager getModuleManager() {
         return moduleManager;
@@ -144,4 +144,9 @@ public class CorePlugin extends JavaPlugin {
     public fr.gens.core.utils.ConfigManager getConfigManager() {
         return configManager;
     }
+
+    public fr.gens.core.utils.CommandManager getCommandManager() {
+        return commandManager;
+    }
 }
+

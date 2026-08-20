@@ -14,12 +14,32 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+
 public class ModerationDAO {
 
     private final CorePlugin plugin;
 
     public ModerationDAO(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void initDatabase() {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS moderation_mutes (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "expiration BIGINT, " +
+                    "reason VARCHAR(255)" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS moderation_frozen (" +
+                    "uuid VARCHAR(36) PRIMARY KEY" +
+                    ");");
+                    
+        } catch (SQLException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables de modÃƒÆ’Ã‚Â©ration", e);
+        }
     }
 
     public void saveMutes(Map<UUID, MuteData> mutes) {
@@ -86,3 +106,4 @@ public class ModerationDAO {
         return frozen;
     }
 }
+

@@ -14,12 +14,60 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
 
+
 public class QuestDAO {
 
     private final CorePlugin plugin;
 
     public QuestDAO(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void initDatabase() {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             java.sql.Statement stmt = conn.createStatement()) {
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_quests_stats (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "player_name VARCHAR(16) NOT NULL, " +
+                    "quests_completed INTEGER DEFAULT 0, " +
+                    "rerolls_done INTEGER DEFAULT 0, " +
+                    "last_reroll_date VARCHAR(255) DEFAULT ''" +
+                    ");");
+
+            try { stmt.execute("ALTER TABLE player_quests_stats ADD COLUMN rerolls_done INTEGER DEFAULT 0;"); } catch (SQLException ignored) {}
+            try { stmt.execute("ALTER TABLE player_quests_stats ADD COLUMN last_reroll_date VARCHAR(255) DEFAULT '';"); } catch (SQLException ignored) {}
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_quests_history (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "uuid VARCHAR(36) NOT NULL, " +
+                    "player_name VARCHAR(16) NOT NULL, " +
+                    "completion_date BIGINT NOT NULL" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS weekly_rewards (" +
+                    "week_id VARCHAR(20) PRIMARY KEY, " +
+                    "reward_description TEXT NOT NULL, " +
+                    "winner_uuid VARCHAR(36), " +
+                    "is_distributed INTEGER DEFAULT 0" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS player_active_quests (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "uuid VARCHAR(36) NOT NULL, " +
+                    "date_assigned VARCHAR(10) NOT NULL, " +
+                    "category VARCHAR(20) NOT NULL, " +
+                    "quest_id VARCHAR(50) NOT NULL, " +
+                    "progress INTEGER DEFAULT 0, " +
+                    "completed BOOLEAN DEFAULT 0" +
+                    ");");
+            
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_quests_history_uuid     ON player_quests_history(uuid);");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_quests_history_date     ON player_quests_history(completion_date);");
+
+        } catch (SQLException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables de quÃƒÆ’Ã‚Âªtes", e);
+        }
     }
 
     public int getQuestsCompletedTotal(UUID uuid) {
@@ -147,3 +195,4 @@ public class QuestDAO {
         return result;
     }
 }
+

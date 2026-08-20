@@ -4,6 +4,7 @@ import fr.gens.core.CorePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 
+
 public class BlueMapModule implements Module, Listener {
 
     private final CorePlugin plugin;
@@ -20,7 +21,7 @@ public class BlueMapModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Gère la carte en ligne (rendu en temps réel).";
+        return "GÃƒÆ’Ã‚Â¨re la carte en ligne (rendu en temps rÃƒÆ’Ã‚Â©el).";
     }
 
     @Override
@@ -31,7 +32,7 @@ public class BlueMapModule implements Module, Listener {
     @Override
     public void enable() {
         enabled = true;
-        // Ne rien faire si le serveur s'arrête
+        // Ne rien faire si le serveur s'arrÃƒÆ’Ã‚Âªte
         if (!plugin.isEnabled()) return;
         
         // Relance le rendu de la carte
@@ -43,14 +44,17 @@ public class BlueMapModule implements Module, Listener {
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
-        // Ne rien faire si le serveur s'arrête
+        // Ne rien faire si le serveur s'arrÃƒÆ’Ã‚Âªte
         if (!plugin.isEnabled()) return;
         
-        // Met en pause le rendu pour économiser les performances
+        // Met en pause le rendu pour ÃƒÆ’Ã‚Â©conomiser les performances
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap stop");
             plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_2");
         }, 20L);
     }
 }
+
+

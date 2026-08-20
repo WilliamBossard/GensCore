@@ -12,6 +12,7 @@ import java.util.List;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 
+
 public class UtilsModule implements Module, Listener, CommandExecutor, TabCompleter {
 
     private CorePlugin plugin;
@@ -37,6 +38,14 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
     }
 
     @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_transactions_history (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid VARCHAR(36) NOT NULL, type VARCHAR(10) NOT NULL, material VARCHAR(50) NOT NULL, amount INTEGER NOT NULL, price DOUBLE NOT NULL, timestamp BIGINT NOT NULL);");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_minigame_cooldowns (uuid VARCHAR(36), game_id VARCHAR(50), last_played BIGINT DEFAULT 0, PRIMARY KEY(uuid, game_id));");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_profiles (uuid VARCHAR(36) PRIMARY KEY, username VARCHAR(16) NOT NULL);");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_transactions_uuid ON player_transactions_history(uuid);");
+    }
+
+    @Override
     public void enable() {
         this.enabled = true;
         plugin.getLangManager().sendConsoleMessage("utilsmodule.log_1");
@@ -53,6 +62,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
         plugin.getLangManager().sendConsoleMessage("utilsmodule.log_2");
     }
@@ -67,7 +77,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_1");
                 return true;
             }
-            p.openAnvil(null, true);
+            p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.ANVIL));
             return true;
         }
 
@@ -76,7 +86,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
                 return true;
             }
-            p.openWorkbench(null, true);
+            p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.WORKBENCH));
             return true;
         }
 
@@ -85,7 +95,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_3");
                 return true;
             }
-            p.openEnchanting(null, true);
+            p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.ENCHANTING));
             return true;
         }
 
@@ -131,6 +141,7 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
         if ((label.equalsIgnoreCase("ec") || label.equalsIgnoreCase("enderchest")) && args.length == 1 && sender.hasPermission("genscore.admin")) {
             List<String> names = new java.util.ArrayList<>();
             for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            if (player == null) continue;
                 if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
                     names.add(player.getName());
                 }
@@ -140,3 +151,5 @@ public class UtilsModule implements Module, Listener, CommandExecutor, TabComple
         return Collections.emptyList();
     }
 }
+
+

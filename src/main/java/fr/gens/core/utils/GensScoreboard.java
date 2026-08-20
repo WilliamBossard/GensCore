@@ -1,7 +1,7 @@
 package fr.gens.core.utils;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -11,16 +11,17 @@ import net.kyori.adventure.text.Component;
 
 import java.util.List;
 
+
 public class GensScoreboard {
 
-    private final Player player;
+
     private final Scoreboard scoreboard;
     private final Objective objective;
 
     public GensScoreboard(Player player, String title) {
-        this.player = player;
+
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        this.objective = scoreboard.registerNewObjective("gensboard", "dummy", title);
+        this.objective = scoreboard.registerNewObjective("gensboard", org.bukkit.scoreboard.Criteria.DUMMY, fr.gens.core.utils.PlaceholderUtils.parseToComponent(title));
         this.objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         
         try {
@@ -37,7 +38,7 @@ public class GensScoreboard {
     }
 
     public void updateLines(List<String> lines) {
-        // Le scoreboard supporte jusqu'à 15 lignes
+        // Le scoreboard supporte jusqu'ÃƒÆ’Ã‚Â  15 lignes
         int size = Math.min(15, lines.size());
         
         for (int i = 0; i < 15; i++) {
@@ -53,7 +54,7 @@ public class GensScoreboard {
                 continue;
             }
             
-            // Mettre à jour ou créer
+            // Mettre ÃƒÆ’Ã‚Â  jour ou crÃƒÆ’Ã‚Â©er
             if (team == null) {
                 team = scoreboard.registerNewTeam(teamName);
                 team.addEntry(getEntry(i));
@@ -72,6 +73,7 @@ public class GensScoreboard {
     }
 
     private String getEntry(int line) {
-        return ChatColor.values()[line].toString() + "<reset>";
+        return "§" + "0123456789abcdef".charAt(line) + "§r";
     }
 }
+

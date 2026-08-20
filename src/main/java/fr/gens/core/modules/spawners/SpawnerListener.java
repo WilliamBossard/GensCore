@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class SpawnerListener implements Listener {
 
     private final CorePlugin plugin;
@@ -75,7 +76,7 @@ public class SpawnerListener implements Listener {
             data.setLastInteractedPlayer(event.getPlayer().getName());
             module.addSpawner(data);
             
-            event.getPlayer().sendMessage("<green>Spawner GensCore posé !");
+            event.getPlayer().sendMessage("<green>Spawner GensCore posÃƒÆ’Ã‚Â© !");
             
             // Set vanilla spawner type just for visuals
             try {
@@ -136,7 +137,7 @@ public class SpawnerListener implements Listener {
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> module.saveSpawnerToDB(data));
                 module.getSpawnerManager().updateHologram(data);
                 plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_3");
-                event.setCancelled(true); // Annuler la casse car on a remplacé le block par un coffre
+                event.setCancelled(true); // Annuler la casse car on a remplacÃƒÆ’Ã‚Â© le block par un coffre
             } else {
                 module.removeSpawner(loc);
                 plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_4");
@@ -237,7 +238,7 @@ public class SpawnerListener implements Listener {
                         data.setStackCount(data.getStackCount() + totalAdded);
                         item.setAmount(item.getAmount() - physicalItemsToConsume);
                         
-                        // Fusionner les niveaux d'améliorations (prendre le plus haut)
+                        // Fusionner les niveaux d'amÃƒÆ’Ã‚Â©liorations (prendre le plus haut)
                         int expLvl = meta.getPersistentDataContainer().getOrDefault(expKey, PersistentDataType.INTEGER, 0);
                         int speedLvl = meta.getPersistentDataContainer().getOrDefault(speedKey, PersistentDataType.INTEGER, 0);
                         int storageLvl = meta.getPersistentDataContainer().getOrDefault(storageKey, PersistentDataType.INTEGER, 0);
@@ -249,7 +250,7 @@ public class SpawnerListener implements Listener {
                         data.setLastInteractedPlayer(player.getName());
                         
                         module.getSpawnerManager().updateHologram(data);
-                        player.sendMessage("<green>Vous avez ajouté " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")");
+                        player.sendMessage("<green>Vous avez ajoutÃƒÆ’Ã‚Â© " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")");
                         return;
                     } else {
                         plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_9");
@@ -287,3 +288,4 @@ public class SpawnerListener implements Listener {
         }
     }
 }
+

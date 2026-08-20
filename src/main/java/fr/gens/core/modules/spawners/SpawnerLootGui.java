@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class SpawnerLootGui implements Listener {
 
     private static final Map<Player, SpawnerData> openGuis = new ConcurrentHashMap<>();
@@ -70,7 +71,7 @@ public class SpawnerLootGui implements Listener {
         }
         
         if (page > 0) {
-            inv.setItem(45, createGuiItem(Material.ARROW, "<red>Page Précédente"));
+            inv.setItem(45, createGuiItem(Material.ARROW, "<red>Page PrÃƒÆ’Ã‚Â©cÃƒÆ’Ã‚Â©dente"));
         }
         
         if (hasNextPage) {
@@ -99,7 +100,7 @@ public class SpawnerLootGui implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (!event.getView().getTitle().startsWith("§8Loot: ")) return;
+        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Loot: ")) return;
         
         if (!openGuis.containsKey(player)) return;
         SpawnerData data = openGuis.get(player);
@@ -127,7 +128,7 @@ public class SpawnerLootGui implements Listener {
                 return;
             }
             
-            // Autoriser à prendre, mais interdire de poser
+            // Autoriser ÃƒÆ’Ã‚Â  prendre, mais interdire de poser
             if (event.getAction() == InventoryAction.PLACE_ALL || 
                 event.getAction() == InventoryAction.PLACE_ONE || 
                 event.getAction() == InventoryAction.PLACE_SOME ||
@@ -146,7 +147,7 @@ public class SpawnerLootGui implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (!event.getView().getTitle().startsWith("§8Loot: ")) return;
+        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Loot: ")) return;
         if (event.getWhoClicked() instanceof Player && openGuis.containsKey((Player) event.getWhoClicked())) {
             for (int slot : event.getRawSlots()) {
                 if (slot < event.getView().getTopInventory().getSize()) {
@@ -159,15 +160,15 @@ public class SpawnerLootGui implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getView().getTitle().startsWith("§8Loot: ")) return;
+        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Loot: ")) return;
         if (event.getPlayer() instanceof Player player) {
             if (openGuis.containsKey(player)) {
                 SpawnerData data = openGuis.get(player);
                 syncItems(player, event.getInventory(), data);
                 
-                // Si on ferme complètement (pas juste un changement de page)
+                // Si on ferme complÃƒÆ’Ã‚Â¨tement (pas juste un changement de page)
                 Bukkit.getScheduler().runTaskLater(moduleInstance.getPlugin(), () -> {
-                    if (!player.getOpenInventory().getTitle().startsWith("§8Loot: ")) {
+                    if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(player.getOpenInventory().title()).startsWith("Loot: ")) {
                         openGuis.remove(player);
                         guiSnapshots.remove(player);
                         playerPages.remove(player);
@@ -218,3 +219,4 @@ public class SpawnerLootGui implements Listener {
         moduleInstance.getSpawnerManager().updateHologram(data);
     }
 }
+

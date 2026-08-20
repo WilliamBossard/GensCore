@@ -23,5 +23,8 @@ web:
     - Discord server linked to in-game chat.
     - Solo quests and leaderboards.
 
-# Password to access the Admin dashboard on the Web Panel
+# Password to access the Admin dashboard on the Web Panel.
+# If this is set to plain text, it will be automatically hashed (using BCrypt) when the plugin starts.
+# If you ever forget your password, simply replace the long hash below with a new plain text password
+# and restart your server.
 admin-password: "gens"

@@ -38,6 +38,9 @@ The Web administration panel runs locally on your Minecraft server, alongside th
 - It can be modified via the `port: 8080` option in `modules/web.yml`.
 - If your Minecraft server runs on a host (like Pterodactyl), you will need to open a second free port and specify it in the configuration for the Web Panel to be accessible.
 
+**Web Panel Security (Admin Password):**
+By default, the password is set to `"gens"`. Upon the first startup, GensCore will automatically hash this password in `web.yml` using **BCrypt** to secure it. If you forget your password, simply open `modules/web.yml`, replace the long hashed string with a new password in plain text, and restart the server. The plugin will automatically hash it again.
+
 ### Discord Bot
 The Discord module requires a bot Token. For security reasons, this Token must **never** be shared or hardcoded in the Java source code.
 - Provide it via the `bot_token: "YOUR_TOKEN"` option in `modules/discord.yml`.

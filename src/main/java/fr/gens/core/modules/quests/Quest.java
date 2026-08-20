@@ -2,6 +2,7 @@ package fr.gens.core.modules.quests;
 
 import java.util.List;
 
+
 public class Quest {
     private final String id;
     private final String category; // e.g. "easy", "medium", "hard"
@@ -70,3 +71,4 @@ public class Quest {
         return false;
     }
 }
+

@@ -8,6 +8,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
+
 public class GuiModule implements Module, Listener {
 
     private final CorePlugin plugin;
@@ -24,7 +25,7 @@ public class GuiModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Moteur interne pour la création d'inventaires interactifs.";
+        return "Moteur interne pour la crÃƒÆ’Ã‚Â©ation d'inventaires interactifs.";
     }
 
     @Override
@@ -46,22 +47,23 @@ public class GuiModule implements Module, Listener {
         plugin.getLangManager().sendConsoleMessage("guimodule.log_2");
     }
 
-    // Intercepte les clics dans nos menus custom pour empêcher les joueurs de voler les items
+    // Intercepte les clics dans nos menus custom pour empÃƒÆ’Ã‚Âªcher les joueurs de voler les items
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!enabled) return;
 
         Inventory inv = event.getClickedInventory();
         if (inv != null && inv.getHolder() instanceof GensGuiHolder) {
-            event.setCancelled(true); // Empêche de prendre l'item
+            event.setCancelled(true); // EmpÃƒÆ’Ã‚Âªche de prendre l'item
             
-            // On délègue l'action au holder spécifique
+            // On dÃƒÆ’Ã‚Â©lÃƒÆ’Ã‚Â¨gue l'action au holder spÃƒÆ’Ã‚Â©cifique
             ((GensGuiHolder) inv.getHolder()).onClick(event);
         }
     }
 
-    // Interface pour identifier nos menus personnalisés
+    // Interface pour identifier nos menus personnalisÃƒÆ’Ã‚Â©s
     public interface GensGuiHolder extends InventoryHolder {
         void onClick(InventoryClickEvent event);
     }
 }
+

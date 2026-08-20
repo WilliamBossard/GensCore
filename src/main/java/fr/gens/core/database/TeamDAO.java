@@ -14,12 +14,123 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class TeamDAO {
 
     private final CorePlugin plugin;
 
     public TeamDAO(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void initDatabase() {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_teams (" +
+                    "team_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "name VARCHAR(32) UNIQUE NOT NULL, " +
+                    "leader_uuid VARCHAR(36) NOT NULL" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_members (" +
+                    "team_id INTEGER, " +
+                    "player_uuid VARCHAR(36) PRIMARY KEY, " +
+                    "FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_stats (" +
+                    "team_id INTEGER PRIMARY KEY, " +
+                    "weekly_points INTEGER DEFAULT 0, " +
+                    "total_points INTEGER DEFAULT 0, " +
+                    "FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE" +
+                    ");");
+                    
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_quests (" +
+                    "team_id INTEGER PRIMARY KEY, " +
+                    "quest_id VARCHAR(50), " +
+                    "progress INTEGER DEFAULT 0, " +
+                    "FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE" +
+                    ");");
+                    
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_locks (" +
+                    "lock_id VARCHAR(50) PRIMARY KEY, " +
+                    "locked_by VARCHAR(36), " +
+                    "timestamp BIGINT" +
+                    ");");
+                    
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_pending_rewards (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "uuid VARCHAR(36), " +
+                    "amount DOUBLE, " +
+                    "item_data TEXT" +
+                    ");");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_genscore_pending_rewards_uuid ON genscore_pending_rewards(uuid);");
+                    
+        } catch (SQLException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables des teams", e);
+        }
+    }
+
+    public void addPendingReward(UUID uuid, double amount, String itemData) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("INSERT INTO genscore_pending_rewards (uuid, amount, item_data) VALUES (?, ?, ?)")) {
+            stmt.setString(1, uuid.toString());
+            stmt.setDouble(2, amount);
+            stmt.setString(3, itemData);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void processPendingRewards(org.bukkit.entity.Player player) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            boolean hasRewards = false;
+            try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM genscore_pending_rewards WHERE uuid = ?")) {
+                stmt.setString(1, player.getUniqueId().toString());
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    hasRewards = true;
+                    double amount = rs.getDouble("amount");
+                    String itemData = rs.getString("item_data");
+                    
+                    if (amount > 0) {
+                        fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+                        if (eco != null && eco.isEnabled()) {
+                            eco.addMoney(player.getUniqueId(), amount);
+                            plugin.getLangManager().sendMessage(player, "economy.pending_reward", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)));
+                        }
+                    }
+                    if (itemData != null && !itemData.isEmpty()) {
+                        String[] parts = itemData.split(":");
+                        if (parts.length == 2) {
+                            try {
+                                org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
+                                int count = Integer.parseInt(parts[1]);
+                                org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(mat, count);
+                                
+                                java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> excess = player.getInventory().addItem(item);
+                                for (org.bukkit.inventory.ItemStack drop : excess.values()) {
+                                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                                }
+                                plugin.getLangManager().sendMessage(player, "guild.reward_received");
+                            } catch (Exception e) {
+                                plugin.getLangManager().sendMessage(player, "error.invalid_reward");
+                            }
+                        }
+                    }
+                }
+            }
+            if (hasRewards) {
+                try (PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_pending_rewards WHERE uuid = ?")) {
+                    stmt.setString(1, player.getUniqueId().toString());
+                    stmt.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void loadTeams(Map<Integer, TeamData> teamsById, Map<UUID, TeamData> teamsByPlayer) {
@@ -196,7 +307,7 @@ public class TeamDAO {
                     
                     int progress = questManager != null ? questManager.getProgress(teamId) : 0;
                     int goal = questManager != null ? questManager.getGoal() : 1;
-                    String desc = questManager != null ? questManager.getDesc() : "Quête non définie";
+                    String desc = questManager != null ? questManager.getDesc() : "QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte non dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©finie";
                     double percentage = Math.min(100.0, ((double) progress / goal) * 100.0);
                     
                     teamObj.put("quest_progress_percent", Math.round(percentage));
@@ -284,3 +395,4 @@ public class TeamDAO {
         }
     }
 }
+

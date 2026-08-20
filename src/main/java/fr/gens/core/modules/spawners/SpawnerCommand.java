@@ -17,6 +17,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class SpawnerCommand implements CommandExecutor, TabCompleter {
 
     private final CorePlugin plugin;
@@ -42,15 +43,15 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
             
             if (expLvl > 0 || speedLvl > 0 || storageLvl > 0) {
                 lore.add("");
-                lore.add("<aqua><bold>Améliorations :");
+                lore.add("<aqua><bold>AmÃƒÆ’Ã‚Â©liorations :");
                 if (expLvl > 0) lore.add(" <dark_gray>- <gray>XP: <white>Niv." + expLvl);
                 if (speedLvl > 0) lore.add(" <dark_gray>- <gray>Vitesse: <white>Niv." + speedLvl);
                 if (storageLvl > 0) lore.add(" <dark_gray>- <gray>Stockage: <white>Niv." + storageLvl);
             }
             
             lore.add("");
-            lore.add("<yellow>Posez ce générateur pour commencer");
-            lore.add("<yellow>à accumuler des objets !");
+            lore.add("<yellow>Posez ce gÃƒÆ’Ã‚Â©nÃƒÆ’Ã‚Â©rateur pour commencer");
+            lore.add("<yellow>ÃƒÆ’Ã‚Â  accumuler des objets !");
             meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
 
             NamespacedKey typeKey = new NamespacedKey(plugin, "spawner_type");
@@ -107,8 +108,8 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
 
             ItemStack spawner = createSpawnerItem(plugin, type, stack);
             target.getInventory().addItem(spawner);
-            sender.sendMessage("<green>Vous avez donné un spawner " + type + " (x" + stack + ") à " + target.getName() + ".");
-            target.sendMessage("<green>Vous avez reçu un spawner " + type + " (x" + stack + ").");
+            sender.sendMessage("<green>Vous avez donnÃƒÆ’Ã‚Â© un spawner " + type + " (x" + stack + ") ÃƒÆ’Ã‚Â  " + target.getName() + ".");
+            target.sendMessage("<green>Vous avez reÃƒÆ’Ã‚Â§u un spawner " + type + " (x" + stack + ").");
         }
 
         return true;
@@ -123,6 +124,7 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
             completions.add("give");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
             for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
                 completions.add(p.getName());
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
@@ -135,3 +137,4 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
         return completions;
     }
 }
+

@@ -5,7 +5,7 @@ import fr.gens.core.database.AuthDAO;
 import fr.gens.core.modules.auth.AuthModule;
 import static io.javalin.apibuilder.ApiBuilder.*;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
+
 import org.bukkit.entity.Player;
 
 import java.sql.Connection;
@@ -21,6 +21,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
+
 
 public class WebPlayerAPI implements Listener {
 
@@ -92,13 +93,18 @@ public class WebPlayerAPI implements Listener {
                 playerUUID = targetOnline.getUniqueId();
                 isOp = targetOnline.isOp();
             } else {
-                for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-                    if (op.getName() != null && op.getName().equalsIgnoreCase(req.username)) {
-                        playerUUID = op.getUniqueId();
-                        isOp = op.isOp();
-                        break;
+                try (Connection conn = plugin.getDatabaseManager().getConnection();
+                     PreparedStatement pstmt = conn.prepareStatement("SELECT uuid FROM player_profiles WHERE username = ? COLLATE NOCASE")) {
+                    pstmt.setString(1, req.username);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            playerUUID = UUID.fromString(rs.getString("uuid"));
+                            // On the web, if offline, we assume they are not OP unless we want to query ops.json.
+                            // For security, ops should login while online or we use a separate table for roles.
+                            isOp = false; 
+                        }
                     }
-                }
+                } catch (Exception e) {}
             }
 
             if (playerUUID == null) {
@@ -106,9 +112,10 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
 
-            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(playerUUID);
+            fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
+            AuthDAO.AuthData data = authModule != null ? authModule.getAuthDAO().getAuthData(playerUUID) : null;
             if (data == null) {
-                ctx.status(401).json(Map.of("error", "Aucun compte enregistré (/register en jeu)."));
+                ctx.status(401).json(Map.of("error", "Aucun compte enregistrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© (/register en jeu)."));
                 return;
             }
 
@@ -125,7 +132,7 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
 
-            // Générer un faux "token" simple pour l'instant (on pourrait utiliser JWT)
+            // GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer un faux "token" simple pour l'instant (on pourrait utiliser JWT)
             String token = UUID.randomUUID().toString() + "-" + playerUUID.toString();
             
             // On sauvegarde le token en session ou on fait confiance au format uuid pour ce test
@@ -149,7 +156,8 @@ public class WebPlayerAPI implements Listener {
             Map<String, Object> stats = new HashMap<>();
             
             // Quetes
-            int questsCompleted = plugin.getDatabaseManager().getQuestDAO().getQuestsCompletedTotal(UUID.fromString(uuidStr));
+            fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin.getModuleManager().getModule("quests");
+            int questsCompleted = questModule != null ? questModule.getQuestDAO().getQuestsCompletedTotal(UUID.fromString(uuidStr)) : 0;
             stats.put("questsCompleted", questsCompleted);
 
             // Eco
@@ -157,9 +165,10 @@ public class WebPlayerAPI implements Listener {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("SELECT balance FROM players_economy WHERE uuid = ?")) {
                 pstmt.setString(1, uuidStr);
-                ResultSet rs = pstmt.executeQuery();
-                if (rs.next()) {
-                    balance = rs.getDouble("balance");
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        balance = rs.getDouble("balance");
+                    }
                 }
             } catch (Exception e) {}
             stats.put("balance", balance);
@@ -183,14 +192,10 @@ public class WebPlayerAPI implements Listener {
 
               // Jobs Level Total
               int globalJobLevel = 0;
-              try (Connection conn = plugin.getDatabaseManager().getConnection();
-                   PreparedStatement pstmt = conn.prepareStatement("SELECT SUM(level) as total FROM player_jobs WHERE uuid = ?")) {
-                  pstmt.setString(1, uuidStr);
-                  ResultSet rs = pstmt.executeQuery();
-                  if (rs.next()) {
-                      globalJobLevel = rs.getInt("total");
-                  }
-              } catch (Exception e) {}
+              fr.gens.core.modules.jobs.JobsModule jobsModule = (fr.gens.core.modules.jobs.JobsModule) plugin.getModuleManager().getModule("jobs");
+              if (jobsModule != null) {
+                  globalJobLevel = jobsModule.getJobsDAO().getTotalJobLevel(UUID.fromString(uuidStr));
+              }
               stats.put("globalJobLevel", globalJobLevel);
 
               // Recent Transactions (Limit 5)
@@ -240,9 +245,9 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
             boolean isOp = false;
-            org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(uuidStr));
-            if (op != null) {
-                isOp = op.isOp();
+            Player p = Bukkit.getPlayer(UUID.fromString(uuidStr));
+            if (p != null) {
+                isOp = p.isOp();
             }
             ctx.json(Map.of("isOp", isOp));
         });
@@ -278,7 +283,7 @@ public class WebPlayerAPI implements Listener {
         post("/api/games/casino/play", ctx -> {
             CasinoPlayRequest req = ctx.bodyAsClass(CasinoPlayRequest.class);
             if (req.uuid == null || req.betId <= 0) {
-                ctx.status(400).json(Map.of("error", "Requête invalide"));
+                ctx.status(400).json(Map.of("error", "RequÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte invalide"));
                 return;
             }
 
@@ -312,59 +317,71 @@ public class WebPlayerAPI implements Listener {
                 pstmt.executeUpdate();
             } catch (Exception e) {}
 
-            // 1. Check if bet exists
-            String base64 = null;
-            String material = null;
-            int amount = 0;
+            // Casino Logic with Transaction
+            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+                conn.setAutoCommit(false);
+                
+                try {
+                    // 1. Check if bet exists
+                    String base64 = null;
+                    String material = null;
+                    int amount = 0;
+                    
+                    try (PreparedStatement pstmt = conn.prepareStatement("SELECT material, amount, base64_data FROM player_web_bets WHERE id = ? AND uuid = ?")) {
+                        pstmt.setInt(1, req.betId);
+                        pstmt.setString(2, req.uuid);
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            if (rs.next()) {
+                                material = rs.getString("material");
+                                amount = rs.getInt("amount");
+                                base64 = rs.getString("base64_data");
+                            }
+                        }
+                    }
+                    
+                    if (base64 == null) {
+                        ctx.status(400).json(Map.of("error", "Mise introuvable"));
+                        conn.rollback();
+                        return;
+                    }
 
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT material, amount, base64_data FROM player_web_bets WHERE id = ? AND uuid = ?")) {
-                pstmt.setInt(1, req.betId);
-                pstmt.setString(2, req.uuid);
-                ResultSet rs = pstmt.executeQuery();
-                if (rs.next()) {
-                    material = rs.getString("material");
-                    amount = rs.getInt("amount");
-                    base64 = rs.getString("base64_data");
+                    // 2. Remove bet
+                    try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM player_web_bets WHERE id = ?")) {
+                        pstmt.setInt(1, req.betId);
+                        pstmt.executeUpdate();
+                    }
+
+                    // 3. Roll Casino Logic
+                    int roll = new Random().nextInt(100);
+                    int multiplier = 0;
+                    if (roll < 5) multiplier = 5;
+                    else if (roll < 15) multiplier = 3;
+                    else if (roll < 50) multiplier = 2;
+                    else multiplier = 0;
+
+                    if (multiplier > 0) {
+                        try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_rewards (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
+                            for (int i = 0; i < multiplier; i++) {
+                                pstmt.setString(1, req.uuid);
+                                pstmt.setString(2, material);
+                                pstmt.setInt(3, amount);
+                                pstmt.setString(4, base64);
+                                pstmt.addBatch();
+                            }
+                            pstmt.executeBatch();
+                        }
+                    }
+                    
+                    conn.commit();
+                    ctx.json(Map.of("success", true, "multiplier", multiplier));
+                } catch (Exception e) {
+                    conn.rollback();
+                    e.printStackTrace();
+                    ctx.status(500).json(Map.of("error", "Erreur serveur lors de la transaction"));
+                } finally {
+                    conn.setAutoCommit(true);
                 }
             } catch (Exception e) {}
-
-            if (base64 == null) {
-                ctx.status(400).json(Map.of("error", "Mise introuvable"));
-                return;
-            }
-
-            // 2. Remove bet
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("DELETE FROM player_web_bets WHERE id = ?")) {
-                pstmt.setInt(1, req.betId);
-                pstmt.executeUpdate();
-            } catch (Exception e) {}
-
-            // 3. Roll Casino Logic
-            // 50% = 0, 35% = x2, 10% = x3, 5% = x5
-            int roll = new Random().nextInt(100);
-            int multiplier = 0;
-            if (roll < 5) multiplier = 5;
-            else if (roll < 15) multiplier = 3;
-            else if (roll < 50) multiplier = 2;
-            else multiplier = 0;
-
-            if (multiplier > 0) {
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_rewards (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
-                    for (int i = 0; i < multiplier; i++) {
-                        pstmt.setString(1, req.uuid);
-                        pstmt.setString(2, material);
-                        pstmt.setInt(3, amount);
-                        pstmt.setString(4, base64);
-                        pstmt.addBatch();
-                    }
-                    pstmt.executeBatch();
-                } catch (Exception e) {}
-            }
-
-            ctx.json(Map.of("success", true, "multiplier", multiplier));
         });
 
         get("/api/games/wheel", ctx -> {
@@ -393,7 +410,7 @@ public class WebPlayerAPI implements Listener {
                 long timeLeft = (24 * 60 * 60 * 1000L) - (now - lastPlayed);
                 long hours = timeLeft / (60 * 60 * 1000L);
                 long minutes = (timeLeft % (60 * 60 * 1000L)) / (60 * 1000L);
-                ctx.status(400).json(Map.of("error", "Vous avez déjà joué aujourd'hui ! Revenez dans " + hours + "h " + minutes + "m."));
+                ctx.status(400).json(Map.of("error", "Vous avez dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  jouÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© aujourd'hui ! Revenez dans " + hours + "h " + minutes + "m."));
                 return;
             }
 
@@ -408,7 +425,7 @@ public class WebPlayerAPI implements Listener {
 
             List<WheelReward> activeRewards = getActiveWheelRewards();
             if (activeRewards.isEmpty()) {
-                ctx.status(400).json(Map.of("error", "Aucune récompense configurée."));
+                ctx.status(400).json(Map.of("error", "Aucune rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©compense configurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e."));
                 return;
             }
 
@@ -429,9 +446,9 @@ public class WebPlayerAPI implements Listener {
             }
 
             String rewardCommand = wonReward.command;
-            String rewardMessage = "Vous avez gagné : " + wonReward.name + " !";
+            String rewardMessage = "Vous avez gagnÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : " + wonReward.name + " !";
             
-            // Si le joueur est en ligne, on exécute, sinon on met en attente
+            // Si le joueur est en ligne, on exÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cute, sinon on met en attente
             Player target = Bukkit.getPlayer(playerUUID);
             if (target != null && target.isOnline()) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -439,13 +456,9 @@ public class WebPlayerAPI implements Listener {
                     target.sendMessage("<green>[Web] " + rewardMessage);
                 });
             } else {
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement("INSERT INTO pending_rewards (uuid, command, message) VALUES (?, ?, ?)")) {
-                    pstmt.setString(1, req.uuid);
-                    pstmt.setString(2, rewardCommand);
-                    pstmt.setString(3, rewardMessage);
-                    pstmt.executeUpdate();
-                } catch (Exception e) {}
+                fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
+                pcd.initDatabase(); // just to ensure table exists
+                pcd.addPendingCommand(playerUUID, rewardCommand, rewardMessage);
             }
 
             ctx.json(Map.of("success", true, "message", rewardMessage, "prizeIndex", wonIndex));
@@ -498,41 +511,22 @@ public class WebPlayerAPI implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
+        pcd.initDatabase(); // just to ensure table exists
+        pcd.processPendingCommands(player);
+        
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                // Mettre à jour le profil (UUID -> Name)
+                // Mettre ÃƒÆ’Ã‚Â  jour le profil (UUID -> Name)
                 try (PreparedStatement profileStmt = conn.prepareStatement("INSERT OR REPLACE INTO player_profiles (uuid, username) VALUES (?, ?)")) {
                     profileStmt.setString(1, player.getUniqueId().toString());
                     profileStmt.setString(2, player.getName());
                     profileStmt.executeUpdate();
                 }
-
-                try (PreparedStatement selectStmt = conn.prepareStatement("SELECT id, command, message FROM pending_rewards WHERE uuid = ?");
-                     PreparedStatement deleteStmt = conn.prepareStatement("DELETE FROM pending_rewards WHERE id = ?")) {
-                
-                    selectStmt.setString(1, player.getUniqueId().toString());
-                ResultSet rs = selectStmt.executeQuery();
-                
-                while (rs.next()) {
-                    int id = rs.getInt("id");
-                    String command = rs.getString("command");
-                    String message = rs.getString("message");
-                    
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%player%", player.getName()));
-                        if (message != null && !message.isEmpty()) {
-                            player.sendMessage("<green>[Web] " + message);
-                        }
-                    });
-                    
-                    deleteStmt.setInt(1, id);
-                    deleteStmt.executeUpdate();
-                }
-            } // Close try (PreparedStatement...)
-            } // Close try (Connection...)
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });
     }
 }
+

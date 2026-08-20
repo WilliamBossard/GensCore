@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class TeleportTpaModule implements Module, CommandExecutor {
 
     private final CorePlugin plugin;
@@ -35,7 +36,7 @@ public class TeleportTpaModule implements Module, CommandExecutor {
 
     @Override
     public String getDescription() {
-        return "Commandes de demande de téléportation (/tpa, /tpaccept, /tpdeny, /tpacancel).";
+        return "Commandes de demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation (/tpa, /tpaccept, /tpdeny, /tpacancel).";
     }
 
     @Override
@@ -96,7 +97,7 @@ public class TeleportTpaModule implements Module, CommandExecutor {
 
             tpaRequests.put(target.getUniqueId(), p.getUniqueId());
             
-            p.sendMessage("<green>Demande de téléportation envoyée à <yellow>" + target.getName() + "<green>.");
+            p.sendMessage("<green>Demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  <yellow>" + target.getName() + "<green>.");
             
             Component acceptBtn = Component.text("[Accepter] ")
                     .color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD)
@@ -106,15 +107,15 @@ public class TeleportTpaModule implements Module, CommandExecutor {
                     .color(NamedTextColor.RED).decorate(TextDecoration.BOLD)
                     .clickEvent(ClickEvent.runCommand("/tpdeny"));
 
-            target.sendMessage(Component.text("<yellow>" + p.getName() + " <green>souhaite se téléporter à vous."));
+            target.sendMessage(Component.text("<yellow>" + p.getName() + " <green>souhaite se tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©porter ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  vous."));
             target.sendMessage(acceptBtn.append(denyBtn));
 
-            // Expiration après 60 secondes
+            // Expiration aprÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s 60 secondes
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 if (tpaRequests.containsKey(target.getUniqueId()) && tpaRequests.get(target.getUniqueId()).equals(p.getUniqueId())) {
                     tpaRequests.remove(target.getUniqueId());
-                    p.sendMessage("<red>Votre demande de téléportation vers <yellow>" + target.getName() + " <red>a expiré.");
-                    target.sendMessage("<red>La demande de téléportation de <yellow>" + p.getName() + " <red>a expiré.");
+                    p.sendMessage("<red>Votre demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation vers <yellow>" + target.getName() + " <red>a expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©.");
+                    target.sendMessage("<red>La demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation de <yellow>" + p.getName() + " <red>a expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©.");
                 }
             }, 20 * 60L);
             return true;
@@ -130,8 +131,8 @@ public class TeleportTpaModule implements Module, CommandExecutor {
             Player requester = Bukkit.getPlayer(requesterId);
             if (requester != null && requester.isOnline()) {
                 plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_7");
-                requester.sendMessage("<green>Demande acceptée par <yellow>" + p.getName() + "<green>. Téléportation...");
-                TeleportUtil.teleportWithCooldown(requester, p.getLocation(), p.getName(), "genscore.bypass.cooldown.tpa");
+                requester.sendMessage("<green>Demande acceptÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e par <yellow>" + p.getName() + "<green>. TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation...");
+                TeleportUtil.teleportWithCooldown(plugin, requester, p.getLocation(), p.getName(), "genscore.bypass.cooldown.tpa");
             } else {
                 plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_8");
             }
@@ -148,7 +149,7 @@ public class TeleportTpaModule implements Module, CommandExecutor {
             Player requester = Bukkit.getPlayer(requesterId);
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_10");
             if (requester != null && requester.isOnline()) {
-                requester.sendMessage("<red>Demande refusée par <yellow>" + p.getName() + "<red>.");
+                requester.sendMessage("<red>Demande refusÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e par <yellow>" + p.getName() + "<red>.");
             }
             return true;
         }
@@ -172,3 +173,4 @@ public class TeleportTpaModule implements Module, CommandExecutor {
         return false;
     }
 }
+

@@ -13,7 +13,7 @@ public class ItemSerializer {
     public static ItemStack fromBase64(String data) {
         if (data == null || data.isEmpty()) return null;
         
-        // Si les données proviennent de l'ancien format (Base64Coder + BukkitObjectOutputStream)
+        // Si les donnÃ©es proviennent de l'ancien format (Base64Coder + BukkitObjectOutputStream)
         if (data.startsWith("rO0AB") || data.contains("\n") || data.contains("\r")) {
             try {
                 java.io.ByteArrayInputStream inputStream = new java.io.ByteArrayInputStream(org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder.decodeLines(data));

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class LootManager {
 
     private final CorePlugin plugin;
@@ -165,7 +166,7 @@ public class LootManager {
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);
         String key = locToString(loc);
         
-        // Vérifier si l'inventaire est complètement vide, on peut nettoyer pour alléger
+        // VÃƒÆ’Ã‚Â©rifier si l'inventaire est complÃƒÆ’Ã‚Â¨tement vide, on peut nettoyer pour allÃƒÆ’Ã‚Â©ger
         boolean isEmpty = true;
         for (ItemStack item : items) {
             if (item != null && !item.getType().isAir()) {
@@ -219,3 +220,4 @@ public class LootManager {
         }
     }
 }
+

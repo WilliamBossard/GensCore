@@ -1,18 +1,15 @@
-package fr.gens.core.commands;
+﻿package fr.gens.core.commands;
 
+import cloud.commandframework.annotations.CommandMethod;
 import fr.gens.core.CorePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.NamespacedKey;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -23,7 +20,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WebCommand implements CommandExecutor, Listener, TabCompleter {
+public class WebCommand implements Listener {
 
     private final CorePlugin plugin;
     private final NamespacedKey rewardKey;
@@ -34,66 +31,48 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) return true;
-        Player player = (Player) sender;
-
-        if (args.length == 0) {
-            plugin.getLangManager().sendMessage(player, "webcommand.msg_1");
-            return true;
-        }
-
-        if (args[0].equalsIgnoreCase("deposit")) {
-            ItemStack item = player.getInventory().getItemInMainHand();
-            if (item == null || item.getType() == Material.AIR) {
-                plugin.getLangManager().sendMessage(player, "webcommand.msg_2");
-                return true;
-            }
-
-            String base64 = plugin.getStorageManager().itemStackToBase64(item);
-            if (base64 == null) {
-                plugin.getLangManager().sendMessage(player, "webcommand.msg_3");
-                return true;
-            }
-
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_bets (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
-                    pstmt.setString(1, player.getUniqueId().toString());
-                    pstmt.setString(2, item.getType().name());
-                    pstmt.setInt(3, item.getAmount());
-                    pstmt.setString(4, base64);
-                    pstmt.executeUpdate();
-
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        player.getInventory().setItemInMainHand(null);
-                        plugin.getLangManager().sendMessage(player, "webcommand.msg_4");
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    plugin.getLangManager().sendMessage(player, "webcommand.msg_5");
-                }
-            });
-
-        } else if (args[0].equalsIgnoreCase("withdraw")) {
-            // Ouvre le GUI des rewards
-            openWithdrawGUI(player);
-        } else {
-            plugin.getLangManager().sendMessage(player, "webcommand.msg_6");
-        }
-
-        return true;
+    @CommandMethod("web")
+    public void executeHelp(Player player) {
+        plugin.getLangManager().sendMessage(player, "webcommand.msg_1");
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-        if (args.length == 1) {
-            if ("deposit".startsWith(args[0].toLowerCase())) completions.add("deposit");
-            if ("withdraw".startsWith(args[0].toLowerCase())) completions.add("withdraw");
+    @CommandMethod("web deposit")
+    public void executeDeposit(Player player) {
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item == null || item.getType() == Material.AIR) {
+            plugin.getLangManager().sendMessage(player, "webcommand.msg_2");
+            return;
         }
-        return completions;
+
+        String base64 = plugin.getStorageManager().itemStackToBase64(item);
+        if (base64 == null) {
+            plugin.getLangManager().sendMessage(player, "webcommand.msg_3");
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_bets (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
+                pstmt.setString(1, player.getUniqueId().toString());
+                pstmt.setString(2, item.getType().name());
+                pstmt.setInt(3, item.getAmount());
+                pstmt.setString(4, base64);
+                pstmt.executeUpdate();
+
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    player.getInventory().setItemInMainHand(null);
+                    plugin.getLangManager().sendMessage(player, "webcommand.msg_4");
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                plugin.getLangManager().sendMessage(player, "webcommand.msg_5");
+            }
+        });
+    }
+
+    @CommandMethod("web withdraw")
+    public void executeWithdraw(Player player) {
+        openWithdrawGUI(player);
     }
 
     private void openWithdrawGUI(Player player) {
@@ -109,7 +88,7 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
                 }
 
                 Bukkit.getScheduler().runTask(plugin, () -> {
-                    Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Retraits Web (Récompenses)"));
+                    Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Retraits Web (R\u00e9compenses)"));
                     int slot = 0;
                     for (WebRewardItem wItem : items) {
                         if (slot >= 54) break;
@@ -136,7 +115,7 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getView().getTitle().equals("§8Retraits Web (Récompenses)")) {
+        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Retraits Web (R\u00e9compenses)")) {
             event.setCancelled(true);
             if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) return;
             
@@ -144,7 +123,9 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
             ItemMeta meta = clicked.getItemMeta();
             if (meta == null || !meta.getPersistentDataContainer().has(rewardKey, PersistentDataType.INTEGER)) return;
             
-            int id = meta.getPersistentDataContainer().get(rewardKey, PersistentDataType.INTEGER);
+            Integer idObj = meta.getPersistentDataContainer().get(rewardKey, PersistentDataType.INTEGER);
+            if (idObj == null) return;
+            int id = idObj;
             Player player = (Player) event.getWhoClicked();
             
             // Delete from DB and give to player
@@ -157,8 +138,8 @@ public class WebCommand implements CommandExecutor, Listener, TabCompleter {
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             meta.getPersistentDataContainer().remove(rewardKey);
                             clicked.setItemMeta(meta);
-                            player.getInventory().addItem(clicked).forEach((idx, item) -> {
-                                player.getWorld().dropItem(player.getLocation(), item);
+                            player.getInventory().addItem(clicked).forEach((idx, itm) -> {
+                                player.getWorld().dropItem(player.getLocation(), itm);
                             });
                             event.getInventory().remove(clicked);
                             plugin.getLangManager().sendMessage(player, "webcommand.msg_8");

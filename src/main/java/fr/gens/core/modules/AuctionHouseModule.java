@@ -14,10 +14,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+
+
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,6 +26,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
+    private fr.gens.core.database.AuctionHouseDAO ahDAO;
 
     public AuctionHouseModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -38,7 +39,7 @@ public class AuctionHouseModule implements Module, CommandExecutor {
 
     @Override
     public String getDescription() {
-        return "Hôtel de ventes entre joueurs";
+        return "HÃƒÂ´tel de ventes entre joueurs";
     }
 
     @Override
@@ -47,8 +48,17 @@ public class AuctionHouseModule implements Module, CommandExecutor {
     }
 
     @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS auction_house (id INTEGER PRIMARY KEY AUTOINCREMENT, seller_uuid VARCHAR(36) NOT NULL, seller_name VARCHAR(16) NOT NULL, price DOUBLE NOT NULL, item_data TEXT NOT NULL, expire_time BIGINT NOT NULL);");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_auction_expire ON auction_house(expire_time);");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_auction_seller ON auction_house(seller_uuid);");
+    }
+
+    @Override
     public void enable() {
         enabled = true;
+        this.ahDAO = new fr.gens.core.database.AuctionHouseDAO(plugin);
+        this.ahDAO.initDatabase();
     }
 
     @Override
@@ -86,30 +96,26 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                     return true;
                 }
 
-                // Sauvegarde en base de données
+                // Sauvegarde en base de donnÃƒÂ©es
                 String base64Item = ItemSerializer.toBase64(item);
                 long expireTime = System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 7); // 7 jours
 
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement ps = conn.prepareStatement(
-                             "INSERT INTO auction_house (seller_uuid, seller_name, price, item_data, expire_time) VALUES (?, ?, ?, ?, ?)")) {
-                    ps.setString(1, p.getUniqueId().toString());
-                    ps.setString(2, p.getName());
-                    ps.setDouble(3, price);
-                    ps.setString(4, base64Item);
-                    ps.setLong(5, expireTime);
-                    ps.executeUpdate();
-                }
-
-                p.getInventory().setItemInMainHand(null);
-                p.sendMessage("<green>Objet mis en vente pour <yellow>" + price + " $ <green>!");
-                Bukkit.broadcastMessage("<yellow>[AH] <white>" + p.getName() + " <green>vient de mettre un objet en vente pour <yellow>" + price + " $ <green>!");
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    try {
+                        ahDAO.addAuction(p.getUniqueId().toString(), p.getName(), price, base64Item, expireTime);
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            p.getInventory().setItemInMainHand(null);
+                            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Objet mis en vente pour <yellow>" + price + " $ <green>!"));
+                            Bukkit.broadcast(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>[AH] <white>" + p.getName() + " <green>vient de mettre un objet en vente pour <yellow>" + price + " $ <green>!"));
+                        });
+                    } catch (Exception e) {
+                        Bukkit.getScheduler().runTask(plugin, () -> plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5"));
+                        e.printStackTrace();
+                    }
+                });
 
             } catch (NumberFormatException e) {
                 plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_4");
-            } catch (SQLException e) {
-                plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5");
-                e.printStackTrace();
             }
             return true;
         } else {
@@ -119,65 +125,50 @@ public class AuctionHouseModule implements Module, CommandExecutor {
     }
 
     private void openAhGui(Player p, int page) {
-        AhGuiHolder holder = new AhGuiHolder(page);
-        Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Hôtel de Ventes (Page " + (page + 1) + ")"));
-        holder.setInventory(inv);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            List<AhItem> items = ahDAO.getAuctions(45, page * 45);
 
-        List<AhItem> items = new ArrayList<>();
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                AhGuiHolder holder = new AhGuiHolder(page);
+                Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>HÃƒÂ´tel de Ventes (Page " + (page + 1) + ")"));
+                holder.setInventory(inv);
 
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT * FROM auction_house ORDER BY id DESC LIMIT ? OFFSET ?")) {
-            ps.setInt(1, 45); // 45 items max par page
-            ps.setInt(2, page * 45);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    items.add(new AhItem(
-                            rs.getInt("id"),
-                            rs.getString("seller_uuid"),
-                            rs.getString("seller_name"),
-                            rs.getDouble("price"),
-                            rs.getString("item_data"),
-                            rs.getLong("expire_time")
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        int slot = 0;
-        for (AhItem ahItem : items) {
-            ItemStack item = ItemSerializer.fromBase64(ahItem.itemData);
-            if (item != null) {
-                ItemMeta meta = item.getItemMeta();
-                if (meta != null) {
-                    List<String> lore = meta.getLore();
-                    if (lore == null) lore = new ArrayList<>();
-                    lore.add("<dark_gray>----------------------");
-                    lore.add("<gray>Vendeur : <white>" + ahItem.sellerName);
-                    lore.add("<gray>Prix : <yellow>" + String.format("%.2f", ahItem.price) + " $");
-                    if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
-                        lore.add("<red>▶ Cliquez pour annuler la vente");
-                    } else {
-                        lore.add("<green>▶ Cliquez pour acheter");
+                int slot = 0;
+                for (AhItem ahItem : items) {
+                    ItemStack item = ItemSerializer.fromBase64(ahItem.itemData);
+                    if (item != null) {
+                        ItemMeta meta = item.getItemMeta();
+                        if (meta != null) {
+                            List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
+                            if (meta.hasLore()) {
+                                lore = new ArrayList<>(java.util.Objects.requireNonNull(meta.lore()));
+                            }
+                            lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>----------------------"));
+                            lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Vendeur : <white>" + ahItem.sellerName));
+                            lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Prix : <yellow>" + String.format("%.2f", ahItem.price) + " $"));
+                            if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
+                                lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ã¢â€“Â¶ Cliquez pour annuler la vente"));
+                            } else {
+                                lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Ã¢â€“Â¶ Cliquez pour acheter"));
+                            }
+                            meta.lore(lore);
+                            item.setItemMeta(meta);
+                        }
+                        inv.setItem(slot++, item);
+                        holder.addItemMapping(slot - 1, ahItem);
                     }
-                    meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
-                    item.setItemMeta(meta);
                 }
-                inv.setItem(slot++, item);
-                holder.addItemMapping(slot - 1, ahItem);
-            }
-        }
 
-        // Boutons de pagination (simplifié pour l'instant)
-        ItemStack info = new ItemStack(Material.PAPER);
-        ItemMeta infoMeta = info.getItemMeta();
-        infoMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Page " + (page + 1)));
-        info.setItemMeta(infoMeta);
-        inv.setItem(49, info);
+                // Boutons de pagination (simplifiÃƒÂ© pour l'instant)
+                ItemStack info = new ItemStack(Material.PAPER);
+                ItemMeta infoMeta = info.getItemMeta();
+                infoMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Page " + (page + 1)));
+                info.setItemMeta(infoMeta);
+                inv.setItem(49, info);
 
-        p.openInventory(inv);
+                p.openInventory(inv);
+            });
+        });
     }
 
     private class AhGuiHolder implements GensGuiHolder {
@@ -207,85 +198,69 @@ public class AuctionHouseModule implements Module, CommandExecutor {
                 EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
                 if (eco == null) return;
 
-                if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
-                    // Annuler la vente
-                    if (deleteFromDb(ahItem.id)) {
-                        ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
-                        p.getInventory().addItem(originalItem);
-                        plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_6");
-                        openAhGui(p, page); // Refresh
-                    }
-                } else {
-                    // Acheter
-                    if (eco.getBalance(p.getUniqueId()) >= ahItem.price) {
-                        if (deleteFromDb(ahItem.id)) { // S'assurer qu'il n'a pas déjà été acheté
-                            eco.takeMoney(p.getUniqueId(), ahItem.price);
-                            
-                            double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
-                            double taxAmount = ahItem.price * taxRate;
-                            double sellerProfit = ahItem.price - taxAmount;
-                            eco.giveMoney(UUID.fromString(ahItem.sellerUuid), sellerProfit);
-                            
-                            ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
-                            p.getInventory().addItem(originalItem);
-                            p.sendMessage("<green>Vous avez acheté un objet à <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + ahItem.price + " $ <green>!");
-                            
-                            Player seller = Bukkit.getPlayer(UUID.fromString(ahItem.sellerUuid));
-                            if (seller != null && seller.isOnline()) {
-                                if (taxAmount > 0) {
-                                    seller.sendMessage("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes ! Vous gagnez <yellow>" + String.format("%.2f", sellerProfit) + " $ <dark_gray>(Taxe: -" + String.format("%.2f", taxAmount) + " $)");
-                                } else {
-                                    seller.sendMessage("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes pour <yellow>" + ahItem.price + " $ <green>!");
-                                }
-                            }
-                            openAhGui(p, page); // Refresh
-                        } else {
-                            plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_7");
-                            openAhGui(p, page);
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
+                        // Annuler la vente
+                        if (deleteFromDb(ahItem.id)) {
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                                ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
+                                p.getInventory().addItem(originalItem);
+                                plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_6");
+                                openAhGui(p, page); // Refresh
+                            });
                         }
                     } else {
-                        plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_8");
+                        // Acheter
+                        if (eco.getBalance(p.getUniqueId()) >= ahItem.price) {
+                            if (deleteFromDb(ahItem.id)) { // S'assurer qu'il n'a pas dÃƒÂ©jÃƒÂ  ÃƒÂ©tÃƒÂ© achetÃƒÂ©
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    eco.takeMoney(p.getUniqueId(), ahItem.price);
+                                    
+                                    double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
+                                    double taxAmount = ahItem.price * taxRate;
+                                    double sellerProfit = ahItem.price - taxAmount;
+                                    eco.giveMoney(UUID.fromString(ahItem.sellerUuid), sellerProfit);
+                                    
+                                    ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
+                                    p.getInventory().addItem(originalItem);
+                                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez achetÃƒÂ© un objet ÃƒÂ  <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + ahItem.price + " $ <green>!"));
+                                    
+                                    Player seller = Bukkit.getPlayer(UUID.fromString(ahItem.sellerUuid));
+                                    if (seller != null && seller.isOnline()) {
+                                        if (taxAmount > 0) {
+                                            seller.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Un joueur a achetÃƒÂ© votre objet sur l'HÃƒÂ´tel de Ventes ! Vous gagnez <yellow>" + String.format("%.2f", sellerProfit) + " $ <dark_gray>(Taxe: -" + String.format("%.2f", taxAmount) + " $)"));
+                                        } else {
+                                            seller.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Un joueur a achetÃƒÂ© votre objet sur l'HÃƒÂ´tel de Ventes pour <yellow>" + ahItem.price + " $ <green>!"));
+                                        }
+                                    }
+                                    openAhGui(p, page); // Refresh
+                                });
+                            } else {
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_7");
+                                    openAhGui(p, page);
+                                });
+                            }
+                        } else {
+                            Bukkit.getScheduler().runTask(plugin, () -> plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_8"));
+                        }
                     }
-                }
+                });
             }
         }
     }
 
     private boolean deleteFromDb(int id) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM auction_house WHERE id = ?")) {
-            ps.setInt(1, id);
-            int affected = ps.executeUpdate();
-            return affected > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return ahDAO.deleteAuction(id);
     }
 
     // --- WEB EXTENSION ---
     public java.util.List<java.util.Map<String, Object>> getAuctionItemsForWeb() {
-        java.util.List<java.util.Map<String, Object>> ahItems = new java.util.ArrayList<>();
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT id, seller_name, price, expire_time FROM auction_house ORDER BY id DESC LIMIT 100")) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    java.util.Map<String, Object> ahItem = new java.util.HashMap<>();
-                    ahItem.put("id", rs.getInt("id"));
-                    ahItem.put("sellerName", rs.getString("seller_name"));
-                    ahItem.put("price", rs.getDouble("price"));
-                    ahItem.put("expireTime", rs.getLong("expire_time"));
-                    ahItems.add(ahItem);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return ahItems;
+        return ahDAO.getAuctionItemsForWeb();
     }
 
-    private static class AhItem {
+    @SuppressWarnings("unused")
+    public static class AhItem {
         public int id;
         public String sellerUuid;
         public String sellerName;

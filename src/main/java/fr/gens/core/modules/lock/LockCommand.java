@@ -13,16 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class LockCommand implements CommandExecutor, TabCompleter {
     private final CorePlugin plugin;
-    private final LockModule lockModule;
-    
-    // Map pour savoir qui a tapé quelle commande avant de cliquer sur un bloc
+    // Map pour savoir qui a tapÃƒÆ’Ã‚Â© quelle commande avant de cliquer sur un bloc
     public static final Map<UUID, String> pendingActions = new HashMap<>();
 
     public LockCommand(CorePlugin plugin, LockModule lockModule) {
         this.plugin = plugin;
-        this.lockModule = lockModule;
     }
 
     @Override
@@ -71,3 +69,4 @@ public class LockCommand implements CommandExecutor, TabCompleter {
         return completions;
     }
 }
+

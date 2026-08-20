@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class SpawnerManager {
 
     private final SpawnerModule module;
@@ -271,7 +272,7 @@ public class SpawnerManager {
             display.setBillboard(Display.Billboard.CENTER);
             display.setDefaultBackground(false);
             display.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
-            display.setPersistent(false); // Eviter les hologrammes fantômes après un redémarrage
+            display.setPersistent(false); // Eviter les hologrammes fantÃƒÆ’Ã‚Â´mes aprÃƒÆ’Ã‚Â¨s un redÃƒÆ’Ã‚Â©marrage
             holograms.put(loc, display);
         }
         
@@ -281,16 +282,16 @@ public class SpawnerManager {
         
         String text;
         if (!module.isEnabled()) {
-            text = "<red><bold>Spawner Désactivé\n<gray>(Les productions sont suspendues)";
+            text = "<red><bold>Spawner DÃƒÆ’Ã‚Â©sactivÃƒÆ’Ã‚Â©\n<gray>(Les productions sont suspendues)";
         } else if (data.isLootChest()) {
-            text = "<yellow><bold>Coffre de Récupération\n" +
+            text = "<yellow><bold>Coffre de RÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©ration\n" +
                    (totalItems == 0 && data.getStoredExp() == 0 ? "<red>Vide" : "<white>Stock: <yellow>" + totalItems + " items\n<green>Exp: <green>" + data.getStoredExp() + " XP");
         } else {
             text = "<gold><bold>" + data.getType() + " <gray>(x" + data.getStackCount() + ")\n" +
                    (totalItems >= maxItems ? "<red>Stock plein: " : "<white>Stock: ") + "<yellow>" + totalItems + "/" + maxItems + " items\n" +
                    (data.getStoredExp() >= maxExp ? "<red>Exp plein: " : "<green>Exp: ") + "<green>" + data.getStoredExp() + "/" + maxExp + " XP";
         }
-        display.setText(text);
+        display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent(text));
     }
     
     public void removeHologram(Location loc) {
@@ -307,3 +308,4 @@ public class SpawnerManager {
         holograms.clear();
     }
 }
+

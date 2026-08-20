@@ -20,14 +20,15 @@ import org.bukkit.inventory.ItemStack;
 import net.kyori.adventure.text.Component;
 import java.util.Random;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+
+
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 public class JobsModule implements Module, Listener, CommandExecutor {
 
@@ -39,6 +40,8 @@ public class JobsModule implements Module, Listener, CommandExecutor {
     private final Map<UUID, Map<JobType, Double>> playerXp = new ConcurrentHashMap<>();
     private final Map<UUID, Map<JobType, Integer>> playerLevel = new ConcurrentHashMap<>();
     private final Map<UUID, Map<JobType, Boolean>> activeJobs = new ConcurrentHashMap<>();
+    
+    private fr.gens.core.database.JobsDAO jobsDAO;
 
     public JobsModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -51,7 +54,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
 
     @Override
     public String getDescription() {
-        return "Système de métiers (Mineur, Bûcheron, Chasseur, Fermier).";
+        return "SystÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨me de mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers (Mineur, BÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»cheron, Chasseur, Fermier).";
     }
 
     @Override
@@ -59,22 +62,38 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         return enabled;
     }
 
+    public fr.gens.core.database.JobsDAO getJobsDAO() {
+        return jobsDAO;
+    }
+
+    @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_jobs (uuid VARCHAR(36) NOT NULL, job_name VARCHAR(50) NOT NULL, level INT DEFAULT 1, xp DOUBLE DEFAULT 0, PRIMARY KEY (uuid, job_name));");
+    }
+
     @Override
     public void enable() {
         this.enabled = true;
+        
+        this.jobsDAO = new fr.gens.core.database.JobsDAO(plugin);
+        this.jobsDAO.initDatabase();
+        
         this.gui = new JobsGUI(plugin, this);
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().registerEvents(gui, plugin);
-        plugin.getCommand("jobs").setExecutor(this);
+        org.bukkit.command.PluginCommand cmd_jobs = plugin.getCommand("jobs");
+        if (cmd_jobs != null) cmd_jobs.setExecutor(this);
         
-        // Charger les joueurs connectés
+        // Charger les joueurs connectÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             loadPlayer(p.getUniqueId());
         }
         
         // Auto-Save Task pour le WebPanel (Toutes les 10 secondes)
         plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
                 savePlayer(p.getUniqueId());
             }
         }, 200L, 200L); // 10 secondes
@@ -84,6 +103,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
         // Sauvegarder tout
         for (UUID uuid : playerXp.keySet()) {
@@ -101,48 +121,13 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         activeJobs.put(uuid, new HashMap<>());
         
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement("SELECT * FROM player_jobs WHERE uuid = ?")) {
-                ps.setString(1, uuid.toString());
-                ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-                    String jobName = rs.getString("job_name");
-                    JobType type = JobType.valueOf(jobName);
-                    double xp = rs.getDouble("xp");
-                    int level = rs.getInt("level");
-                    
-                    playerXp.get(uuid).put(type, xp);
-                    playerLevel.get(uuid).put(type, level);
-                    // On considère qu'ils sont actifs si la ligne existe, mais on va juste charger l'XP pour l'instant.
-                    // Ah, on doit stocker les jobs actifs.
-                    // Si on a une ligne, le joueur a rejoint le job.
-                    activeJobs.get(uuid).put(type, true);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            this.jobsDAO.loadPlayerJobs(uuid, playerXp.get(uuid), playerLevel.get(uuid), activeJobs.get(uuid));
         });
     }
     
     public void savePlayer(UUID uuid) {
         if (!playerXp.containsKey(uuid)) return;
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO player_jobs (uuid, job_name, level, xp) VALUES (?, ?, ?, ?) " +
-                     "ON CONFLICT(uuid, job_name) DO UPDATE SET level = excluded.level, xp = excluded.xp")) {
-            for (Map.Entry<JobType, Double> entry : playerXp.get(uuid).entrySet()) {
-                JobType type = entry.getKey();
-                if (!activeJobs.get(uuid).getOrDefault(type, false)) continue;
-                ps.setString(1, uuid.toString());
-                ps.setString(2, type.name());
-                ps.setInt(3, playerLevel.get(uuid).getOrDefault(type, 1));
-                ps.setDouble(4, entry.getValue());
-                ps.addBatch();
-            }
-            ps.executeBatch();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        this.jobsDAO.savePlayerJobs(uuid, playerXp.get(uuid), playerLevel.get(uuid), activeJobs.get(uuid));
     }
     
     public boolean hasJob(UUID uuid, JobType type) {
@@ -170,16 +155,9 @@ public class JobsModule implements Module, Listener, CommandExecutor {
     public void leaveJob(UUID uuid, JobType type) {
         if (activeJobs.containsKey(uuid)) {
             activeJobs.get(uuid).put(type, false);
-            // On le supprime de la base de données
+            // On le supprime de la base de donnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                try (Connection conn = plugin.getDatabaseManager().getConnection();
-                     PreparedStatement ps = conn.prepareStatement("DELETE FROM player_jobs WHERE uuid = ? AND job_name = ?")) {
-                    ps.setString(1, uuid.toString());
-                    ps.setString(2, type.name());
-                    ps.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+                this.jobsDAO.removePlayerJob(uuid, type);
             });
             playerXp.get(uuid).remove(type);
             playerLevel.get(uuid).remove(type);
@@ -212,20 +190,19 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             currentXp -= nextXp;
             currentLevel++;
             playerLevel.get(uuid).put(type, currentLevel);
-            boolean leveledUp = true;
-            
-            player.sendMessage("<dark_gray>[<gold>Métiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le métier " + type.getColor() + type.getDisplayName() + " <green>!");
+
+            player.sendMessage("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tier " + type.getColor() + type.getDisplayName() + " <green>!");
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
             
-            // Récompenses de Level Up (Battle Pass)
-            double reward = baseMoney * 10 * currentLevel; // Grosse récompense
+            // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compenses de Level Up (Battle Pass)
+            double reward = baseMoney * 10 * currentLevel; // Grosse rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compense
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null && eco.isEnabled()) {
                 eco.addMoney(uuid, reward);
-                player.sendMessage("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reçu <green>" + reward + "$ <gray>!");
+                player.sendMessage("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <green>" + reward + "$ <gray>!");
             }
             
-            // Récompenses Objets selon le palier
+            // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compenses Objets selon le palier
             giveLevelUpItems(player, currentLevel);
         }
         
@@ -250,7 +227,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             mat = r.nextBoolean() ? Material.DIAMOND : Material.EMERALD;
         }
         player.getInventory().addItem(new ItemStack(mat, amount));
-        player.sendMessage("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reçu <yellow>" + amount + "x " + mat.name() + " <gray>!");
+        player.sendMessage("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <yellow>" + amount + "x " + mat.name() + " <gray>!");
     }
 
     @Override
@@ -292,7 +269,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             addXp(p, JobType.BUCHERON, 2.0, 0.7);
         }
         else if (m == Material.WHEAT || m == Material.CARROTS || m == Material.POTATOES || m == Material.BEETROOTS) {
-            // Idéalement vérifier si c'est mûr, mais on simplifie
+            // IdÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©alement vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rifier si c'est mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»r, mais on simplifie
             addXp(p, JobType.FERMIER, 1.0, 0.3);
         }
     }
@@ -306,3 +283,5 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         }
     }
 }
+
+

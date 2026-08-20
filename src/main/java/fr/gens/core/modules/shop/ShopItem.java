@@ -3,15 +3,16 @@ package fr.gens.core.modules.shop;
 import org.bukkit.Material;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gens.core.CorePlugin;
+
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+
 public class ShopItem {
     private Material material;
-    private double buyPrice; // Prix pour qu'un joueur ACHÈTE l'item
+    private double buyPrice; // Prix pour qu'un joueur ACHÃƒÆ’Ã†â€™Ãƒâ€¹Ã¢â‚¬Â TE l'item
     private double sellPrice; // Prix pour qu'un joueur VENDE l'item
     private int stock; // Nombre d'items vendus par les joueurs au serveur
-    private int targetStock; // Stock d'équilibre pour l'inflation
+    private int targetStock; // Stock d'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quilibre pour l'inflation
     
     // Pour les Grades / Permissions
     private boolean isCommand = false;
@@ -57,17 +58,14 @@ public class ShopItem {
     public String getCommandToExecute() { return commandToExecute; }
     public ShopItem setCommandToExecute(String commandToExecute) { this.commandToExecute = commandToExecute; return this; }
 
-    // Calcul de l'inflation basé sur l'offre et la demande
-    // Plus le stock est bas par rapport au targetStock, plus les prix montent (rareté).
+    // Calcul de l'inflation basÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© sur l'offre et la demande
+    // Plus le stock est bas par rapport au targetStock, plus les prix montent (raretÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©).
     // Plus le stock est haut, plus les prix baissent (abondance).
     public double getCurrentBuyPrice() {
         if (isCommand) return buyPrice;
         if (stock >= targetStock) return buyPrice;
         double ratio = (double) targetStock / Math.max(1, stock);
-        double exponent = 0.5;
-        if (CorePlugin.getInstance() != null) {
-            exponent = CorePlugin.getInstance().getConfig().getDouble("shop.inflation_exponent", 0.5);
-        }
+        double exponent = fr.gens.core.modules.shop.ShopModule.GLOBAL_INFLATION_EXPONENT;
         return buyPrice * Math.pow(ratio, exponent);
     }
 
@@ -78,3 +76,4 @@ public class ShopItem {
         return sellPrice * Math.pow(ratio, 0.5);
     }
 }
+

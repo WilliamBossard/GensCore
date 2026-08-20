@@ -2,23 +2,26 @@ package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.TeleportUtil;
-import org.bukkit.Bukkit;
+
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+
+
+
+
 
 public class TeleportSpawnModule implements Module, CommandExecutor {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
     private Location spawnLocation;
+    
+    private fr.gens.core.database.SpawnDAO spawnDAO;
 
     public TeleportSpawnModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -42,26 +45,12 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
     @Override
     public void enable() {
         enabled = true;
+        
+        this.spawnDAO = new fr.gens.core.database.SpawnDAO(plugin);
+        this.spawnDAO.initDatabase();
+        
         // Charger le spawn
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement("SELECT * FROM spawn_location WHERE id = 1");
-             ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                String worldName = rs.getString("world");
-                if (Bukkit.getWorld(worldName) != null) {
-                    spawnLocation = new Location(
-                            Bukkit.getWorld(worldName),
-                            rs.getDouble("x"),
-                            rs.getDouble("y"),
-                            rs.getDouble("z"),
-                            rs.getFloat("yaw"),
-                            rs.getFloat("pitch")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        spawnLocation = this.spawnDAO.loadSpawn();
         plugin.getLangManager().sendConsoleMessage("teleportspawnmodule.log_1");
     }
 
@@ -97,20 +86,7 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
             }
             spawnLocation = p.getLocation();
             
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                         "INSERT INTO spawn_location (id, world, x, y, z, yaw, pitch) VALUES (1, ?, ?, ?, ?, ?, ?) " +
-                         "ON CONFLICT(id) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
-                ps.setString(1, spawnLocation.getWorld().getName());
-                ps.setDouble(2, spawnLocation.getX());
-                ps.setDouble(3, spawnLocation.getY());
-                ps.setDouble(4, spawnLocation.getZ());
-                ps.setFloat(5, spawnLocation.getYaw());
-                ps.setFloat(6, spawnLocation.getPitch());
-                ps.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            this.spawnDAO.saveSpawn(spawnLocation);
             
             plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_3");
             return true;
@@ -122,7 +98,7 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
                 return true;
             }
             if (spawnLocation != null) {
-                TeleportUtil.teleportWithCooldown(p, spawnLocation, "le spawn", "genscore.bypass.cooldown.spawn");
+                TeleportUtil.teleportWithCooldown(plugin, p, spawnLocation, "le spawn", "genscore.bypass.cooldown.spawn");
             } else {
                 plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_5");
             }
@@ -132,3 +108,4 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
         return false;
     }
 }
+

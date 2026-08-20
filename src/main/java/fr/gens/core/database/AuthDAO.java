@@ -7,12 +7,29 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
 
+
 public class AuthDAO {
 
     private final CorePlugin plugin;
 
     public AuthDAO(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void initDatabase() {
+        String sql = "CREATE TABLE IF NOT EXISTS genscore_auth (" +
+                "uuid VARCHAR(36) PRIMARY KEY, " +
+                "password_hash VARCHAR(255) NOT NULL, " +
+                "salt VARCHAR(255) NOT NULL, " +
+                "last_ip VARCHAR(50), " +
+                "last_login BIGINT DEFAULT 0" +
+                ");";
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             java.sql.Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        } catch (SQLException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table genscore_auth", e);
+        }
     }
 
     public static class AuthData {
@@ -101,3 +118,4 @@ public class AuthDAO {
         }
     }
 }
+

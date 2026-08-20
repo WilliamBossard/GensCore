@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class TeamManager {
     private final CorePlugin plugin;
     private final Map<Integer, TeamData> teamsById = new HashMap<>();
@@ -17,7 +18,8 @@ public class TeamManager {
     }
 
     private void loadTeams() {
-        plugin.getDatabaseManager().getTeamDAO().loadTeams(teamsById, teamsByPlayer);
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) module.getTeamDAO().loadTeams(teamsById, teamsByPlayer);
         plugin.getLogger().info("Loaded " + teamsById.size() + " teams in memory.");
     }
 
@@ -37,7 +39,8 @@ public class TeamManager {
         }
         if (getPlayerTeam(leader) != null) return null; // Already in a team
 
-        int id = plugin.getDatabaseManager().getTeamDAO().createTeam(name, leader);
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        int id = module != null ? module.getTeamDAO().createTeam(name, leader) : -1;
         if (id != -1) {
             TeamData team = new TeamData(id, name, leader);
             teamsById.put(id, team);
@@ -46,7 +49,7 @@ public class TeamManager {
             teamsByPlayer.put(leader, team);
             
             // Initialize stats row
-            plugin.getDatabaseManager().getTeamDAO().initTeamStats(id);
+            if (module != null) module.getTeamDAO().initTeamStats(id);
             return team;
         }
         return null;
@@ -75,24 +78,30 @@ public class TeamManager {
             removeMemberFromDatabase(uuid);
         }
         teamsById.remove(team.getTeamId());
-        plugin.getDatabaseManager().getTeamDAO().disbandTeam(team.getTeamId());
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) module.getTeamDAO().disbandTeam(team.getTeamId());
     }
 
     private void addMemberToDatabase(int teamId, UUID member) {
-        plugin.getDatabaseManager().getTeamDAO().addMember(teamId, member);
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) module.getTeamDAO().addMember(teamId, member);
     }
 
     private void removeMemberFromDatabase(UUID member) {
-        plugin.getDatabaseManager().getTeamDAO().removeMember(member);
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) module.getTeamDAO().removeMember(member);
     }
 
     // --- WEB STATS EXTENSIONS ---
 
     public java.util.Map<String, Object> getBestTeamStats() {
-        return plugin.getDatabaseManager().getTeamDAO().getBestTeamStats();
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        return module != null ? module.getTeamDAO().getBestTeamStats() : null;
     }
 
     public java.util.List<java.util.Map<String, Object>> getAllTeamStats() {
-        return plugin.getDatabaseManager().getTeamDAO().getAllTeamStats(plugin.getTeamQuestManager());
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        return module != null ? module.getTeamDAO().getAllTeamStats(plugin.getTeamQuestManager()) : java.util.Collections.emptyList();
     }
 }
+

@@ -30,9 +30,9 @@ public class StorageManager {
     }
 
     private void initDataFile() {
-        // Désactivé car SQLite est maintenant utilisé pour les données principales.
-        // Les modules comme TeleportBack qui l'utilisent temporairement le créeront si besoin
-        // via leur propre logique ou utiliseront la configuration par défaut.
+        // DÃ©sactivÃ© car SQLite est maintenant utilisÃ© pour les donnÃ©es principales.
+        // Les modules comme TeleportBack qui l'utilisent temporairement le crÃ©eront si besoin
+        // via leur propre logique ou utiliseront la configuration par dÃ©faut.
     }
 
     public FileConfiguration getData() {

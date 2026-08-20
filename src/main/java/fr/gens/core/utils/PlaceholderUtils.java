@@ -21,12 +21,13 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
+
 public class PlaceholderUtils {
 
     public static Component parseToComponent(String text) {
         if (text == null) return Component.empty();
         
-        String processed = text.replace("§", "&");
+        String processed = text.replace("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§", "&");
         
         if (processed.contains("<") && processed.contains(">")) {
             // Convert legacy ampersand codes to MiniMessage tags
@@ -72,7 +73,8 @@ public class PlaceholderUtils {
         resolvers.add(Placeholder.parsed("player_name", p.getName()));
 
         // Quests
-        int completedQuests = plugin.getDatabaseManager().getQuestDAO().getQuestsCompletedTotal(p.getUniqueId());
+        fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin.getModuleManager().getModule("quests");
+        int completedQuests = questModule != null ? questModule.getQuestDAO().getQuestsCompletedTotal(p.getUniqueId()) : 0;
         resolvers.add(Placeholder.parsed("quests", String.valueOf(completedQuests)));
         resolvers.add(Placeholder.parsed("quests_completed", String.valueOf(completedQuests)));
 
@@ -91,6 +93,7 @@ public class PlaceholderUtils {
         resolvers.add(Placeholder.parsed("online", String.valueOf(Bukkit.getOnlinePlayers().size())));
         int staffCount = 0;
         for (Player online : Bukkit.getOnlinePlayers()) {
+            if (online == null) continue;
             if (online.hasPermission("group.owner") || online.hasPermission("group.admin") || online.hasPermission("group.mod") || online.hasPermission("group.helper")) {
                 staffCount++;
             }
@@ -105,13 +108,13 @@ public class PlaceholderUtils {
 
         // Discord
         boolean linked = p.hasPermission("genscore.discord.linked");
-        String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto";
+        String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold> <red>Discord non liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ! <aqua>/linktuto";
         resolvers.add(Placeholder.parsed("discord_status", discordStatus)); // We parse it as a placeholder string, wait, no, if we parse it, it won't resolve colors.
         
         // Wait, if it contains colors, we should use MiniMessage Component
         resolvers.add(Placeholder.component("discord_status", parseToComponent(discordStatus)));
         
-        String discordName = linked ? "Compte Lié" : "Non lié";
+        String discordName = linked ? "Compte LiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©" : "Non liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©";
         resolvers.add(Placeholder.parsed("discord_name", discordName));
 
         // Statistics
@@ -170,7 +173,7 @@ public class PlaceholderUtils {
         }
 
         // Before passing to MiniMessage, let's pre-convert Legacy variables (%) to MiniMessage Tags (<>)
-        String mmText = text.replace("§", "&")
+        String mmText = text.replace("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§", "&")
                             .replace("%player%", "<player>")
                             .replace("%player_name%", "<player_name>")
                             .replace("%quests%", "<quests>")
@@ -221,14 +224,4 @@ public class PlaceholderUtils {
         return MiniMessage.miniMessage().deserialize(mmText, TagResolver.resolver(resolvers));
     }
 
-    /**
-     * Ancienne méthode pour compatibilité (retourne un String avec couleurs legacy).
-     * @deprecated Utiliser setPlaceholdersComponent
-     */
-    @Deprecated
-    public static String setPlaceholders(CorePlugin plugin, Player p, String text) {
-        Component comp = setPlaceholdersComponent(plugin, p, text);
-        return LegacyComponentSerializer.legacySection().serialize(comp);
-    }
 }
-

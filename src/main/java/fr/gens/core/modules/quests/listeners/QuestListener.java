@@ -14,9 +14,10 @@ import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.event.inventory.FurnaceExtractEvent;
+
 
 public class QuestListener implements Listener {
 
@@ -92,7 +93,11 @@ public class QuestListener implements Listener {
     }
 
     @EventHandler
-    public void onPickup(PlayerPickupItemEvent event) {
-        questModule.handleQuestProgress(event.getPlayer(), QuestType.PICKUP, event.getItem().getItemStack().getType().name(), event.getItem().getItemStack().getAmount());
+    public void onPickup(org.bukkit.event.entity.EntityPickupItemEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
+            questModule.handleQuestProgress(player, QuestType.PICKUP, event.getItem().getItemStack().getType().name(), event.getItem().getItemStack().getAmount());
+        }
     }
 }
+

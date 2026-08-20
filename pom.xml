@@ -121,6 +121,24 @@
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
+        <!-- Reflections pour l'Auto-Discovery des modules -->
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
+
+        <!-- Cloud Command Framework -->
+        <dependency>
+            <groupId>cloud.commandframework</groupId>
+            <artifactId>cloud-paper</artifactId>
+            <version>1.8.4</version>
+        </dependency>
+        <dependency>
+            <groupId>cloud.commandframework</groupId>
+            <artifactId>cloud-annotations</artifactId>
+            <version>1.8.4</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -180,6 +198,14 @@
                                 <relocation>
                                     <pattern>org.mindrot.jbcrypt</pattern>
                                     <shadedPattern>fr.gens.core.lib.jbcrypt</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.reflections</pattern>
+                                    <shadedPattern>fr.gens.core.lib.reflections</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>cloud.commandframework</pattern>
+                                    <shadedPattern>fr.gens.core.lib.cloud</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>

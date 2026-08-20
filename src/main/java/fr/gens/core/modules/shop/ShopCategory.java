@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class ShopCategory {
     private String id;
     private String displayName;
@@ -48,3 +49,4 @@ public class ShopCategory {
         items.removeIf(item -> item.getMaterial() == material);
     }
 }
+

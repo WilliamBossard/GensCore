@@ -1,4 +1,4 @@
-package fr.gens.core.modules.auth;
+﻿package fr.gens.core.modules.auth;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
@@ -32,10 +32,12 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import org.bukkit.command.CommandExecutor;
 
+
 public class AuthModule implements Module, Listener, CommandExecutor {
 
     private CorePlugin plugin;
     private boolean enabled;
+    private AuthDAO authDAO;
     private final Set<UUID> authenticated = new HashSet<>();
     private final long SESSION_TIMEOUT = 30L * 24L * 60L * 60L * 1000L; // 30 days
 
@@ -45,7 +47,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     private static final int  MAX_LOGIN_ATTEMPTS = 5;
     private static final long LOGIN_LOCKOUT_MS   = 5L * 60 * 1000; // 5 minutes
 
-    // Tâches planifiées gérées par ce module
+    // TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches planifiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es par ce module
     private final List<Integer> taskIds = new ArrayList<>();
 
     public AuthModule(CorePlugin plugin) {
@@ -62,25 +64,37 @@ public class AuthModule implements Module, Listener, CommandExecutor {
         return "Module d'authentification";
     }
 
+    public AuthDAO getAuthDAO() {
+        return authDAO;
+    }
+
     @Override
     public boolean isEnabled() {
         return enabled;
     }
 
     @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_auth (uuid VARCHAR(36) PRIMARY KEY, password_hash VARCHAR(255) NOT NULL, salt VARCHAR(255) NOT NULL, last_ip VARCHAR(50), last_login BIGINT DEFAULT 0);");
+    }
+
+    @Override
     public void enable() {
         this.enabled = true;
+        this.authDAO = new AuthDAO(plugin);
+        this.authDAO.initDatabase();
         Bukkit.getPluginManager().registerEvents(this, plugin);
         plugin.getLangManager().sendConsoleMessage("authmodule.log_1");
     }
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
         authenticated.clear();
         loginAttempts.clear();
         loginLockout.clear();
-        // Annuler uniquement les tâches de ce module (et non toutes les tâches du plugin)
+        // Annuler uniquement les tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches de ce module (et non toutes les tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches du plugin)
         taskIds.forEach(id -> Bukkit.getScheduler().cancelTask(id));
         taskIds.clear();
         plugin.getLangManager().sendConsoleMessage("authmodule.log_2");
@@ -88,9 +102,12 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
-        if (plugin.getCommand("register") != null) plugin.getCommand("register").setExecutor(this);
-        if (plugin.getCommand("login") != null) plugin.getCommand("login").setExecutor(this);
-        if (plugin.getCommand("changemdp") != null) plugin.getCommand("changemdp").setExecutor(this);
+        org.bukkit.command.PluginCommand cmd_register = plugin.getCommand("register");
+        if (cmd_register != null) cmd_register.setExecutor(this);
+        org.bukkit.command.PluginCommand cmd_login = plugin.getCommand("login");
+        if (cmd_login != null) cmd_login.setExecutor(this);
+        org.bukkit.command.PluginCommand cmd_changemdp = plugin.getCommand("changemdp");
+        if (cmd_changemdp != null) cmd_changemdp.setExecutor(this);
     }
 
     public void forceLogout(UUID uuid) {
@@ -113,7 +130,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_3");
                 return true;
             }
-            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
+            AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_4");
                 return true;
@@ -132,11 +149,12 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 return true;
             }
 
-            String salt = ""; // Non utilisé pour BCrypt mais gardé pour compatibilité BDD
+            String salt = ""; // Non utilisÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© pour BCrypt mais gardÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© pour compatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© BDD
             String hash = BCrypt.hashpw(password, BCrypt.gensalt());
-            String ip = p.getAddress().getAddress().getHostAddress();
+            java.net.InetSocketAddress addr = p.getAddress();
+            String ip = (addr != null && addr.getAddress() != null) ? addr.getAddress().getHostAddress() : "0.0.0.0";
 
-            plugin.getDatabaseManager().getAuthDAO().registerPlayer(uuid, hash, salt, ip);
+            authDAO.registerPlayer(uuid, hash, salt, ip);
             authenticated.add(uuid);
             plugin.getLangManager().sendMessage(p, "authmodule.msg_8");
             
@@ -153,13 +171,13 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 return true;
             }
 
-            // --- Rate-limiting : vérifier le lockout avant toute chose ---
+            // --- Rate-limiting : vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rifier le lockout avant toute chose ---
             if (loginLockout.containsKey(uuid)) {
                 long remaining = (loginLockout.get(uuid) + LOGIN_LOCKOUT_MS) - System.currentTimeMillis();
                 if (remaining > 0) {
                     long minutes = remaining / 60000;
                     p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
-                        "<red>Trop de tentatives. Réessayez dans <bold>" + (minutes + 1) + " min</bold>.</red>"
+                        "<red>Trop de tentatives. RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©essayez dans <bold>" + (minutes + 1) + " min</bold>.</red>"
                     ));
                     return true;
                 } else {
@@ -169,7 +187,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
             }
             // --- Fin rate-limiting ---
 
-            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
+            AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data == null) {
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_10");
                 return true;
@@ -196,37 +214,39 @@ public class AuthModule implements Module, Listener, CommandExecutor {
             }
 
             if (isAuthenticated) {
-                String ip = p.getAddress().getAddress().getHostAddress();
+                java.net.InetSocketAddress addr = p.getAddress();
+            String ip = (addr != null && addr.getAddress() != null) ? addr.getAddress().getHostAddress() : "0.0.0.0";
                 
                 if (needsMigration) {
                     String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
-                    plugin.getDatabaseManager().getAuthDAO().updatePassword(uuid, newHash, "");
+                    authDAO.updatePassword(uuid, newHash, "");
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_12");
                 }
                 
-                plugin.getDatabaseManager().getAuthDAO().updateLogin(uuid, ip);
+                authDAO.updateLogin(uuid, ip);
                 authenticated.add(uuid);
-                // Réinitialiser les compteurs d'échecs
+                // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©initialiser les compteurs d'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©checs
                 loginAttempts.remove(uuid);
                 loginLockout.remove(uuid);
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_13");
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
                 if (discord != null && discord.isEnabled()) {
-                    discord.logAuthEvent(p.getName(), "Connexion Réussie", java.awt.Color.GREEN);
+                    discord.logAuthEvent(p.getName(), "Connexion RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ussie", java.awt.Color.GREEN);
                 }
             } else {
-                // Incrémenter le compteur d'échecs
+                // IncrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©menter le compteur d'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©checs
                 int attempts = loginAttempts.merge(uuid, 1, Integer::sum);
                 if (attempts >= MAX_LOGIN_ATTEMPTS) {
                     loginLockout.put(uuid, System.currentTimeMillis());
                     loginAttempts.remove(uuid);
                     p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
-                        "<red><bold>Compte temporairement verrouillé</bold> (5 tentatives). Réessayez dans 5 minutes.</red>"
+                        "<red><bold>Compte temporairement verrouillÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©</bold> (5 tentatives). RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©essayez dans 5 minutes.</red>"
                     ));
                 } else {
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_14");
-                    String discordId = plugin.getDatabaseManager().getStatsDAO().getDiscordId(uuid);
+                    fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+                    String discordId = statsModule != null ? statsModule.getStatsDAO().getDiscordId(uuid) : null;
                     if (discordId != null && !discordId.isEmpty()) {
                         plugin.getLangManager().sendMessage(p, "authmodule.msg_15");
                     }
@@ -247,7 +267,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
             String oldPass = args[0];
             String newPass = args[1];
 
-            AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
+            AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
                 boolean isOldPasswordCorrect = false;
                 if (data.hash.startsWith("$2a$") || data.hash.startsWith("$2b$") || data.hash.startsWith("$2y$")) {
@@ -263,7 +283,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                         return true;
                     }
                     String newHash = BCrypt.hashpw(newPass, BCrypt.gensalt());
-                    plugin.getDatabaseManager().getAuthDAO().updatePassword(uuid, newHash, "");
+                    authDAO.updatePassword(uuid, newHash, "");
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_19");
                 } else {
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_20");
@@ -276,7 +296,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     }
 
     private void requireAuth(Player p) {
-        AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(p.getUniqueId());
+        AuthDAO.AuthData data = authDAO.getAuthData(p.getUniqueId());
         if (data == null) {
             plugin.getLangManager().sendMessage(p, "authmodule.msg_21");
             plugin.getLangManager().sendMessage(p, "authmodule.msg_22");
@@ -298,14 +318,15 @@ public class AuthModule implements Module, Listener, CommandExecutor {
         Player p = event.getPlayer();
         UUID uuid = p.getUniqueId();
         
-        AuthDAO.AuthData data = plugin.getDatabaseManager().getAuthDAO().getAuthData(uuid);
+        AuthDAO.AuthData data = authDAO.getAuthData(uuid);
         if (data != null) {
-            String currentIp = p.getAddress().getAddress().getHostAddress();
+            java.net.InetSocketAddress addr2 = p.getAddress();
+            String currentIp = (addr2 != null && addr2.getAddress() != null) ? addr2.getAddress().getHostAddress() : "0.0.0.0";
             long timeSinceLastLogin = System.currentTimeMillis() - data.lastLogin;
             
             if (currentIp.equals(data.lastIp) && timeSinceLastLogin < SESSION_TIMEOUT) {
                 authenticated.add(uuid);
-                plugin.getDatabaseManager().getAuthDAO().updateLogin(uuid, currentIp);
+                authDAO.updateLogin(uuid, currentIp);
                 plugin.getLangManager().sendMessage(p, "authmodule.msg_31");
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
@@ -401,7 +422,7 @@ public class AuthModule implements Module, Listener, CommandExecutor {
     // Security Utilities
 
     public static String generateSalt() {
-        // Gardé pour rétrocompatibilité lors d'anciens resetmdp non-BCrypt si jamais
+        // GardÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© pour rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©trocompatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© lors d'anciens resetmdp non-BCrypt si jamais
         SecureRandom random = new SecureRandom();
         byte[] saltBytes = new byte[16];
         random.nextBytes(saltBytes);
@@ -415,13 +436,20 @@ public class AuthModule implements Module, Listener, CommandExecutor {
             byte[] hashedBytes = md.digest(password.getBytes());
             return Base64.getEncoder().encodeToString(hashedBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 non supporté", e);
+            throw new RuntimeException("SHA-256 non supportÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©", e);
         }
     }
 
     public static String hashPassword(String password, String salt) {
-        // N'est plus appelé qu'historiquement, BCrypt gère le hash maintenant.
-        // On retourne la version BCrypt par défaut.
+        // N'est plus appelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© qu'historiquement, BCrypt gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨re le hash maintenant.
+        // On retourne la version BCrypt par dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©faut.
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 }
+
+
+
+
+
+
+

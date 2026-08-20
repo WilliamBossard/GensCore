@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+
 public class TeamGui {
     private final CorePlugin plugin;
 
@@ -31,7 +32,7 @@ public class TeamGui {
 
         Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Guilde : " + team.getName()));
 
-        // Ligne de décor
+        // Ligne de dÃƒÆ’Ã‚Â©cor
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
         glassMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" "));
@@ -39,12 +40,12 @@ public class TeamGui {
         for (int i = 0; i < 9; i++) inv.setItem(i, glass);
         for (int i = 37; i < 44; i++) inv.setItem(i, glass);
 
-        // Bouton Quêtes
+        // Bouton QuÃƒÆ’Ã‚Âªtes
         ItemStack quests = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta qmeta = quests.getItemMeta();
-        qmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Quêtes de Guilde"));
+        qmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>QuÃƒÆ’Ã‚Âªtes de Guilde"));
         List<String> qlore = new ArrayList<>();
-        qlore.add("<gray>Accomplissez des défis en coopération");
+        qlore.add("<gray>Accomplissez des dÃƒÆ’Ã‚Â©fis en coopÃƒÆ’Ã‚Â©ration");
         qlore.add("<gray>pour gagner des Points de Guilde !");
         qlore.add("");
         qlore.add("<yellow>Clic pour ouvrir");
@@ -79,15 +80,15 @@ public class TeamGui {
             if (slot > 35) break; // Limite de 27 membres pour l'UI simple
         }
 
-        // Bouton Paramètres si leader
+        // Bouton ParamÃƒÆ’Ã‚Â¨tres si leader
         if (isLeader) {
             ItemStack settings = new ItemStack(Material.REPEATER);
             ItemMeta smeta = settings.getItemMeta();
-            smeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>Paramètres de Verrouillage"));
+            smeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua>ParamÃƒÆ’Ã‚Â¨tres de Verrouillage"));
             List<String> slore = new ArrayList<>();
-            slore.add("<gray>Auto-verrouiller les coffres posés");
-            slore.add("<gray>pour les membres de l'équipe :");
-            slore.add(team.isAutoLock() ? "<green><bold>ACTIVÉ" : "<red><bold>DÉSACTIVÉ");
+            slore.add("<gray>Auto-verrouiller les coffres posÃƒÆ’Ã‚Â©s");
+            slore.add("<gray>pour les membres de l'ÃƒÆ’Ã‚Â©quipe :");
+            slore.add(team.isAutoLock() ? "<green><bold>ACTIVÃƒÆ’Ã¢â‚¬Â°" : "<red><bold>DÃƒÆ’Ã¢â‚¬Â°SACTIVÃƒÆ’Ã¢â‚¬Â°");
             slore.add("");
             slore.add("<yellow>Clic pour changer");
             smeta.lore(java.util.Optional.ofNullable(slore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
@@ -105,3 +106,4 @@ public class TeamGui {
         player.openInventory(inv);
     }
 }
+

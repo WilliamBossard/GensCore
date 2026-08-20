@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class SpawnerGui implements Listener {
 
     private static final Map<Player, SpawnerData> openGuis = new ConcurrentHashMap<>();
@@ -31,7 +32,7 @@ public class SpawnerGui implements Listener {
     public static void openGui(Player player, SpawnerData data) {
         Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Gestion: <gold>" + data.getType()));
 
-        // Vitres de décoration
+        // Vitres de dÃƒÆ’Ã‚Â©coration
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
         if (glassMeta != null) {
@@ -49,21 +50,21 @@ public class SpawnerGui implements Listener {
             infoMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>" + data.getType()));
             List<String> lore = new ArrayList<>();
             lore.add("<gray>Stack: <white>" + data.getStackCount());
-            lore.add("<gray>Dernier accès: <white>" + data.getLastInteractedPlayer());
+            lore.add("<gray>Dernier accÃƒÆ’Ã‚Â¨s: <white>" + data.getLastInteractedPlayer());
             infoMeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             info.setItemMeta(infoMeta);
         }
         inv.setItem(4, info);
 
-        // Récupérer XP (Slot 20)
+        // RÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©rer XP (Slot 20)
         ItemStack xpBtn = new ItemStack(Material.EXPERIENCE_BOTTLE);
         ItemMeta xpMeta = xpBtn.getItemMeta();
         if (xpMeta != null) {
-            xpMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>Récupérer l'XP"));
+            xpMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>RÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©rer l'XP"));
             List<String> lore = new ArrayList<>();
             lore.add("<gray>XP Actuelle: <green>" + data.getStoredExp() + " / " + moduleInstance.getSpawnerManager().getMaxStorageExp(data.getExpLevel()));
             lore.add("");
-            lore.add("<yellow>Cliquez pour récupérer");
+            lore.add("<yellow>Cliquez pour rÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©rer");
             xpMeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             xpBtn.setItemMeta(xpMeta);
         }
@@ -88,9 +89,9 @@ public class SpawnerGui implements Listener {
         EconomyModule eco = moduleInstance != null ? (EconomyModule) moduleInstance.getPlugin().getModuleManager().getModule("economy") : null;
         boolean ecoEnabled = eco != null && eco.isEnabled();
         
-        inv.setItem(38, createUpgradeItem("Capacité XP", Material.EMERALD, data.getExpLevel(), ecoEnabled));
+        inv.setItem(38, createUpgradeItem("CapacitÃƒÆ’Ã‚Â© XP", Material.EMERALD, data.getExpLevel(), ecoEnabled));
         inv.setItem(40, createUpgradeItem("Vitesse", Material.SUGAR, data.getSpeedLevel(), ecoEnabled));
-        inv.setItem(42, createUpgradeItem("Capacité Stockage", Material.DIAMOND, data.getStorageLevel(), ecoEnabled));
+        inv.setItem(42, createUpgradeItem("CapacitÃƒÆ’Ã‚Â© Stockage", Material.DIAMOND, data.getStorageLevel(), ecoEnabled));
 
         openGuis.put(player, data);
         player.openInventory(inv);
@@ -100,7 +101,7 @@ public class SpawnerGui implements Listener {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua><bold>Améliorer " + name));
+            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<aqua><bold>AmÃƒÆ’Ã‚Â©liorer " + name));
             List<String> lore = new ArrayList<>();
             lore.add("<gray>Niveau actuel: <white>" + currentLevel);
             if (currentLevel >= 10) {
@@ -109,11 +110,11 @@ public class SpawnerGui implements Listener {
                 lore.add("<gray>Niveau suivant: <white>" + (currentLevel + 1));
                 lore.add("");
                 if (ecoEnabled) {
-                    lore.add("<gray>Coût: <gold>" + getUpgradeCost(currentLevel) + "$");
+                    lore.add("<gray>CoÃƒÆ’Ã‚Â»t: <gold>" + getUpgradeCost(currentLevel) + "$");
                 } else {
-                    lore.add("<gray>Coût: <green>" + getUpgradeXpCost(currentLevel) + " Niveaux");
+                    lore.add("<gray>CoÃƒÆ’Ã‚Â»t: <green>" + getUpgradeXpCost(currentLevel) + " Niveaux");
                 }
-                lore.add("<yellow>Cliquez pour améliorer !");
+                lore.add("<yellow>Cliquez pour amÃƒÆ’Ã‚Â©liorer !");
             }
             meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
             item.setItemMeta(meta);
@@ -136,7 +137,7 @@ public class SpawnerGui implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!event.getView().getTitle().startsWith("§8Gestion: ")) return;
+        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
         
         // SECURITE: On annule TOUS les clics quand on est dans ce menu
         event.setCancelled(true);
@@ -158,11 +159,11 @@ public class SpawnerGui implements Listener {
             // XP
             if (data.getStoredExp() > 0) {
                 player.giveExp(data.getStoredExp());
-                player.sendMessage("<green>Vous avez récupéré " + data.getStoredExp() + " points d'expérience !");
+                player.sendMessage("<green>Vous avez rÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â© " + data.getStoredExp() + " points d'expÃƒÆ’Ã‚Â©rience !");
                 player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                 data.setStoredExp(0);
                 moduleInstance.getSpawnerManager().updateHologram(data);
-                Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data)); // refresh différé
+                Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data)); // refresh diffÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â©
             } else {
                 moduleInstance.getPlugin().getLangManager().sendMessage(player, "spawnergui.msg_1");
             }
@@ -203,18 +204,18 @@ public class SpawnerGui implements Listener {
             if (eco.getBalance(player.getUniqueId()) >= cost) {
                 eco.takeMoney(player.getUniqueId(), cost);
                 applyUpgrade(player, data, type, currentLevel);
-                player.sendMessage("<green>Amélioration effectuée pour " + cost + "$ !");
+                player.sendMessage("<green>AmÃƒÆ’Ã‚Â©lioration effectuÃƒÆ’Ã‚Â©e pour " + cost + "$ !");
             } else {
-                player.sendMessage("<red>Vous n'avez pas assez d'argent ! (" + cost + "$ nécessaires)");
+                player.sendMessage("<red>Vous n'avez pas assez d'argent ! (" + cost + "$ nÃƒÆ’Ã‚Â©cessaires)");
             }
         } else {
             int xpCost = getUpgradeXpCost(currentLevel);
             if (player.getLevel() >= xpCost) {
                 player.setLevel(player.getLevel() - xpCost);
                 applyUpgrade(player, data, type, currentLevel);
-                player.sendMessage("<green>Amélioration effectuée pour " + xpCost + " niveaux !");
+                player.sendMessage("<green>AmÃƒÆ’Ã‚Â©lioration effectuÃƒÆ’Ã‚Â©e pour " + xpCost + " niveaux !");
             } else {
-                player.sendMessage("<red>Vous n'avez pas assez de niveaux ! (" + xpCost + " nécessaires)");
+                player.sendMessage("<red>Vous n'avez pas assez de niveaux ! (" + xpCost + " nÃƒÆ’Ã‚Â©cessaires)");
             }
         }
     }
@@ -227,12 +228,12 @@ public class SpawnerGui implements Listener {
         }
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
         moduleInstance.getSpawnerManager().updateHologram(data);
-        Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data)); // refresh différé
+        Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data)); // refresh diffÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â©
     }
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (!event.getView().getTitle().startsWith("§8Gestion: ")) return;
+        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
         if (event.getWhoClicked() instanceof Player && openGuis.containsKey((Player) event.getWhoClicked())) {
             event.setCancelled(true);
         }
@@ -240,15 +241,16 @@ public class SpawnerGui implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getView().getTitle().startsWith("§8Gestion: ")) return;
+        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
         if (event.getPlayer() instanceof Player) {
             Player p = (Player) event.getPlayer();
-            // Délai d'un tick pour voir si le joueur ouvre un autre inventaire de gestion (ex: refresh)
+            // DÃƒÆ’Ã‚Â©lai d'un tick pour voir si le joueur ouvre un autre inventaire de gestion (ex: refresh)
             Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> {
-                if (!p.getOpenInventory().getTitle().startsWith("§8Gestion: ")) {
+                if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(p.getOpenInventory().title()).startsWith("Gestion: ")) {
                     openGuis.remove(p);
                 }
             });
         }
     }
 }
+

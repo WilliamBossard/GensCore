@@ -6,6 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.ServerListPingEvent;
 
+
 public class MotdModule implements Module, Listener {
 
     private final CorePlugin plugin;
@@ -22,7 +23,7 @@ public class MotdModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Gère le message de bienvenue (MOTD) affiché dans la liste des serveurs.";
+        return "GÃƒÆ’Ã‚Â¨re le message de bienvenue (MOTD) affichÃƒÆ’Ã‚Â© dans la liste des serveurs.";
     }
 
     @Override
@@ -44,6 +45,7 @@ public class MotdModule implements Module, Listener {
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
         plugin.getLangManager().sendConsoleMessage("motdmodule.log_2");
     }
@@ -57,17 +59,8 @@ public class MotdModule implements Module, Listener {
 
         String fullMotdStr = line1 + "\n" + line2;
 
-        try {
-            // Paper environment (1.16+) supports Component MOTD via PaperServerListPingEvent
-            if (event instanceof com.destroystokyo.paper.event.server.PaperServerListPingEvent) {
-                net.kyori.adventure.text.Component motdComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(fullMotdStr);
-                ((com.destroystokyo.paper.event.server.PaperServerListPingEvent) event).motd(motdComp);
-                return;
-            }
-        } catch (Throwable ignored) {}
-
-        // Fallback for non-Paper environments or older versions
-        String fullMotd = fullMotdStr;
-        event.setMotd(fullMotd);
+        event.motd(fr.gens.core.utils.PlaceholderUtils.parseToComponent(fullMotdStr));
     }
 }
+
+

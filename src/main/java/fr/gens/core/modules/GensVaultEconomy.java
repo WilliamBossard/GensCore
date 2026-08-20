@@ -7,6 +7,7 @@ import org.bukkit.OfflinePlayer;
 import java.util.Collections;
 import java.util.List;
 
+
 public class GensVaultEconomy implements Economy {
 
     private final EconomyModule economyModule;
@@ -37,17 +38,17 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public String format(double amount) {
-        return String.format("%.2f pièces", amount);
+        return String.format("%.2f piÃƒÆ’Ã‚Â¨ces", amount);
     }
 
     @Override
     public String currencyNamePlural() {
-        return "pièces";
+        return "piÃƒÆ’Ã‚Â¨ces";
     }
 
     @Override
     public String currencyNameSingular() {
-        return "pièce";
+        return "piÃƒÆ’Ã‚Â¨ce";
     }
 
     @Override
@@ -237,3 +238,4 @@ public class GensVaultEconomy implements Economy {
         return Collections.emptyList();
     }
 }
+

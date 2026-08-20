@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+
 public class ChatModule implements Module, Listener {
 
     private final CorePlugin plugin;
@@ -25,7 +26,7 @@ public class ChatModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Gère le formatage du chat. Permission: genscore.chat";
+        return "GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re le formatage du chat. Permission: genscore.chat";
     }
 
     @Override
@@ -58,7 +59,7 @@ public class ChatModule implements Module, Listener {
             return;
         }
 
-        // Récupérer le préfixe depuis LuckPerms
+        // RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer le prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fixe depuis LuckPerms
         String resolvedPrefix;
         try {
             net.luckperms.api.LuckPerms api = net.luckperms.api.LuckPermsProvider.get();
@@ -68,7 +69,7 @@ public class ChatModule implements Module, Listener {
                 if (lpPrefix != null) {
                     net.kyori.adventure.text.Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix);
                     resolvedPrefix = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.builder()
-                        .character('§')
+                        .character('\u00A7')
                         .hexColors()
                         .build()
                         .serialize(prefixComp) + " ";
@@ -93,7 +94,7 @@ public class ChatModule implements Module, Listener {
         // AsyncChatEvent utilise un ChatRenderer pour formater le message
         event.renderer((source, sourceDisplayName, message, viewer) ->
             net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
-                .deserialize(finalPrefix + guildTag + "<white>" + source.getName() + " <dark_gray>» <gray>" + messageText)
+                .deserialize(finalPrefix + guildTag + "<white>" + source.getName() + " <dark_gray>ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â» <gray>" + messageText)
         );
     }
 
@@ -117,3 +118,4 @@ public class ChatModule implements Module, Listener {
         event.quitMessage(plugin.getLangManager().get("chat.quit", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", event.getPlayer().getName())));
     }
 }
+

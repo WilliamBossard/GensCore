@@ -18,6 +18,7 @@ import java.util.Set;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.Particle;
 
+
 public class FastLeafDecayModule implements Module, Listener {
 
     private final CorePlugin plugin;
@@ -34,7 +35,7 @@ public class FastLeafDecayModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Les feuilles disparaissent instantanément d'un coup quand un arbre est coupé.";
+        return "Les feuilles disparaissent instantanÃƒÆ’Ã‚Â©ment d'un coup quand un arbre est coupÃƒÆ’Ã‚Â©.";
     }
 
     @Override
@@ -76,7 +77,7 @@ public class FastLeafDecayModule implements Module, Listener {
         Set<Block> leavesToBreak = new HashSet<>();
         Queue<Block> queue = new LinkedList<>();
         
-        // Trouver les premières feuilles autour du bloc cassé
+        // Trouver les premiÃƒÆ’Ã‚Â¨res feuilles autour du bloc cassÃƒÆ’Ã‚Â©
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
@@ -89,13 +90,13 @@ public class FastLeafDecayModule implements Module, Listener {
             }
         }
 
-        int maxLeaves = 200; // Limite de sécurité
+        int maxLeaves = 200; // Limite de sÃƒÆ’Ã‚Â©curitÃƒÆ’Ã‚Â©
         int count = 0;
 
         while (!queue.isEmpty() && count < maxLeaves) {
             Block current = queue.poll();
             
-            // Si cette feuille est encore proche d'une bûche, on arrête de détruire ce côté
+            // Si cette feuille est encore proche d'une bÃƒÆ’Ã‚Â»che, on arrÃƒÆ’Ã‚Âªte de dÃƒÆ’Ã‚Â©truire ce cÃƒÆ’Ã‚Â´tÃƒÆ’Ã‚Â©
             if (isCloseToLog(current)) {
                 leavesToBreak.remove(current);
                 continue;
@@ -163,3 +164,4 @@ public class FastLeafDecayModule implements Module, Listener {
         return material.name().endsWith("_LOG") || material.name().endsWith("_WOOD");
     }
 }
+

@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class TeleportBackModule implements Module, CommandExecutor, Listener {
 
     private final CorePlugin plugin;
@@ -69,7 +70,7 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
     }
 
     private void saveBacks() {
-        // Plus sauvegardé dans data.yml pour éviter un fichier vide
+        // Plus sauvegardÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© dans data.yml pour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©viter un fichier vide
     }
 
     @EventHandler
@@ -82,7 +83,7 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
         if (p.hasPermission("genscore.back")) {
             // Message cliquable via MiniMessage
             p.sendMessage(MiniMessage.miniMessage().deserialize(
-                "<gray>Vous êtes mort. <click:run_command:'/back'><hover:show_text:'<green>Cliquez ici pour vous téléporter à votre point de mort !'><gold><b>[Cliquez ici pour utiliser /back]</b></gold></hover></click></gray>"
+                "<gray>Vous ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtes mort. <click:run_command:'/back'><hover:show_text:'<green>Cliquez ici pour vous tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©porter ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  votre point de mort !'><gold><b>[Cliquez ici pour utiliser /back]</b></gold></hover></click></gray>"
             ));
         }
     }
@@ -111,10 +112,11 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
 
         Location backLoc = lastLocations.get(p.getUniqueId());
         if (backLoc != null) {
-            TeleportUtil.teleportWithCooldown(p, backLoc, "l'ancienne position", "genscore.bypass.cooldown.back");
+            TeleportUtil.teleportWithCooldown(plugin, p, backLoc, "l'ancienne position", "genscore.bypass.cooldown.back");
         } else {
             plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_3");
         }
         return true;
     }
 }
+

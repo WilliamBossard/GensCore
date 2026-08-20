@@ -25,10 +25,10 @@ import org.bukkit.NamespacedKey;
 
 import org.bukkit.command.TabCompleter;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+
+
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,11 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
     private final Map<UUID, Map<String, Location>> homes = new HashMap<>();
+    
+    private fr.gens.core.database.HomeDAO homeDAO;
 
     public TeleportHomeModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -53,7 +56,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
     @Override
     public String getDescription() {
-        return "Commandes /home avec GUI sécurisée, limites et cooldowns.";
+        return "Commandes /home avec GUI sÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e, limites et cooldowns.";
     }
 
     @Override
@@ -62,12 +65,24 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     }
 
     @Override
+    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS spawn_location (id INTEGER PRIMARY KEY DEFAULT 1, world VARCHAR(255) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, yaw FLOAT NOT NULL, pitch FLOAT NOT NULL);");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_homes (uuid VARCHAR(36) NOT NULL, name VARCHAR(50) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, yaw FLOAT NOT NULL, pitch FLOAT NOT NULL, PRIMARY KEY (uuid, name));");
+        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_player_homes_uuid ON player_homes(uuid);");
+    }
+
+    @Override
     public void enable() {
         enabled = true;
-        // Chargement lazy : les homes sont chargés à la connexion du joueur
+        
+        this.homeDAO = new fr.gens.core.database.HomeDAO(plugin);
+        this.homeDAO.initDatabase();
+        
+        // Chargement lazy : les homes sont chargÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  la connexion du joueur
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        // Précharger les homes des joueurs déjà connectés (reload en jeu)
+        // PrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©charger les homes des joueurs dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©jÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  connectÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s (reload en jeu)
         for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
             final UUID uuid = p.getUniqueId();
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadHomesForPlayer(uuid));
         }
@@ -97,75 +112,26 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
     private void saveHomeToDB(UUID uuid, String name, Location loc) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                         "INSERT INTO player_homes (uuid, name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
-                         "ON CONFLICT(uuid, name) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
-                ps.setString(1, uuid.toString());
-                ps.setString(2, name);
-                ps.setString(3, loc.getWorld().getName());
-                ps.setDouble(4, loc.getX());
-                ps.setDouble(5, loc.getY());
-                ps.setDouble(6, loc.getZ());
-                ps.setFloat(7, loc.getYaw());
-                ps.setFloat(8, loc.getPitch());
-                ps.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            homeDAO.saveHome(uuid, name, loc);
         });
     }
 
     private void deleteHomeFromDB(UUID uuid, String name) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes WHERE uuid = ? AND name = ?")) {
-                ps.setString(1, uuid.toString());
-                ps.setString(2, name);
-                ps.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            homeDAO.deleteHome(uuid, name);
         });
     }
 
     public void clearAllHomes() {
         homes.clear();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes")) {
-                ps.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            homeDAO.clearAllHomes();
         });
     }
-    // Chargement lazy : uniquement les homes d'un joueur donné
+    // Chargement lazy : uniquement les homes d'un joueur donnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©
     private void loadHomesForPlayer(UUID uuid) {
-        if (homes.containsKey(uuid)) return; // Déjà chargé
-        Map<String, Location> playerHomes = new HashMap<>();
-        String sql = "SELECT * FROM player_homes WHERE uuid = ?";
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, uuid.toString());
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    String worldName = rs.getString("world");
-                    if (Bukkit.getWorld(worldName) == null) continue;
-                    Location loc = new Location(
-                            Bukkit.getWorld(worldName),
-                            rs.getDouble("x"),
-                            rs.getDouble("y"),
-                            rs.getDouble("z"),
-                            rs.getFloat("yaw"),
-                            rs.getFloat("pitch")
-                    );
-                    playerHomes.put(rs.getString("name"), loc);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        if (homes.containsKey(uuid)) return; // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  chargÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
+        Map<String, Location> playerHomes = homeDAO.loadPlayerHomes(uuid);
         homes.put(uuid, playerHomes);
     }
 
@@ -181,9 +147,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
         homes.remove(event.getPlayer().getUniqueId());
     }
 
-    private void saveHomes() {
-        // Sauvegarde gérée en temps réel (saveHomeToDB appelé à chaque modification)
-    }
+
 
     private int getMaxHomes(Player p) {
         int max = plugin.getConfigManager().getConfig("modules/teleport.yml").getInt("modules.home.default_max", 3); // Default
@@ -203,7 +167,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!enabled) {
-            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
+            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.</red>"));
             return true;
         }
         if (!(sender instanceof Player)) return true;
@@ -242,7 +206,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
                 String homeName = args[0];
                 Map<String, Location> playerHomes = homes.get(p.getUniqueId());
                 if (playerHomes != null && playerHomes.containsKey(homeName)) {
-                    TeleportUtil.teleportWithCooldown(p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
+                    TeleportUtil.teleportWithCooldown(plugin, p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
                 } else {
                     plugin.getLangManager().sendMessage(p, "home.not_found", 
                         net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
@@ -318,7 +282,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
             if (meta != null) {
                 meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>" + homeName));
                 List<String> lore = new ArrayList<>();
-                lore.add("<gray>Cliquez pour Gérer ce Home");
+                lore.add("<gray>Cliquez pour GÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rer ce Home");
                 meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
                 NamespacedKey key = new NamespacedKey(plugin, "home_name");
                 meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, homeName);
@@ -368,10 +332,10 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
         Inventory inv = Bukkit.createInventory(holder, 9, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Gestion: " + homeName));
         holder.setInventory(inv);
 
-        // Bloc vert (Téléportation)
+        // Bloc vert (TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©portation)
         ItemStack tpItem = new ItemStack(Material.LIME_CONCRETE);
         ItemMeta tpMeta = tpItem.getItemMeta();
-        tpMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>Se Téléporter"));
+        tpMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>Se TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©porter"));
         tpItem.setItemMeta(tpMeta);
         inv.setItem(2, tpItem);
 
@@ -421,7 +385,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
                 p.closeInventory();
                 Map<String, Location> playerHomes = homes.get(p.getUniqueId());
                 if (playerHomes != null && playerHomes.containsKey(homeName)) {
-                    TeleportUtil.teleportWithCooldown(p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
+                    TeleportUtil.teleportWithCooldown(plugin, p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
                 }
             } else if (clicked.getType() == Material.RED_CONCRETE) {
                 Map<String, Location> playerHomes = homes.get(p.getUniqueId());
@@ -439,3 +403,4 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
         }
     }
 }
+

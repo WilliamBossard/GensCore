@@ -1,24 +1,11 @@
 package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
-import fr.gens.core.modules.auth.AuthModule;
-import fr.gens.core.modules.discord.DiscordModule;
-import fr.gens.core.modules.gui.CustomGuiModule;
-import fr.gens.core.modules.headdrop.HeadDropModule;
-import fr.gens.core.modules.jobs.JobsModule;
-import fr.gens.core.modules.lock.LockModule;
-import fr.gens.core.modules.loot.LootModule;
-import fr.gens.core.modules.moderation.ModerationModule;
-import fr.gens.core.modules.quests.QuestModule;
-import fr.gens.core.modules.shop.ShopModule;
-import fr.gens.core.modules.spawners.SpawnerModule;
-import fr.gens.core.modules.stats.StatsModule;
-import fr.gens.core.modules.tabboard.TabBoardModule;
-import fr.gens.core.modules.teams.TeamModule;
-import fr.gens.core.modules.utils.UtilsModule;
+// Les anciens imports manuels des modules ont été supprimés car l'Auto-Discovery (org.reflections) s'en charge.
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
 
 public class ModuleManager {
 
@@ -30,43 +17,31 @@ public class ModuleManager {
     }
 
     public void registerModules() {
-        // Enregistrement de tous les modules
-        addModule(new ShopModule(plugin));
-        addModule(new EconomyModule(plugin));
-        addModule(new ChatModule(plugin));
-        addModule(new fr.gens.core.modules.motd.MotdModule(plugin));
-        addModule(new GuiModule(plugin));
-        addModule(new FastLeafDecayModule(plugin));
-        addModule(new TeleportHomeModule(plugin));
-        addModule(new TeleportBackModule(plugin));
-        addModule(new TeleportSpawnModule(plugin));
-        addModule(new TeleportTpaModule(plugin));
-        addModule(new AuctionHouseModule(plugin));
-        addModule(new HeadDropModule(plugin));
-        addModule(new TabBoardModule(plugin));
-        addModule(new fr.gens.core.modules.tomb.TombModule(plugin));
-        addModule(new CustomGuiModule(plugin));
-        addModule(new DiscordModule(plugin));
-        addModule(new QuestModule(plugin));
-        addModule(new AuthModule(plugin));
-        addModule(new UtilsModule(plugin));
-        addModule(new LootModule(plugin));
-        addModule(new SpawnerModule(plugin));
-        addModule(new BlueMapModule(plugin));
-        addModule(new ModerationModule(plugin));
-        addModule(new StatsModule(plugin));
-        addModule(new JobsModule(plugin));
-        addModule(new TeamModule(plugin));
-        addModule(new LockModule(plugin));
+        // Enregistrement dynamique de tous les modules avec org.reflections
+        org.reflections.Reflections reflections = new org.reflections.Reflections("fr.gens.core.modules");
+        java.util.Set<Class<? extends Module>> moduleClasses = reflections.getSubTypesOf(Module.class);
+
+        for (Class<? extends Module> clazz : moduleClasses) {
+            if (java.lang.reflect.Modifier.isAbstract(clazz.getModifiers()) || clazz.isInterface()) {
+                continue;
+            }
+            try {
+                Module module = clazz.getConstructor(CorePlugin.class).newInstance(plugin);
+                addModule(module);
+            } catch (Exception e) {
+                plugin.getLogger().severe("Impossible de charger le module dynamiquement: " + clazz.getName());
+                e.printStackTrace();
+            }
+        }
         
         plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 
         // Charger les états depuis modules.yml et les activer si besoin
         org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
         for (Module module : modules.values()) {
-            // Lecture au format plat : modules.economy: true
             boolean shouldEnable = modulesConfig.getBoolean("modules." + module.getName().toLowerCase(), true);
             if (shouldEnable) {
+                module.initDatabase(plugin.getDatabaseManager());
                 module.enable();
             } else {
                 module.disable();
@@ -118,3 +93,4 @@ public class ModuleManager {
         return false;
     }
 }
+

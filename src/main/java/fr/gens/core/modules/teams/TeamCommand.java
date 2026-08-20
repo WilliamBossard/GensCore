@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class TeamCommand implements CommandExecutor, TabCompleter {
     private final CorePlugin plugin;
     private final TeamGui teamGui;
@@ -56,7 +57,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             if (newTeam == null) {
                 plugin.getLangManager().sendMessage(player, "teamcommand.msg_4");
             } else {
-                player.sendMessage("<green>Guilde " + name + " créée avec succès !");
+                player.sendMessage("<green>Guilde " + name + " crÃƒÆ’Ã‚Â©ÃƒÆ’Ã‚Â©e avec succÃƒÆ’Ã‚Â¨s !");
             }
             return true;
         }
@@ -80,9 +81,9 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             invites.put(target.getUniqueId(), player.getUniqueId());
-            target.sendMessage("<green>Vous avez reçu une invitation pour rejoindre la guilde <yellow>" + team.getName() + "<green> !");
+            target.sendMessage("<green>Vous avez reÃƒÆ’Ã‚Â§u une invitation pour rejoindre la guilde <yellow>" + team.getName() + "<green> !");
             plugin.getLangManager().sendMessage(target, "teamcommand.msg_9");
-            player.sendMessage("<green>Invitation envoyée à " + target.getName());
+            player.sendMessage("<green>Invitation envoyÃƒÆ’Ã‚Â©e ÃƒÆ’Ã‚Â  " + target.getName());
             return true;
         }
 
@@ -120,6 +121,7 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
             if ("accept".startsWith(args[0].toLowerCase())) completions.add("accept");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("invite")) {
             for (Player p : Bukkit.getOnlinePlayers()) {
+            if (p == null) continue;
                 if (p.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
                     completions.add(p.getName());
                 }
@@ -128,3 +130,4 @@ public class TeamCommand implements CommandExecutor, TabCompleter {
         return completions;
     }
 }
+

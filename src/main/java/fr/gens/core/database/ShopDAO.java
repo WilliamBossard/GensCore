@@ -15,12 +15,52 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class ShopDAO {
 
     private final CorePlugin plugin;
 
     public ShopDAO(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public void initDatabase() {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             java.sql.Statement stmt = conn.createStatement()) {
+            
+            stmt.execute("CREATE TABLE IF NOT EXISTS shop_categories (" +
+                    "id VARCHAR(50) PRIMARY KEY, " +
+                    "displayName VARCHAR(255), " +
+                    "icon VARCHAR(50)" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS shop_items (" +
+                    "material VARCHAR(50) PRIMARY KEY, " +
+                    "category_id VARCHAR(50), " +
+                    "buyPrice DOUBLE, " +
+                    "sellPrice DOUBLE, " +
+                    "stock INTEGER, " +
+                    "targetStock INTEGER, " +
+                    "isCommand BOOLEAN, " +
+                    "commandToExecute VARCHAR(255), " +
+                    "isEnabled BOOLEAN" +
+                    ");");
+
+            stmt.execute("CREATE TABLE IF NOT EXISTS shop_history (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "material VARCHAR(50), " +
+                    "timestamp BIGINT, " +
+                    "buyPrice DOUBLE, " +
+                    "sellPrice DOUBLE, " +
+                    "stock INTEGER" +
+                    ");");
+            
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_shop_history_material  ON shop_history(material);");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_shop_history_timestamp ON shop_history(timestamp);");
+
+        } catch (SQLException e) {
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables du shop", e);
+        }
     }
 
     public List<ShopCategory> loadShopCategories() {
@@ -187,3 +227,4 @@ public class ShopDAO {
         return false;
     }
 }
+

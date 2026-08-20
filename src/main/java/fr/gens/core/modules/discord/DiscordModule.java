@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+
 public class DiscordModule extends ListenerAdapter implements Module, CommandExecutor, TabCompleter, Listener {
 
     private final CorePlugin plugin;
@@ -50,7 +51,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
     private JDA jda;
     private WebhookClient webhookClient;
 
-    // Code liaison Discord → {UUID, timestamp d'expiration}
+    // Code liaison Discord ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ {UUID, timestamp d'expiration}
     private record PendingLink(UUID uuid, long expiresAt) {}
     private final Map<String, PendingLink> pendingLinks = new HashMap<>();
     private static final long LINK_EXPIRY_MS = 10L * 60 * 1000; // 10 minutes
@@ -67,7 +68,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
     @Override
     public String getDescription() {
-        return "Gère le bot Discord intégré et la liaison des comptes (Remplace DiscordSRV).";
+        return "GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re le bot Discord intÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©grÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© et la liaison des comptes (Remplace DiscordSRV).";
     }
 
     @Override
@@ -107,10 +108,10 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             return;
         }
 
-        plugin.getCommand("discord").setExecutor(this);
-        plugin.getCommand("discord").setTabCompleter(this);
+        org.bukkit.command.PluginCommand cmd_discord = plugin.getCommand("discord");
+        if (cmd_discord != null) { cmd_discord.setExecutor(this); cmd_discord.setTabCompleter(this); }
 
-        // Désactivation des logs intempestifs de JDA
+        // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactivation des logs intempestifs de JDA
         java.util.logging.Logger.getLogger("net.dv8tion").setLevel(java.util.logging.Level.OFF);
         java.util.logging.Logger.getLogger("JDA").setLevel(java.util.logging.Level.OFF);
 
@@ -135,7 +136,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                 
                 plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
-                sendBotMessage("**Le serveur a démarré !**");
+                sendBotMessage("**Le serveur a dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©marrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !**");
                 
             } catch (Exception e) {
                 plugin.getLogger().severe("[Discord] Erreur lors de la connexion du bot : " + e.getMessage());
@@ -145,9 +146,10 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
     @Override
     public void disable() {
+        org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
         if (jda != null) {
-            sendBotMessage(" **Le serveur est maintenant éteint.**");
+            sendBotMessage(" **Le serveur est maintenant ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©teint.**");
             
             if (webhookClient != null) {
                 webhookClient.close();
@@ -215,7 +217,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         if (channel != null) {
             EmbedBuilder embed = new EmbedBuilder();
             embed.setTitle("\uD83D\uDD12 " + action);
-            embed.setDescription("**" + playerName + "** s'est authentifié avec succès.");
+            embed.setDescription("**" + playerName + "** s'est authentifiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s.");
             embed.setColor(color);
             embed.setTimestamp(java.time.Instant.now());
             channel.sendMessageEmbeds(embed.build()).queue();
@@ -287,7 +289,8 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         
         // Synchroniser le badge Discord
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            String discordId = plugin.getDatabaseManager().getStatsDAO().getDiscordId(p.getUniqueId());
+            fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+            String discordId = statsModule != null ? statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) : null;
             boolean isLinked = (discordId != null && !discordId.isEmpty());
             
             try {
@@ -320,7 +323,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         if (!enabled) return;
-        sendBotEmbed(event.getPlayer().getName() + " a quitté le serveur", "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.RED);
+        sendBotEmbed(event.getPlayer().getName() + " a quittÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© le serveur", "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.RED);
     }
 
     @EventHandler
@@ -333,7 +336,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         if (!advancement.getDisplay().doesAnnounceToChat()) return;
 
         String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(advancement.getDisplay().title());
-        String message = event.getPlayer().getName() + " a accompli le progrès [" + title + "] !";
+        String message = event.getPlayer().getName() + " a accompli le progrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s [" + title + "] !";
         
         sendBotEmbed(message, "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.YELLOW);
     }
@@ -353,12 +356,13 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         Player p = (Player) sender;
 
         if (args.length > 0 && args[0].equalsIgnoreCase("link")) {
-            if (p.hasPermission("genscore.discord.linked") && plugin.getDatabaseManager().getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
+            fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+            if (p.hasPermission("genscore.discord.linked") && statsModule != null && statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
                 plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
                 return true;
             }
 
-            // Code sécurisé : 6 chiffres via SecureRandom = 1 000 000 combinaisons
+            // Code sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : 6 chiffres via SecureRandom = 1 000 000 combinaisons
             String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
             pendingLinks.put(code, new PendingLink(p.getUniqueId(), System.currentTimeMillis() + LINK_EXPIRY_MS));
             
@@ -380,12 +384,12 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         if (args[0].equalsIgnoreCase("!link") && args.length == 2) {
             String code = args[1];
 
-            // Purger les codes expirés
+            // Purger les codes expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s
             pendingLinks.entrySet().removeIf(e -> System.currentTimeMillis() > e.getValue().expiresAt());
 
             PendingLink link = pendingLinks.remove(code);
             if (link == null || System.currentTimeMillis() > link.expiresAt()) {
-                event.getChannel().sendMessage("Code invalide ou expiré (10 min max). Utilisez `/discord link` en jeu pour en générer un nouveau.").queue();
+                event.getChannel().sendMessage("Code invalide ou expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© (10 min max). Utilisez `/discord link` en jeu pour en gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer un nouveau.").queue();
                 return;
             }
 
@@ -405,12 +409,13 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                             plugin.getLangManager().sendMessage(p, "discordmodule.msg_5");
                         }
                     }
-                    plugin.getDatabaseManager().getStatsDAO().setDiscordId(uuid, event.getAuthor().getId());
+                    fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+                    if (statsModule != null) statsModule.getStatsDAO().setDiscordId(uuid, event.getAuthor().getId());
                 } catch (Exception e) {
                     plugin.getLogger().warning("Error linking Discord: " + e.getMessage());
                 }
 
-                // Essayer de donner le rôle sur Discord (Asynchrone)
+                // Essayer de donner le rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´le sur Discord (Asynchrone)
                 if (finalTargetGuild != null) {
                     String roleId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.linked_role_id", "Linked");
                     if (roleId != null && !roleId.isEmpty() && !roleId.equals("ID_DU_ROLE_JOUEUR")) {
@@ -434,11 +439,12 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                 }
             });
 
-            event.getChannel().sendMessage("Ton compte Minecraft a été lié avec succès !").queue();
+            event.getChannel().sendMessage("Ton compte Minecraft a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s !").queue();
         } else if (event.getChannel().getId().equals(plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id"))) {
             // Discord -> Minecraft Chat
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                UUID uuid = plugin.getDatabaseManager().getStatsDAO().getUuidFromDiscord(event.getAuthor().getId());
+                fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+                UUID uuid = statsModule != null ? statsModule.getStatsDAO().getUuidFromDiscord(event.getAuthor().getId()) : null;
                 String prefix = "<gray>[Joueur] ";
                 String guild = "";
                 String playerName = event.getAuthor().getName();
@@ -457,8 +463,8 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                     if (team != null) guild = "<yellow>[" + team.getName() + "] ";
                 }
                 
-                String finalMessage = "<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>» <gray>" + event.getMessage().getContentDisplay();
-                Bukkit.getServer().broadcast(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(finalMessage.replace("§", "").replace("&", "")));
+                String finalMessage = "<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â» <gray>" + event.getMessage().getContentDisplay();
+                Bukkit.getServer().broadcast(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(finalMessage.replace("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§", "").replace("&", "")));
             });
         }
     }
@@ -468,28 +474,33 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         if (event.getName().equals("resetpassword")) {
             String newPassword = event.getOption("nouveau_mdp").getAsString();
             String discordId = event.getUser().getId();
-            UUID uuid = plugin.getDatabaseManager().getStatsDAO().getUuidFromDiscord(discordId);
+            fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+            UUID uuid = statsModule != null ? statsModule.getStatsDAO().getUuidFromDiscord(discordId) : null;
             
             if (uuid == null) {
-                event.reply("Vous n'avez lié aucun compte Minecraft à ce compte Discord.").setEphemeral(true).queue();
+                event.reply("Vous n'avez liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© aucun compte Minecraft ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  ce compte Discord.").setEphemeral(true).queue();
                 return;
             }
             
             if (newPassword.length() < 4) {
-                event.reply("Le mot de passe doit faire au moins 4 caractères.").setEphemeral(true).queue();
+                event.reply("Le mot de passe doit faire au moins 4 caractÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨res.").setEphemeral(true).queue();
                 return;
             }
 
             String salt = fr.gens.core.modules.auth.AuthModule.generateSalt();
             String hash = fr.gens.core.modules.auth.AuthModule.hashPassword(newPassword, salt);
-            plugin.getDatabaseManager().getAuthDAO().updatePassword(uuid, hash, salt);
-            
             fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
+            if (authModule != null) {
+                authModule.getAuthDAO().updatePassword(uuid, hash, salt);
+            }
+            
             if (authModule != null) {
                 authModule.forceLogout(uuid);
             }
             
-            event.reply("Votre mot de passe Minecraft a été changé avec succès ! Vous pouvez maintenant vous connecter en jeu avec `/login`.").setEphemeral(true).queue();
+            event.reply("Votre mot de passe Minecraft a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© changÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s ! Vous pouvez maintenant vous connecter en jeu avec `/login`.").setEphemeral(true).queue();
         }
     }
 }
+
+

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+
 public class PlayerQuestData {
     private final UUID uuid;
     private final String dateAssigned;
@@ -55,3 +56,4 @@ public class PlayerQuestData {
         return completedQuests;
     }
 }
+
