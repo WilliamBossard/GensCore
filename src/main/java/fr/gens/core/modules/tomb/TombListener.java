@@ -50,8 +50,9 @@ public class TombListener implements Listener {
         List<ItemStack> drops = event.getDrops();
         if (drops.isEmpty() && event.getDroppedExp() == 0) return; // Rien ÃƒÆ’Ã‚Â  sauver
 
-        if (player.getLocation() == null) return;
-        Location loc = player.getLocation().getBlock().getLocation();
+        Location pLoc = player.getLocation();
+        if (pLoc == null) return;
+        Location loc = pLoc.getBlock().getLocation();
         // Trouver un emplacement libre (Air, Eau, Lave)
         Block targetBlock = loc.getBlock();
         

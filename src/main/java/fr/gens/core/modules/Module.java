@@ -17,4 +17,8 @@ public interface Module {
             plugin.getCommandManager().getAnnotationParser().parse(this);
         }
     }
+    
+    default void unregisterListeners(org.bukkit.event.Listener listener) {
+        org.bukkit.event.HandlerList.unregisterAll(listener);
+    }
 }

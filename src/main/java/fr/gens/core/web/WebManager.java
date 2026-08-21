@@ -30,6 +30,11 @@ public class WebManager {
     private final int port;
     private Javalin app;
     private final java.util.Map<String, Long> activeSessions = new java.util.concurrent.ConcurrentHashMap<>();
+    public final java.util.Map<String, String> activePlayerSessions = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<String, Integer> loginRateLimit = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<String, Long> rateLimitReset = new java.util.concurrent.ConcurrentHashMap<>();
+    public final java.util.Map<String, Integer> playerLoginRateLimit = new java.util.concurrent.ConcurrentHashMap<>();
+    public final java.util.Map<String, Long> playerRateLimitReset = new java.util.concurrent.ConcurrentHashMap<>();
 
     public WebManager(CorePlugin plugin, int port) {
         this.plugin = plugin;
@@ -91,6 +96,11 @@ public class WebManager {
                             }
                         }
                         plugin.getLogger().info("Web files extracted in " + webDir.getPath());
+                        if (autoUpdate) {
+                            webConfig.set("web.auto_update_panel", false);
+                            plugin.getConfigManager().saveConfig("modules/web.yml");
+                            plugin.getLogger().info("auto_update_panel has been set to false to prevent overwriting custom changes on next restart.");
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -109,7 +119,12 @@ public class WebManager {
                 // Activer le CORS
                 config.bundledPlugins.enableCors(cors -> {
                     cors.addRule(it -> {
-                        it.anyHost();
+                        String allowedOrigin = plugin.getConfigManager().getConfig("modules/web.yml").getString("web.allowed_origin", "");
+                        if (allowedOrigin != null && !allowedOrigin.isEmpty()) {
+                            it.allowHost(allowedOrigin);
+                        } else {
+                            it.anyHost();
+                        }
                     });
                 });
                 
@@ -136,25 +151,63 @@ public class WebManager {
                         }
                     });
 
+                    // Middleware d'authentification pour les jeux
+                    before("/api/games/*", ctx -> {
+                        if (ctx.path().equals("/api/games/config") || ctx.path().equals("/api/games/wheel")) return; // public routes
+                        
+                        String authHeader = ctx.header("Authorization");
+                        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                            ctx.status(401).json(Map.of("error", "Unauthorized"));
+                            return;
+                        }
+                        String token = authHeader.substring(7);
+                        if (!activePlayerSessions.containsKey(token)) {
+                            ctx.status(401).json(Map.of("error", "Session expired"));
+                            return;
+                        }
+                        ctx.attribute("playerUuid", activePlayerSessions.get(token));
+                    });
+
                     post("/api/admin/login", ctx -> {
+                        String ip = ctx.ip();
+                        long nowTime = System.currentTimeMillis();
+                        if (rateLimitReset.getOrDefault(ip, 0L) < nowTime) {
+                            loginRateLimit.remove(ip);
+                            rateLimitReset.put(ip, nowTime + 60000L); // 1 minute
+                        }
+                        int attempts = loginRateLimit.getOrDefault(ip, 0);
+                        if (attempts >= 5) {
+                            ctx.status(429).json(Map.of("error", "Rate limit exceeded. Try again later."));
+                            return;
+                        }
+
                         LoginRequest req = ctx.bodyAsClass(LoginRequest.class);
                         String storedHash = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "");
                         if (org.mindrot.jbcrypt.BCrypt.checkpw(req.password, storedHash)) {
+                            loginRateLimit.remove(ip); // reset on success
                             String token = java.util.UUID.randomUUID().toString();
                             activeSessions.put(token, System.currentTimeMillis() + (24L * 60 * 60 * 1000L)); // 24 hours
                             ctx.json(new LoginResponse(token));
                         } else {
+                            loginRateLimit.put(ip, attempts + 1);
                             ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.unauthorized"));
                         }
                     });
                     
-                    WebPlayerAPI playerAPI = new WebPlayerAPI(plugin);
+                    WebPlayerAPI playerAPI = new WebPlayerAPI(plugin, this);
                     playerAPI.registerRoutes();
 
                     setupRoutes();
                 });
 
             }).start(port);
+            
+            // Nettoyage périodique des sessions web expirées (Toutes les heures = 72000 ticks)
+            plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+                long now = System.currentTimeMillis();
+                activeSessions.entrySet().removeIf(entry -> entry.getValue() < now);
+            }, 72000L, 72000L);
+            
             
         } catch (Exception e) {
             plugin.getLangManager().sendConsoleError("webmanager.log_1");
@@ -390,46 +443,53 @@ public class WebManager {
             ctx.status(200).result("OK");
         });
 
-        // ModÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©ration Joueurs
+        // Modération Joueurs
         get("/api/admin/players", ctx -> {
-            List<Map<String, Object>> players = new ArrayList<>();
-            fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
+            java.util.concurrent.CompletableFuture<List<Map<String, Object>>> future = new java.util.concurrent.CompletableFuture<>();
+            
+            // Requete SQL asynchrone hors du thread principal
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
-            
             List<Map<String, Object>> knownPlayers = (statsModule != null) ? statsModule.getStatsDAO().getAllKnownPlayers() : new ArrayList<>();
-            org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
             
-            for (Map<String, Object> known : knownPlayers) {
-                String uuidStr = (String) known.get("uuid");
-                String name = (String) known.get("name");
-                if (uuidStr == null || name == null) continue;
-                java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                List<Map<String, Object>> players = new ArrayList<>();
+                fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
                 
-                Map<String, Object> map = new HashMap<>();
-                map.put("name", name);
-                map.put("uuid", uuidStr);
+                org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                 
-                org.bukkit.entity.Player p = plugin.getServer().getPlayer(uuid);
-                if (p != null && p.isOnline()) {
-                    map.put("online", true);
-                    map.put("ping", p.getPing());
-                    map.put("health", p.getHealth());
-                    map.put("maxHealth", p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue());
-                } else {
-                    map.put("online", false);
-                    map.put("ping", 0);
-                    map.put("health", 0);
-                    map.put("maxHealth", 20.0);
+                for (Map<String, Object> known : knownPlayers) {
+                    String uuidStr = (String) known.get("uuid");
+                    String name = (String) known.get("name");
+                    if (uuidStr == null || name == null) continue;
+                    java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
+                    
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("name", name);
+                    map.put("uuid", uuidStr);
+                    
+                    org.bukkit.entity.Player p = plugin.getServer().getPlayer(uuid);
+                    if (p != null && p.isOnline()) {
+                        map.put("online", true);
+                        map.put("ping", p.getPing());
+                        map.put("health", p.getHealth());
+                        map.put("maxHealth", p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue());
+                    } else {
+                        map.put("online", false);
+                        map.put("ping", 0);
+                        map.put("health", 0);
+                        map.put("maxHealth", 20.0);
+                    }
+                    
+                    com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(uuid, name);
+                    map.put("isBanned", banList.isBanned(profile));
+                    map.put("isMuted", mod != null && mod.isMuted(uuid));
+                    map.put("playtime", known.getOrDefault("playtime", 0L));
+                    
+                    players.add(map);
                 }
-                
-                com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(uuid, name);
-                map.put("isBanned", banList.isBanned(profile));
-                map.put("isMuted", mod != null && mod.isMuted(uuid));
-                map.put("playtime", known.getOrDefault("playtime", 0L));
-                
-                players.add(map);
-            }
-            ctx.json(players);
+                future.complete(players);
+            });
+            ctx.json(future.join());
         });
 
         post("/api/admin/players/action", ctx -> {
@@ -504,13 +564,25 @@ public class WebManager {
                 ctx.status(400).result("Invalid path");
                 return;
             }
-            File file = new File(plugin.getDataFolder(), path);
-            if (!file.exists()) {
-                ctx.status(404).result("File not found");
+            if (!path.endsWith(".yml") && !path.endsWith(".properties") && !path.endsWith(".json") && !path.endsWith(".txt")) {
+                ctx.status(403).result("Forbidden file type");
                 return;
             }
-            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            ctx.result(content);
+            try {
+                File file = new File(plugin.getDataFolder(), path);
+                if (!file.getCanonicalPath().startsWith(plugin.getDataFolder().getCanonicalPath())) {
+                    ctx.status(403).result("Forbidden path");
+                    return;
+                }
+                if (!file.exists()) {
+                    ctx.status(404).result("File not found");
+                    return;
+                }
+                String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+                ctx.result(content);
+            } catch (java.io.IOException e) {
+                ctx.status(500).result("IO Error");
+            }
         });
 
         post("/api/admin/file", ctx -> {
@@ -519,17 +591,29 @@ public class WebManager {
                 ctx.status(400).result("Invalid path");
                 return;
             }
-            File file = new File(plugin.getDataFolder(), path);
-            FileEditRequest req = ctx.bodyAsClass(FileEditRequest.class);
-            Files.writeString(file.toPath(), req.content, StandardCharsets.UTF_8);
-            
-            // Reload configuration if it's config.yml
-            if (path.equals("config.yml")) {
-                plugin.reloadConfig();
-                plugin.getLangManager().sendConsoleMessage("webmanager.log_4");
+            if (!path.endsWith(".yml") && !path.endsWith(".properties") && !path.endsWith(".json") && !path.endsWith(".txt")) {
+                ctx.status(403).result("Forbidden file type");
+                return;
             }
-            
-            ctx.status(200).result("OK");
+            try {
+                File file = new File(plugin.getDataFolder(), path);
+                if (!file.getCanonicalPath().startsWith(plugin.getDataFolder().getCanonicalPath())) {
+                    ctx.status(403).result("Forbidden path");
+                    return;
+                }
+                FileEditRequest req = ctx.bodyAsClass(FileEditRequest.class);
+                Files.writeString(file.toPath(), req.content, StandardCharsets.UTF_8);
+                
+                // Reload configuration if it's config.yml
+                if (path.equals("config.yml")) {
+                    plugin.reloadConfig();
+                    plugin.getLangManager().sendConsoleMessage("webmanager.log_4");
+                }
+                
+                ctx.status(200).result("OK");
+            } catch (java.io.IOException e) {
+                ctx.status(500).result("IO Error");
+            }
         });
 
         // ==========================================

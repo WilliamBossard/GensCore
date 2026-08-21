@@ -17,23 +17,39 @@ public class ModuleManager {
     }
 
     public void registerModules() {
-        // Enregistrement dynamique de tous les modules avec org.reflections
-        org.reflections.Reflections reflections = new org.reflections.Reflections("fr.gens.core.modules");
-        java.util.Set<Class<? extends Module>> moduleClasses = reflections.getSubTypesOf(Module.class);
+        // Enregistrement manuel des modules. 
+        // NOTE AUX FUTURS DEVELOPPEURS : L'Auto-Discovery (org.reflections) a ete retire 
+        // pour drastiquement ameliorer le temps de demarrage du plugin (Startup Time).
+        // Vous devez ajouter manuellement chaque nouveau module ici !
+        addModule(new fr.gens.core.modules.utils.UtilsModule(plugin));
+        addModule(new fr.gens.core.modules.tomb.TombModule(plugin));
+        addModule(new fr.gens.core.modules.TeleportTpaModule(plugin));
+        addModule(new fr.gens.core.modules.TeleportSpawnModule(plugin));
+        addModule(new fr.gens.core.modules.TeleportHomeModule(plugin));
+        addModule(new fr.gens.core.modules.TeleportBackModule(plugin));
+        addModule(new fr.gens.core.modules.teams.TeamModule(plugin));
+        addModule(new fr.gens.core.modules.tabboard.TabBoardModule(plugin));
+        addModule(new fr.gens.core.modules.stats.StatsModule(plugin));
+        addModule(new fr.gens.core.modules.spawners.SpawnerModule(plugin));
+        addModule(new fr.gens.core.modules.ShopModule(plugin));
+        addModule(new fr.gens.core.modules.shop.ShopModule(plugin));
+        addModule(new fr.gens.core.modules.quests.QuestModule(plugin));
+        addModule(new fr.gens.core.modules.motd.MotdModule(plugin));
+        addModule(new fr.gens.core.modules.moderation.ModerationModule(plugin));
+        addModule(new fr.gens.core.modules.loot.LootModule(plugin));
+        addModule(new fr.gens.core.modules.lock.LockModule(plugin));
+        addModule(new fr.gens.core.modules.headdrop.HeadDropModule(plugin));
+        addModule(new fr.gens.core.modules.GuiModule(plugin));
+        addModule(new fr.gens.core.modules.gui.CustomGuiModule(plugin));
+        addModule(new fr.gens.core.modules.jobs.JobsModule(plugin));
+        addModule(new fr.gens.core.modules.FastLeafDecayModule(plugin));
+        addModule(new fr.gens.core.modules.EconomyModule(plugin));
+        addModule(new fr.gens.core.modules.ChatModule(plugin));
+        addModule(new fr.gens.core.modules.BlueMapModule(plugin));
+        addModule(new fr.gens.core.modules.discord.DiscordModule(plugin));
+        addModule(new fr.gens.core.modules.AuctionHouseModule(plugin));
+        addModule(new fr.gens.core.modules.auth.AuthModule(plugin));
 
-        for (Class<? extends Module> clazz : moduleClasses) {
-            if (java.lang.reflect.Modifier.isAbstract(clazz.getModifiers()) || clazz.isInterface()) {
-                continue;
-            }
-            try {
-                Module module = clazz.getConstructor(CorePlugin.class).newInstance(plugin);
-                addModule(module);
-            } catch (Exception e) {
-                plugin.getLogger().severe("Impossible de charger le module dynamiquement: " + clazz.getName());
-                e.printStackTrace();
-            }
-        }
-        
         plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 
         // Charger les états depuis modules.yml et les activer si besoin

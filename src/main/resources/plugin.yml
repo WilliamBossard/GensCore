@@ -1,7 +1,7 @@
 name: GensCore
 version: 1.0
 main: fr.gens.core.CorePlugin
-api-version: 1.26
+api-version: '26.2'
 authors: [wboss]
 description: Le coeur du réseau Gens (GensBien / GensMauvais).
 depend: [Vault, LuckPerms]

@@ -459,8 +459,11 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             if (args.length == 1) {
                 for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
             if (op == null) continue;
-                    if (op != null && op.getName() != null && op.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
-                        completions.add(op.getName());
+                    if (op != null) {
+                        String name = op.getName();
+                        if (name != null && name.toLowerCase().startsWith(args[0].toLowerCase())) {
+                            completions.add(name);
+                        }
                     }
                 }
             }
@@ -483,8 +486,11 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             if (args.length == 1) {
                 for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
             if (op == null) continue;
-                    if (op != null && op.getName() != null && op.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
-                        completions.add(op.getName());
+                    if (op != null) {
+                        String name = op.getName();
+                        if (name != null && name.toLowerCase().startsWith(args[0].toLowerCase())) {
+                            completions.add(name);
+                        }
                     }
                 }
             }

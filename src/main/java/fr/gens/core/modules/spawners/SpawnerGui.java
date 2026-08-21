@@ -201,7 +201,7 @@ public class SpawnerGui implements Listener {
         
         if (ecoEnabled) {
             double cost = getUpgradeCost(currentLevel);
-            if (eco.getBalance(player.getUniqueId()) >= cost) {
+            if (eco != null && eco.getBalance(player.getUniqueId()) >= cost) {
                 eco.takeMoney(player.getUniqueId(), cost);
                 applyUpgrade(player, data, type, currentLevel);
                 player.sendMessage("<green>AmÃƒÆ’Ã‚Â©lioration effectuÃƒÆ’Ã‚Â©e pour " + cost + "$ !");

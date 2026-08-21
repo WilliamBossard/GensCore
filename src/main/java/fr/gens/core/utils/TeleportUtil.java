@@ -32,7 +32,8 @@ public class TeleportUtil {
                 }
 
                 // Vérifier si le joueur a bougé (plus d'un demi-bloc de tolérance)
-                if (player.getLocation() != null && player.getLocation().distanceSquared(startLoc) > 0.5) {
+                Location pLoc = player.getLocation();
+                if (pLoc != null && pLoc.distanceSquared(startLoc) > 0.5) {
                     player.sendActionBar(MiniMessage.miniMessage().deserialize("<red>TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation annulÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e (mouvement dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tectÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©).</red>"));
                     player.sendMessage(MiniMessage.miniMessage().deserialize("<red>TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation annulÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e, vous avez bougÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !</red>"));
                     this.cancel();

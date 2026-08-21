@@ -1,4 +1,4 @@
-﻿package fr.gens.core.modules;
+package fr.gens.core.modules;
 
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
@@ -24,7 +24,15 @@ public class EconomyModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
-    private final Map<UUID, Double> balances = new HashMap<>();
+    private final Map<UUID, Double> balances = new java.util.concurrent.ConcurrentHashMap<>();
+    
+    // Cache LRU pour les joueurs hors-ligne (thread-safe)
+    private final Map<UUID, Double> offlineCache = java.util.Collections.synchronizedMap(new java.util.LinkedHashMap<UUID, Double>(100, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<UUID, Double> eldest) {
+            return size() > 100;
+        }
+    });
     
     private fr.gens.core.database.EconomyDAO economyDAO;
 
@@ -94,10 +102,20 @@ public class EconomyModule implements Module, Listener {
     }
 
     public double getBalance(UUID uuid) {
-        if (!balances.containsKey(uuid)) {
-            return this.economyDAO.getBalance(uuid);
+        if (balances.containsKey(uuid)) {
+            return balances.get(uuid);
         }
-        return balances.get(uuid);
+        if (offlineCache.containsKey(uuid)) {
+            return offlineCache.get(uuid);
+        }
+        
+        if (Bukkit.isPrimaryThread()) {
+            plugin.getLogger().warning("[EconomyModule] Requete SQL synchrone (Vault) declenchee pour " + uuid);
+        }
+        
+        double bal = this.economyDAO.getBalance(uuid);
+        offlineCache.put(uuid, bal);
+        return bal;
     }
     
     private void loadOnlineBalances() {
@@ -132,7 +150,11 @@ public class EconomyModule implements Module, Listener {
     }
 
     public void setBalance(UUID uuid, double amount) {
-        balances.put(uuid, amount);
+        if (balances.containsKey(uuid)) {
+            balances.put(uuid, amount);
+        } else {
+            offlineCache.put(uuid, amount);
+        }
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerBalance(uuid, amount));
     }
 

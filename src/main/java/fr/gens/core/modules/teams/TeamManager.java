@@ -79,17 +79,29 @@ public class TeamManager {
         }
         teamsById.remove(team.getTeamId());
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-        if (module != null) module.getTeamDAO().disbandTeam(team.getTeamId());
+        if (module != null) {
+            org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                module.getTeamDAO().disbandTeam(team.getTeamId());
+            });
+        }
     }
 
     private void addMemberToDatabase(int teamId, UUID member) {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-        if (module != null) module.getTeamDAO().addMember(teamId, member);
+        if (module != null) {
+            org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                module.getTeamDAO().addMember(teamId, member);
+            });
+        }
     }
 
     private void removeMemberFromDatabase(UUID member) {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-        if (module != null) module.getTeamDAO().removeMember(member);
+        if (module != null) {
+            org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                module.getTeamDAO().removeMember(member);
+            });
+        }
     }
 
     // --- WEB STATS EXTENSIONS ---

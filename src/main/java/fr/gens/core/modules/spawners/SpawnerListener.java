@@ -145,7 +145,7 @@ public class SpawnerListener implements Listener {
         } else {
             // Vanilla spawner conversion
             CreatureSpawner spawner = (CreatureSpawner) block.getState();
-            String type = spawner.getSpawnedType().name();
+            String type = spawner.getSpawnedType() != null ? spawner.getSpawnedType().name() : "";
             
             if (module.getSpawnerManager().isValidType(type)) {
                 
@@ -216,7 +216,7 @@ public class SpawnerListener implements Listener {
             ItemMeta meta = item.getItemMeta();
             if (meta.getPersistentDataContainer().has(typeKey, PersistentDataType.STRING)) {
                 String type = meta.getPersistentDataContainer().get(typeKey, PersistentDataType.STRING);
-                if (type.equals(data.getType())) {
+                if (type != null && type.equals(data.getType())) {
                     if (data.getStackCount() < maxStack) {
                         int itemInternalStack = meta.getPersistentDataContainer().getOrDefault(stackKey, PersistentDataType.INTEGER, 1);
                         int physicalAmount = item.getAmount();

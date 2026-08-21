@@ -201,7 +201,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
   );
 }
 
-function PlayerGames({ uuid }: { uuid: string }) {
+function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState({ wheelEnabled: true, casinoEnabled: true });
   
@@ -249,8 +249,8 @@ function PlayerGames({ uuid }: { uuid: string }) {
     try {
       const res = await fetch(`${API_URL}/games/play`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid, gameId: 'wheel' })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ gameId: 'wheel' })
       });
       const data = await res.json();
       
@@ -293,8 +293,8 @@ function PlayerGames({ uuid }: { uuid: string }) {
     try {
       const res = await fetch(`${API_URL}/games/casino/play`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid, betId: selectedBet })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ betId: selectedBet })
       });
       const data = await res.json();
       
@@ -540,7 +540,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           <Route path="jobs" element={<ClientJobs />} />
           <Route path="map" element={<ClientMap />} />
           <Route path="stats" element={<PlayerStats uuid={playerData.uuid} isEcoEnabled={isModuleEnabled('Economy')} />} />
-          <Route path="games" element={<PlayerGames uuid={playerData.uuid} />} />
+          <Route path="games" element={<PlayerGames uuid={playerData.uuid} token={playerData.token} />} />
         </Routes>
       </main>
     </div>

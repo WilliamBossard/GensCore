@@ -112,7 +112,10 @@ public class SpawnerModule implements Module {
             });
         }
         
-        plugin.getCommand("spawner").setExecutor(new SpawnerCommand(plugin, this));
+        org.bukkit.command.PluginCommand cmd = plugin.getCommand("spawner");
+        if (cmd != null) {
+            cmd.setExecutor(new SpawnerCommand(plugin, this));
+        }
         
         plugin.getLangManager().sendConsoleMessage("spawnermodule.log_1");
     }
