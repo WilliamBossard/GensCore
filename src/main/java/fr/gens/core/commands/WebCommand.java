@@ -1,4 +1,4 @@
-﻿package fr.gens.core.commands;
+package fr.gens.core.commands;
 
 import cloud.commandframework.annotations.CommandMethod;
 import fr.gens.core.CorePlugin;

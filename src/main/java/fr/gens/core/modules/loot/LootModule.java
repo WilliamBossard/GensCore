@@ -1,4 +1,4 @@
-﻿package fr.gens.core.modules.loot;
+package fr.gens.core.modules.loot;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;

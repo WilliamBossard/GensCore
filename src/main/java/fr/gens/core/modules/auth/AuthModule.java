@@ -1,4 +1,4 @@
-﻿package fr.gens.core.modules.auth;
+package fr.gens.core.modules.auth;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
