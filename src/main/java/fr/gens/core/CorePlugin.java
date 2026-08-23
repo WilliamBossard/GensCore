@@ -43,8 +43,6 @@ public class CorePlugin extends JavaPlugin {
 
         this.storageManager = new StorageManager(this);
         this.databaseManager = new DatabaseManager(this);
-        this.teamManager = new TeamManager(this);
-        this.teamQuestManager = new fr.gens.core.modules.teams.TeamQuestManager(this);
         this.actionBarManager = new ActionBarManager(this);
         this.actionBarManager.start();
         
@@ -56,8 +54,12 @@ public class CorePlugin extends JavaPlugin {
         
         // 2. Enregistrer les modules
         this.moduleManager.registerModules();
+
+        // 3. Initialiser les managers dependants des modules (comme TeamManager)
+        this.teamManager = new TeamManager(this);
+        this.teamQuestManager = new fr.gens.core.modules.teams.TeamQuestManager(this);
         
-        // Demande ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  chaque module d'enregistrer ses commandes
+        // Demande Ã  chaque module d'enregistrer ses commandes
         for (fr.gens.core.modules.Module module : this.moduleManager.getModules()) {
             module.registerCommands(this);
         }
