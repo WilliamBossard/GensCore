@@ -334,21 +334,20 @@ public class QuestModule implements Module, Listener {
                         }
                     }
                 }
-
+                
                 if (!hasQuestsToday) {
                     // Assign new quests
                     assignNewQuests(uuid, data, conn);
                 }
-                
-                // Fetch stats
-                data.setCompletedTotal(questDAO.getQuestsCompletedTotal(uuid));
-                data.setRerollsDone(questDAO.getRerollsDone(uuid, today));
-
-                plugin.getFoliaLib().getImpl().runNextTick((t2) -> playerData.put(uuid, data));
-
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            
+            // Fetch stats (must be outside the connection block to avoid deadlock with connection pool = 1)
+            data.setCompletedTotal(questDAO.getQuestsCompletedTotal(uuid));
+            data.setRerollsDone(questDAO.getRerollsDone(uuid, today));
+
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> playerData.put(uuid, data));
         });
     }
 

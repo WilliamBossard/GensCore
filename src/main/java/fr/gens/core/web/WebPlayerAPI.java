@@ -113,7 +113,12 @@ public class WebPlayerAPI implements Listener {
                 isOp = targetOnline.isOp();
             } else {
                 playerUUID = webDAO.getPlayerUuidByUsername(req.username);
-                isOp = false; 
+                if (playerUUID != null) {
+                    org.bukkit.OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(playerUUID);
+                    isOp = offlineTarget.isOp();
+                } else {
+                    isOp = false;
+                }
             }
 
             if (playerUUID == null) {
