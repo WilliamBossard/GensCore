@@ -263,11 +263,11 @@ public class ModerationModule implements Module, Listener {
         plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
             ItemStack[] contents = target.getInventory().getContents();
             
-            plugin.getFoliaLib().getImpl().runAtEntity(sender, (s) -> {
+            plugin.getFoliaLib().getImpl().runAtEntity(p, (s) -> {
                 org.bukkit.inventory.Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.Component.text("Inv: " + target.getName()));
                 inv.setContents(contents);
-                sender.openInventory(inv);
-                sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Lecture seule (Clone Folia)"));
+                p.openInventory(inv);
+                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Lecture seule (Clone Folia)"));
             });
         });
     }

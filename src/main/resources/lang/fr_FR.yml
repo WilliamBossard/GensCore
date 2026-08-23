@@ -216,6 +216,9 @@ moderationmodule:
   msg_16: "{prefix}<red>Joueur introuvable."
   msg_17: "{prefix}<green><b>Vous avez retrouvé l'usage de la parole."
   msg_18: "{prefix}<red>Vous n'avez pas la permission."
+  kick_screen: "<red><bold>VOUS AVEZ ÉTÉ EXPULSÉ</bold></red><br><br><yellow>Raison:</yellow> <white><reason></white><br><br><gray>Vous pouvez vous reconnecter si le problème est résolu.</gray>"
+  ban_screen: "<red><bold>VOUS AVEZ ÉTÉ BANNI</bold></red><br><br><yellow>Raison:</yellow> <white><reason></white><br><br><gray>Pour contester, visitez notre Discord.</gray>"
+  mute_screen: "<red><bold>VOUS ÊTES RENDU MUET</bold></red><br><br><yellow>Raison:</yellow> <white><reason></white><br><br><gray>Pour contester, visitez notre Discord.</gray>"
 motdmodule:
   log_1: "[MOTD] Module activé."
   log_2: "[MOTD] Module désactivé."

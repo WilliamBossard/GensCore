@@ -43,6 +43,7 @@ web:
       tabboard: Customization of the TAB menu.
       teams: Guild and alliance system between players.
       teleport: TPA, /spawn, /home commands.
+      shop: In-game shop (Buy/Sell) configured by administrators.
       tomb: Tombs upon player death to save their inventory.
       utils: Useful commands /feed, /heal, /trash.
       web: Global settings for the web panel.
@@ -390,7 +391,21 @@ web:
     badge: Administrator
     settings:
       shop_title: Shop Management
-      modules_title: Module Management
+      modules_title: Modules Management
       files_title: File Editor
       players_title: Moderation
       title: Server Configuration
+    shop:
+      title: "Shop Management"
+      add_category: "Add Category"
+      add_item: "Add Item"
+      category_name: "Category Name"
+      category_icon: "Category Icon"
+      item_name: "Item Name"
+      buy_price: "Buy Price"
+      sell_price: "Sell Price"
+      material: "Material"
+      save: "Save"
+      cancel: "Cancel"
+      edit: "Edit"
+      delete: "Delete"

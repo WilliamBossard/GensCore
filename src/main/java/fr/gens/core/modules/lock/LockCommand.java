@@ -1,7 +1,7 @@
 package fr.gens.core.modules.lock;
 
 import fr.gens.core.CorePlugin;
-import org.bukkit.entity.Player;
+
 import cloud.commandframework.annotations.Argument;
 import cloud.commandframework.annotations.CommandMethod;
 

@@ -228,8 +228,8 @@ public class WebPlayerAPI implements Listener {
             }
             java.util.concurrent.CompletableFuture<Boolean> futureOp = new java.util.concurrent.CompletableFuture<>();
             plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
-                Player p = Bukkit.getPlayer(UUID.fromString(uuidStr));
-                futureOp.complete(p != null && p.isOp());
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(uuidStr));
+                futureOp.complete(op != null && op.isOp());
             });
             boolean isOp = futureOp.join();
             ctx.json(Map.of("isOp", isOp));

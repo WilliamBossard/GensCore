@@ -43,6 +43,7 @@ web:
       tabboard: Personnalisation du menu TAB.
       teams: Système de guildes et d'alliances entre joueurs.
       teleport: Commandes TPA, /spawn, /home.
+      shop: Boutique en jeu (Buy/Sell) configurée par les administrateurs.
       tomb: Tombes à la mort des joueurs pour conserver leur inventaire.
       utils: Commandes utiles /feed, /heal, /trash.
       web: Paramètres globaux du panel web.
@@ -359,3 +360,17 @@ web:
       files_title: Éditeur de Fichiers
       players_title: Modération
       title: Configuration du Serveur
+    shop:
+      title: "Gestion de la Boutique"
+      add_category: "Ajouter une Catégorie"
+      add_item: "Ajouter un Objet"
+      category_name: "Nom de la Catégorie"
+      category_icon: "Icône de la Catégorie"
+      item_name: "Nom de l'Objet"
+      buy_price: "Prix d'achat"
+      sell_price: "Prix de vente"
+      material: "Matériau"
+      save: "Sauvegarder"
+      cancel: "Annuler"
+      edit: "Modifier"
+      delete: "Supprimer"

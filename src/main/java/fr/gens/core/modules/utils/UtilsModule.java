@@ -79,9 +79,6 @@ public class UtilsModule implements Module, Listener {
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!p.hasPermission("genscore.craft")) {
-        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        if (!enabled) return;
-        if (!p.hasPermission("genscore.craft")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
             return;
         }
@@ -157,6 +154,7 @@ public class UtilsModule implements Module, Listener {
     @CommandMethod("feed")
     public void executeFeed(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!p.hasPermission("genscore.feed")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_7");
             return;
@@ -166,5 +164,3 @@ public class UtilsModule implements Module, Listener {
         plugin.getLangManager().sendMessage(p, "utilsmodule.msg_8");
     }
 }
-
-
