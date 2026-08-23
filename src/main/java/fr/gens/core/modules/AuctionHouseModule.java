@@ -73,7 +73,9 @@ public class AuctionHouseModule implements Module {
     }
 
     @CommandMethod("ah")
-    public void executeAh(Player p) {
+    public void executeAh(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_1");
             return;
@@ -82,7 +84,9 @@ public class AuctionHouseModule implements Module {
     }
 
     @CommandMethod("ah sell <price>")
-    public void executeAhSell(Player p, @Argument("price") double price) {
+    public void executeAhSell(org.bukkit.command.CommandSender sender, @Argument("price") double price) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_1");
             return;

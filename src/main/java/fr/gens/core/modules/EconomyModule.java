@@ -263,7 +263,9 @@ public class EconomyModule implements Module, Listener {
     }
 
     @CommandMethod("pay <target> <amount>")
-    public void executePay(Player p, @Argument("target") String targetName, @Argument("amount") double amount) {
+    public void executePay(org.bukkit.command.CommandSender sender, @Argument("target") String targetName, @Argument("amount") double amount) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);

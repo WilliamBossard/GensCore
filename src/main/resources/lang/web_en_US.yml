@@ -132,6 +132,20 @@ web:
       ranks: Ranks
       settings: Settings
       shop: Shop
+        new_cat: New Category
+        title: Shop Management
+        add_item: Add Item
+        buy_price: Buy Price
+        sell_price: Sell Price
+        save: Save
+        delete: Delete
+        edit: Edit
+        material: Material
+        target_stock: Target Stock
+        categories: Categories
+        items: Items
+        name: Name
+        icon: Icon
       web_inv: Web Inv.
     title: Admin Panel
   auth:

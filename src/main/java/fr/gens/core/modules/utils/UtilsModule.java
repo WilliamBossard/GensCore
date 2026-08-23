@@ -62,7 +62,9 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("anvil")
-    public void executeAnvil(Player p) {
+    public void executeAnvil(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!p.hasPermission("genscore.anvil")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_1");
@@ -72,7 +74,9 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("craftingtable")
-    public void executeCraftingTable(Player p) {
+    public void executeCraftingTable(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!p.hasPermission("genscore.craft")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
@@ -82,13 +86,19 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("craft")
-    public void executeCraft(Player p) { executeCraftingTable(p); }
+    public void executeCraft(org.bukkit.command.CommandSender sender) { executeCraftingTable(p); }
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
 
     @CommandMethod("workbench")
-    public void executeWorkbench(Player p) { executeCraftingTable(p); }
+    public void executeWorkbench(org.bukkit.command.CommandSender sender) { executeCraftingTable(p); }
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
 
     @CommandMethod("enchanttable")
-    public void executeEnchantTable(Player p) {
+    public void executeEnchantTable(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!p.hasPermission("genscore.enchant")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_3");
@@ -98,10 +108,14 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("enchanting")
-    public void executeEnchanting(Player p) { executeEnchantTable(p); }
+    public void executeEnchanting(org.bukkit.command.CommandSender sender) { executeEnchantTable(p); }
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
 
     @CommandMethod("ec [target]")
-    public void executeEnderChest(Player p, @Argument(value = "target", defaultValue = "") String targetName) {
+    public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!p.hasPermission("genscore.ec")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_4");
@@ -125,10 +139,14 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("enderchest [target]")
-    public void executeEnderChestAlias(Player p, @Argument(value = "target", defaultValue = "") String targetName) { executeEnderChest(p, targetName); }
+    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) { executeEnderChest(p, targetName); }
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
 
     @CommandMethod("feed")
-    public void executeFeed(Player p) {
+    public void executeFeed(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!p.hasPermission("genscore.feed")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_7");

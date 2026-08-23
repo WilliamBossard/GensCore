@@ -153,7 +153,9 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @CommandMethod("sethome [name]")
-    public void executeSetHome(Player p, @Argument(value = "name", defaultValue = "maison") String homeName) {
+    public void executeSetHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "maison") String homeName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
             return;
@@ -180,7 +182,9 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @CommandMethod("home [name]")
-    public void executeHome(Player p, @Argument(value = "name", defaultValue = "") String homeName) {
+    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "") String homeName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
             return;
@@ -205,7 +209,9 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @CommandMethod("delhome <name>")
-    public void executeDelHome(Player p, @Argument("name") String homeName) {
+    public void executeDelHome(org.bukkit.command.CommandSender sender, @Argument("name") String homeName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
             return;

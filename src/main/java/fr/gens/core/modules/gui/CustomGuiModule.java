@@ -156,7 +156,14 @@ public class CustomGuiModule implements Module, Listener {
     }
 
     @CommandMethod("menu [name]")
-    public void executeMenu(Player p, @Argument(value = "name", defaultValue = "principal") String menuName) {
+    public void executeMenu(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "principal") String menuName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+        if (menuName.equals("principal") && !menus.containsKey("principal")) {
+            String menuList = String.join(", ", menus.keySet());
+            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold>Menus disponibles : <yellow>" + (menuList.isEmpty() ? "Aucun" : menuList)));
+            return;
+        }
         CustomMenu menu = menus.get(menuName);
         if (menu != null) {
             openMenu(p, menu);

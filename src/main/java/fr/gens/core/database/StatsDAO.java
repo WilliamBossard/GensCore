@@ -234,7 +234,7 @@ public class StatsDAO {
             return future;
         }
         
-        plugin.getFoliaLib().getImpl().runAsync((task) -> {
+        Runnable task = () -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("UPDATE player_global_stats SET blocks_broken = ?, mobs_killed = ?, playtime_minutes = ?, deaths = ?, player_kills = ?, last_updated = ? WHERE uuid = ?")) {
                 
@@ -256,7 +256,14 @@ public class StatsDAO {
                 e.printStackTrace();
             }
             future.complete(null);
-        });
+        };
+
+        if (plugin.isEnabled()) {
+            plugin.getFoliaLib().getImpl().runAsync((t) -> task.run());
+        } else {
+            task.run();
+        }
+        
         return future;
     }
 }

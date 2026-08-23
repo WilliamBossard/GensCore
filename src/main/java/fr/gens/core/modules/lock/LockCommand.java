@@ -22,7 +22,9 @@ public class LockCommand {
     }
 
     @CommandMethod("lock [action]")
-    public void executeLock(Player player, @Argument(value = "action", defaultValue = "") String action) {
+    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", defaultValue = "") String action) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!lockModule.isEnabled()) {
             player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement désactivé.</red>"));
             return;

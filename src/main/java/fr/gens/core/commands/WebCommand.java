@@ -32,12 +32,16 @@ public class WebCommand implements Listener {
     }
 
     @CommandMethod("web")
-    public void executeHelp(Player player) {
+    public void executeHelp(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         plugin.getLangManager().sendMessage(player, "webcommand.msg_1");
     }
 
     @CommandMethod("web deposit")
-    public void executeDeposit(Player player) {
+    public void executeDeposit(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item == null || item.getType() == Material.AIR) {
             plugin.getLangManager().sendMessage(player, "webcommand.msg_2");
@@ -71,7 +75,9 @@ public class WebCommand implements Listener {
     }
 
     @CommandMethod("web withdraw")
-    public void executeWithdraw(Player player) {
+    public void executeWithdraw(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         openWithdrawGUI(player);
     }
 

@@ -31,7 +31,6 @@ public class ModuleManager {
         addModule(new fr.gens.core.modules.tabboard.TabBoardModule(plugin));
         addModule(new fr.gens.core.modules.stats.StatsModule(plugin));
         addModule(new fr.gens.core.modules.spawners.SpawnerModule(plugin));
-        addModule(new fr.gens.core.modules.ShopModule(plugin));
         addModule(new fr.gens.core.modules.shop.ShopModule(plugin));
         addModule(new fr.gens.core.modules.quests.QuestModule(plugin));
         addModule(new fr.gens.core.modules.motd.MotdModule(plugin));
@@ -39,7 +38,6 @@ public class ModuleManager {
         addModule(new fr.gens.core.modules.loot.LootModule(plugin));
         addModule(new fr.gens.core.modules.lock.LockModule(plugin));
         addModule(new fr.gens.core.modules.headdrop.HeadDropModule(plugin));
-        addModule(new fr.gens.core.modules.GuiModule(plugin));
         addModule(new fr.gens.core.modules.gui.CustomGuiModule(plugin));
         addModule(new fr.gens.core.modules.jobs.JobsModule(plugin));
         addModule(new fr.gens.core.modules.FastLeafDecayModule(plugin));

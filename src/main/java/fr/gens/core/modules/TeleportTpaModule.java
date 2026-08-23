@@ -75,7 +75,9 @@ public class TeleportTpaModule implements Module, Listener {
     }
 
     @CommandMethod("tpa <target>")
-    public void executeTpa(Player p, @Argument("target") String targetName) {
+    public void executeTpa(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_1");
             return;
@@ -120,7 +122,9 @@ public class TeleportTpaModule implements Module, Listener {
     }
 
     @CommandMethod("tpaccept")
-    public void executeTpaccept(Player p) {
+    public void executeTpaccept(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!tpaRequests.containsKey(p.getUniqueId())) {
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_6");
@@ -139,7 +143,9 @@ public class TeleportTpaModule implements Module, Listener {
     }
 
     @CommandMethod("tpdeny|tpadeny")
-    public void executeTpdeny(Player p) {
+    public void executeTpdeny(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!tpaRequests.containsKey(p.getUniqueId())) {
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_9");
@@ -155,7 +161,9 @@ public class TeleportTpaModule implements Module, Listener {
     }
 
     @CommandMethod("tpacancel")
-    public void executeTpacancel(Player p) {
+    public void executeTpacancel(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         boolean removed = false;
         for (Map.Entry<UUID, UUID> entry : tpaRequests.entrySet()) {

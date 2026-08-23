@@ -515,7 +515,9 @@ public class QuestModule implements Module, Listener {
     }
 
     @CommandMethod("quests")
-    public void executeQuests(Player p) {
+    public void executeQuests(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "questmodule.msg_1");
             return;
@@ -524,7 +526,9 @@ public class QuestModule implements Module, Listener {
     }
 
     @CommandMethod("quests reroll")
-    public void executeQuestsReroll(Player p) {
+    public void executeQuestsReroll(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "questmodule.msg_1");
             return;

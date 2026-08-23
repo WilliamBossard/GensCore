@@ -196,6 +196,10 @@ public class PlaceholderUtils {
                             .replace("%group%", "<group>")
                             .replace("%prefix%", "<prefix>");
 
+        if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            mmText = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, mmText);
+        }
+
         // Also convert legacy colors in the base string to MiniMessage tags so everything is handled cleanly
         mmText = mmText
                 .replace("<black>", "<black>")

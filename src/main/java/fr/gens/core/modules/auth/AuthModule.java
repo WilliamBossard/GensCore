@@ -114,7 +114,9 @@ public class AuthModule implements Module, Listener {
     }
 
     @CommandMethod("register <password> <confirm>")
-    public void executeRegister(Player p, @Argument("password") String password, @Argument("confirm") String confirm) {
+    public void executeRegister(org.bukkit.command.CommandSender sender, @Argument("password") String password, @Argument("confirm") String confirm) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         UUID uuid = p.getUniqueId();
 
@@ -154,7 +156,9 @@ public class AuthModule implements Module, Listener {
     }
 
     @CommandMethod("login <password>")
-    public void executeLogin(Player p, @Argument("password") String password) {
+    public void executeLogin(org.bukkit.command.CommandSender sender, @Argument("password") String password) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         UUID uuid = p.getUniqueId();
 
@@ -249,7 +253,9 @@ public class AuthModule implements Module, Listener {
     }
 
     @CommandMethod("changemdp <oldPass> <newPass>")
-    public void executeChangeMdp(Player p, @Argument("oldPass") String oldPass, @Argument("newPass") String newPass) {
+    public void executeChangeMdp(org.bukkit.command.CommandSender sender, @Argument("oldPass") String oldPass, @Argument("newPass") String newPass) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         UUID uuid = p.getUniqueId();
 

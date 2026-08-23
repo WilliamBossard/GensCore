@@ -99,7 +99,9 @@ public class TeleportBackModule implements Module, Listener {
     }
 
     @CommandMethod("back")
-    public void executeBack(Player p) {
+    public void executeBack(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_1");
             return;

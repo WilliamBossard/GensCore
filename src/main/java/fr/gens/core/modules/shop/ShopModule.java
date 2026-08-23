@@ -132,7 +132,9 @@ public class ShopModule implements Module {
     }
 
     @CommandMethod("shop")
-    public void executeShop(Player p) {
+    public void executeShop(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "shopmodule.msg_1");
             return;

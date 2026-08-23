@@ -24,7 +24,9 @@ public class TeamCommand {
     }
 
     @CommandMethod("team")
-    public void executeTeamGui(Player player) {
+    public void executeTeamGui(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) {
             player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement désactivé.</red>"));
             return;
@@ -33,7 +35,9 @@ public class TeamCommand {
     }
 
     @CommandMethod("team create <name>")
-    public void executeTeamCreate(Player player, @Argument("name") String name) {
+    public void executeTeamCreate(org.bukkit.command.CommandSender sender, @Argument("name") String name) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) {
             player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement désactivé.</red>"));
             return;
@@ -58,7 +62,9 @@ public class TeamCommand {
     }
 
     @CommandMethod("team invite <target>")
-    public void executeTeamInvite(Player player, @Argument("target") String targetName) {
+    public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) return;
         TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
         
@@ -82,7 +88,9 @@ public class TeamCommand {
     }
 
     @CommandMethod("team accept")
-    public void executeTeamAccept(Player player) {
+    public void executeTeamAccept(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) return;
         TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
         

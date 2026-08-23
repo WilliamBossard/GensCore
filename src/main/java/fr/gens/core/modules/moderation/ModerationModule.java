@@ -245,7 +245,9 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("openinv <target>")
-    public void executeOpenInv(Player sender, @Argument("target") String targetName) {
+    public void executeOpenInv(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player sender = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!sender.hasPermission("genscore.openinv")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_6");
@@ -438,6 +440,40 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
+    @CommandMethod("kick <target> [args]")
+    public void executeKick(org.bukkit.command.CommandSender sender, @Argument("target") String targetName, @Argument(value = "args", defaultValue = "") @cloud.commandframework.annotations.specifier.Greedy String argsString) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.kick")) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
+            return;
+        }
+        
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            Player target = Bukkit.getPlayer(targetName);
+            if (target == null) {
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_3");
+                return;
+            }
+
+            String[] parts = argsString.isEmpty() ? new String[0] : argsString.split(" ");
+            String reason = "Aucune raison";
+            if (parts.length > 0) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < parts.length; i++) sb.append(parts[i]).append(" ");
+                reason = sb.toString().trim();
+            }
+            
+            final String finalReason = reason;
+            plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
+                target.kick(plugin.getLangManager().getComponent("moderationmodule.kick_screen").replaceText(net.kyori.adventure.text.TextReplacementConfig.builder().matchLiteral("<reason>").replacement(finalReason).build()));
+            });
+            
+            String msg = plugin.getLangManager().getMessage("moderationmodule.msg_19");
+            if (msg != null) sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(msg.replace("<target>", target.getName())));
+            sendDiscordLog("KICK", target.getName(), sender.getName(), reason, 0);
+        });
+    }
+
     @CommandMethod("unban <target>")
     public void executeUnban(CommandSender sender, @Argument("target") String targetName) {
         if (!enabled) return;
@@ -461,7 +497,7 @@ public class ModerationModule implements Module, Listener {
         if (!enabled) return;
         if (isMuted(event.getPlayer().getUniqueId())) {
             MuteData data = getMuteData(event.getPlayer().getUniqueId());
-            event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªtes rendu muet sur le serveur ! Raison : " + data.reason));
+            event.getPlayer().sendMessage(plugin.getLangManager().getComponent("moderationmodule.mute_screen").replaceText(net.kyori.adventure.text.TextReplacementConfig.builder().matchLiteral("<reason>").replacement(data.reason).build()));
             event.setCancelled(true);
         }
     }

@@ -342,7 +342,9 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
     }
 
     @CommandMethod("discord link")
-    public void executeDiscordLink(Player p) {
+    public void executeDiscordLink(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
         if (p.hasPermission("genscore.discord.linked") && statsModule != null && statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
             plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
@@ -359,7 +361,9 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
     }
 
     @CommandMethod("discord")
-    public void executeDiscord(Player p) {
+    public void executeDiscord(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         plugin.getLangManager().sendMessage(p, "discordmodule.msg_4");
     }
 

@@ -66,7 +66,9 @@ public class TeleportSpawnModule implements Module {
     }
 
     @CommandMethod("setspawn")
-    public void executeSetSpawn(Player p) {
+    public void executeSetSpawn(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_1");
             return;
@@ -83,7 +85,9 @@ public class TeleportSpawnModule implements Module {
     }
 
     @CommandMethod("spawn")
-    public void executeSpawn(Player p) {
+    public void executeSpawn(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_1");
             return;
