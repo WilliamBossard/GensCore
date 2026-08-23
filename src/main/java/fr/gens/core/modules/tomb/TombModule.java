@@ -10,7 +10,8 @@ public class TombModule implements Module {
     private final CorePlugin plugin;
     private boolean enabled;
     private TombManager tombManager;
-    private int checkTask = -1;
+    private TombListener tombListener;
+    private com.tcoded.folialib.wrapper.task.WrappedTask checkTask = null;
     
     private fr.gens.core.database.TombDAO tombDAO;
 
@@ -48,10 +49,11 @@ public class TombModule implements Module {
         this.tombManager = new TombManager(plugin, this);
         this.tombManager.loadTombs();
 
-        Bukkit.getPluginManager().registerEvents(new TombListener(plugin, this), plugin);
+        this.tombListener = new TombListener(plugin, this);
+        Bukkit.getPluginManager().registerEvents(this.tombListener, plugin);
 
         // TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢che de vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rification des expirations et mise ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  jour de l'hologramme toutes les secondes (20 ticks)
-        this.checkTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+        this.checkTask = plugin.getFoliaLib().getImpl().runTimer(() -> {
             tombManager.checkExpirations();
         }, 20L, 20L);
     }
@@ -59,9 +61,12 @@ public class TombModule implements Module {
     @Override
     public void disable() {
         this.enabled = false;
-        if (checkTask != -1) {
-            Bukkit.getScheduler().cancelTask(checkTask);
-            checkTask = -1;
+        if (checkTask != null) {
+            checkTask.cancel();
+            checkTask = null;
+        }
+        if (this.tombListener != null) {
+            org.bukkit.event.HandlerList.unregisterAll(this.tombListener);
         }
     }
 

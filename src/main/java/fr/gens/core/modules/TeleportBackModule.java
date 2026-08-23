@@ -4,26 +4,23 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.TeleportUtil;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
 
 
-public class TeleportBackModule implements Module, CommandExecutor, Listener {
+public class TeleportBackModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
-    private final Map<UUID, Location> lastLocations = new HashMap<>();
+    private final Map<UUID, Location> lastLocations = new ConcurrentHashMap<>();
 
     public TeleportBackModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -54,8 +51,9 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
 
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
-        org.bukkit.command.PluginCommand backCmd = plugin.getCommand("back");
-        if (backCmd != null) backCmd.setExecutor(this);
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 
     @Override
@@ -70,7 +68,12 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
     }
 
     private void saveBacks() {
-        // Plus sauvegardÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© dans data.yml pour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©viter un fichier vide
+        // Plus sauvegardé dans data.yml pour éviter un fichier vide
+    }
+
+    @EventHandler
+    public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        lastLocations.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -95,19 +98,16 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
         saveBacks();
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    @CommandMethod("back")
+    public void executeBack(Player p) {
         if (!enabled) {
-            plugin.getLangManager().sendMessage(sender, "teleportbackmodule.msg_1");
-            return true;
+            plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_1");
+            return;
         }
-
-        if (!(sender instanceof Player)) return true;
-        Player p = (Player) sender;
 
         if (!p.hasPermission("genscore.back")) {
             plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_2");
-            return true;
+            return;
         }
 
         Location backLoc = lastLocations.get(p.getUniqueId());
@@ -116,7 +116,6 @@ public class TeleportBackModule implements Module, CommandExecutor, Listener {
         } else {
             plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_3");
         }
-        return true;
     }
 }
 

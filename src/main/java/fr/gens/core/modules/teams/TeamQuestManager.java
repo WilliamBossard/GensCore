@@ -4,8 +4,8 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.quests.QuestType;
 import org.bukkit.Bukkit;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class TeamQuestManager {
@@ -41,7 +41,7 @@ public class TeamQuestManager {
     private QuestDef activeQuest;
 
     // teamId -> progress
-    private final Map<Integer, Integer> teamProgress = new HashMap<>();
+    private final Map<Integer, Integer> teamProgress = new ConcurrentHashMap<>();
 
     public TeamQuestManager(CorePlugin plugin) {
         this.plugin = plugin;
@@ -79,7 +79,7 @@ public class TeamQuestManager {
     }
 
     public void saveProgress(int teamId, int progress) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
             if (module != null) module.getTeamDAO().saveTeamQuestProgress(teamId, activeQuest.id, progress);
         });
@@ -103,7 +103,7 @@ public class TeamQuestManager {
             team.addPoints(activeQuest.points);
             
             // Sauvegarder les points dans la DB
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
                 if (module != null) module.getTeamDAO().saveTeamStats(team.getTeamId(), team.getWeeklyPoints(), team.getTotalPoints());
                 
@@ -120,7 +120,7 @@ public class TeamQuestManager {
                     }
                     org.bukkit.entity.Player p = Bukkit.getPlayer(memberId);
                     if (p != null && p.isOnline()) {
-                        Bukkit.getScheduler().runTask(plugin, () -> {
+                        plugin.getFoliaLib().getImpl().runAtEntity(p, (t2) -> {
                             if (module != null) module.getTeamDAO().processPendingRewards(p);
                         });
                     }

@@ -52,7 +52,7 @@ public class TombManager {
         activeTombs.put(id, tomb);
         tombsByLocation.put(location.getBlock().getLocation(), id);
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAtLocation(location, (t2) -> {
             Location holoLoc = location.clone().add(0.5, 1.2, 0.5);
             TextDisplay display = (TextDisplay) location.getWorld().spawnEntity(holoLoc, EntityType.TEXT_DISPLAY);
             String ownerName = Bukkit.getOfflinePlayer(ownerId).getName();
@@ -62,20 +62,20 @@ public class TombManager {
             display.getPersistentDataContainer().set(new NamespacedKey(plugin, "tomb_id"), PersistentDataType.STRING, id.toString());
         });
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             module.getTombDAO().createTomb(id, ownerId, location, contents, xp, expirationTime);
         });
 
         return tomb;
     }
 
-    public void removeTomb(UUID id) {
+    public TombData removeTombAndGet(UUID id) {
         TombData tomb = activeTombs.remove(id);
         if (tomb != null) {
             tombsByLocation.remove(tomb.getLocation().getBlock().getLocation());
             
             // Remove block and hologram
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAtLocation(tomb.getLocation(), (t2) -> {
                 Block block = tomb.getLocation().getBlock();
                 block.setType(Material.AIR);
                 
@@ -90,10 +90,15 @@ public class TombManager {
                 }
             });
 
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 module.getTombDAO().deleteTomb(id);
             });
         }
+        return tomb;
+    }
+
+    public void removeTomb(UUID id) {
+        removeTombAndGet(id);
     }
 
     public TombData getTombAt(Location location) {
@@ -119,20 +124,22 @@ public class TombManager {
                     removeTomb(tomb.getId());
                     continue;
                 } else if (action.equals("DROP")) {
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        for (ItemStack item : tomb.getContents()) {
-                            if (item != null && item.getType() != Material.AIR) {
-                                tomb.getLocation().getWorld().dropItemNaturally(tomb.getLocation(), item);
+                    TombData removed = removeTombAndGet(tomb.getId());
+                    if (removed != null) {
+                        plugin.getFoliaLib().getImpl().runAtLocation(removed.getLocation(), (t2) -> {
+                            for (ItemStack item : removed.getContents()) {
+                                if (item != null && item.getType() != Material.AIR) {
+                                    removed.getLocation().getWorld().dropItemNaturally(removed.getLocation(), item);
+                                }
                             }
-                        }
-                    });
-                    removeTomb(tomb.getId());
+                        });
+                    }
                     continue;
                 }
             }
 
             // Update Hologram
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAtLocation(tomb.getLocation(), (t2) -> {
                 for (Entity entity : tomb.getLocation().getWorld().getNearbyEntities(tomb.getLocation().clone().add(0.5, 0.5, 0.5), 2, 2, 2)) {
                     if (entity.getType() == EntityType.TEXT_DISPLAY && entity.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
                         String storedId = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);

@@ -36,7 +36,7 @@ public class BlueMapModule implements Module, Listener {
         if (!plugin.isEnabled()) return;
         
         // Relance le rendu de la carte
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runLater((t2) -> {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap start");
             plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_1");
         }, 20L);
@@ -50,7 +50,7 @@ public class BlueMapModule implements Module, Listener {
         if (!plugin.isEnabled()) return;
         
         // Met en pause le rendu pour ÃƒÆ’Ã‚Â©conomiser les performances
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runLater((t2) -> {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap stop");
             plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_2");
         }, 20L);

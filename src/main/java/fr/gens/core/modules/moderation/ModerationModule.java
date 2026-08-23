@@ -6,10 +6,10 @@ import fr.gens.core.modules.auth.AuthModule;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import cloud.commandframework.annotations.Argument;
+import cloud.commandframework.annotations.CommandMethod;
+import cloud.commandframework.annotations.specifier.Greedy;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,10 +22,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +34,7 @@ import fr.gens.core.modules.discord.DiscordModule;
 import io.papermc.paper.event.player.AsyncChatEvent;
 
 
-public class ModerationModule implements Module, CommandExecutor, TabCompleter, Listener {
+public class ModerationModule implements Module, Listener {
 
     public static class MuteData {
         public String reason;
@@ -48,8 +47,8 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
 
     private final CorePlugin plugin;
     private boolean enabled;
-    private final Set<UUID> frozenPlayers = new HashSet<>();
-    private final Map<UUID, MuteData> mutedPlayers = new HashMap<>();
+    private final Set<UUID> frozenPlayers = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, MuteData> mutedPlayers = new ConcurrentHashMap<>();
     
     private fr.gens.core.database.ModerationDAO moderationDAO;
 
@@ -89,23 +88,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         this.moderationDAO = new fr.gens.core.database.ModerationDAO(plugin);
         this.moderationDAO.initDatabase();
         
-        org.bukkit.command.PluginCommand cmd_freeze = plugin.getCommand("freeze");
-        if (cmd_freeze != null) { cmd_freeze.setExecutor(this); cmd_freeze.setTabCompleter(this); }
-        
-        org.bukkit.command.PluginCommand cmd_openinv = plugin.getCommand("openinv");
-        if (cmd_openinv != null) { cmd_openinv.setExecutor(this); cmd_openinv.setTabCompleter(this); }
-        
-        org.bukkit.command.PluginCommand cmd_resetmdp = plugin.getCommand("resetmdp");
-        if (cmd_resetmdp != null) { cmd_resetmdp.setExecutor(this); cmd_resetmdp.setTabCompleter(this); }
-        
-        org.bukkit.command.PluginCommand cmd_mute = plugin.getCommand("mute");
-        if (cmd_mute != null) { cmd_mute.setExecutor(this); cmd_mute.setTabCompleter(this); }
-        org.bukkit.command.PluginCommand cmd_unmute = plugin.getCommand("unmute");
-        if (cmd_unmute != null) { cmd_unmute.setExecutor(this); cmd_unmute.setTabCompleter(this); }
-        org.bukkit.command.PluginCommand cmd_ban = plugin.getCommand("ban");
-        if (cmd_ban != null) { cmd_ban.setExecutor(this); cmd_ban.setTabCompleter(this); }
-        org.bukkit.command.PluginCommand cmd_unban = plugin.getCommand("unban");
-        if (cmd_unban != null) { cmd_unban.setExecutor(this); cmd_unban.setTabCompleter(this); }
+
 
         loadFrozenPlayers();
         loadMutedPlayers();
@@ -124,6 +107,13 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         this.moderationDAO.saveMutes(mutedPlayers);
         
         plugin.getLangManager().sendConsoleMessage("moderationmodule.log_2");
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
     
     public void loadFrozenPlayers() {
@@ -209,192 +199,224 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         }
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!enabled) return true;
-
-        if (command.getName().equalsIgnoreCase("freeze")) {
-            if (!sender.hasPermission("genscore.freeze")) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_1");
-                return true;
-            }
-            if (args.length == 0) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_2");
-                return true;
-            }
-            Player target = Bukkit.getPlayer(args[0]);
-            if (target == null) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_3");
-                return true;
-            }
-            UUID uuid = target.getUniqueId();
+    @CommandMethod("freeze <target>")
+    public void executeFreeze(CommandSender sender, @Argument("target") String targetName) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.freeze")) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_1");
+            return;
+        }
+        Player target = Bukkit.getPlayer(targetName);
+        if (target == null) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_3");
+            return;
+        }
+        UUID uuid = target.getUniqueId();
+        
+        // Exécution sur le thread du joueur ciblé pour éviter les crashs AsyncCatcher sur Folia
+        plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
             if (frozenPlayers.contains(uuid)) {
                 frozenPlayers.remove(uuid);
                 target.setGravity(true);
-                sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©gelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.");
+                
+                // Retour sur le thread du sender pour le message si c'est un joueur
+                if (sender instanceof Player) {
+                    plugin.getFoliaLib().getImpl().runAtEntity((Player) sender, (s) -> {
+                        sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été dégelé."));
+                    });
+                } else {
+                    sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été dégelé."));
+                }
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_4");
             } else {
                 frozenPlayers.add(uuid);
                 target.setGravity(false); // Geler en l'air
-                sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© gelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.");
+                
+                if (sender instanceof Player) {
+                    plugin.getFoliaLib().getImpl().runAtEntity((Player) sender, (s) -> {
+                        sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été gelé."));
+                    });
+                } else {
+                    sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été gelé."));
+                }
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_5");
             }
-            return true;
-        }
+        });
+    }
 
-        if (command.getName().equalsIgnoreCase("openinv")) {
-            if (!sender.hasPermission("genscore.openinv")) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_6");
-                return true;
-            }
-            if (!(sender instanceof Player)) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_7");
-                return true;
-            }
-            if (args.length == 0) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_8");
-                return true;
-            }
-            Player target = Bukkit.getPlayer(args[0]);
-            if (target == null) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_9");
-                return true;
-            }
-            Player p = (Player) sender;
-            p.openInventory(target.getInventory());
-            return true;
+    @CommandMethod("openinv <target>")
+    public void executeOpenInv(Player sender, @Argument("target") String targetName) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.openinv")) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_6");
+            return;
         }
+        Player target = Bukkit.getPlayer(targetName);
+        if (target == null) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_9");
+            return;
+        }
+        
+        // Impossible d'ouvrir l'inventaire d'une autre région sur Folia. On utilise un clone.
+        plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
+            ItemStack[] contents = target.getInventory().getContents();
+            
+            plugin.getFoliaLib().getImpl().runAtEntity(sender, (s) -> {
+                org.bukkit.inventory.Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.Component.text("Inv: " + target.getName()));
+                inv.setContents(contents);
+                sender.openInventory(inv);
+                sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Lecture seule (Clone Folia)"));
+            });
+        });
+    }
 
-        if (command.getName().equalsIgnoreCase("resetmdp")) {
-            if (!sender.hasPermission("genscore.admin")) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_10");
-                return true;
-            }
-            if (args.length == 0) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_11");
-                return true;
-            }
-            
-            Player targetOnline = Bukkit.getPlayer(args[0]);
-            UUID targetUUID = null;
-            
-            if (targetOnline != null) {
-                targetUUID = targetOnline.getUniqueId();
-            } else {
-                for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-            if (op == null) continue;
-                    String name = op.getName();
-                    if (name != null && name.equalsIgnoreCase(args[0])) {
-                        targetUUID = op.getUniqueId();
-                        break;
-                    }
+    @CommandMethod("resetmdp <target>")
+    public void executeResetMdp(CommandSender sender, @Argument("target") String targetName) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.admin")) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_10");
+            return;
+        }
+        
+        Player targetOnline = Bukkit.getPlayer(targetName);
+        UUID targetUUID = null;
+        
+        if (targetOnline != null) {
+            targetUUID = targetOnline.getUniqueId();
+        } else {
+            for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
+        if (op == null) continue;
+                String name = op.getName();
+                if (name != null && name.equalsIgnoreCase(targetName)) {
+                    targetUUID = op.getUniqueId();
+                    break;
                 }
             }
-            
-            if (targetUUID == null) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_12");
-                return true;
-            }
-            
+        }
+        
+        if (targetUUID == null) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_12");
+            return;
+        }
+        
+        final UUID finalUUID = targetUUID;
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
-            if (authModule == null || authModule.getAuthDAO().getAuthData(targetUUID) == null) {
+            if (authModule == null || authModule.getAuthDAO().getAuthData(finalUUID) == null) {
                 plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_41");
-                return true;
+                return;
             }
             
-            authModule.getAuthDAO().removeAuthData(targetUUID);
+            authModule.getAuthDAO().removeAuthData(finalUUID);
             
             if (targetOnline != null) {
-                Module authMod = plugin.getModuleManager().getModule("auth");
-                if (authMod != null && authMod.isEnabled() && authMod instanceof AuthModule) {
-                    ((AuthModule) authMod).forceLogout(targetUUID);
-                }
+                plugin.getFoliaLib().getImpl().runAtEntity(targetOnline, (t) -> {
+                    Module authMod = plugin.getModuleManager().getModule("auth");
+                    if (authMod != null && authMod.isEnabled() && authMod instanceof AuthModule) {
+                        ((AuthModule) authMod).forceLogout(finalUUID);
+                    }
+                });
             }
             
-            sender.sendMessage("<green>Le mot de passe de " + args[0] + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© supprimÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.");
-            return true;
-        }
+            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le mot de passe de " + targetName + " a été supprimé."));
+        });
+    }
 
-        if (command.getName().equalsIgnoreCase("mute")) {
-            if (!sender.hasPermission("genscore.mute")) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_14");
-                return true;
-            }
-            if (args.length < 1) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_15");
-                return true;
-            }
-            
-            OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+    @CommandMethod("mute <target> [args]")
+    public void executeMute(CommandSender sender, @Argument("target") String targetName, @Argument(value = "args", defaultValue = "") @Greedy String argsString) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.mute")) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_14");
+            return;
+        }
+        
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target == null || target.getUniqueId() == null) {
                 plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_16");
-                return true;
+                return;
             }
 
+            String[] parts = argsString.isEmpty() ? new String[0] : argsString.split(" ");
             long duration = 0;
             String reason = "Aucune raison";
-            if (args.length > 1) {
-                duration = parseDuration(args[1]);
+            
+            if (parts.length > 0) {
+                duration = parseDuration(parts[0]);
                 if (duration > 0) {
-                    if (args.length > 2) {
+                    if (parts.length > 1) {
                         StringBuilder sb = new StringBuilder();
-                        for (int i = 2; i < args.length; i++) sb.append(args[i]).append(" ");
+                        for (int i = 1; i < parts.length; i++) sb.append(parts[i]).append(" ");
                         reason = sb.toString().trim();
                     }
                 } else {
                     StringBuilder sb = new StringBuilder();
-                    for (int i = 1; i < args.length; i++) sb.append(args[i]).append(" ");
+                    for (int i = 0; i < parts.length; i++) sb.append(parts[i]).append(" ");
                     reason = sb.toString().trim();
                 }
             }
             
             mutePlayer(target.getUniqueId(), reason, duration);
-            sender.sendMessage("<green>Vous avez rendu muet " + target.getName());
+            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez rendu muet " + (target.getName() != null ? target.getName() : targetName)));
             Player online = target.getPlayer();
             if (online != null) {
-                online.sendMessage("<red><bold>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© rendu muet par un modÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rateur ! Raison : " + reason);
+                final String finalReason = reason;
+                plugin.getFoliaLib().getImpl().runAtEntity(online, (t) -> {
+                    online.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red><bold>Vous avez été rendu muet par un modérateur ! Raison : " + finalReason));
+                });
             }
             if (target.getName() != null) sendDiscordLog("MUTE", target.getName(), sender.getName(), reason, duration);
-            return true;
-        }
+        });
+    }
 
-        if (command.getName().equalsIgnoreCase("unmute")) {
-            if (!sender.hasPermission("genscore.mute")) return true;
-            if (args.length < 1) return false;
-            OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+    @CommandMethod("unmute <target>")
+    public void executeUnmute(CommandSender sender, @Argument("target") String targetName) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.mute")) return;
+        
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target != null && target.getUniqueId() != null) {
                 unmutePlayer(target.getUniqueId());
-                sender.sendMessage("<green>Le joueur " + target.getName() + " n'est plus muet.");
+                sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + (target.getName() != null ? target.getName() : targetName) + " n'est plus muet."));
                 Player online = target.getPlayer();
-                if (online != null) plugin.getLangManager().sendMessage(online, "moderationmodule.msg_17");
-                sendDiscordLog("UNMUTE", target.getName(), sender.getName(), "PardonnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©", 0);
+                if (online != null) {
+                    plugin.getFoliaLib().getImpl().runAtEntity(online, (t) -> {
+                        plugin.getLangManager().sendMessage(online, "moderationmodule.msg_17");
+                    });
+                }
+                sendDiscordLog("UNMUTE", target.getName() != null ? target.getName() : targetName, sender.getName(), "Pardonné", 0);
             }
-            return true;
+        });
+    }
+
+    @CommandMethod("ban <target> [args]")
+    public void executeBan(CommandSender sender, @Argument("target") String targetName, @Argument(value = "args", defaultValue = "") @Greedy String argsString) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.ban")) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
+            return;
         }
+        
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+            if (target == null || target.getUniqueId() == null) return;
 
-        if (command.getName().equalsIgnoreCase("ban")) {
-            if (!sender.hasPermission("genscore.ban")) {
-                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
-                return true;
-            }
-            if (args.length < 1) return false;
-            
-            OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
-            if (target == null || target.getUniqueId() == null) return true;
-
+            String[] parts = argsString.isEmpty() ? new String[0] : argsString.split(" ");
             long durationMs = 0;
             String reason = "Aucune raison";
-            if (args.length > 1) {
-                durationMs = parseDuration(args[1]);
+            
+            if (parts.length > 0) {
+                durationMs = parseDuration(parts[0]);
                 if (durationMs > 0) {
-                    if (args.length > 2) {
+                    if (parts.length > 1) {
                         StringBuilder sb = new StringBuilder();
-                        for (int i = 2; i < args.length; i++) sb.append(args[i]).append(" ");
+                        for (int i = 1; i < parts.length; i++) sb.append(parts[i]).append(" ");
                         reason = sb.toString().trim();
                     }
                 } else {
                     StringBuilder sb = new StringBuilder();
-                    for (int i = 1; i < args.length; i++) sb.append(args[i]).append(" ");
+                    for (int i = 0; i < parts.length; i++) sb.append(parts[i]).append(" ");
                     reason = sb.toString().trim();
                 }
             }
@@ -406,96 +428,30 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
             
             Player online = target.getPlayer();
             if (online != null) {
-                online.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© banni du serveur.<br><white>Raison : " + reason));
+                final String finalReason = reason;
+                plugin.getFoliaLib().getImpl().runAtEntity(online, (t) -> {
+                    online.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été banni du serveur.<br><white>Raison : " + finalReason));
+                });
             }
-            sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© banni.");
-            sendDiscordLog("BAN", target.getName(), sender.getName(), reason, durationMs);
-            return true;
-        }
+            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + (target.getName() != null ? target.getName() : targetName) + " a été banni."));
+            sendDiscordLog("BAN", target.getName() != null ? target.getName() : targetName, sender.getName(), reason, durationMs);
+        });
+    }
 
-        if (command.getName().equalsIgnoreCase("unban")) {
-            if (!sender.hasPermission("genscore.ban")) return true;
-            if (args.length < 1) return false;
-            OfflinePlayer target = Bukkit.getOfflinePlayer(args[0]);
+    @CommandMethod("unban <target>")
+    public void executeUnban(CommandSender sender, @Argument("target") String targetName) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.ban")) return;
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target != null && target.getName() != null) {
                 com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
                 org.bukkit.ban.ProfileBanList banList = Bukkit.getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                 banList.pardon(profile);
-                sender.sendMessage("<green>Le joueur " + target.getName() + " a ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©banni.");
-                sendDiscordLog("UNBAN", target.getName(), sender.getName(), "PardonnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©", 0);
+                sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été débanni."));
+                sendDiscordLog("UNBAN", target.getName(), sender.getName(), "Pardonné", 0);
             }
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-        if (!enabled) return completions;
-
-        if (command.getName().equalsIgnoreCase("freeze") && sender.hasPermission("genscore.freeze")) {
-            if (args.length == 1) {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-                    if (p != null && p.getName() != null && p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
-                        completions.add(p.getName());
-                    }
-                }
-            }
-        }
-        else if (command.getName().equalsIgnoreCase("openinv") && sender.hasPermission("genscore.openinv")) {
-            if (args.length == 1) {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-                    if (p != null && p.getName() != null && p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
-                        completions.add(p.getName());
-                    }
-                }
-            }
-        }
-        else if (command.getName().equalsIgnoreCase("resetmdp") && sender.hasPermission("genscore.admin")) {
-            if (args.length == 1) {
-                for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-            if (op == null) continue;
-                    if (op != null) {
-                        String name = op.getName();
-                        if (name != null && name.toLowerCase().startsWith(args[0].toLowerCase())) {
-                            completions.add(name);
-                        }
-                    }
-                }
-            }
-        }
-        else if ((command.getName().equalsIgnoreCase("ban") || command.getName().equalsIgnoreCase("mute")) && sender.hasPermission("genscore.ban")) {
-            if (args.length == 1) {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-                    if (p != null && p.getName() != null && p.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
-                        completions.add(p.getName());
-                    }
-                }
-            } else if (args.length == 2) {
-                if ("1h".startsWith(args[1].toLowerCase())) completions.add("1h");
-                if ("1d".startsWith(args[1].toLowerCase())) completions.add("1d");
-                if ("7d".startsWith(args[1].toLowerCase())) completions.add("7d");
-            }
-        }
-        else if ((command.getName().equalsIgnoreCase("unban") || command.getName().equalsIgnoreCase("unmute")) && sender.hasPermission("genscore.ban")) {
-            if (args.length == 1) {
-                for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-            if (op == null) continue;
-                    if (op != null) {
-                        String name = op.getName();
-                        if (name != null && name.toLowerCase().startsWith(args[0].toLowerCase())) {
-                            completions.add(name);
-                        }
-                    }
-                }
-            }
-        }
-        return completions;
+        });
     }
 
     // --- EVÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°NEMENTS POUR LE FREEZE ET MUTE ---
@@ -505,7 +461,7 @@ public class ModerationModule implements Module, CommandExecutor, TabCompleter, 
         if (!enabled) return;
         if (isMuted(event.getPlayer().getUniqueId())) {
             MuteData data = getMuteData(event.getPlayer().getUniqueId());
-            event.getPlayer().sendMessage("<red>Vous ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªtes rendu muet sur le serveur ! Raison : " + data.reason);
+            event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªtes rendu muet sur le serveur ! Raison : " + data.reason));
             event.setCancelled(true);
         }
     }

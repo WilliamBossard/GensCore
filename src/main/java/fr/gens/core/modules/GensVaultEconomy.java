@@ -138,11 +138,11 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
-        if (!has(player, amount)) {
+        if (economyModule.takeMoneyAtomic(player.getUniqueId(), amount)) {
+            return new EconomyResponse(amount, getBalance(player), EconomyResponse.ResponseType.SUCCESS, null);
+        } else {
             return new EconomyResponse(amount, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Fonds insuffisants");
         }
-        economyModule.takeMoney(player.getUniqueId(), amount);
-        return new EconomyResponse(amount, getBalance(player), EconomyResponse.ResponseType.SUCCESS, null);
     }
 
     @Override

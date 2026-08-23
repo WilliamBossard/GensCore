@@ -73,7 +73,7 @@ public class TeamData {
         for (UUID uuid : members) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
-                p.sendMessage("<dark_gray>[<aqua>Team " + name + "<dark_gray>] <gray>" + message);
+                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<aqua>Team " + name + "<dark_gray>] <gray>" + message));
             }
         }
     }

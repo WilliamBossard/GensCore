@@ -26,6 +26,10 @@ GensCore relies on the following plugins to function correctly:
 
 > **Note:** If either of these plugins is missing from your `plugins/` folder, GensCore will refuse to load to prevent severe errors during runtime.
 
+### Compatibility: Paper Only
+**GensCore is STRICTLY compatible with PaperMC (and its forks like Purpur).** 
+It will **not** start on a standard Spigot server. The plugin relies on modern Paper-exclusive APIs such as *Kyori Adventure (MiniMessage)* for text components and the *Cloud Command Framework* for Paper.
+
 ---
 
 ## Configuration & Networks (Ports)

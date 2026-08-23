@@ -2,15 +2,16 @@ package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
 
 
 public class TeamManager {
     private final CorePlugin plugin;
-    private final Map<Integer, TeamData> teamsById = new HashMap<>();
-    private final Map<UUID, TeamData> teamsByPlayer = new HashMap<>();
+    private final Map<Integer, TeamData> teamsById = new ConcurrentHashMap<>();
+    private final Map<UUID, TeamData> teamsByPlayer = new ConcurrentHashMap<>();
+    private final java.util.Set<String> teamNames = ConcurrentHashMap.newKeySet();
 
     public TeamManager(CorePlugin plugin) {
         this.plugin = plugin;
@@ -19,7 +20,12 @@ public class TeamManager {
 
     private void loadTeams() {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-        if (module != null) module.getTeamDAO().loadTeams(teamsById, teamsByPlayer);
+        if (module != null) {
+            module.getTeamDAO().loadTeams(teamsById, teamsByPlayer);
+            for (TeamData t : teamsById.values()) {
+                teamNames.add(t.getName().toLowerCase());
+            }
+        }
         plugin.getLogger().info("Loaded " + teamsById.size() + " teams in memory.");
     }
 
@@ -32,10 +38,8 @@ public class TeamManager {
     }
 
     public TeamData createTeam(String name, UUID leader) {
-        for (TeamData t : teamsById.values()) {
-            if (t.getName().equalsIgnoreCase(name)) {
-                return null; // Name taken
-            }
+        if (teamNames.contains(name.toLowerCase())) {
+            return null; // Name taken
         }
         if (getPlayerTeam(leader) != null) return null; // Already in a team
 
@@ -44,6 +48,7 @@ public class TeamManager {
         if (id != -1) {
             TeamData team = new TeamData(id, name, leader);
             teamsById.put(id, team);
+            teamNames.add(name.toLowerCase());
             addMemberToDatabase(id, leader);
             team.addMember(leader);
             teamsByPlayer.put(leader, team);
@@ -53,6 +58,36 @@ public class TeamManager {
             return team;
         }
         return null;
+    }
+
+    public void createTeamAsync(String name, UUID leader, java.util.function.Consumer<TeamData> callback) {
+        if (teamNames.contains(name.toLowerCase()) || getPlayerTeam(leader) != null) {
+            callback.accept(null);
+            return;
+        }
+
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            int id = module != null ? module.getTeamDAO().createTeam(name, leader) : -1;
+            
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+                if (id != -1) {
+                    TeamData team = new TeamData(id, name, leader);
+                    teamsById.put(id, team);
+                    teamNames.add(name.toLowerCase());
+                    addMemberToDatabase(id, leader);
+                    team.addMember(leader);
+                    teamsByPlayer.put(leader, team);
+                    
+                    if (module != null) {
+                        plugin.getFoliaLib().getImpl().runAsync((t3) -> module.getTeamDAO().initTeamStats(id));
+                    }
+                    callback.accept(team);
+                } else {
+                    callback.accept(null);
+                }
+            });
+        });
     }
 
     public void addMember(TeamData team, UUID newMember) {
@@ -77,10 +112,11 @@ public class TeamManager {
             teamsByPlayer.remove(uuid);
             removeMemberFromDatabase(uuid);
         }
+        teamNames.remove(team.getName().toLowerCase());
         teamsById.remove(team.getTeamId());
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 module.getTeamDAO().disbandTeam(team.getTeamId());
             });
         }
@@ -89,7 +125,7 @@ public class TeamManager {
     private void addMemberToDatabase(int teamId, UUID member) {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 module.getTeamDAO().addMember(teamId, member);
             });
         }
@@ -98,7 +134,7 @@ public class TeamManager {
     private void removeMemberFromDatabase(UUID member) {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            org.bukkit.Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 module.getTeamDAO().removeMember(member);
             });
         }

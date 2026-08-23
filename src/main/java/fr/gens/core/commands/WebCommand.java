@@ -50,7 +50,7 @@ public class WebCommand implements Listener {
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_bets (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
                 pstmt.setString(1, player.getUniqueId().toString());
@@ -59,7 +59,7 @@ public class WebCommand implements Listener {
                 pstmt.setString(4, base64);
                 pstmt.executeUpdate();
 
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
                     player.getInventory().setItemInMainHand(null);
                     plugin.getLangManager().sendMessage(player, "webcommand.msg_4");
                 });
@@ -76,7 +76,7 @@ public class WebCommand implements Listener {
     }
 
     private void openWithdrawGUI(Player player) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("SELECT id, base64_data FROM player_web_rewards WHERE uuid = ?")) {
                 pstmt.setString(1, player.getUniqueId().toString());
@@ -87,7 +87,7 @@ public class WebCommand implements Listener {
                     items.add(new WebRewardItem(rs.getInt("id"), rs.getString("base64_data")));
                 }
 
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
                     Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Retraits Web (R\u00e9compenses)"));
                     int slot = 0;
                     for (WebRewardItem wItem : items) {
@@ -116,6 +116,14 @@ public class WebCommand implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Retraits Web (R\u00e9compenses)")) {
+            if (event.getClickedInventory() == null) return;
+            if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
+                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+            
             event.setCancelled(true);
             if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR) return;
             
@@ -129,13 +137,13 @@ public class WebCommand implements Listener {
             Player player = (Player) event.getWhoClicked();
             
             // Delete from DB and give to player
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 try (Connection conn = plugin.getDatabaseManager().getConnection();
                      PreparedStatement pstmt = conn.prepareStatement("DELETE FROM player_web_rewards WHERE id = ?")) {
                     pstmt.setInt(1, id);
                     int affected = pstmt.executeUpdate();
                     if (affected > 0) {
-                        Bukkit.getScheduler().runTask(plugin, () -> {
+                        plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
                             meta.getPersistentDataContainer().remove(rewardKey);
                             clicked.setItemMeta(meta);
                             player.getInventory().addItem(clicked).forEach((idx, itm) -> {

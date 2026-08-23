@@ -19,7 +19,7 @@ import org.bukkit.scoreboard.Team;
 import net.kyori.adventure.text.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,8 +29,8 @@ public class TabBoardModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
-    private final Map<UUID, GensScoreboard> boards = new HashMap<>();
-    private int taskId = -1;
+    private final Map<UUID, GensScoreboard> boards = new ConcurrentHashMap<>();
+    private com.tcoded.folialib.wrapper.task.WrappedTask updateTask = null;
 
     public TabBoardModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -63,7 +63,7 @@ public class TabBoardModule implements Module, Listener {
         }
 
         // TÃƒÆ’Ã‚Â¢che de mise ÃƒÆ’Ã‚Â  jour toutes les secondes (20 ticks)
-        taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::updateAll, 20L, 20L);
+        updateTask = plugin.getFoliaLib().getImpl().runTimer(() -> this.updateAll(), 20L, 20L);
         plugin.getLangManager().sendConsoleMessage("tabboardmodule.log_1");
     }
 
@@ -71,9 +71,9 @@ public class TabBoardModule implements Module, Listener {
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
-        if (taskId != -1) {
-            Bukkit.getScheduler().cancelTask(taskId);
-            taskId = -1;
+        if (updateTask != null) {
+            updateTask.cancel();
+            updateTask = null;
         }
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;

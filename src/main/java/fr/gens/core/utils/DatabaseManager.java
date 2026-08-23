@@ -43,8 +43,8 @@ public class DatabaseManager {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
         config.setPoolName("GensCore-Pool");
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(2);
+        config.setMaximumPoolSize(1);
+        config.setMinimumIdle(1);
         config.setConnectionTimeout(30000);
         
         // SQLite properties for WAL and concurrency
@@ -62,11 +62,14 @@ public class DatabaseManager {
     }
 
     private void initTables() {
-         try (Connection conn = getConnection()) {
-             
-            plugin.getLangManager().sendConsoleMessage("db.tables_ready");
-            // Les tables sont désormais créées dynamiquement par chaque module (initDatabase)
-            plugin.getLangManager().sendConsoleMessage("db.tables_init_success");
+        try {
+            try (Connection conn = getConnection()) {
+                if (conn != null && !conn.isClosed()) {
+                    plugin.getLangManager().sendConsoleMessage("db.tables_ready");
+                    // Les tables sont désormais créées dynamiquement par chaque module (initDatabase)
+                    plugin.getLangManager().sendConsoleMessage("db.tables_init_success");
+                }
+            }
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("db.tables_init_error");
             e.printStackTrace();

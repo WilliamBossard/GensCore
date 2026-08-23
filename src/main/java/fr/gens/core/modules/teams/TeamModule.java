@@ -9,6 +9,7 @@ public class TeamModule implements Module {
     private final CorePlugin plugin;
     private TeamListener teamListener;
     private TeamGui teamGui;
+    private TeamCommand teamCommand;
     private boolean enabled;
     
     private fr.gens.core.database.TeamDAO teamDAO;
@@ -30,6 +31,10 @@ public class TeamModule implements Module {
         return teamDAO;
     }
 
+    public TeamCommand getTeamCommand() {
+        return teamCommand;
+    }
+
     @Override
     public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
         dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_teams (team_id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(32) UNIQUE, leader_uuid VARCHAR(36));");
@@ -48,18 +53,24 @@ public class TeamModule implements Module {
         teamGui = new TeamGui(plugin);
         teamListener = new TeamListener(plugin, teamGui);
 
-        TeamCommand teamCmd = new TeamCommand(plugin, teamGui);
-        org.bukkit.command.PluginCommand cmd_team = plugin.getCommand("team");
-        if (cmd_team != null) cmd_team.setExecutor(teamCmd);
-        org.bukkit.command.PluginCommand cmd_team_tc = plugin.getCommand("team");
-        if (cmd_team_tc != null) cmd_team_tc.setTabCompleter(teamCmd);
+        teamCommand = new TeamCommand(plugin, teamGui, this);
         Bukkit.getPluginManager().registerEvents(teamListener, plugin);
         plugin.getLangManager().sendConsoleMessage("teammodule.log_1");
     }
 
     @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null && teamCommand != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(teamCommand);
+        }
+    }
+
+    @Override
     public void disable() {
         enabled = false;
+        if (teamListener != null) {
+            org.bukkit.event.HandlerList.unregisterAll(teamListener);
+        }
         plugin.getLangManager().sendConsoleMessage("teammodule.log_2");
     }
 }

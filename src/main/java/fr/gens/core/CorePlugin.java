@@ -5,6 +5,7 @@ import fr.gens.core.modules.teams.TeamManager;
 import fr.gens.core.utils.DatabaseManager;
 import fr.gens.core.utils.ActionBarManager;
 import fr.gens.core.web.WebManager;
+import com.tcoded.folialib.FoliaLib;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.Bukkit;
@@ -23,6 +24,7 @@ public class CorePlugin extends JavaPlugin {
     private TeamManager teamManager;
     private fr.gens.core.modules.teams.TeamQuestManager teamQuestManager;
     private fr.gens.core.utils.CommandManager commandManager;
+    private FoliaLib foliaLib;
 
     @Override
     public void onLoad() {
@@ -31,6 +33,8 @@ public class CorePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        this.foliaLib = new FoliaLib(this);
+        
         // 1. Initialiser le LangManager EN PREMIER car les autres en ont besoin pour logger
         this.langManager = new fr.gens.core.utils.LangManager(this);
         this.configManager = new fr.gens.core.utils.ConfigManager(this);
@@ -74,18 +78,21 @@ public class CorePlugin extends JavaPlugin {
         }
 
         // 4. Lancer les rappels automatiques (Discord et Guilde)
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        // 4. Lancer les rappels automatiques (Discord et Guilde)
+        this.foliaLib.getImpl().runTimerAsync((wrappedTask) -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-                // Rappel Discord si pas de perm
-                if (!p.hasPermission("genscore.discord.linked")) {
-                    getLangManager().sendMessage(p, "reminder.discord");
-                }
-                
-                // Rappel Guilde si pas de team
-                if (getTeamManager().getPlayerTeam(p.getUniqueId()) == null) {
-                    getLangManager().sendMessage(p, "reminder.guild");
-                }
+                if (p == null) continue;
+                this.foliaLib.getImpl().runAtEntity(p, (t) -> {
+                    // Rappel Discord si pas de perm
+                    if (!p.hasPermission("genscore.discord.linked")) {
+                        getLangManager().sendMessage(p, "reminder.discord");
+                    }
+                    
+                    // Rappel Guilde si pas de team
+                    if (getTeamManager().getPlayerTeam(p.getUniqueId()) == null) {
+                        getLangManager().sendMessage(p, "reminder.guild");
+                    }
+                });
             }
         }, 36000L, 36000L); // 36000 ticks = 30 minutes
 
@@ -147,6 +154,10 @@ public class CorePlugin extends JavaPlugin {
 
     public fr.gens.core.utils.CommandManager getCommandManager() {
         return commandManager;
+    }
+    
+    public FoliaLib getFoliaLib() {
+        return foliaLib;
     }
 }
 

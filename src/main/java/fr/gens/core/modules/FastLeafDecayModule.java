@@ -9,13 +9,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import org.bukkit.scheduler.BukkitRunnable;
+
 import org.bukkit.Particle;
 
 
@@ -62,7 +60,7 @@ public class FastLeafDecayModule implements Module, Listener {
         if (!enabled) return;
         Block block = event.getBlock();
         if (isLog(block.getType())) {
-            plugin.getServer().getScheduler().runTaskLater(plugin, () -> triggerDecay(block), 2L);
+            plugin.getFoliaLib().getImpl().runAtLocationLater(block.getLocation(), (t2) -> triggerDecay(block), 2L);
         }
     }
 
@@ -74,81 +72,91 @@ public class FastLeafDecayModule implements Module, Listener {
     }
 
     private void triggerDecay(Block startBlock) {
-        Set<Block> leavesToBreak = new HashSet<>();
-        Queue<Block> queue = new LinkedList<>();
-        
-        // Trouver les premiÃƒÆ’Ã‚Â¨res feuilles autour du bloc cassÃƒÆ’Ã‚Â©
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                for (int z = -1; z <= 1; z++) {
-                    Block neighbor = startBlock.getRelative(x, y, z);
-                    if (isLeaf(neighbor.getType())) {
-                        queue.add(neighbor);
-                        leavesToBreak.add(neighbor);
-                    }
-                }
-            }
-        }
-
-        int maxLeaves = 200; // Limite de sÃƒÆ’Ã‚Â©curitÃƒÆ’Ã‚Â©
-        int count = 0;
-
-        while (!queue.isEmpty() && count < maxLeaves) {
-            Block current = queue.poll();
+        java.util.function.Consumer<com.tcoded.folialib.wrapper.task.WrappedTask> decayTask = new java.util.function.Consumer<com.tcoded.folialib.wrapper.task.WrappedTask>() {
+            private final Set<Block> visited = new HashSet<>();
+            private final Queue<Block> queue = new LinkedList<>();
+            private int maxLeaves = 200;
+            private int count = 0;
             
-            // Si cette feuille est encore proche d'une bÃƒÆ’Ã‚Â»che, on arrÃƒÆ’Ã‚Âªte de dÃƒÆ’Ã‚Â©truire ce cÃƒÆ’Ã‚Â´tÃƒÆ’Ã‚Â©
-            if (isCloseToLog(current)) {
-                leavesToBreak.remove(current);
-                continue;
-            }
-
-            count++;
-
-            for (int x = -1; x <= 1; x++) {
-                for (int y = -1; y <= 1; y++) {
-                    for (int z = -1; z <= 1; z++) {
-                        Block neighbor = current.getRelative(x, y, z);
-                        if (isLeaf(neighbor.getType()) && !leavesToBreak.contains(neighbor)) {
-                            queue.add(neighbor);
-                            leavesToBreak.add(neighbor);
+            {
+                // Init queue
+                for (int x = -1; x <= 1; x++) {
+                    for (int y = -1; y <= 1; y++) {
+                        for (int z = -1; z <= 1; z++) {
+                            Block neighbor = startBlock.getRelative(x, y, z);
+                            if (isLeaf(neighbor.getType())) {
+                                queue.add(neighbor);
+                                visited.add(neighbor);
+                            }
                         }
                     }
                 }
             }
-        }
-
-        // Casser les feuilles progressivement (plus smooth) avec particules
-        List<Block> leavesList = new ArrayList<>(leavesToBreak);
-        new BukkitRunnable() {
-            int index = 0;
-            final int batchSize = 4; // 4 feuilles par tick
 
             @Override
-            public void run() {
-                for (int i = 0; i < batchSize; i++) {
-                    if (index >= leavesList.size()) {
-                        this.cancel();
-                        return;
+            public void accept(com.tcoded.folialib.wrapper.task.WrappedTask wrappedTask) {
+                if (!enabled) {
+                    wrappedTask.cancel();
+                    return;
+                }
+                
+                int checksThisTick = 0;
+                int maxChecksPerTick = 15; // Limiter le nombre de feuilles traitées par tick pour éviter le lag
+
+                while (!queue.isEmpty() && count < maxLeaves && checksThisTick < maxChecksPerTick) {
+                    Block current = queue.poll();
+                    checksThisTick++;
+                    
+                    // Si cette feuille est encore proche d'une bûche, on arrête de détruire ce côté
+                    if (isCloseToLog(current)) {
+                        continue;
                     }
-                    Block leaf = leavesList.get(index++);
-                    if (isLeaf(leaf.getType())) {
-                        for (org.bukkit.inventory.ItemStack drop : leaf.getDrops()) {
-                            leaf.getWorld().dropItemNaturally(leaf.getLocation(), drop);
+
+                    count++;
+                    
+                    // Détruire la feuille
+                    if (isLeaf(current.getType())) {
+                        for (org.bukkit.inventory.ItemStack drop : current.getDrops()) {
+                            current.getWorld().dropItemNaturally(current.getLocation(), drop);
                         }
-                        leaf.getWorld().spawnParticle(Particle.BLOCK, leaf.getLocation().add(0.5, 0.5, 0.5), 10, leaf.getBlockData());
-                        leaf.setType(Material.AIR);
+                        current.getWorld().spawnParticle(Particle.BLOCK, current.getLocation().add(0.5, 0.5, 0.5), 10, current.getBlockData());
+                        current.setType(Material.AIR);
+                    }
+
+                    // Propager
+                    for (int x = -1; x <= 1; x++) {
+                        for (int y = -1; y <= 1; y++) {
+                            for (int z = -1; z <= 1; z++) {
+                                Block neighbor = current.getRelative(x, y, z);
+                                if (isLeaf(neighbor.getType()) && !visited.contains(neighbor)) {
+                                    queue.add(neighbor);
+                                    visited.add(neighbor);
+                                }
+                            }
+                        }
                     }
                 }
+                
+                if (queue.isEmpty() || count >= maxLeaves) {
+                    wrappedTask.cancel();
+                }
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        };
+        plugin.getFoliaLib().getImpl().runAtLocationTimer(startBlock.getLocation(), decayTask, 1L, 1L);
     }
 
     private boolean isCloseToLog(Block block) {
-        for (int x = -3; x <= 3; x++) {
-            for (int y = -3; y <= 3; y++) {
-                for (int z = -3; z <= 3; z++) {
-                    if (isLog(block.getRelative(x, y, z).getType())) {
-                        return true;
+        // Optimisation : vérifier d'abord les blocs adjacents avant d'étendre la recherche
+        for (int d = 1; d <= 3; d++) {
+            for (int x = -d; x <= d; x++) {
+                for (int y = -d; y <= d; y++) {
+                    for (int z = -d; z <= d; z++) {
+                        // Ne vérifier que la "couche" extérieure (distance d)
+                        if (Math.abs(x) == d || Math.abs(y) == d || Math.abs(z) == d) {
+                            if (isLog(block.getRelative(x, y, z).getType())) {
+                                return true;
+                            }
+                        }
                     }
                 }
             }

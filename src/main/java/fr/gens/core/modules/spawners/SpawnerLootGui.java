@@ -16,13 +16,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.UUID;
 
 public class SpawnerLootGui implements Listener {
 
-    private static final Map<Player, SpawnerData> openGuis = new ConcurrentHashMap<>();
-    private static final Map<Player, Map<String, Integer>> guiSnapshots = new ConcurrentHashMap<>();
-    private static final Map<Player, Integer> playerPages = new ConcurrentHashMap<>();
+    private static final Map<UUID, SpawnerData> openGuis = new ConcurrentHashMap<>();
+    private static final Map<UUID, Map<String, Integer>> guiSnapshots = new ConcurrentHashMap<>();
+    private static final Map<UUID, Integer> playerPages = new ConcurrentHashMap<>();
     private static SpawnerModule moduleInstance;
 
     public static void setModule(SpawnerModule module) {
@@ -80,9 +80,9 @@ public class SpawnerLootGui implements Listener {
         
         inv.setItem(49, createGuiItem(Material.BARRIER, "<red>Retour au Menu Principal"));
 
-        guiSnapshots.put(player, snapshot);
-        openGuis.put(player, data);
-        playerPages.put(player, page);
+        guiSnapshots.put(player.getUniqueId(), snapshot);
+        openGuis.put(player.getUniqueId(), data);
+        playerPages.put(player.getUniqueId(), page);
         
         player.openInventory(inv);
     }
@@ -102,8 +102,8 @@ public class SpawnerLootGui implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Loot: ")) return;
         
-        if (!openGuis.containsKey(player)) return;
-        SpawnerData data = openGuis.get(player);
+        if (!openGuis.containsKey(player.getUniqueId())) return;
+        SpawnerData data = openGuis.get(player.getUniqueId());
         if (data == null) return;
 
         if (event.getClickedInventory() == null) return;
@@ -114,14 +114,14 @@ public class SpawnerLootGui implements Listener {
             // Si clic dans la barre de navigation
             if (slot >= 45 && slot < 54) {
                 event.setCancelled(true);
-                int page = playerPages.getOrDefault(player, 0);
+                int page = playerPages.getOrDefault(player.getUniqueId(), 0);
                 
                 if (slot == 45 && page > 0) {
                     syncItems(player, event.getView().getTopInventory(), data);
-                    Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data, moduleInstance, page - 1));
+                    moduleInstance.getPlugin().getFoliaLib().getImpl().runAtEntity(player, (wrappedTask) -> openGui(player, data, moduleInstance, page - 1));
                 } else if (slot == 53 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.ARROW) {
                     syncItems(player, event.getView().getTopInventory(), data);
-                    Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> openGui(player, data, moduleInstance, page + 1));
+                    moduleInstance.getPlugin().getFoliaLib().getImpl().runAtEntity(player, (wrappedTask) -> openGui(player, data, moduleInstance, page + 1));
                 } else if (slot == 49) {
                     player.closeInventory();
                 }
@@ -137,7 +137,7 @@ public class SpawnerLootGui implements Listener {
                 return;
             }
             
-            Bukkit.getScheduler().runTask(moduleInstance.getPlugin(), () -> syncItems(player, event.getView().getTopInventory(), data));
+            moduleInstance.getPlugin().getFoliaLib().getImpl().runAtEntity(player, (wrappedTask) -> syncItems(player, event.getView().getTopInventory(), data));
         } else {
             if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                 event.setCancelled(true);
@@ -148,7 +148,7 @@ public class SpawnerLootGui implements Listener {
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
         if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Loot: ")) return;
-        if (event.getWhoClicked() instanceof Player && openGuis.containsKey((Player) event.getWhoClicked())) {
+        if (event.getWhoClicked() instanceof Player && openGuis.containsKey(((Player) event.getWhoClicked()).getUniqueId())) {
             for (int slot : event.getRawSlots()) {
                 if (slot < event.getView().getTopInventory().getSize()) {
                     event.setCancelled(true);
@@ -162,16 +162,16 @@ public class SpawnerLootGui implements Listener {
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Loot: ")) return;
         if (event.getPlayer() instanceof Player player) {
-            if (openGuis.containsKey(player)) {
-                SpawnerData data = openGuis.get(player);
+            if (openGuis.containsKey(player.getUniqueId())) {
+                SpawnerData data = openGuis.get(player.getUniqueId());
                 syncItems(player, event.getInventory(), data);
                 
                 // Si on ferme complÃƒÆ’Ã‚Â¨tement (pas juste un changement de page)
-                Bukkit.getScheduler().runTaskLater(moduleInstance.getPlugin(), () -> {
+                moduleInstance.getPlugin().getFoliaLib().getImpl().runLater((wrappedTask) -> {
                     if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(player.getOpenInventory().title()).startsWith("Loot: ")) {
-                        openGuis.remove(player);
-                        guiSnapshots.remove(player);
-                        playerPages.remove(player);
+                        openGuis.remove(player.getUniqueId());
+                        guiSnapshots.remove(player.getUniqueId());
+                        playerPages.remove(player.getUniqueId());
                         
                         if (data.isLootChest()) {
                             // Check if empty
@@ -192,8 +192,8 @@ public class SpawnerLootGui implements Listener {
     }
     
     private void syncItems(Player player, Inventory inv, SpawnerData data) {
-        if (!guiSnapshots.containsKey(player)) return;
-        Map<String, Integer> previousSnapshot = guiSnapshots.get(player);
+        if (!guiSnapshots.containsKey(player.getUniqueId())) return;
+        Map<String, Integer> previousSnapshot = guiSnapshots.get(player.getUniqueId());
         
         Map<String, Integer> currentSnapshot = new HashMap<>();
         for (int i = 0; i < 45; i++) {
@@ -215,7 +215,7 @@ public class SpawnerLootGui implements Listener {
             }
         }
         
-        guiSnapshots.put(player, currentSnapshot);
+        guiSnapshots.put(player.getUniqueId(), currentSnapshot);
         moduleInstance.getSpawnerManager().updateHologram(data);
     }
 }

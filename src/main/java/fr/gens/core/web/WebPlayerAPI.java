@@ -104,7 +104,7 @@ public class WebPlayerAPI implements Listener {
 
             // Trouver le joueur
             java.util.concurrent.CompletableFuture<Player> futurePlayer = new java.util.concurrent.CompletableFuture<>();
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                 futurePlayer.complete(Bukkit.getPlayer(req.username));
             });
             Player targetOnline = futurePlayer.join();
@@ -151,6 +151,7 @@ public class WebPlayerAPI implements Listener {
             
             // On sauvegarde le token en session RAM
             webManager.activePlayerSessions.put(token, playerUUID.toString());
+            webManager.playerSessionExpiry.put(token, System.currentTimeMillis() + (24L * 60 * 60 * 1000L)); // Expire dans 24h
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
@@ -221,7 +222,7 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
             java.util.concurrent.CompletableFuture<Boolean> futureOp = new java.util.concurrent.CompletableFuture<>();
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                 Player p = Bukkit.getPlayer(UUID.fromString(uuidStr));
                 futureOp.complete(p != null && p.isOp());
             });
@@ -334,9 +335,9 @@ public class WebPlayerAPI implements Listener {
             // Si le joueur est en ligne, on ex\u00e9cute, sinon on met en attente
             Player target = Bukkit.getPlayer(playerUUID);
             if (target != null && target.isOnline()) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), rewardCommand.replace("%player%", target.getName()));
-                    target.sendMessage("<green>[Web] " + rewardMessage);
+                    target.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>[Web] " + rewardMessage));
                 });
             } else {
                 fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
@@ -396,7 +397,7 @@ public class WebPlayerAPI implements Listener {
         pcd.initDatabase(); // just to ensure table exists
         pcd.processPendingCommands(player);
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection()) {
                 try (PreparedStatement profileStmt = conn.prepareStatement("INSERT OR REPLACE INTO player_profiles (uuid, username) VALUES (?, ?)")) {
                     profileStmt.setString(1, player.getUniqueId().toString());

@@ -4,12 +4,10 @@ import fr.gens.core.CorePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
+import cloud.commandframework.annotations.Argument;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -18,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class SpawnerCommand implements CommandExecutor, TabCompleter {
+public class SpawnerCommand {
 
     private final CorePlugin plugin;
     private final SpawnerModule module;
@@ -71,70 +69,29 @@ public class SpawnerCommand implements CommandExecutor, TabCompleter {
         return item;
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    @CommandMethod("spawner give <player> <type> [stack]")
+    public void executeSpawnerGive(CommandSender sender, @Argument("player") String playerName, @Argument("type") String type, @Argument(value = "stack", defaultValue = "1") int stack) {
         if (!sender.hasPermission("genscore.admin.spawner")) {
             plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_1");
-            return true;
+            return;
         }
 
-        if (args.length < 3) {
-            plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_2");
-            return true;
+        Player target = Bukkit.getPlayer(playerName);
+        if (target == null) {
+            plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_3");
+            return;
         }
 
-        if (args[0].equalsIgnoreCase("give")) {
-            Player target = Bukkit.getPlayer(args[1]);
-            if (target == null) {
-                plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_3");
-                return true;
-            }
-
-            String type = args[2].toUpperCase();
-            if (!module.getSpawnerManager().isValidType(type)) {
-                plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_4");
-                return true;
-            }
-
-            int stack = 1;
-            if (args.length >= 4) {
-                try {
-                    stack = Integer.parseInt(args[3]);
-                } catch (NumberFormatException e) {
-                    plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_5");
-                    return true;
-                }
-            }
-
-            ItemStack spawner = createSpawnerItem(plugin, type, stack);
-            target.getInventory().addItem(spawner);
-            sender.sendMessage("<green>Vous avez donnÃƒÆ’Ã‚Â© un spawner " + type + " (x" + stack + ") ÃƒÆ’Ã‚Â  " + target.getName() + ".");
-            target.sendMessage("<green>Vous avez reÃƒÆ’Ã‚Â§u un spawner " + type + " (x" + stack + ").");
+        type = type.toUpperCase();
+        if (!module.getSpawnerManager().isValidType(type)) {
+            plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_4");
+            return;
         }
 
-        return true;
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-        if (!sender.hasPermission("genscore.admin.spawner")) return completions;
-
-        if (args.length == 1) {
-            completions.add("give");
-        } else if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
-            for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-                completions.add(p.getName());
-            }
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
-            for (EntityType type : EntityType.values()) {
-                if (type.isSpawnable() && type.isAlive()) {
-                    completions.add(type.name());
-                }
-            }
-        }
-        return completions;
+        ItemStack spawner = createSpawnerItem(plugin, type, stack);
+        target.getInventory().addItem(spawner);
+        sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez donnÃƒÆ’Ã‚Â© un spawner " + type + " (x" + stack + ") ÃƒÆ’Ã‚Â  " + target.getName() + "."));
+        target.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez reÃƒÆ’Ã‚Â§u un spawner " + type + " (x" + stack + ")."));
     }
 }
 

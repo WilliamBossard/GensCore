@@ -117,6 +117,42 @@ public class SpawnerDAO {
         }
     }
 
+    public void saveAllSpawners(java.util.Collection<SpawnerData> spawners) {
+        if (spawners.isEmpty()) return;
+        
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("INSERT OR REPLACE INTO spawners (id, world, x, y, z, type, stack_count, stored_exp, stored_items, last_interacted, storage_level, exp_level, speed_level, is_loot_chest) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+            
+            conn.setAutoCommit(false);
+            
+            for (SpawnerData data : spawners) {
+                stmt.setString(1, data.getId().toString());
+                stmt.setString(2, data.getLocation().getWorld().getName());
+                stmt.setDouble(3, data.getLocation().getX());
+                stmt.setDouble(4, data.getLocation().getY());
+                stmt.setDouble(5, data.getLocation().getZ());
+                stmt.setString(6, data.getType());
+                stmt.setInt(7, data.getStackCount());
+                stmt.setInt(8, data.getStoredExp());
+                stmt.setString(9, data.getItemsJson());
+                stmt.setString(10, data.getLastInteractedPlayer());
+                stmt.setInt(11, data.getStorageLevel());
+                stmt.setInt(12, data.getExpLevel());
+                stmt.setInt(13, data.getSpeedLevel());
+                stmt.setInt(14, data.isLootChest() ? 1 : 0);
+                
+                stmt.addBatch();
+            }
+            
+            stmt.executeBatch();
+            conn.commit();
+            conn.setAutoCommit(true);
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void deleteSpawner(UUID id) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
              PreparedStatement stmt = conn.prepareStatement("DELETE FROM spawners WHERE id = ?")) {

@@ -4,9 +4,7 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.TeleportUtil;
 
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 
 
@@ -15,7 +13,7 @@ import org.bukkit.entity.Player;
 
 
 
-public class TeleportSpawnModule implements Module, CommandExecutor {
+public class TeleportSpawnModule implements Module {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
@@ -56,11 +54,9 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
 
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
-        org.bukkit.command.PluginCommand setspawnCmd = plugin.getCommand("setspawn");
-        if (setspawnCmd != null) setspawnCmd.setExecutor(this);
-        
-        org.bukkit.command.PluginCommand spawnCmd = plugin.getCommand("spawn");
-        if (spawnCmd != null) spawnCmd.setExecutor(this);
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 
     @Override
@@ -69,43 +65,38 @@ public class TeleportSpawnModule implements Module, CommandExecutor {
         plugin.getLangManager().sendConsoleMessage("teleportspawnmodule.log_2");
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    @CommandMethod("setspawn")
+    public void executeSetSpawn(Player p) {
         if (!enabled) {
-            plugin.getLangManager().sendMessage(sender, "teleportspawnmodule.msg_1");
-            return true;
+            plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_1");
+            return;
         }
-
-        if (!(sender instanceof Player)) return true;
-        Player p = (Player) sender;
-
-        if (command.getName().equalsIgnoreCase("setspawn")) {
-            if (!p.hasPermission("genscore.admin")) {
-                plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_2");
-                return true;
-            }
-            spawnLocation = p.getLocation();
-            
-            this.spawnDAO.saveSpawn(spawnLocation);
-            
-            plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_3");
-            return true;
+        if (!p.hasPermission("genscore.admin")) {
+            plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_2");
+            return;
         }
-
-        if (command.getName().equalsIgnoreCase("spawn")) {
-            if (!p.hasPermission("genscore.spawn")) {
-                plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_4");
-                return true;
-            }
-            if (spawnLocation != null) {
-                TeleportUtil.teleportWithCooldown(plugin, p, spawnLocation, "le spawn", "genscore.bypass.cooldown.spawn");
-            } else {
-                plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_5");
-            }
-            return true;
-        }
+        spawnLocation = p.getLocation();
         
-        return false;
+        this.spawnDAO.saveSpawn(spawnLocation);
+        
+        plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_3");
+    }
+
+    @CommandMethod("spawn")
+    public void executeSpawn(Player p) {
+        if (!enabled) {
+            plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_1");
+            return;
+        }
+        if (!p.hasPermission("genscore.spawn")) {
+            plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_4");
+            return;
+        }
+        if (spawnLocation != null) {
+            TeleportUtil.teleportWithCooldown(plugin, p, spawnLocation, "le spawn", "genscore.bypass.cooldown.spawn");
+        } else {
+            plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_5");
+        }
     }
 }
 

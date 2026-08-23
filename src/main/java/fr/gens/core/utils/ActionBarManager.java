@@ -4,7 +4,7 @@ import fr.gens.core.CorePlugin;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -17,14 +17,17 @@ public class ActionBarManager {
     private final CorePlugin plugin;
     // Map of UUID -> Map of Module ID -> Action Bar Data
     private final Map<UUID, Map<String, ActionBarMessage>> messages = new ConcurrentHashMap<>();
-    private BukkitTask task;
+    private WrappedTask task;
 
     public ActionBarManager(CorePlugin plugin) {
         this.plugin = plugin;
     }
 
     public void start() {
-        task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::tick, 0L, 10L); // every 0.5 sec
+        plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
+            task = wrappedTask;
+            tick();
+        }, 0L, 10L); // every 0.5 sec
     }
 
     public void stop() {

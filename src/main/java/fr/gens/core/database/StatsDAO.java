@@ -176,5 +176,88 @@ public class StatsDAO {
         }
         return leaderboard;
     }
+
+    public java.util.concurrent.CompletableFuture<fr.gens.core.modules.stats.StatsModule.PlayerStats> loadPlayerStats(UUID uuid) {
+        java.util.concurrent.CompletableFuture<fr.gens.core.modules.stats.StatsModule.PlayerStats> future = new java.util.concurrent.CompletableFuture<>();
+        plugin.getFoliaLib().getImpl().runAsync((task) -> {
+            fr.gens.core.modules.stats.StatsModule.PlayerStats loadedStats = new fr.gens.core.modules.stats.StatsModule.PlayerStats();
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement("SELECT blocks_broken, mobs_killed, playtime_minutes, deaths, player_kills FROM player_global_stats WHERE uuid = ?")) {
+                pstmt.setString(1, uuid.toString());
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        loadedStats.blocksBroken = rs.getInt("blocks_broken");
+                        loadedStats.mobsKilled = rs.getInt("mobs_killed");
+                        loadedStats.playtimeMinutes = rs.getInt("playtime_minutes");
+                        loadedStats.deaths = rs.getInt("deaths");
+                        loadedStats.playerKills = rs.getInt("player_kills");
+                    } else {
+                        try (PreparedStatement insert = conn.prepareStatement("INSERT INTO player_global_stats (uuid, blocks_broken, mobs_killed, playtime_minutes, deaths, player_kills) VALUES (?, 0, 0, 0, 0, 0)")) {
+                            insert.setString(1, uuid.toString());
+                            insert.executeUpdate();
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            future.complete(loadedStats);
+        });
+        return future;
+    }
+
+    public java.util.concurrent.CompletableFuture<Void> savePlayerStats(UUID uuid, fr.gens.core.modules.stats.StatsModule.PlayerStats stats) {
+        java.util.concurrent.CompletableFuture<Void> future = new java.util.concurrent.CompletableFuture<>();
+        plugin.getFoliaLib().getImpl().runAsync((task) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement("UPDATE player_global_stats SET blocks_broken = ?, mobs_killed = ?, playtime_minutes = ?, deaths = ?, player_kills = ?, last_updated = ? WHERE uuid = ?")) {
+                pstmt.setInt(1, stats.blocksBroken);
+                pstmt.setInt(2, stats.mobsKilled);
+                pstmt.setInt(3, stats.playtimeMinutes);
+                pstmt.setInt(4, stats.deaths);
+                pstmt.setInt(5, stats.playerKills);
+                pstmt.setLong(6, System.currentTimeMillis());
+                pstmt.setString(7, uuid.toString());
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            future.complete(null);
+        });
+        return future;
+    }
+
+    public java.util.concurrent.CompletableFuture<Void> saveAllStats(Map<UUID, fr.gens.core.modules.stats.StatsModule.PlayerStats> statsMap) {
+        java.util.concurrent.CompletableFuture<Void> future = new java.util.concurrent.CompletableFuture<>();
+        if (statsMap.isEmpty()) {
+            future.complete(null);
+            return future;
+        }
+        
+        plugin.getFoliaLib().getImpl().runAsync((task) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement("UPDATE player_global_stats SET blocks_broken = ?, mobs_killed = ?, playtime_minutes = ?, deaths = ?, player_kills = ?, last_updated = ? WHERE uuid = ?")) {
+                
+                conn.setAutoCommit(false);
+                long now = System.currentTimeMillis();
+                for (Map.Entry<UUID, fr.gens.core.modules.stats.StatsModule.PlayerStats> entry : statsMap.entrySet()) {
+                    pstmt.setInt(1, entry.getValue().blocksBroken);
+                    pstmt.setInt(2, entry.getValue().mobsKilled);
+                    pstmt.setInt(3, entry.getValue().playtimeMinutes);
+                    pstmt.setInt(4, entry.getValue().deaths);
+                    pstmt.setInt(5, entry.getValue().playerKills);
+                    pstmt.setLong(6, now);
+                    pstmt.setString(7, entry.getKey().toString());
+                    pstmt.addBatch();
+                }
+                pstmt.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            future.complete(null);
+        });
+        return future;
+    }
 }
 

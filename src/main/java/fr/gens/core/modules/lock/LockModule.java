@@ -9,7 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Location;
@@ -19,7 +19,7 @@ public class LockModule implements Module {
     private final CorePlugin plugin;
     private LockListener lockListener;
     private LockCommand lockCommand;
-    private final Map<String, LockData> locks = new HashMap<>();
+    private final Map<String, LockData> locks = new ConcurrentHashMap<>();
     private boolean enabled;
 
     public LockModule(CorePlugin plugin) {
@@ -47,10 +47,6 @@ public class LockModule implements Module {
         lockCommand = new LockCommand(plugin, this);
         lockListener = new LockListener(plugin, this);
 
-        org.bukkit.command.PluginCommand cmd_lock = plugin.getCommand("lock");
-        if (cmd_lock != null) cmd_lock.setExecutor(lockCommand);
-        org.bukkit.command.PluginCommand cmd_lock_tc = plugin.getCommand("lock");
-        if (cmd_lock_tc != null) cmd_lock_tc.setTabCompleter(lockCommand);
         Bukkit.getPluginManager().registerEvents(lockListener, plugin);
         plugin.getLogger().info("[Locks] Module activÃƒÆ’Ã‚Â© ! (" + locks.size() + " locks loaded)");
     }
@@ -58,7 +54,17 @@ public class LockModule implements Module {
     @Override
     public void disable() {
         enabled = false;
+        if (lockListener != null) {
+            org.bukkit.event.HandlerList.unregisterAll(lockListener);
+        }
         plugin.getLangManager().sendConsoleMessage("lockmodule.log_1");
+    }
+
+    @Override
+    public void registerCommands(CorePlugin plugin) {
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(lockCommand);
+        }
     }
 
     private void loadLocks() {
@@ -88,29 +94,33 @@ public class LockModule implements Module {
         LockData lock = new LockData(locStr, ownerUuid, teamId);
         locks.put(locStr, lock);
 
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT OR REPLACE INTO genscore_locks (location, owner_uuid, team_id) VALUES (?, ?, ?)")) {
-            stmt.setString(1, locStr);
-            stmt.setString(2, ownerUuid != null ? ownerUuid.toString() : "");
-            stmt.setInt(3, teamId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(
+                         "INSERT OR REPLACE INTO genscore_locks (location, owner_uuid, team_id) VALUES (?, ?, ?)")) {
+                stmt.setString(1, locStr);
+                stmt.setString(2, ownerUuid != null ? ownerUuid.toString() : "");
+                stmt.setInt(3, teamId);
+                stmt.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void removeLock(Location loc) {
         String locStr = serializeLocation(loc);
         locks.remove(locStr);
 
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_locks WHERE location = ?")) {
-            stmt.setString(1, locStr);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_locks WHERE location = ?")) {
+                stmt.setString(1, locStr);
+                stmt.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static String serializeLocation(Location loc) {

@@ -4,7 +4,6 @@ import fr.gens.core.CorePlugin;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
@@ -65,7 +64,7 @@ public class SpawnerListener implements Listener {
             int storageLvl = meta.getPersistentDataContainer().getOrDefault(storageKey, PersistentDataType.INTEGER, 0);
             
             if (!module.getSpawnerManager().isValidType(type)) {
-                event.getPlayer().sendMessage("<red>Type de spawner invalide.");
+                event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Type de spawner invalide."));
                 return;
             }
             
@@ -76,7 +75,7 @@ public class SpawnerListener implements Listener {
             data.setLastInteractedPlayer(event.getPlayer().getName());
             module.addSpawner(data);
             
-            event.getPlayer().sendMessage("<green>Spawner GensCore posÃƒÆ’Ã‚Â© !");
+            event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Spawner GensCore posÃƒÆ’Ã‚Â© !"));
             
             // Set vanilla spawner type just for visuals
             try {
@@ -134,7 +133,7 @@ public class SpawnerListener implements Listener {
             if (!data.getStoredItems().isEmpty()) {
                 block.setType(Material.CHEST);
                 data.setLootChest(true);
-                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> module.saveSpawnerToDB(data));
+                plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> module.saveSpawnerToDB(data));
                 module.getSpawnerManager().updateHologram(data);
                 plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_3");
                 event.setCancelled(true); // Annuler la casse car on a remplacÃƒÆ’Ã‚Â© le block par un coffre
@@ -223,7 +222,7 @@ public class SpawnerListener implements Listener {
                         int spaceLeft = maxStack - data.getStackCount();
                         
                         if (spaceLeft < itemInternalStack) {
-                            player.sendMessage("<red>Pas assez de place dans ce spawner pour ajouter cette pile de " + itemInternalStack + " spawner(s). (Espace libre: " + spaceLeft + ")");
+                            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Pas assez de place dans ce spawner pour ajouter cette pile de " + itemInternalStack + " spawner(s). (Espace libre: " + spaceLeft + ")"));
                             return;
                         }
                         
@@ -250,7 +249,7 @@ public class SpawnerListener implements Listener {
                         data.setLastInteractedPlayer(player.getName());
                         
                         module.getSpawnerManager().updateHologram(data);
-                        player.sendMessage("<green>Vous avez ajoutÃƒÆ’Ã‚Â© " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")");
+                        player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez ajoutÃƒÆ’Ã‚Â© " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")"));
                         return;
                     } else {
                         plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_9");
@@ -277,14 +276,9 @@ public class SpawnerListener implements Listener {
 
     @EventHandler
     public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
-        // Check if there are any spawners in this chunk
-        for (SpawnerData data : module.getActiveSpawners().values()) {
-            Location loc = data.getLocation();
-            if (loc.getWorld().equals(event.getWorld()) && 
-                (loc.getBlockX() >> 4) == event.getChunk().getX() && 
-                (loc.getBlockZ() >> 4) == event.getChunk().getZ()) {
-                module.getSpawnerManager().updateHologram(data);
-            }
+        // Obtenir uniquement les spawners du chunk qui vient de charger (O(1))
+        for (SpawnerData data : module.getSpawnersInChunk(event.getChunk().getChunkKey())) {
+            module.getSpawnerManager().updateHologram(data);
         }
     }
 }

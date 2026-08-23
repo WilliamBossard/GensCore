@@ -35,23 +35,28 @@ public class QuestListener implements Listener {
     }
 
     @EventHandler
+    public void onQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        questModule.unloadPlayerData(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onBlockBreak(BlockBreakEvent event) {
         questModule.handleQuestProgress(event.getPlayer(), QuestType.BREAK, event.getBlock().getType().name(), 1);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onBlockPlace(BlockPlaceEvent event) {
         questModule.handleQuestProgress(event.getPlayer(), QuestType.PLACE, event.getBlock().getType().name(), 1);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onEntityDeath(EntityDeathEvent event) {
         if (event.getEntity().getKiller() != null) {
             questModule.handleQuestProgress(event.getEntity().getKiller(), QuestType.KILL, event.getEntityType().name(), 1);
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onCraft(CraftItemEvent event) {
         if (event.getWhoClicked() instanceof Player) {
             Player p = (Player) event.getWhoClicked();
@@ -62,7 +67,7 @@ public class QuestListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onFish(PlayerFishEvent event) {
         if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH && event.getCaught() instanceof org.bukkit.entity.Item) {
             org.bukkit.entity.Item item = (org.bukkit.entity.Item) event.getCaught();
@@ -70,29 +75,29 @@ public class QuestListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onShear(PlayerShearEntityEvent event) {
         questModule.handleQuestProgress(event.getPlayer(), QuestType.SHEAR, event.getEntity().getType().name(), 1);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onFurnaceExtract(FurnaceExtractEvent event) {
         questModule.handleQuestProgress(event.getPlayer(), QuestType.COOK, event.getItemType().name(), event.getItemAmount());
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onConsume(PlayerItemConsumeEvent event) {
         questModule.handleQuestProgress(event.getPlayer(), QuestType.CONSUME, event.getItem().getType().name(), 1);
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onBreed(EntityBreedEvent event) {
         if (event.getBreeder() instanceof Player) {
             questModule.handleQuestProgress((Player) event.getBreeder(), QuestType.BREED, event.getEntity().getType().name(), 1);
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onPickup(org.bukkit.event.entity.EntityPickupItemEvent event) {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();

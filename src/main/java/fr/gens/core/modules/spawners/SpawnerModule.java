@@ -1,14 +1,12 @@
 package fr.gens.core.modules.spawners;
 
-import org.bukkit.Bukkit;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
 
 import org.bukkit.Location;
 
-import org.bukkit.scheduler.BukkitTask;
-
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 
 
 
@@ -23,10 +21,14 @@ public class SpawnerModule implements Module {
     private final CorePlugin plugin;
     private boolean enabled;
     private boolean listenersRegistered = false;
-    private BukkitTask generationTask;
-    private BukkitTask saveTask;
+    private SpawnerListener spawnerListener;
+    private SpawnerGui spawnerGui;
+    private SpawnerLootGui spawnerLootGui;
+    private WrappedTask generationTask;
+    private WrappedTask saveTask;
     
     private final Map<Location, SpawnerData> activeSpawners = new ConcurrentHashMap<>();
+    private final Map<Long, java.util.List<SpawnerData>> spawnersByChunk = new ConcurrentHashMap<>();
     private final SpawnerManager spawnerManager;
     private fr.gens.core.database.SpawnerDAO spawnerDAO;
 
@@ -83,39 +85,45 @@ public class SpawnerModule implements Module {
         this.spawnerDAO.initDatabase();
         
         // Load from DB
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::loadSpawnersFromDB);
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> loadSpawnersFromDB());
         
         // Register events
         if (!listenersRegistered) {
             SpawnerGui.setModule(this);
             SpawnerLootGui.setModule(this);
-            plugin.getServer().getPluginManager().registerEvents(new SpawnerListener(plugin, this), plugin);
-            plugin.getServer().getPluginManager().registerEvents(new SpawnerGui(), plugin);
-            plugin.getServer().getPluginManager().registerEvents(new SpawnerLootGui(), plugin);
+            this.spawnerListener = new SpawnerListener(plugin, this);
+            this.spawnerGui = new SpawnerGui();
+            this.spawnerLootGui = new SpawnerLootGui();
+            plugin.getServer().getPluginManager().registerEvents(this.spawnerListener, plugin);
+            plugin.getServer().getPluginManager().registerEvents(this.spawnerGui, plugin);
+            plugin.getServer().getPluginManager().registerEvents(this.spawnerLootGui, plugin);
             listenersRegistered = true;
         }
         
         if (generationTask == null) {
-            generationTask = Bukkit.getScheduler().runTaskTimer(plugin, spawnerManager::generateTick, 5L, 5L);
+            plugin.getFoliaLib().getImpl().runTimer((wrappedTask) -> {
+            generationTask = wrappedTask;
+            spawnerManager.generateTick();
+        }, 5L, 5L);
         }
         
         if (saveTask == null) {
-            saveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::saveAllSpawnersToDB, 6000L, 6000L);
+            plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
+            saveTask = wrappedTask;
+            saveAllSpawnersToDB();
+        }, 6000L, 6000L);
         }
         
         // Update holograms if re-enabled
         if (!activeSpawners.isEmpty()) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                for (SpawnerData data : activeSpawners.values()) {
+            for (SpawnerData data : activeSpawners.values()) {
+                plugin.getFoliaLib().getImpl().runAtLocation(data.getLocation(), (t2) -> {
                     spawnerManager.updateHologram(data);
-                }
-            });
+                });
+            }
         }
         
-        org.bukkit.command.PluginCommand cmd = plugin.getCommand("spawner");
-        if (cmd != null) {
-            cmd.setExecutor(new SpawnerCommand(plugin, this));
-        }
+
         
         plugin.getLangManager().sendConsoleMessage("spawnermodule.log_1");
     }
@@ -132,6 +140,20 @@ public class SpawnerModule implements Module {
             saveTask = null;
         }
         
+        if (this.spawnerListener != null) {
+            org.bukkit.event.HandlerList.unregisterAll(this.spawnerListener);
+            this.spawnerListener = null;
+        }
+        if (this.spawnerGui != null) {
+            org.bukkit.event.HandlerList.unregisterAll(this.spawnerGui);
+            this.spawnerGui = null;
+        }
+        if (this.spawnerLootGui != null) {
+            org.bukkit.event.HandlerList.unregisterAll(this.spawnerLootGui);
+            this.spawnerLootGui = null;
+        }
+        listenersRegistered = false;
+        
         // Mettre ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  jour les holograms pour afficher "DÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©"
         for (SpawnerData data : activeSpawners.values()) {
             spawnerManager.updateHologram(data);
@@ -141,6 +163,13 @@ public class SpawnerModule implements Module {
         // On ne clear() pas activeSpawners pour continuer de protÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ger les blocs
         
         plugin.getLangManager().sendConsoleMessage("spawnermodule.log_2");
+    }
+
+    @Override
+    public void registerCommands(CorePlugin plugin) {
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(new SpawnerCommand(plugin, this));
+        }
     }
     
     public CorePlugin getPlugin() {
@@ -155,17 +184,29 @@ public class SpawnerModule implements Module {
         return activeSpawners;
     }
     
+    public java.util.List<SpawnerData> getSpawnersInChunk(long chunkKey) {
+        return spawnersByChunk.getOrDefault(chunkKey, java.util.Collections.emptyList());
+    }
+    
     public void addSpawner(SpawnerData data) {
         activeSpawners.put(data.getLocation(), data);
+        long chunkKey = org.bukkit.Chunk.getChunkKey(data.getLocation().getBlockX() >> 4, data.getLocation().getBlockZ() >> 4);
+        spawnersByChunk.computeIfAbsent(chunkKey, k -> new java.util.concurrent.CopyOnWriteArrayList<>()).add(data);
         spawnerManager.updateHologram(data);
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> saveSpawnerToDB(data));
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> saveSpawnerToDB(data));
     }
     
     public void removeSpawner(Location loc) {
         SpawnerData data = activeSpawners.remove(loc);
         if (data != null) {
+            long chunkKey = org.bukkit.Chunk.getChunkKey(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+            java.util.List<SpawnerData> chunkList = spawnersByChunk.get(chunkKey);
+            if (chunkList != null) {
+                chunkList.remove(data);
+                if (chunkList.isEmpty()) spawnersByChunk.remove(chunkKey);
+            }
             spawnerManager.removeHologram(loc);
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> deleteSpawnerFromDB(data.getId()));
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> deleteSpawnerFromDB(data.getId()));
         }
     }
     
@@ -177,12 +218,19 @@ public class SpawnerModule implements Module {
     private void loadSpawnersFromDB() {
         int count = this.spawnerDAO.loadSpawners(activeSpawners);
         
+        // Populate spawnersByChunk
+        spawnersByChunk.clear();
+        for (SpawnerData data : activeSpawners.values()) {
+            long chunkKey = org.bukkit.Chunk.getChunkKey(data.getLocation().getBlockX() >> 4, data.getLocation().getBlockZ() >> 4);
+            spawnersByChunk.computeIfAbsent(chunkKey, k -> new java.util.concurrent.CopyOnWriteArrayList<>()).add(data);
+        }
+        
         // Need to spawn holograms synchronously for the loaded spawners
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            for (SpawnerData data : activeSpawners.values()) {
+        for (SpawnerData data : activeSpawners.values()) {
+            plugin.getFoliaLib().getImpl().runAtLocation(data.getLocation(), (t2) -> {
                 spawnerManager.updateHologram(data);
-            }
-        });
+            });
+        }
         
         plugin.getLogger().info("[SpawnerModule] " + count + " spawners loaded.");
     }
@@ -192,9 +240,7 @@ public class SpawnerModule implements Module {
     }
     
     private void saveAllSpawnersToDB() {
-        for (SpawnerData data : activeSpawners.values()) {
-            saveSpawnerToDB(data);
-        }
+        this.spawnerDAO.saveAllSpawners(activeSpawners.values());
     }
     
     private void deleteSpawnerFromDB(UUID id) {

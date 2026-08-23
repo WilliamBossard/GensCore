@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +25,7 @@ public class LootManager {
     private FileConfiguration chestsConfig;
     private final File playerDataFolder;
 
-    private final Map<String, LootChestData> chestsCache = new HashMap<>();
+    private final Map<String, LootChestData> chestsCache = new ConcurrentHashMap<>();
 
     public LootManager(CorePlugin plugin) {
         this.plugin = plugin;

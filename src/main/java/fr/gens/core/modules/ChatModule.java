@@ -54,7 +54,7 @@ public class ChatModule implements Module, Listener {
         
         // Exige la permission pour parler
         if (!event.getPlayer().hasPermission("genscore.chat")) {
-            event.getPlayer().sendMessage("<red>Vous n'avez pas la permission de parler dans le chat (genscore.chat).");
+            event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous n'avez pas la permission de parler dans le chat (genscore.chat)."));
             event.setCancelled(true);
             return;
         }

@@ -6,9 +6,7 @@ import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,7 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class JobsModule implements Module, Listener, CommandExecutor {
+public class JobsModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled;
@@ -81,8 +79,9 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         this.gui = new JobsGUI(plugin, this);
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().registerEvents(gui, plugin);
-        org.bukkit.command.PluginCommand cmd_jobs = plugin.getCommand("jobs");
-        if (cmd_jobs != null) cmd_jobs.setExecutor(this);
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
         
         // Charger les joueurs connectÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s
         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -91,7 +90,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
         }
         
         // Auto-Save Task pour le WebPanel (Toutes les 10 secondes)
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
                 savePlayer(p.getUniqueId());
@@ -116,11 +115,11 @@ public class JobsModule implements Module, Listener, CommandExecutor {
     }
     
     public void loadPlayer(UUID uuid) {
-        playerXp.put(uuid, new HashMap<>());
-        playerLevel.put(uuid, new HashMap<>());
-        activeJobs.put(uuid, new HashMap<>());
+        playerXp.put(uuid, new ConcurrentHashMap<>());
+        playerLevel.put(uuid, new ConcurrentHashMap<>());
+        activeJobs.put(uuid, new ConcurrentHashMap<>());
         
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             this.jobsDAO.loadPlayerJobs(uuid, playerXp.get(uuid), playerLevel.get(uuid), activeJobs.get(uuid));
         });
     }
@@ -131,7 +130,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
     }
     
     public boolean hasJob(UUID uuid, JobType type) {
-        return activeJobs.getOrDefault(uuid, new HashMap<>()).getOrDefault(type, false);
+        return activeJobs.getOrDefault(uuid, new ConcurrentHashMap<>()).getOrDefault(type, false);
     }
     
     public int getActiveJobsCount(UUID uuid) {
@@ -145,18 +144,18 @@ public class JobsModule implements Module, Listener, CommandExecutor {
     }
     
     public void joinJob(UUID uuid, JobType type) {
-        activeJobs.computeIfAbsent(uuid, k -> new HashMap<>()).put(type, true);
-        playerLevel.computeIfAbsent(uuid, k -> new HashMap<>()).putIfAbsent(type, 1);
-        playerXp.computeIfAbsent(uuid, k -> new HashMap<>()).putIfAbsent(type, 0.0);
+        activeJobs.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).put(type, true);
+        playerLevel.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).putIfAbsent(type, 1);
+        playerXp.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).putIfAbsent(type, 0.0);
         
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> savePlayer(uuid));
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayer(uuid));
     }
     
     public void leaveJob(UUID uuid, JobType type) {
         if (activeJobs.containsKey(uuid)) {
             activeJobs.get(uuid).put(type, false);
             // On le supprime de la base de donnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 this.jobsDAO.removePlayerJob(uuid, type);
             });
             playerXp.get(uuid).remove(type);
@@ -191,7 +190,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             currentLevel++;
             playerLevel.get(uuid).put(type, currentLevel);
 
-            player.sendMessage("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tier " + type.getColor() + type.getDisplayName() + " <green>!");
+            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tier " + type.getColor() + type.getDisplayName() + " <green>!"));
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
             
             // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compenses de Level Up (Battle Pass)
@@ -199,7 +198,7 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null && eco.isEnabled()) {
                 eco.addMoney(uuid, reward);
-                player.sendMessage("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <green>" + reward + "$ <gray>!");
+                player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <green>" + reward + "$ <gray>!"));
             }
             
             // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compenses Objets selon le palier
@@ -227,16 +226,12 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             mat = r.nextBoolean() ? Material.DIAMOND : Material.EMERALD;
         }
         player.getInventory().addItem(new ItemStack(mat, amount));
-        player.sendMessage("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <yellow>" + amount + "x " + mat.name() + " <gray>!");
+        player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <yellow>" + amount + "x " + mat.name() + " <gray>!"));
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player && command.getName().equalsIgnoreCase("jobs")) {
-            gui.openGUI((Player) sender);
-            return true;
-        }
-        return false;
+    @CommandMethod("jobs")
+    public void executeJobs(Player p) {
+        gui.openGUI(p);
     }
     
     // --- EVENTS ---
@@ -250,15 +245,41 @@ public class JobsModule implements Module, Listener, CommandExecutor {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
         if (!enabled) return;
-        savePlayer(e.getPlayer().getUniqueId());
-        playerXp.remove(e.getPlayer().getUniqueId());
-        playerLevel.remove(e.getPlayer().getUniqueId());
-        activeJobs.remove(e.getPlayer().getUniqueId());
+        UUID uuid = e.getPlayer().getUniqueId();
+        
+        // Deep copy des maps avant de les supprimer de la mémoire pour l'asynchrone
+        Map<JobType, Double> xpCopy = playerXp.containsKey(uuid) ? new java.util.HashMap<>(playerXp.get(uuid)) : null;
+        Map<JobType, Integer> levelCopy = playerLevel.containsKey(uuid) ? new java.util.HashMap<>(playerLevel.get(uuid)) : null;
+        Map<JobType, Boolean> activeCopy = activeJobs.containsKey(uuid) ? new java.util.HashMap<>(activeJobs.get(uuid)) : null;
+        
+        playerXp.remove(uuid);
+        playerLevel.remove(uuid);
+        activeJobs.remove(uuid);
+        
+        if (xpCopy != null && levelCopy != null && activeCopy != null) {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+                jobsDAO.savePlayerJobs(uuid, xpCopy, levelCopy, activeCopy);
+            });
+        }
     }
 
-    @EventHandler
+    @SuppressWarnings("deprecation")
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
+    public void onBlockPlace(org.bukkit.event.block.BlockPlaceEvent e) {
+        if (!enabled) return;
+        e.getBlockPlaced().setMetadata("genscore_player_placed", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onBlockBreak(BlockBreakEvent e) {
         if (!enabled) return;
+        
+        // Anti-Farm Exploit
+        if (e.getBlock().hasMetadata("genscore_player_placed")) {
+            e.getBlock().removeMetadata("genscore_player_placed", plugin);
+            return; // Le joueur ne reçoit pas d'XP pour les blocs posés à la main
+        }
+        
         Player p = e.getPlayer();
         Material m = e.getBlock().getType();
         
@@ -269,12 +290,11 @@ public class JobsModule implements Module, Listener, CommandExecutor {
             addXp(p, JobType.BUCHERON, 2.0, 0.7);
         }
         else if (m == Material.WHEAT || m == Material.CARROTS || m == Material.POTATOES || m == Material.BEETROOTS) {
-            // IdÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©alement vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rifier si c'est mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»r, mais on simplifie
             addXp(p, JobType.FERMIER, 1.0, 0.3);
         }
     }
     
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onEntityDeath(EntityDeathEvent e) {
         if (!enabled) return;
         if (e.getEntity().getKiller() != null) {

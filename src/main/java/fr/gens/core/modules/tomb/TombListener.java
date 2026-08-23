@@ -20,7 +20,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.TextDisplay;
-import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.Bukkit;
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class TombListener implements Listener {
         this.module = module;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     @SuppressWarnings("deprecation")
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (!plugin.getConfigManager().getConfig("modules/tomb.yml").getBoolean("modules.tomb.enabled", true)) return;
@@ -238,9 +238,9 @@ public class TombListener implements Listener {
     }
 
     @EventHandler
-    public void onChunkLoad(ChunkLoadEvent event) {
+    public void onEntitiesLoad(EntitiesLoadEvent event) {
         NamespacedKey key = new NamespacedKey(plugin, "tomb_id");
-        for (Entity entity : event.getChunk().getEntities()) {
+        for (Entity entity : event.getEntities()) {
             if (entity.getType() == EntityType.TEXT_DISPLAY && entity.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
                 String storedId = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
                 try {

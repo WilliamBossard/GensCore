@@ -4,9 +4,9 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import cloud.commandframework.annotations.Argument;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -21,17 +21,16 @@ import fr.gens.core.utils.PlaceholderUtils;
 import java.io.File;
 import java.lang.reflect.Field;
 import org.bukkit.command.CommandMap;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 
 
-public class CustomGuiModule implements Module, Listener, CommandExecutor {
+public class CustomGuiModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
-    private final Map<String, CustomMenu> menus = new HashMap<>();
+    private final Map<String, CustomMenu> menus = new ConcurrentHashMap<>();
 
     public CustomGuiModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -57,10 +56,14 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         enabled = true;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         loadMenus();
-        
-        org.bukkit.command.PluginCommand cmd_menu = plugin.getCommand("menu");
-        if (cmd_menu != null) cmd_menu.setExecutor(this);
-        plugin.getLogger().info("[CustomGui] Module activÃƒÆ’Ã‚Â©, " + menus.size() + " menus loaded.");
+        plugin.getLogger().info("[CustomGui] Module activé, " + menus.size() + " menus loaded.");
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 
     @Override
@@ -152,23 +155,14 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         return item;
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) return true;
-        Player p = (Player) sender;
-        
-        String menuName = "principal";
-        if (args.length > 0) {
-            menuName = args[0];
-        }
-
+    @CommandMethod("menu [name]")
+    public void executeMenu(Player p, @Argument(value = "name", defaultValue = "principal") String menuName) {
         CustomMenu menu = menus.get(menuName);
         if (menu != null) {
             openMenu(p, menu);
         } else {
-            p.sendMessage("<red>Menu introuvable : " + menuName);
+            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Menu introuvable : " + menuName));
         }
-        return true;
     }
 
     public void openMenu(Player player, CustomMenu menu) {
@@ -196,7 +190,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
                     meta.displayName(name);
                 }
                 if (meta.hasLore()) {
-                    List<net.kyori.adventure.text.Component> newLore = new ArrayList<>();
+                    List<net.kyori.adventure.text.Component> newLore = new java.util.ArrayList<>();
                     for (net.kyori.adventure.text.Component compLine : meta.lore()) {
                         if (compLine == null) continue;
                         String line = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(compLine);
@@ -214,24 +208,40 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
     }
 
     private void registerDynamicCommand(String cmd, CustomMenu menu) {
-        try {
-            Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            bukkitCommandMap.setAccessible(true);
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+        if (plugin.getCommandManager() != null) {
+            try {
+                cloud.commandframework.paper.PaperCommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
+                mgr.command(
+                    mgr.commandBuilder(cmd)
+                        .senderType(Player.class)
+                        .handler(context -> {
+                            openMenu((Player) context.getSender(), menu);
+                        })
+                );
+                plugin.getLogger().info("[Gui] Commande dynamique enregistrée via Cloud : /" + cmd);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to register dynamic command /" + cmd + " via Cloud");
+            }
+        } else {
+            try {
+                Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+                bukkitCommandMap.setAccessible(true);
+                CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
 
-            Command command = new Command(cmd) {
-                @Override
-                public boolean execute(CommandSender sender, String label, String[] args) {
-                    if (sender instanceof Player) {
-                        openMenu((Player) sender, menu);
+                org.bukkit.command.Command command = new org.bukkit.command.Command(cmd) {
+                    @Override
+                    public boolean execute(CommandSender sender, String label, String[] args) {
+                        if (sender instanceof Player) {
+                            openMenu((Player) sender, menu);
+                        }
+                        return true;
                     }
-                    return true;
-                }
-            };
-            commandMap.register("genscore", command);
-            plugin.getLogger().info("[Gui] Commande dynamique enregistrÃƒÆ’Ã‚Â©e : /" + cmd);
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to register dynamic command /" + cmd);
+                };
+                commandMap.register("genscore", command);
+                plugin.getLogger().info("[Gui] Commande dynamique enregistrée : /" + cmd);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to register dynamic command /" + cmd);
+            }
         }
     }
 
@@ -253,6 +263,14 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
         }
 
         if (clickedMenu != null) {
+            if (event.getClickedInventory() == null) return;
+            if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
+                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+            
             event.setCancelled(true);
             int slot = event.getSlot();
             CustomMenu.MenuItem item = clickedMenu.getItems().get(slot);
@@ -292,7 +310,7 @@ public class CustomGuiModule implements Module, Listener, CommandExecutor {
     public static class CustomMenu {
         private final String title;
         private final int size;
-        private final Map<Integer, MenuItem> items = new HashMap<>();
+        private final Map<Integer, MenuItem> items = new ConcurrentHashMap<>();
 
         public CustomMenu(String title, int size) {
             this.title = title;

@@ -49,7 +49,7 @@ public class PendingCommandDAO {
     }
 
     public void processPendingCommands(Player p) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement ps = conn.prepareStatement("SELECT * FROM pending_rewards WHERE uuid = ?")) {
                 ps.setString(1, p.getUniqueId().toString());
@@ -59,7 +59,7 @@ public class PendingCommandDAO {
                         String cmd = rs.getString("command");
                         String msg = rs.getString("message");
                         
-                        Bukkit.getScheduler().runTask(plugin, () -> {
+                        plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                             if (cmd != null && !cmd.isEmpty()) {
                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", p.getName()));
                             }

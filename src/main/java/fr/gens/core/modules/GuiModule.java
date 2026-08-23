@@ -52,12 +52,38 @@ public class GuiModule implements Module, Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!enabled) return;
 
-        Inventory inv = event.getClickedInventory();
-        if (inv != null && inv.getHolder() instanceof GensGuiHolder) {
-            event.setCancelled(true); // EmpÃƒÆ’Ã‚Âªche de prendre l'item
+        Inventory topInv = event.getView().getTopInventory();
+        if (topInv.getHolder() instanceof GensGuiHolder) {
+            Inventory clickedInv = event.getClickedInventory();
+            if (clickedInv == null) return;
+
+            if (!clickedInv.equals(topInv)) {
+                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+
+            event.setCancelled(true); // Empêche de prendre l'item
             
-            // On dÃƒÆ’Ã‚Â©lÃƒÆ’Ã‚Â¨gue l'action au holder spÃƒÆ’Ã‚Â©cifique
-            ((GensGuiHolder) inv.getHolder()).onClick(event);
+            // On délègue l'action au holder spécifique
+            ((GensGuiHolder) topInv.getHolder()).onClick(event);
+        }
+    }
+
+    // Intercepte les glissements (drag) d'items pour empêcher le remplacement des objets du menu
+    @EventHandler
+    public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!enabled) return;
+
+        Inventory topInv = event.getView().getTopInventory();
+        if (topInv.getHolder() instanceof GensGuiHolder) {
+            for (int rawSlot : event.getRawSlots()) {
+                if (rawSlot < topInv.getSize()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
         }
     }
 

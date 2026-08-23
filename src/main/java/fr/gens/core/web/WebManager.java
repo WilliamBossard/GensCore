@@ -35,6 +35,7 @@ public class WebManager {
     private final java.util.Map<String, Long> rateLimitReset = new java.util.concurrent.ConcurrentHashMap<>();
     public final java.util.Map<String, Integer> playerLoginRateLimit = new java.util.concurrent.ConcurrentHashMap<>();
     public final java.util.Map<String, Long> playerRateLimitReset = new java.util.concurrent.ConcurrentHashMap<>();
+    public final java.util.Map<String, Long> playerSessionExpiry = new java.util.concurrent.ConcurrentHashMap<>();
 
     public WebManager(CorePlugin plugin, int port) {
         this.plugin = plugin;
@@ -161,7 +162,9 @@ public class WebManager {
                             return;
                         }
                         String token = authHeader.substring(7);
-                        if (!activePlayerSessions.containsKey(token)) {
+                        if (!activePlayerSessions.containsKey(token) || (playerSessionExpiry.containsKey(token) && playerSessionExpiry.get(token) < System.currentTimeMillis())) {
+                            activePlayerSessions.remove(token);
+                            playerSessionExpiry.remove(token);
                             ctx.status(401).json(Map.of("error", "Session expired"));
                             return;
                         }
@@ -203,7 +206,7 @@ public class WebManager {
             }).start(port);
             
             // Nettoyage périodique des sessions web expirées (Toutes les heures = 72000 ticks)
-            plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
                 long now = System.currentTimeMillis();
                 activeSessions.entrySet().removeIf(entry -> entry.getValue() < now);
             }, 72000L, 72000L);
@@ -353,7 +356,7 @@ public class WebManager {
             ToggleRequest request = ctx.bodyAsClass(ToggleRequest.class);
             
             // On exÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cute l'activation sur le thread principal de Bukkit (TrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s important !)
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                 boolean success = plugin.getModuleManager().toggleModule(moduleName, request.state);
                 if(success) {
                     plugin.getLogger().info("Web panel changed state of module " + moduleName + " to " + request.state);
@@ -392,53 +395,56 @@ public class WebManager {
 
         post("/api/admin/config", ctx -> {
             ConfigRequest req = ctx.bodyAsClass(ConfigRequest.class);
-            plugin.getConfigManager().getConfig("modules/economy.yml").set("shop.inflation_exponent", req.inflationExponent);
-            plugin.getConfigManager().getConfig("modules/economy.yml").set("ah.tax_percentage", req.ahTaxPercentage);
-            plugin.getConfigManager().getConfig("modules/headdrop.yml").set("headdrop.chance", req.headDropChance);
-            plugin.getConfigManager().getConfig("modules/quests.yml").set("quests.max_rerolls_per_day", req.maxQuestsRerolls);
-            plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.prevent-break", req.lootrPreventBreak);
-            plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.prevent-hopper", req.lootrPreventHopper);
-            plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.particles-enabled", req.lootrParticles);
-            plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line1", req.motdLine1);
-            plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line2", req.motdLine2);
-            if (req.bluemapUrl != null) plugin.getConfigManager().getConfig("modules/bluemap.yml").set("bluemap.url", req.bluemapUrl);
-            if (req.serverIp != null) plugin.getConfigManager().getConfig("modules/web.yml").set("web.server_ip", req.serverIp);
             
-            if (req.tombBlockType != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.block_type", req.tombBlockType);
-            plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.store_xp", req.tombStoreXp);
-            plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.expiration_time_seconds", req.tombExpirationSeconds);
-            if (req.tombExpirationAction != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.expiration_action", req.tombExpirationAction);
-            if (req.tombDefaultAccess != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.default_access", req.tombDefaultAccess);
-            
-            plugin.getConfigManager().saveConfig("modules/economy.yml");
-            plugin.getConfigManager().saveConfig("modules/headdrop.yml");
-            plugin.getConfigManager().saveConfig("modules/quests.yml");
-            plugin.getConfigManager().saveConfig("modules/lootr.yml");
-            plugin.getConfigManager().saveConfig("modules/motd.yml");
-            plugin.getConfigManager().saveConfig("modules/bluemap.yml");
-            plugin.getConfigManager().saveConfig("modules/tomb.yml");
-            plugin.saveConfig();
-            
-            plugin.getConfigManager().getConfig("modules/web.yml").set("admin-password", req.adminPassword);
-            plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.wheel.enabled", req.minigameWheelEnabled);
-            plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.casino.enabled", req.minigameCasinoEnabled);
-            if (req.publicFeaturesText != null) {
-                plugin.getConfigManager().getConfig("modules/web.yml").set("web.public_features_text", req.publicFeaturesText);
-            }
-            plugin.getConfigManager().saveConfig("modules/web.yml");
-            plugin.getConfigManager().saveConfig("modules/minigames.yml");
-            
-            plugin.getLangManager().sendConsoleMessage("webmanager.log_3");
-            
-            HeadDropModule hd = (HeadDropModule) plugin.getModuleManager().getModule("headdrop");
-            if (hd != null) {
-                hd.setDropChance(req.headDropChance);
-            }
-            
-            fr.gens.core.modules.loot.LootModule loot = (fr.gens.core.modules.loot.LootModule) plugin.getModuleManager().getModule("lootr");
-            if (loot != null) {
-                loot.loadConfig();
-            }
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+                plugin.getConfigManager().getConfig("modules/economy.yml").set("shop.inflation_exponent", req.inflationExponent);
+                plugin.getConfigManager().getConfig("modules/economy.yml").set("ah.tax_percentage", req.ahTaxPercentage);
+                plugin.getConfigManager().getConfig("modules/headdrop.yml").set("headdrop.chance", req.headDropChance);
+                plugin.getConfigManager().getConfig("modules/quests.yml").set("quests.max_rerolls_per_day", req.maxQuestsRerolls);
+                plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.prevent-break", req.lootrPreventBreak);
+                plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.prevent-hopper", req.lootrPreventHopper);
+                plugin.getConfigManager().getConfig("modules/lootr.yml").set("lootr.particles-enabled", req.lootrParticles);
+                plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line1", req.motdLine1);
+                plugin.getConfigManager().getConfig("modules/motd.yml").set("motd.line2", req.motdLine2);
+                if (req.bluemapUrl != null) plugin.getConfigManager().getConfig("modules/bluemap.yml").set("bluemap.url", req.bluemapUrl);
+                if (req.serverIp != null) plugin.getConfigManager().getConfig("modules/web.yml").set("web.server_ip", req.serverIp);
+                
+                if (req.tombBlockType != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.block_type", req.tombBlockType);
+                plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.store_xp", req.tombStoreXp);
+                plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.expiration_time_seconds", req.tombExpirationSeconds);
+                if (req.tombExpirationAction != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.expiration_action", req.tombExpirationAction);
+                if (req.tombDefaultAccess != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.default_access", req.tombDefaultAccess);
+                
+                plugin.getConfigManager().saveConfig("modules/economy.yml");
+                plugin.getConfigManager().saveConfig("modules/headdrop.yml");
+                plugin.getConfigManager().saveConfig("modules/quests.yml");
+                plugin.getConfigManager().saveConfig("modules/lootr.yml");
+                plugin.getConfigManager().saveConfig("modules/motd.yml");
+                plugin.getConfigManager().saveConfig("modules/bluemap.yml");
+                plugin.getConfigManager().saveConfig("modules/tomb.yml");
+                plugin.saveConfig();
+                
+                plugin.getConfigManager().getConfig("modules/web.yml").set("admin-password", req.adminPassword);
+                plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.wheel.enabled", req.minigameWheelEnabled);
+                plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.casino.enabled", req.minigameCasinoEnabled);
+                if (req.publicFeaturesText != null) {
+                    plugin.getConfigManager().getConfig("modules/web.yml").set("web.public_features_text", req.publicFeaturesText);
+                }
+                plugin.getConfigManager().saveConfig("modules/web.yml");
+                plugin.getConfigManager().saveConfig("modules/minigames.yml");
+                
+                plugin.getLangManager().sendConsoleMessage("webmanager.log_3");
+                
+                HeadDropModule hd = (HeadDropModule) plugin.getModuleManager().getModule("headdrop");
+                if (hd != null) {
+                    hd.setDropChance(req.headDropChance);
+                }
+                
+                fr.gens.core.modules.loot.LootModule loot = (fr.gens.core.modules.loot.LootModule) plugin.getModuleManager().getModule("lootr");
+                if (loot != null) {
+                    loot.loadConfig();
+                }
+            });
             
             ctx.status(200).result("OK");
         });
@@ -451,7 +457,7 @@ public class WebManager {
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
             List<Map<String, Object>> knownPlayers = (statsModule != null) ? statsModule.getStatsDAO().getAllKnownPlayers() : new ArrayList<>();
             
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                 List<Map<String, Object>> players = new ArrayList<>();
                 fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
                 
@@ -494,17 +500,20 @@ public class WebManager {
 
         post("/api/admin/players/action", ctx -> {
             PlayerActionRequest req = ctx.bodyAsClass(PlayerActionRequest.class);
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
+            
+            // Fetch offline player synchronously in the web thread (which is already async/off the main thread)
+            org.bukkit.OfflinePlayer targetOffline = plugin.getServer().getOfflinePlayer(req.playerName);
+            
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                 DiscordModule discord = (DiscordModule) plugin.getModuleManager().getModule("Discord");
                 fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
-                org.bukkit.OfflinePlayer targetOffline = plugin.getServer().getOfflinePlayer(req.playerName);
                 org.bukkit.entity.Player target = targetOffline.getPlayer();
 
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© expulsÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
+                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
                         plugin.getLogger().info("Web panel kicked " + req.playerName);
-                        if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, Color.ORANGE);
+                        if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, java.awt.Color.ORANGE);
                     }
                 } else if ("ban".equalsIgnoreCase(req.action)) {
                     long durationMs = 0;
@@ -623,10 +632,8 @@ public class WebManager {
         get("/api/economy/stats", ctx -> {
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null) {
-                // Pour simplifier, on ne peut pas iterer directement sur les UUIDs sans reflection si balances est privÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
-                // Je vais utiliser un raccourci ou demander au module
-                // TODO: Ajouter une methode getTotalMoney dans EconomyModule
-                ctx.json(Map.of("status", "ok", "message", "Endpoint economie a implementer"));
+                double totalMoney = eco.getTotalMoney();
+                ctx.json(Map.of("status", "ok", "total_money", totalMoney));
             } else {
                 ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.module_disabled"));
             }

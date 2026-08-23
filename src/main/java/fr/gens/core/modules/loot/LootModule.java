@@ -38,7 +38,7 @@ public class LootModule implements Module, Listener {
     private boolean enabled;
     private LootManager lootManager;
 
-    private int particleTaskId = -1;
+    private com.tcoded.folialib.wrapper.task.WrappedTask particleTask = null;
     private final Map<UUID, Long> breakConfirms = new ConcurrentHashMap<>();
     private final Map<UUID, Location> lastBrokenLocation = new ConcurrentHashMap<>();
     private final Map<Inventory, Location> openVirtualInventories = new ConcurrentHashMap<>();
@@ -49,10 +49,10 @@ public class LootModule implements Module, Listener {
     private boolean preventBreak = false;
     private boolean particlesEnabled = true;
     private int breakConfirmTime = 3;
-    private String breakConfirmMsg = "<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !";
-    private String chestBrokenMsg = "<green>Coffre Lootr retirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !";
-    private String cannotBreakMsg = "<red>Tu ne peux pas casser ce coffre !";
-    private String inventoryTitle = "<dark_gray>[<gold><dark_gray>] <yellow>Coffre ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  Butin";
+    private net.kyori.adventure.text.Component breakConfirmMsg = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !");
+    private net.kyori.adventure.text.Component chestBrokenMsg = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Coffre Lootr retiré !");
+    private net.kyori.adventure.text.Component cannotBreakMsg = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Tu ne peux pas casser ce coffre !");
+    private net.kyori.adventure.text.Component inventoryTitle = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin");
 
     public LootModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -113,19 +113,19 @@ public class LootModule implements Module, Listener {
         preventBreak = config.getBoolean("lootr.prevent-break", false);
         particlesEnabled = config.getBoolean("lootr.particles-enabled", true);
         breakConfirmTime = config.getInt("lootr.break-confirm-time", 3);
-        breakConfirmMsg = config.getString("lootr.messages.break-confirm", "&eCasse-le encore une fois dans les 3 secondes pour confirmer !").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
-        chestBrokenMsg = config.getString("lootr.messages.chest-broken", "&aCoffre Lootr retirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
-        cannotBreakMsg = config.getString("lootr.messages.cannot-break", "&cTu ne peux pas casser ce coffre !").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
-        inventoryTitle = config.getString("lootr.inventory.title", "&8[&6&8] &eCoffre ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  Butin").replace("&", "ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§");
+        breakConfirmMsg = fr.gens.core.utils.PlaceholderUtils.parseToComponent(config.getString("lootr.messages.break-confirm", "&eCasse-le encore une fois dans les 3 secondes pour confirmer !"));
+        chestBrokenMsg = fr.gens.core.utils.PlaceholderUtils.parseToComponent(config.getString("lootr.messages.chest-broken", "&aCoffre Lootr retiré !"));
+        cannotBreakMsg = fr.gens.core.utils.PlaceholderUtils.parseToComponent(config.getString("lootr.messages.cannot-break", "&cTu ne peux pas casser ce coffre !"));
+        inventoryTitle = fr.gens.core.utils.PlaceholderUtils.parseToComponent(config.getString("lootr.inventory.title", "&8[&6&8] &eCoffre à Butin"));
     }
 
     @Override
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
-        if (particleTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(particleTaskId);
-            particleTaskId = -1;
+        if (particleTask != null) {
+            particleTask.cancel();
+            particleTask = null;
         }
         
         // Force close all virtual inventories to save them
@@ -143,7 +143,7 @@ public class LootModule implements Module, Listener {
     }
 
     private void startParticleTask() {
-        particleTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+        particleTask = plugin.getFoliaLib().getImpl().runTimer(() -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
                 Location pLoc = p != null ? p.getLocation() : null;
@@ -204,7 +204,7 @@ public class LootModule implements Module, Listener {
         LootManager.LootChestData data = lootManager.getLootChestData(loc);
         if (data == null) return;
 
-        Inventory inv = Bukkit.createInventory(null, data.getSize(), net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(inventoryTitle));
+        Inventory inv = Bukkit.createInventory(null, data.getSize(), inventoryTitle);
         boolean hasLootedBefore = lootManager.hasPlayerLooted(p.getUniqueId(), loc);
 
         if (hasLootedBefore) {

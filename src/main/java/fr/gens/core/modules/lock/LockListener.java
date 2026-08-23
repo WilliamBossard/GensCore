@@ -74,7 +74,7 @@ public class LockListener implements Listener {
 
         if (team != null && team.isAutoLock()) {
             lockModule.createLock(block.getLocation(), null, team.getTeamId());
-            player.sendMessage("<yellow>[Verrous] <green>Conteneur verrouillÃƒÆ’Ã‚Â© pour l'ÃƒÆ’Ã‚Â©quipe <yellow>" + team.getName() + "<green>.");
+            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>[Verrous] <green>Conteneur verrouillÃƒÆ’Ã‚Â© pour l'ÃƒÆ’Ã‚Â©quipe <yellow>" + team.getName() + "<green>."));
         } else {
             lockModule.createLock(block.getLocation(), player.getUniqueId(), -1);
             plugin.getLangManager().sendMessage(player, "locklistener.msg_1");
@@ -103,7 +103,7 @@ public class LockListener implements Listener {
                     TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
                     if (team != null) {
                         lockModule.createLock(block.getLocation(), null, team.getTeamId());
-                        player.sendMessage("<green>VerrouillÃƒÆ’Ã‚Â© pour la guilde " + team.getName() + ".");
+                        player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>VerrouillÃƒÆ’Ã‚Â© pour la guilde " + team.getName() + "."));
                     } else {
                         plugin.getLangManager().sendMessage(player, "locklistener.msg_3");
                     }

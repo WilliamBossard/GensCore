@@ -58,7 +58,7 @@ public class ShopModule implements Module, Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!enabled) return; // SÃƒÆ’Ã‚Â©curitÃƒÆ’Ã‚Â© supplÃƒÆ’Ã‚Â©mentaire
-        event.getPlayer().sendMessage("<green>Le Shop est actuellement ouvert !");
+        event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le Shop est actuellement ouvert !"));
     }
 }
 

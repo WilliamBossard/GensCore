@@ -115,13 +115,13 @@ public class JobsGUI implements Listener {
             if (targetJob != null) {
                 if (jobsModule.hasJob(p.getUniqueId(), targetJob)) {
                     jobsModule.leaveJob(p.getUniqueId(), targetJob);
-                    p.sendMessage("<red>Vous avez quittÃƒÆ’Ã‚Â© le mÃƒÆ’Ã‚Â©tier " + targetJob.getDisplayName() + " !");
+                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez quittÃƒÆ’Ã‚Â© le mÃƒÆ’Ã‚Â©tier " + targetJob.getDisplayName() + " !"));
                 } else {
                     if (jobsModule.getActiveJobsCount(p.getUniqueId()) >= 2) {
                         plugin.getLangManager().sendMessage(p, "jobsgui.msg_1");
                     } else {
                         jobsModule.joinJob(p.getUniqueId(), targetJob);
-                        p.sendMessage("<green>Vous avez rejoint le mÃƒÆ’Ã‚Â©tier " + targetJob.getDisplayName() + " !");
+                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez rejoint le mÃƒÆ’Ã‚Â©tier " + targetJob.getDisplayName() + " !"));
                     }
                 }
                 openGUI(p);

@@ -6,8 +6,6 @@ import fr.gens.core.database.AuthDAO;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,33 +20,32 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+
+
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.mindrot.jbcrypt.BCrypt;
 
-import org.bukkit.command.CommandExecutor;
+import cloud.commandframework.annotations.Argument;
+import cloud.commandframework.annotations.CommandMethod;
 
-
-public class AuthModule implements Module, Listener, CommandExecutor {
+public class AuthModule implements Module, Listener {
 
     private CorePlugin plugin;
     private boolean enabled;
     private AuthDAO authDAO;
-    private final Set<UUID> authenticated = new HashSet<>();
+    private final Set<UUID> authenticated = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final long SESSION_TIMEOUT = 30L * 24L * 60L * 60L * 1000L; // 30 days
 
     // Rate-limiting sur /login
-    private final Map<UUID, Integer> loginAttempts = new HashMap<>();
-    private final Map<UUID, Long>    loginLockout  = new HashMap<>();
+    private final Map<UUID, Integer> loginAttempts = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<UUID, Long>    loginLockout  = new java.util.concurrent.ConcurrentHashMap<>();
     private static final int  MAX_LOGIN_ATTEMPTS = 5;
     private static final long LOGIN_LOCKOUT_MS   = 5L * 60 * 1000; // 5 minutes
 
     // TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches planifiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es par ce module
-    private final List<Integer> taskIds = new ArrayList<>();
+    private final java.util.List<com.tcoded.folialib.wrapper.task.WrappedTask> taskIds = new ArrayList<>();
 
     public AuthModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -95,19 +92,16 @@ public class AuthModule implements Module, Listener, CommandExecutor {
         loginAttempts.clear();
         loginLockout.clear();
         // Annuler uniquement les tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches de ce module (et non toutes les tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches du plugin)
-        taskIds.forEach(id -> Bukkit.getScheduler().cancelTask(id));
+        taskIds.forEach(com.tcoded.folialib.wrapper.task.WrappedTask::cancel);
         taskIds.clear();
         plugin.getLangManager().sendConsoleMessage("authmodule.log_2");
     }
     
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
-        org.bukkit.command.PluginCommand cmd_register = plugin.getCommand("register");
-        if (cmd_register != null) cmd_register.setExecutor(this);
-        org.bukkit.command.PluginCommand cmd_login = plugin.getCommand("login");
-        if (cmd_login != null) cmd_login.setExecutor(this);
-        org.bukkit.command.PluginCommand cmd_changemdp = plugin.getCommand("changemdp");
-        if (cmd_changemdp != null) cmd_changemdp.setExecutor(this);
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 
     public void forceLogout(UUID uuid) {
@@ -119,67 +113,68 @@ public class AuthModule implements Module, Listener, CommandExecutor {
         }
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!enabled || !(sender instanceof Player)) return true;
-        Player p = (Player) sender;
+    @CommandMethod("register <password> <confirm>")
+    public void executeRegister(Player p, @Argument("password") String password, @Argument("confirm") String confirm) {
+        if (!enabled) return;
         UUID uuid = p.getUniqueId();
 
-        if (label.equalsIgnoreCase("register")) {
-            if (authenticated.contains(uuid)) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_3");
-                return true;
-            }
+        if (authenticated.contains(uuid)) {
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_3");
+            return;
+        }
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_4");
-                return true;
+                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_4"));
+                return;
             }
-            if (args.length < 2) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_5");
-                return true;
+            if (!password.equals(confirm)) {
+                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_6"));
+                return;
             }
-            if (!args[0].equals(args[1])) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_6");
-                return true;
-            }
-            String password = args[0];
             if (password.length() < 8) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_7");
-                return true;
+                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_7"));
+                return;
             }
 
-            String salt = ""; // Non utilisÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© pour BCrypt mais gardÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© pour compatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© BDD
+            String salt = ""; // Non utilisé pour BCrypt mais gardé pour compatibilité BDD
             String hash = BCrypt.hashpw(password, BCrypt.gensalt());
             java.net.InetSocketAddress addr = p.getAddress();
             String ip = (addr != null && addr.getAddress() != null) ? addr.getAddress().getHostAddress() : "0.0.0.0";
 
             authDAO.registerPlayer(uuid, hash, salt, ip);
             authenticated.add(uuid);
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_8");
+            plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_8"));
             
             fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
             if (discord != null && discord.isEnabled()) {
                 discord.logAuthEvent(p.getName(), "Nouvel Enregistrement", new java.awt.Color(0, 200, 255));
             }
-            return true;
+        });
+    }
+
+    @CommandMethod("login <password>")
+    public void executeLogin(Player p, @Argument("password") String password) {
+        if (!enabled) return;
+        UUID uuid = p.getUniqueId();
+
+        if (authenticated.contains(uuid)) {
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_9");
+            return;
         }
 
-        if (label.equalsIgnoreCase("login")) {
-            if (authenticated.contains(uuid)) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_9");
-                return true;
-            }
-
-            // --- Rate-limiting : vÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rifier le lockout avant toute chose ---
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            // --- Rate-limiting : vérifier le lockout avant toute chose ---
             if (loginLockout.containsKey(uuid)) {
                 long remaining = (loginLockout.get(uuid) + LOGIN_LOCKOUT_MS) - System.currentTimeMillis();
                 if (remaining > 0) {
                     long minutes = remaining / 60000;
-                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
-                        "<red>Trop de tentatives. RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©essayez dans <bold>" + (minutes + 1) + " min</bold>.</red>"
-                    ));
-                    return true;
+                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
+                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
+                            "<red>Trop de tentatives. Réessayez dans <bold>" + (minutes + 1) + " min</bold>.</red>"
+                        ));
+                    });
+                    return;
                 } else {
                     loginLockout.remove(uuid);
                     loginAttempts.remove(uuid);
@@ -189,14 +184,9 @@ public class AuthModule implements Module, Listener, CommandExecutor {
 
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data == null) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_10");
-                return true;
+                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_10"));
+                return;
             }
-            if (args.length < 1) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_11");
-                return true;
-            }
-            String password = args[0];
             
             boolean isAuthenticated = false;
             boolean needsMigration = false;
@@ -215,58 +205,60 @@ public class AuthModule implements Module, Listener, CommandExecutor {
 
             if (isAuthenticated) {
                 java.net.InetSocketAddress addr = p.getAddress();
-            String ip = (addr != null && addr.getAddress() != null) ? addr.getAddress().getHostAddress() : "0.0.0.0";
+                String ip = (addr != null && addr.getAddress() != null) ? addr.getAddress().getHostAddress() : "0.0.0.0";
                 
                 if (needsMigration) {
                     String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
                     authDAO.updatePassword(uuid, newHash, "");
-                    plugin.getLangManager().sendMessage(p, "authmodule.msg_12");
+                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_12"));
                 }
                 
                 authDAO.updateLogin(uuid, ip);
                 authenticated.add(uuid);
-                // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©initialiser les compteurs d'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©checs
+                // Réinitialiser les compteurs d'échecs
                 loginAttempts.remove(uuid);
                 loginLockout.remove(uuid);
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_13");
+                
+                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_13"));
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
                 if (discord != null && discord.isEnabled()) {
-                    discord.logAuthEvent(p.getName(), "Connexion RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ussie", java.awt.Color.GREEN);
+                    discord.logAuthEvent(p.getName(), "Connexion Réussie", java.awt.Color.GREEN);
                 }
             } else {
-                // IncrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©menter le compteur d'ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©checs
+                // Incrémenter le compteur d'échecs
                 int attempts = loginAttempts.merge(uuid, 1, Integer::sum);
                 if (attempts >= MAX_LOGIN_ATTEMPTS) {
                     loginLockout.put(uuid, System.currentTimeMillis());
                     loginAttempts.remove(uuid);
-                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
-                        "<red><bold>Compte temporairement verrouillÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©</bold> (5 tentatives). RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©essayez dans 5 minutes.</red>"
-                    ));
+                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
+                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
+                            "<red><bold>Compte temporairement verrouillé</bold> (5 tentatives). Réessayez dans 5 minutes.</red>"
+                        ));
+                    });
                 } else {
-                    plugin.getLangManager().sendMessage(p, "authmodule.msg_14");
+                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_14"));
                     fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
                     String discordId = statsModule != null ? statsModule.getStatsDAO().getDiscordId(uuid) : null;
                     if (discordId != null && !discordId.isEmpty()) {
-                        plugin.getLangManager().sendMessage(p, "authmodule.msg_15");
+                        plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_15"));
                     }
                 }
             }
-            return true;
+        });
+    }
+
+    @CommandMethod("changemdp <oldPass> <newPass>")
+    public void executeChangeMdp(Player p, @Argument("oldPass") String oldPass, @Argument("newPass") String newPass) {
+        if (!enabled) return;
+        UUID uuid = p.getUniqueId();
+
+        if (!authenticated.contains(uuid)) {
+            plugin.getLangManager().sendMessage(p, "authmodule.msg_17");
+            return;
         }
 
-        if (command.getName().equalsIgnoreCase("changemdp")) {
-            if (args.length != 2) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_16");
-                return true;
-            }
-            if (!authenticated.contains(p.getUniqueId())) {
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_17");
-                return true;
-            }
-            String oldPass = args[0];
-            String newPass = args[1];
-
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
                 boolean isOldPasswordCorrect = false;
@@ -279,37 +271,38 @@ public class AuthModule implements Module, Listener, CommandExecutor {
                 
                 if (isOldPasswordCorrect) {
                     if (newPass.length() < 8) {
-                        plugin.getLangManager().sendMessage(p, "authmodule.msg_18");
-                        return true;
+                        plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_18"));
+                        return;
                     }
                     String newHash = BCrypt.hashpw(newPass, BCrypt.gensalt());
                     authDAO.updatePassword(uuid, newHash, "");
-                    plugin.getLangManager().sendMessage(p, "authmodule.msg_19");
+                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_19"));
                 } else {
-                    plugin.getLangManager().sendMessage(p, "authmodule.msg_20");
+                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_20"));
                 }
             }
-            return true;
-        }
-
-        return false;
+        });
     }
 
     private void requireAuth(Player p) {
-        AuthDAO.AuthData data = authDAO.getAuthData(p.getUniqueId());
-        if (data == null) {
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_21");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_22");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_23");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_24");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_25");
-        } else {
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_26");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_27");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_28");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_29");
-            plugin.getLangManager().sendMessage(p, "authmodule.msg_30");
-        }
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            AuthDAO.AuthData data = authDAO.getAuthData(p.getUniqueId());
+            plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
+                if (data == null) {
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_21");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_22");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_23");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_24");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_25");
+                } else {
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_26");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_27");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_28");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_29");
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_30");
+                }
+            });
+        });
     }
 
     @EventHandler
@@ -318,27 +311,32 @@ public class AuthModule implements Module, Listener, CommandExecutor {
         Player p = event.getPlayer();
         UUID uuid = p.getUniqueId();
         
-        AuthDAO.AuthData data = authDAO.getAuthData(uuid);
-        if (data != null) {
-            java.net.InetSocketAddress addr2 = p.getAddress();
-            String currentIp = (addr2 != null && addr2.getAddress() != null) ? addr2.getAddress().getHostAddress() : "0.0.0.0";
-            long timeSinceLastLogin = System.currentTimeMillis() - data.lastLogin;
-            
-            if (currentIp.equals(data.lastIp) && timeSinceLastLogin < SESSION_TIMEOUT) {
-                authenticated.add(uuid);
-                authDAO.updateLogin(uuid, currentIp);
-                plugin.getLangManager().sendMessage(p, "authmodule.msg_31");
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            AuthDAO.AuthData data = authDAO.getAuthData(uuid);
+            if (data != null) {
+                java.net.InetSocketAddress addr2 = p.getAddress();
+                String currentIp = (addr2 != null && addr2.getAddress() != null) ? addr2.getAddress().getHostAddress() : "0.0.0.0";
+                long timeSinceLastLogin = System.currentTimeMillis() - data.lastLogin;
                 
-                fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
-                if (discord != null && discord.isEnabled()) {
-                    discord.logAuthEvent(p.getName(), "Connexion Automatique", java.awt.Color.GREEN);
+                if (currentIp.equals(data.lastIp) && timeSinceLastLogin < SESSION_TIMEOUT) {
+                    authenticated.add(uuid);
+                    authDAO.updateLogin(uuid, currentIp);
+                    
+                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
+                        plugin.getLangManager().sendMessage(p, "authmodule.msg_31");
+                    });
+                    
+                    fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
+                    if (discord != null && discord.isEnabled()) {
+                        discord.logAuthEvent(p.getName(), "Connexion Automatique", java.awt.Color.GREEN);
+                    }
+                    return;
                 }
-                return;
             }
-        }
-        
-        // Not authenticated
-        requireAuth(p);
+            
+            // Not authenticated
+            requireAuth(p);
+        });
     }
 
     @EventHandler

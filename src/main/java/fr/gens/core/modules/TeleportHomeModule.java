@@ -6,9 +6,8 @@ import fr.gens.core.utils.TeleportUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import cloud.commandframework.annotations.Argument;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -23,25 +22,19 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.NamespacedKey;
 
-import org.bukkit.command.TabCompleter;
-
-
-
-
-
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import java.util.Map;
 import java.util.UUID;
 
 
-public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter, Listener {
+public class TeleportHomeModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
-    private final Map<UUID, Map<String, Location>> homes = new HashMap<>();
+    private final Map<UUID, Map<String, Location>> homes = new ConcurrentHashMap<>();
     
     private fr.gens.core.database.HomeDAO homeDAO;
 
@@ -84,21 +77,16 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
             final UUID uuid = p.getUniqueId();
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadHomesForPlayer(uuid));
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> loadHomesForPlayer(uuid));
         }
         plugin.getLangManager().sendConsoleMessage("teleporthomemodule.log_1");
     }
 
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
-        org.bukkit.command.PluginCommand sethomeCmd = plugin.getCommand("sethome");
-        if (sethomeCmd != null) { sethomeCmd.setExecutor(this); }
-        
-        org.bukkit.command.PluginCommand homeCmd = plugin.getCommand("home");
-        if (homeCmd != null) { homeCmd.setExecutor(this); homeCmd.setTabCompleter(this); }
-        
-        org.bukkit.command.PluginCommand delhomeCmd = plugin.getCommand("delhome");
-        if (delhomeCmd != null) { delhomeCmd.setExecutor(this); delhomeCmd.setTabCompleter(this); }
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 
     @Override
@@ -111,20 +99,20 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
 
 
     private void saveHomeToDB(UUID uuid, String name, Location loc) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             homeDAO.saveHome(uuid, name, loc);
         });
     }
 
     private void deleteHomeFromDB(UUID uuid, String name) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             homeDAO.deleteHome(uuid, name);
         });
     }
 
     public void clearAllHomes() {
         homes.clear();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             homeDAO.clearAllHomes();
         });
     }
@@ -139,7 +127,7 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
     public void onJoin(PlayerJoinEvent event) {
         if (!enabled) return;
         final UUID uuid = event.getPlayer().getUniqueId();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> loadHomesForPlayer(uuid));
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> loadHomesForPlayer(uuid));
     }
 
     @EventHandler
@@ -164,116 +152,89 @@ public class TeleportHomeModule implements Module, CommandExecutor, TabCompleter
         return max;
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    @CommandMethod("sethome [name]")
+    public void executeSetHome(Player p, @Argument(value = "name", defaultValue = "maison") String homeName) {
         if (!enabled) {
-            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©.</red>"));
-            return true;
+            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
+            return;
         }
-        if (!(sender instanceof Player)) return true;
-        Player p = (Player) sender;
-
-        if (command.getName().equalsIgnoreCase("sethome")) {
-            if (!p.hasPermission("genscore.home")) {
-                plugin.getLangManager().sendMessage(p, "error.no_permission");
-                return true;
-            }
-            
-            String homeName = args.length > 0 ? args[0] : "maison";
-            Map<String, Location> playerHomes = homes.computeIfAbsent(p.getUniqueId(), k -> new HashMap<>());
-            
-            if (!playerHomes.containsKey(homeName) && playerHomes.size() >= getMaxHomes(p)) {
-                plugin.getLangManager().sendMessage(p, "home.limit_reached",
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("max", String.valueOf(getMaxHomes(p)))
-                );
-                return true;
-            }
-
-            playerHomes.put(homeName, p.getLocation());
-            saveHomeToDB(p.getUniqueId(), homeName, p.getLocation());
-            plugin.getLangManager().sendMessage(p, "home.set", 
-                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+        if (!p.hasPermission("genscore.home")) {
+            plugin.getLangManager().sendMessage(p, "error.no_permission");
+            return;
+        }
+        
+        Map<String, Location> playerHomes = homes.computeIfAbsent(p.getUniqueId(), k -> new ConcurrentHashMap<>());
+        
+        if (!playerHomes.containsKey(homeName) && playerHomes.size() >= getMaxHomes(p)) {
+            plugin.getLangManager().sendMessage(p, "home.limit_reached",
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("max", String.valueOf(getMaxHomes(p)))
             );
-            return true;
+            return;
         }
 
-        if (command.getName().equalsIgnoreCase("home")) {
-            if (!p.hasPermission("genscore.home")) {
-                plugin.getLangManager().sendMessage(p, "error.no_permission");
-                return true;
-            }
-            if (args.length > 0) {
-                String homeName = args[0];
-                Map<String, Location> playerHomes = homes.get(p.getUniqueId());
-                if (playerHomes != null && playerHomes.containsKey(homeName)) {
-                    TeleportUtil.teleportWithCooldown(plugin, p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
-                } else {
-                    plugin.getLangManager().sendMessage(p, "home.not_found", 
-                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
-                    );
-                }
-                return true;
-            }
-            openHomeGui(p);
-            return true;
-        }
+        playerHomes.put(homeName, p.getLocation());
+        saveHomeToDB(p.getUniqueId(), homeName, p.getLocation());
+        plugin.getLangManager().sendMessage(p, "home.set", 
+            net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+        );
+    }
 
-        if (command.getName().equalsIgnoreCase("delhome")) {
-            if (!p.hasPermission("genscore.home")) {
-                plugin.getLangManager().sendMessage(p, "error.no_permission");
-                return true;
-            }
-            if (args.length == 0) {
-                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Usage: /delhome <nom></red>"));
-                return true;
-            }
-            String homeName = args[0];
+    @CommandMethod("home [name]")
+    public void executeHome(Player p, @Argument(value = "name", defaultValue = "") String homeName) {
+        if (!enabled) {
+            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
+            return;
+        }
+        if (!p.hasPermission("genscore.home")) {
+            plugin.getLangManager().sendMessage(p, "error.no_permission");
+            return;
+        }
+        
+        if (!homeName.isEmpty()) {
             Map<String, Location> playerHomes = homes.get(p.getUniqueId());
             if (playerHomes != null && playerHomes.containsKey(homeName)) {
-                playerHomes.remove(homeName);
-                deleteHomeFromDB(p.getUniqueId(), homeName);
-                plugin.getLangManager().sendMessage(p, "home.delete", 
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
-                );
+                TeleportUtil.teleportWithCooldown(plugin, p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
             } else {
                 plugin.getLangManager().sendMessage(p, "home.not_found", 
                     net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
                 );
             }
-            return true;
+            return;
         }
-
-        return false;
+        openHomeGui(p);
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!enabled || !(sender instanceof Player)) return Collections.emptyList();
-        Player p = (Player) sender;
-        
-        if (command.getName().equalsIgnoreCase("home") || command.getName().equalsIgnoreCase("delhome")) {
-            if (args.length == 1) {
-                Map<String, Location> playerHomes = homes.get(p.getUniqueId());
-                if (playerHomes == null) return Collections.emptyList();
-                
-                List<String> completions = new ArrayList<>();
-                for (String homeName : playerHomes.keySet()) {
-                    if (homeName.toLowerCase().startsWith(args[0].toLowerCase())) {
-                        completions.add(homeName);
-                    }
-                }
-                return completions;
-            }
+    @CommandMethod("delhome <name>")
+    public void executeDelHome(Player p, @Argument("name") String homeName) {
+        if (!enabled) {
+            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
+            return;
         }
-        return Collections.emptyList();
+        if (!p.hasPermission("genscore.home")) {
+            plugin.getLangManager().sendMessage(p, "error.no_permission");
+            return;
+        }
+        
+        Map<String, Location> playerHomes = homes.get(p.getUniqueId());
+        if (playerHomes != null && playerHomes.containsKey(homeName)) {
+            playerHomes.remove(homeName);
+            deleteHomeFromDB(p.getUniqueId(), homeName);
+            plugin.getLangManager().sendMessage(p, "home.delete", 
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+            );
+        } else {
+            plugin.getLangManager().sendMessage(p, "home.not_found", 
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+            );
+        }
     }
 
     private void openHomeGui(Player player) {
         HomeGuiHolder holder = new HomeGuiHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId(), new HashMap<>()).size() + "/" + getMaxHomes(player) + ")"));
+        Inventory inv = Bukkit.createInventory(holder, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId(), new ConcurrentHashMap<>()).size() + "/" + getMaxHomes(player) + ")"));
         holder.setInventory(inv);
 
-        Map<String, Location> playerHomes = homes.getOrDefault(player.getUniqueId(), new HashMap<>());
+        Map<String, Location> playerHomes = homes.getOrDefault(player.getUniqueId(), new ConcurrentHashMap<>());
         
         int slot = 0;
         for (String homeName : playerHomes.keySet()) {

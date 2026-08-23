@@ -6,9 +6,7 @@ import fr.gens.core.modules.GuiModule.GensGuiHolder;
 import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -21,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class ShopModule implements Module, CommandExecutor {
+public class ShopModule implements Module {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
@@ -77,8 +75,9 @@ public class ShopModule implements Module, CommandExecutor {
 
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
-        org.bukkit.command.PluginCommand shopCmd = plugin.getCommand("shop");
-        if (shopCmd != null) shopCmd.setExecutor(this);
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 
 
@@ -132,20 +131,13 @@ public class ShopModule implements Module, CommandExecutor {
         return this.shopDAO.deleteCategory(categoryId);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    @CommandMethod("shop")
+    public void executeShop(Player p) {
         if (!enabled) {
-            plugin.getLangManager().sendMessage(sender, "shopmodule.msg_1");
-            return true;
+            plugin.getLangManager().sendMessage(p, "shopmodule.msg_1");
+            return;
         }
-        if (!(sender instanceof Player)) return true;
-        Player p = (Player) sender;
-
-        if (command.getName().equalsIgnoreCase("shop")) {
-            openCategoryGui(p);
-            return true;
-        }
-        return false;
+        openCategoryGui(p);
     }
 
     public void openCategoryGui(Player player) {
@@ -269,17 +261,16 @@ public class ShopModule implements Module, CommandExecutor {
 
                 if (isBuy) {
                     double totalCost = shopItem.getCurrentBuyPrice() * amount;
-                    if (eco.getBalance(p.getUniqueId()) >= totalCost) {
-                        eco.takeMoney(p.getUniqueId(), totalCost);
+                    if (eco.takeMoneyAtomic(p.getUniqueId(), totalCost)) {
                         shopItem.setStock(Math.max(0, shopItem.getStock() - amount));
                         
                         if (shopItem.isCommand()) {
                             String cmd = shopItem.getCommandToExecute().replace("%player%", p.getName());
                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                            p.sendMessage("<green>Achat validÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name());
+                            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Achat validÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
                         } else {
                             p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
-                            p.sendMessage("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $");
+                            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
                         }
                         
                         openItemsGui(p, category); // Refresh
@@ -325,7 +316,7 @@ public class ShopModule implements Module, CommandExecutor {
                         // Modifier le stock (augmente car les joueurs vendent au serveur)
                         shopItem.setStock(shopItem.getStock() + amount);
                         
-                        p.sendMessage("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $");
+                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $"));
                         openItemsGui(p, category); // Refresh
                         saveShop();
                         logTransaction(shopItem);

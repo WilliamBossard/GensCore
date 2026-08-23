@@ -29,6 +29,10 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>devmart-other</id>
+            <url>https://nexuslite.gcnt.net/repos/other/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -134,6 +138,14 @@
             <artifactId>cloud-annotations</artifactId>
             <version>1.8.4</version>
         </dependency>
+        
+        <!-- FoliaLib for multi-platform scheduling -->
+        <dependency>
+            <groupId>com.tcoded</groupId>
+            <artifactId>FoliaLib</artifactId>
+            <version>0.3.1</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -198,6 +210,10 @@
                                 <relocation>
                                     <pattern>cloud.commandframework</pattern>
                                     <shadedPattern>fr.gens.core.lib.cloud</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.tcoded.folialib</pattern>
+                                    <shadedPattern>fr.gens.core.lib.folialib</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>

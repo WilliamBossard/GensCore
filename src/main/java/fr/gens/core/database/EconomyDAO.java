@@ -92,5 +92,19 @@ public class EconomyDAO {
         }
         return top;
     }
+    
+    public double getTotalMoney() {
+        double total = 0.0;
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT SUM(balance) AS total FROM players_economy");
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                total = rs.getDouble("total");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return total;
+    }
 }
 

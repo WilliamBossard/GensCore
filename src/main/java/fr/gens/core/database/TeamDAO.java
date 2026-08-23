@@ -110,11 +110,13 @@ public class TeamDAO {
                                 int count = Integer.parseInt(parts[1]);
                                 org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(mat, count);
                                 
-                                java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> excess = player.getInventory().addItem(item);
-                                for (org.bukkit.inventory.ItemStack drop : excess.values()) {
-                                    player.getWorld().dropItemNaturally(player.getLocation(), drop);
-                                }
-                                plugin.getLangManager().sendMessage(player, "guild.reward_received");
+                                plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
+                                    java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> excess = player.getInventory().addItem(item);
+                                    for (org.bukkit.inventory.ItemStack drop : excess.values()) {
+                                        player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                                    }
+                                    plugin.getLangManager().sendMessage(player, "guild.reward_received");
+                                });
                             } catch (Exception e) {
                                 plugin.getLangManager().sendMessage(player, "error.invalid_reward");
                             }

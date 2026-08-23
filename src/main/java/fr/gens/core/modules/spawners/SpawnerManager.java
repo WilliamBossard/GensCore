@@ -75,10 +75,6 @@ public class SpawnerManager {
         for (SpawnerData data : module.getActiveSpawners().values()) {
             if (data.isLootChest()) continue;
             
-            Location loc = data.getLocation();
-            
-            boolean isLoaded = loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
-            
             // Check if it's time to tick this spawner based on its speed level
             long delayMillis = getDelayTicks(data.getSpeedLevel()) * 50L; // Convert ticks to milliseconds
             if (now - data.getLastGenerateMillis() < delayMillis) {
@@ -87,66 +83,72 @@ public class SpawnerManager {
             
             data.setLastGenerateMillis(now); // Reset timer
             
-            EntityType type;
-            try {
-                type = EntityType.valueOf(data.getType());
-            } catch (Exception e) {
-                continue;
-            }
-            
-            int expPerSpawn = getBaseExp(type);
-            int generatedExp = 0;
-            Map<String, Integer> generatedItems = new HashMap<>();
-            
-            for (int i = 0; i < data.getStackCount(); i++) {
-                generatedExp += expPerSpawn;
-                List<ItemStack> loot = getDropsForType(type, data.getLocation());
-                for (ItemStack item : loot) {
-                    if (item != null && item.getType() != Material.AIR && item.getAmount() > 0) {
-                        String matStr = item.getType().name();
-                        generatedItems.put(matStr, generatedItems.getOrDefault(matStr, 0) + item.getAmount());
+            // Dispatch generation to the Region Thread
+            module.getPlugin().getFoliaLib().getImpl().runAtLocation(data.getLocation(), (t) -> {
+                Location loc = data.getLocation();
+                boolean isLoaded = loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+                
+                EntityType type;
+                try {
+                    type = EntityType.valueOf(data.getType());
+                } catch (Exception e) {
+                    return;
+                }
+                
+                int expPerSpawn = getBaseExp(type);
+                int generatedExp = 0;
+                Map<String, Integer> generatedItems = new HashMap<>();
+                
+                for (int i = 0; i < data.getStackCount(); i++) {
+                    generatedExp += expPerSpawn;
+                    List<ItemStack> loot = getDropsForType(type, data.getLocation());
+                    for (ItemStack item : loot) {
+                        if (item != null && item.getType() != Material.AIR && item.getAmount() > 0) {
+                            String matStr = item.getType().name();
+                            generatedItems.put(matStr, generatedItems.getOrDefault(matStr, 0) + item.getAmount());
+                        }
                     }
                 }
-            }
-            
-            // Handle limits
-            int currentExp = data.getStoredExp();
-            int maxExp = getMaxStorageExp(data.getExpLevel());
-            if (currentExp < maxExp) {
-                int toAdd = Math.min(generatedExp, maxExp - currentExp);
-                data.addExp(toAdd);
-            }
-            
-            // Handle Hoppers if enabled (ONLY if chunk is loaded)
-            if (hoppersEnabled && !generatedItems.isEmpty() && isLoaded) {
-                Block below = loc.getBlock().getRelative(0, -1, 0);
-                if (below.getType() == Material.HOPPER) {
-                    Hopper hopper = (Hopper) below.getState();
-                    for (Map.Entry<String, Integer> entry : generatedItems.entrySet()) {
-                        Material mat = Material.getMaterial(entry.getKey());
-                        if (mat != null) {
-                            HashMap<Integer, ItemStack> left = hopper.getInventory().addItem(new ItemStack(mat, entry.getValue()));
-                            if (!left.isEmpty()) {
-                                for (ItemStack remaining : left.values()) {
-                                    addToInternalWithLimit(data, entry.getKey(), remaining.getAmount());
+                
+                // Handle limits
+                int currentExp = data.getStoredExp();
+                int maxExp = getMaxStorageExp(data.getExpLevel());
+                if (currentExp < maxExp) {
+                    int toAdd = Math.min(generatedExp, maxExp - currentExp);
+                    data.addExp(toAdd);
+                }
+                
+                // Handle Hoppers if enabled (ONLY if chunk is loaded)
+                if (hoppersEnabled && !generatedItems.isEmpty() && isLoaded) {
+                    Block below = loc.getBlock().getRelative(0, -1, 0);
+                    if (below.getType() == Material.HOPPER) {
+                        Hopper hopper = (Hopper) below.getState();
+                        for (Map.Entry<String, Integer> entry : generatedItems.entrySet()) {
+                            Material mat = Material.getMaterial(entry.getKey());
+                            if (mat != null) {
+                                HashMap<Integer, ItemStack> left = hopper.getInventory().addItem(new ItemStack(mat, entry.getValue()));
+                                if (!left.isEmpty()) {
+                                    for (ItemStack remaining : left.values()) {
+                                        addToInternalWithLimit(data, entry.getKey(), remaining.getAmount());
+                                    }
                                 }
                             }
                         }
+                        generatedItems.clear(); // Handled
                     }
-                    generatedItems.clear(); // Handled
                 }
-            }
-            
-            // Add remaining to internal storage
-            for (Map.Entry<String, Integer> entry : generatedItems.entrySet()) {
-                addToInternalWithLimit(data, entry.getKey(), entry.getValue());
-            }
-            
-            // Particles and Holograms (ONLY if loaded)
-            if (isLoaded) {
-                loc.getWorld().spawnParticle(Particle.FLAME, loc.clone().add(0.5, 0.5, 0.5), 3, 0.2, 0.2, 0.2, 0.05);
-                updateHologram(data);
-            }
+                
+                // Add remaining to internal storage
+                for (Map.Entry<String, Integer> entry : generatedItems.entrySet()) {
+                    addToInternalWithLimit(data, entry.getKey(), entry.getValue());
+                }
+                
+                // Particles and Holograms (ONLY if loaded)
+                if (isLoaded) {
+                    loc.getWorld().spawnParticle(Particle.FLAME, loc.clone().add(0.5, 0.5, 0.5), 3, 0.2, 0.2, 0.2, 0.05);
+                    updateHologram(data);
+                }
+            });
         }
     }
     

@@ -1,8 +1,9 @@
 name: GensCore
-version: 1.0
+version: '${project.version}'
 main: fr.gens.core.CorePlugin
 api-version: '26.2'
-authors: [wboss]
+folia-supported: true
+authors: [William Bossard]
 description: Le coeur du réseau Gens (GensBien / GensMauvais).
 depend: [Vault, LuckPerms]
 commands:

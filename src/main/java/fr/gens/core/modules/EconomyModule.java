@@ -15,7 +15,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.ServicePriority;
 
-import java.util.HashMap;
+
 import java.util.Map;
 import java.util.UUID;
 
@@ -57,6 +57,10 @@ public class EconomyModule implements Module, Listener {
 
     public fr.gens.core.database.EconomyDAO getEconomyDAO() {
         return economyDAO;
+    }
+
+    public double getTotalMoney() {
+        return economyDAO.getTotalMoney();
     }
 
     @Override
@@ -129,9 +133,9 @@ public class EconomyModule implements Module, Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (enabled) {
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 double bal = this.economyDAO.getBalance(e.getPlayer().getUniqueId());
-                Bukkit.getScheduler().runTask(plugin, () -> balances.put(e.getPlayer().getUniqueId(), bal));
+                plugin.getFoliaLib().getImpl().runNextTick((t2) -> balances.put(e.getPlayer().getUniqueId(), bal));
             });
         }
     }
@@ -155,19 +159,59 @@ public class EconomyModule implements Module, Listener {
         } else {
             offlineCache.put(uuid, amount);
         }
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> savePlayerBalance(uuid, amount));
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, amount));
     }
 
     public void addMoney(UUID uuid, double amount) {
-        setBalance(uuid, getBalance(uuid) + amount);
+        if (balances.containsKey(uuid)) {
+            balances.compute(uuid, (k, current) -> {
+                double newBal = (current == null ? getBalance(uuid) : current) + amount;
+                plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                return newBal;
+            });
+        } else {
+            synchronized (offlineCache) {
+                double current = getBalance(uuid);
+                offlineCache.put(uuid, current + amount);
+                plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, current + amount));
+            }
+        }
     }
 
     public void giveMoney(UUID uuid, double amount) {
-        setBalance(uuid, getBalance(uuid) + amount);
+        addMoney(uuid, amount);
     }
 
     public void takeMoney(UUID uuid, double amount) {
-        setBalance(uuid, Math.max(0, getBalance(uuid) - amount));
+        takeMoneyAtomic(uuid, amount);
+    }
+    
+    public boolean takeMoneyAtomic(UUID uuid, double amount) {
+        if (balances.containsKey(uuid)) {
+            java.util.concurrent.atomic.AtomicBoolean success = new java.util.concurrent.atomic.AtomicBoolean(false);
+            balances.compute(uuid, (k, current) -> {
+                double bal = (current == null ? getBalance(uuid) : current);
+                if (bal >= amount) {
+                    success.set(true);
+                    double newBal = bal - amount;
+                    plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                    return newBal;
+                }
+                return bal;
+            });
+            return success.get();
+        } else {
+            synchronized (offlineCache) {
+                double bal = getBalance(uuid);
+                if (bal >= amount) {
+                    double newBal = bal - amount;
+                    offlineCache.put(uuid, newBal);
+                    plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                    return true;
+                }
+                return false;
+            }
+        }
     }
 
     public void setMoney(UUID uuid, double amount) {
@@ -180,24 +224,26 @@ public class EconomyModule implements Module, Listener {
             sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement d\u00e9sactiv\u00e9.</red>"));
             return;
         }
-        if (targetName.isEmpty()) {
-            if (!(sender instanceof Player)) return;
-            Player p = (Player) sender;
-            plugin.getLangManager().sendMessage(p, "economy.balance", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.format("%.2f", getBalance(p.getUniqueId()))));
-        } else {
-            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
-            plugin.getLangManager().sendMessage(sender, "economy.balance_other", 
-                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", target.getName() != null ? target.getName() : "Inconnu"),
-                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.format("%.2f", getBalance(target.getUniqueId())))
-            );
-        }
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            if (targetName.isEmpty()) {
+                if (!(sender instanceof Player)) return;
+                Player p = (Player) sender;
+                plugin.getLangManager().sendMessage(p, "economy.balance", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.format("%.2f", getBalance(p.getUniqueId()))));
+            } else {
+                OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+                plugin.getLangManager().sendMessage(sender, "economy.balance_other", 
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", target.getName() != null ? target.getName() : "Inconnu"),
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.format("%.2f", getBalance(target.getUniqueId())))
+                );
+            }
+        });
     }
 
     @CommandMethod("baltop")
     public void executeBaltop(CommandSender sender) {
         if (!enabled) return;
         plugin.getLangManager().sendMessage(sender, "economymodule.msg_1");
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             try {
                 Map<UUID, Double> top = this.economyDAO.getTopBalances(10);
                 int rank = 1;
@@ -219,63 +265,66 @@ public class EconomyModule implements Module, Listener {
     @CommandMethod("pay <target> <amount>")
     public void executePay(Player p, @Argument("target") String targetName, @Argument("amount") double amount) {
         if (!enabled) return;
-        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
-        if (!target.hasPlayedBefore() && !target.isOnline()) {
-            plugin.getLangManager().sendMessage(p, "error.player_offline");
-            return;
-        }
-        if (amount <= 0) {
-            plugin.getLangManager().sendMessage(p, "error.invalid_amount");
-            return;
-        }
-        if (getBalance(p.getUniqueId()) < amount) {
-            plugin.getLangManager().sendMessage(p, "economy.not_enough");
-            return;
-        }
-        takeMoney(p.getUniqueId(), amount);
-        giveMoney(target.getUniqueId(), amount);
-        plugin.getLangManager().sendMessage(p, "economy.take", 
-            net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
-            net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", target.getName() != null ? target.getName() : "Inconnu")
-        );
-        if (target.isOnline() && target.getPlayer() != null) {
-            plugin.getLangManager().sendMessage(target.getPlayer(), "economy.received", 
-                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount))
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+            if (!target.hasPlayedBefore() && !target.isOnline()) {
+                plugin.getLangManager().sendMessage(p, "error.player_offline");
+                return;
+            }
+            if (amount <= 0) {
+                plugin.getLangManager().sendMessage(p, "error.invalid_amount");
+                return;
+            }
+            if (!takeMoneyAtomic(p.getUniqueId(), amount)) {
+                plugin.getLangManager().sendMessage(p, "economy.not_enough");
+                return;
+            }
+            giveMoney(target.getUniqueId(), amount);
+            plugin.getLangManager().sendMessage(p, "economy.take", 
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", target.getName() != null ? target.getName() : "Inconnu")
             );
-        }
+            if (target.isOnline() && target.getPlayer() != null) {
+                plugin.getLangManager().sendMessage(target.getPlayer(), "economy.received", 
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount))
+                );
+            }
+        });
     }
 
     @CommandMethod("eco <action> <target> <amount>")
     @CommandPermission("genscore.admin")
     public void executeEco(CommandSender sender, @Argument("action") String action, @Argument("target") String targetName, @Argument("amount") double amount) {
         if (!enabled) return;
-        OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
-        String tName = target.getName() != null ? target.getName() : "Inconnu";
-        
-        switch (action.toLowerCase()) {
-            case "give":
-                giveMoney(target.getUniqueId(), amount);
-                plugin.getLangManager().sendMessage(sender, "economy.add", 
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", tName)
-                );
-                break;
-            case "take":
-                takeMoney(target.getUniqueId(), amount);
-                plugin.getLangManager().sendMessage(sender, "economy.take", 
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", tName)
-                );
-                break;
-            case "set":
-                setMoney(target.getUniqueId(), amount);
-                plugin.getLangManager().sendMessage(sender, "economy.set", 
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
-                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", tName)
-                );
-                break;
-            default:
-                sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Action inconnue. Utilisez give, take ou set.</red>"));
-        }
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+            String tName = target.getName() != null ? target.getName() : "Inconnu";
+            
+            switch (action.toLowerCase()) {
+                case "give":
+                    giveMoney(target.getUniqueId(), amount);
+                    plugin.getLangManager().sendMessage(sender, "economy.add", 
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", tName)
+                    );
+                    break;
+                case "take":
+                    takeMoney(target.getUniqueId(), amount);
+                    plugin.getLangManager().sendMessage(sender, "economy.take", 
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", tName)
+                    );
+                    break;
+                case "set":
+                    setMoney(target.getUniqueId(), amount);
+                    plugin.getLangManager().sendMessage(sender, "economy.set", 
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", tName)
+                    );
+                    break;
+                default:
+                    sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Action inconnue. Utilisez give, take ou set.</red>"));
+            }
+        });
     }
 }

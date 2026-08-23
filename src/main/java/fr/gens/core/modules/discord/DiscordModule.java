@@ -17,10 +17,7 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,15 +33,13 @@ import net.dv8tion.jda.api.entities.Webhook;
 
 import java.awt.Color;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 
-public class DiscordModule extends ListenerAdapter implements Module, CommandExecutor, TabCompleter, Listener {
+public class DiscordModule extends ListenerAdapter implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
@@ -53,7 +48,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
 
     // Code liaison Discord ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ {UUID, timestamp d'expiration}
     private record PendingLink(UUID uuid, long expiresAt) {}
-    private final Map<String, PendingLink> pendingLinks = new HashMap<>();
+    private final Map<String, PendingLink> pendingLinks = new ConcurrentHashMap<>();
     private static final long LINK_EXPIRY_MS = 10L * 60 * 1000; // 10 minutes
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -108,8 +103,6 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             return;
         }
 
-        org.bukkit.command.PluginCommand cmd_discord = plugin.getCommand("discord");
-        if (cmd_discord != null) { cmd_discord.setExecutor(this); cmd_discord.setTabCompleter(this); }
 
         // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactivation des logs intempestifs de JDA
         java.util.logging.Logger.getLogger("net.dv8tion").setLevel(java.util.logging.Level.OFF);
@@ -142,6 +135,13 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
                 plugin.getLogger().severe("[Discord] Erreur lors de la connexion du bot : " + e.getMessage());
             }
         });
+    }
+
+    @Override
+    public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
+            plugin.getCommandManager().getAnnotationParser().parse(this);
+        }
     }
 
     @Override
@@ -288,7 +288,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         sendBotEmbed(p.getName() + " a rejoint le serveur", "https://mc-heads.net/avatar/" + p.getName(), Color.GREEN);
         
         // Synchroniser le badge Discord
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
             String discordId = statsModule != null ? statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) : null;
             boolean isLinked = (discordId != null && !discordId.isEmpty());
@@ -341,39 +341,26 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
         sendBotEmbed(message, "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.YELLOW);
     }
 
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-        if (args.length == 1) {
-            if ("link".startsWith(args[0].toLowerCase())) completions.add("link");
+    @CommandMethod("discord link")
+    public void executeDiscordLink(Player p) {
+        fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+        if (p.hasPermission("genscore.discord.linked") && statsModule != null && statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
+            plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
+            return;
         }
-        return completions;
+
+        // Code sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : 6 chiffres via SecureRandom = 1 000 000 combinaisons
+        String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+        pendingLinks.put(code, new PendingLink(p.getUniqueId(), System.currentTimeMillis() + LINK_EXPIRY_MS));
+        
+        plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
+        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>!link " + code));
+        plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) return true;
-        Player p = (Player) sender;
-
-        if (args.length > 0 && args[0].equalsIgnoreCase("link")) {
-            fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
-            if (p.hasPermission("genscore.discord.linked") && statsModule != null && statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
-                plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
-                return true;
-            }
-
-            // Code sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : 6 chiffres via SecureRandom = 1 000 000 combinaisons
-            String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
-            pendingLinks.put(code, new PendingLink(p.getUniqueId(), System.currentTimeMillis() + LINK_EXPIRY_MS));
-            
-            plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
-            p.sendMessage("<yellow>!link " + code);
-            plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
-            return true;
-        }
-        
+    @CommandMethod("discord")
+    public void executeDiscord(Player p) {
         plugin.getLangManager().sendMessage(p, "discordmodule.msg_4");
-        return true;
     }
 
     @Override
@@ -396,7 +383,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             UUID uuid = link.uuid();
             Guild finalTargetGuild = event.getGuild();
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
                 try {
                     LuckPerms api = LuckPermsProvider.get();
                     User user = api.getUserManager().getUser(uuid);
@@ -442,7 +429,7 @@ public class DiscordModule extends ListenerAdapter implements Module, CommandExe
             event.getChannel().sendMessage("Ton compte Minecraft a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s !").queue();
         } else if (event.getChannel().getId().equals(plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id"))) {
             // Discord -> Minecraft Chat
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
                 fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
                 UUID uuid = statsModule != null ? statsModule.getStatsDAO().getUuidFromDiscord(event.getAuthor().getId()) : null;
                 String prefix = "<gray>[Joueur] ";
