@@ -79,6 +79,9 @@ public class UtilsModule implements Module, Listener {
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
         if (!p.hasPermission("genscore.craft")) {
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+        if (!enabled) return;
+        if (!p.hasPermission("genscore.craft")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
             return;
         }
@@ -86,14 +89,18 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("craft")
-    public void executeCraft(org.bukkit.command.CommandSender sender) { executeCraftingTable(p); }
+    public void executeCraft(org.bukkit.command.CommandSender sender) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+        executeCraftingTable(p); 
+    }
 
     @CommandMethod("workbench")
-    public void executeWorkbench(org.bukkit.command.CommandSender sender) { executeCraftingTable(p); }
+    public void executeWorkbench(org.bukkit.command.CommandSender sender) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+        executeCraftingTable(p); 
+    }
 
     @CommandMethod("enchanttable")
     public void executeEnchantTable(org.bukkit.command.CommandSender sender) {
@@ -108,9 +115,11 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("enchanting")
-    public void executeEnchanting(org.bukkit.command.CommandSender sender) { executeEnchantTable(p); }
+    public void executeEnchanting(org.bukkit.command.CommandSender sender) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+        executeEnchantTable(p); 
+    }
 
     @CommandMethod("ec [target]")
     public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) {
@@ -139,15 +148,15 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("enderchest [target]")
-    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) { executeEnderChest(p, targetName); }
+    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+        executeEnderChest(p, targetName); 
+    }
 
     @CommandMethod("feed")
     public void executeFeed(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
-        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        if (!enabled) return;
         if (!p.hasPermission("genscore.feed")) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_7");
             return;

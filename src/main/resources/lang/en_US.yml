@@ -312,3 +312,7 @@ chat:
   join: "<dark_gray>[<green>+</green>]</dark_gray> <gray><player></gray> <green>joined the server.</green>"
   quit: "<dark_gray>[<red>-</red>]</dark_gray> <gray><player></gray> <red>left the server.</red>"
   first_join: "\n<yellow>⭐ <gold><bold>WELCOME</bold></gold> ⭐</yellow>\n<white>Welcome <green><player></green> to the server!</white>\n<gray>This is their first time joining!</gray>\n"
+moderationmodule.msg_19: "<red>Player <target> has been kicked.</red>"
+moderationmodule.kick_screen: "<red><bold>YOU HAVE BEEN KICKED</bold></red><br><br><yellow>Reason:</yellow> <white><reason></white><br><br><gray>You can reconnect if the problem is resolved.</gray>"
+moderationmodule.ban_screen: "<red><bold>YOU HAVE BEEN BANNED</bold></red><br><br><yellow>Reason:</yellow> <white><reason></white><br><br><gray>To appeal this ban, visit our Discord.</gray>"
+moderationmodule.mute_screen: "<red><bold>YOU ARE MUTED</bold></red><br><br><yellow>Reason:</yellow> <white><reason></white><br><br><gray>To appeal this mute, visit our Discord.</gray>"

@@ -247,15 +247,15 @@ public class ModerationModule implements Module, Listener {
     @CommandMethod("openinv <target>")
     public void executeOpenInv(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
-        org.bukkit.entity.Player sender = (org.bukkit.entity.Player) sender;
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
-        if (!sender.hasPermission("genscore.openinv")) {
-            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_6");
+        if (!p.hasPermission("genscore.openinv")) {
+            plugin.getLangManager().sendMessage(p, "moderationmodule.msg_6");
             return;
         }
         Player target = Bukkit.getPlayer(targetName);
         if (target == null) {
-            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_9");
+            plugin.getLangManager().sendMessage(p, "moderationmodule.msg_9");
             return;
         }
         
@@ -465,10 +465,10 @@ public class ModerationModule implements Module, Listener {
             
             final String finalReason = reason;
             plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
-                target.kick(plugin.getLangManager().getComponent("moderationmodule.kick_screen").replaceText(net.kyori.adventure.text.TextReplacementConfig.builder().matchLiteral("<reason>").replacement(finalReason).build()));
+                target.kick(plugin.getLangManager().get("moderationmodule.kick_screen").replaceText(net.kyori.adventure.text.TextReplacementConfig.builder().matchLiteral("<reason>").replacement(finalReason).build()));
             });
             
-            String msg = plugin.getLangManager().getMessage("moderationmodule.msg_19");
+            String msg = plugin.getLangManager().getRaw("moderationmodule.msg_19");
             if (msg != null) sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(msg.replace("<target>", target.getName())));
             sendDiscordLog("KICK", target.getName(), sender.getName(), reason, 0);
         });
@@ -497,7 +497,7 @@ public class ModerationModule implements Module, Listener {
         if (!enabled) return;
         if (isMuted(event.getPlayer().getUniqueId())) {
             MuteData data = getMuteData(event.getPlayer().getUniqueId());
-            event.getPlayer().sendMessage(plugin.getLangManager().getComponent("moderationmodule.mute_screen").replaceText(net.kyori.adventure.text.TextReplacementConfig.builder().matchLiteral("<reason>").replacement(data.reason).build()));
+            event.getPlayer().sendMessage(plugin.getLangManager().get("moderationmodule.mute_screen").replaceText(net.kyori.adventure.text.TextReplacementConfig.builder().matchLiteral("<reason>").replacement(data.reason).build()));
             event.setCancelled(true);
         }
     }
