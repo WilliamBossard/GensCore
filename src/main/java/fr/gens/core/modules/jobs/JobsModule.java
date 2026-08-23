@@ -79,10 +79,7 @@ public class JobsModule implements Module, Listener {
         this.gui = new JobsGUI(plugin, this);
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().registerEvents(gui, plugin);
-        if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
-            plugin.getCommandManager().getAnnotationParser().parse(this);
-        }
-        
+
         // Charger les joueurs connectÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
