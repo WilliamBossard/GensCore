@@ -99,10 +99,10 @@ public class AuthModule implements Module, Listener {
     
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
-        System.out.println("[DEBUG] Registering commands for AuthModule...");
+        plugin.getLogger().info("[DEBUG] Registering commands for AuthModule...");
         if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
             plugin.getCommandManager().getAnnotationParser().parse(this);
-            System.out.println("[DEBUG] Commands registered for AuthModule!");
+            plugin.getLogger().info("[DEBUG] Commands registered for AuthModule!");
         }
     }
 
