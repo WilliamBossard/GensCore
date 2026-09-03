@@ -80,11 +80,11 @@ public class TeamListener implements Listener {
         }
     }
     private void openTeamQuestGui(Player player, TeamData team) {
-        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<blue><bold>QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte de Guilde"));
+        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quête de Guilde"));
         
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" "));
+        glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
         
@@ -92,29 +92,29 @@ public class TeamListener implements Listener {
         if (tqm != null) {
             ItemStack questItem = new ItemStack(Material.NETHER_STAR);
             org.bukkit.inventory.meta.ItemMeta qmeta = questItem.getItemMeta();
-            qmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte Hebdomadaire"));
+            qmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Quête Hebdomadaire"));
             java.util.List<String> lore = new java.util.ArrayList<>();
             lore.add("<gray>" + tqm.getDesc());
             lore.add("");
             int progress = tqm.getProgress(team.getTeamId());
             int goal = tqm.getGoal();
             if (progress >= goal) {
-                lore.add("<green><bold>TERMINÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°E !");
+                lore.add("<green><bold>TERMINÉE !");
             } else {
                 lore.add("<yellow>Progression: <white>" + progress + " <yellow>/ <white>" + goal);
             }
-            qmeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+            qmeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
             questItem.setItemMeta(qmeta);
             inv.setItem(13, questItem);
             
             // Add points info
             ItemStack pointsItem = new ItemStack(Material.SUNFLOWER);
             org.bukkit.inventory.meta.ItemMeta pmeta = pointsItem.getItemMeta();
-            pmeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Points de Guilde"));
+            pmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Points de Guilde"));
             java.util.List<String> plore = new java.util.ArrayList<>();
             plore.add("<gray>Hebdomadaire : <white>" + team.getWeeklyPoints());
             plore.add("<gray>Total : <white>" + team.getTotalPoints());
-            pmeta.lore(java.util.Optional.ofNullable(plore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+            pmeta.lore(java.util.Optional.ofNullable(plore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
             pointsItem.setItemMeta(pmeta);
             inv.setItem(22, pointsItem);
         }
@@ -140,7 +140,7 @@ public class TeamListener implements Listener {
     @EventHandler
     public void onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event) {
         // Process pending rewards for the player asynchronously to avoid lagging main thread
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             TeamModule module = (TeamModule) plugin.getModuleManager().getModule("teams");
             if (module != null) {
                 module.getTeamDAO().processPendingRewards(event.getPlayer());
@@ -156,3 +156,6 @@ public class TeamListener implements Listener {
         }
     }
 }
+
+
+

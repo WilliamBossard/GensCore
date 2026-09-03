@@ -13,7 +13,7 @@ import java.util.UUID;
 public class LockCommand {
     private final CorePlugin plugin;
     private final LockModule lockModule;
-    // Map pour savoir qui a tapÃƒÆ’Ã‚Â© quelle commande avant de cliquer sur un bloc
+    // Map pour savoir qui a tapé quelle commande avant de cliquer sur un bloc
     public static final Map<UUID, String> pendingActions = new ConcurrentHashMap<>();
 
     public LockCommand(CorePlugin plugin, LockModule lockModule) {
@@ -26,7 +26,7 @@ public class LockCommand {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!lockModule.isEnabled()) {
-            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement désactivé.</red>"));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement désactivé.</red>"));
             return;
         }
 

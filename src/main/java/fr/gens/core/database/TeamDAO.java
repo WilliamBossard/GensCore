@@ -68,7 +68,7 @@ public class TeamDAO {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_genscore_pending_rewards_uuid ON genscore_pending_rewards(uuid);");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables des teams", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création des tables des teams", e);
         }
     }
 
@@ -110,7 +110,7 @@ public class TeamDAO {
                                 int count = Integer.parseInt(parts[1]);
                                 org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(mat, count);
                                 
-                                plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
+                                plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
                                     java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> excess = player.getInventory().addItem(item);
                                     for (org.bukkit.inventory.ItemStack drop : excess.values()) {
                                         player.getWorld().dropItemNaturally(player.getLocation(), drop);
@@ -309,7 +309,7 @@ public class TeamDAO {
                     
                     int progress = questManager != null ? questManager.getProgress(teamId) : 0;
                     int goal = questManager != null ? questManager.getGoal() : 1;
-                    String desc = questManager != null ? questManager.getDesc() : "QuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªte non dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©finie";
+                    String desc = questManager != null ? questManager.getDesc() : "Quête non définie";
                     double percentage = Math.min(100.0, ((double) progress / goal) * 100.0);
                     
                     teamObj.put("quest_progress_percent", Math.round(percentage));
@@ -397,4 +397,7 @@ public class TeamDAO {
         }
     }
 }
+
+
+
 

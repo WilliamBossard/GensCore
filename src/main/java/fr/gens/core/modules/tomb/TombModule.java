@@ -26,7 +26,7 @@ public class TombModule implements Module {
 
     @Override
     public String getDescription() {
-        return "GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re les tombes des joueurs ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  leur mort";
+        return "Gère les tombes des joueurs à leur mort";
     }
 
     @Override
@@ -52,8 +52,8 @@ public class TombModule implements Module {
         this.tombListener = new TombListener(plugin, this);
         Bukkit.getPluginManager().registerEvents(this.tombListener, plugin);
 
-        // TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢che de vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rification des expirations et mise ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  jour de l'hologramme toutes les secondes (20 ticks)
-        this.checkTask = plugin.getFoliaLib().getImpl().runTimer(() -> {
+        // Tâche de vérification des expirations et mise à jour de l'hologramme toutes les secondes (20 ticks)
+        this.checkTask = plugin.getFoliaLib().getScheduler().runTimer(() -> {
             tombManager.checkExpirations();
         }, 20L, 20L);
     }
@@ -78,4 +78,7 @@ public class TombModule implements Module {
         return tombDAO;
     }
 }
+
+
+
 

@@ -43,7 +43,7 @@ public class CustomGuiModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "GÃƒÆ’Ã‚Â©nÃƒÆ’Ã‚Â¨re des menus interactifs depuis les fichiers YAML.";
+        return "Génère des menus interactifs depuis les fichiers YAML.";
     }
 
     @Override
@@ -147,9 +147,9 @@ public class CustomGuiModule implements Module, Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             String itemName = section.getString("name");
-            if (itemName != null) meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(itemName));
+            if (itemName != null) meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(itemName));
             List<String> lore = section.getStringList("lore");
-            if (lore != null && !lore.isEmpty()) meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+            if (lore != null && !lore.isEmpty()) meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
             item.setItemMeta(meta);
         }
         return item;
@@ -161,14 +161,14 @@ public class CustomGuiModule implements Module, Listener {
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (menuName.equals("principal") && !menus.containsKey("principal")) {
             String menuList = String.join(", ", menus.keySet());
-            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold>Menus disponibles : <yellow>" + (menuList.isEmpty() ? "Aucun" : menuList)));
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold>Menus disponibles : <yellow>" + (menuList.isEmpty() ? "Aucun" : menuList)));
             return;
         }
         CustomMenu menu = menus.get(menuName);
         if (menu != null) {
             openMenu(p, menu);
         } else {
-            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Menu introuvable : " + menuName));
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Menu introuvable : " + menuName));
         }
     }
 
@@ -361,5 +361,7 @@ public class CustomGuiModule implements Module, Listener {
         }
     }
 }
+
+
 
 

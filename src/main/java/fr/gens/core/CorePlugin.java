@@ -28,7 +28,7 @@ public class CorePlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        // Le log SLF4J est gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par simplelogger.properties
+        // Le log SLF4J est géré par simplelogger.properties
     }
 
     @Override
@@ -59,7 +59,7 @@ public class CorePlugin extends JavaPlugin {
         this.teamManager = new TeamManager(this);
         this.teamQuestManager = new fr.gens.core.modules.teams.TeamQuestManager(this);
         
-        // Demande Ã  chaque module d'enregistrer ses commandes
+        // Demande à chaque module d'enregistrer ses commandes
         for (fr.gens.core.modules.Module module : this.moduleManager.getModules()) {
             module.registerCommands(this);
         }
@@ -81,10 +81,10 @@ public class CorePlugin extends JavaPlugin {
 
         // 4. Lancer les rappels automatiques (Discord et Guilde)
         // 4. Lancer les rappels automatiques (Discord et Guilde)
-        this.foliaLib.getImpl().runTimerAsync((wrappedTask) -> {
+        this.foliaLib.getScheduler().runTimerAsync((wrappedTask) -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (p == null) continue;
-                this.foliaLib.getImpl().runAtEntity(p, (t) -> {
+                this.foliaLib.getScheduler().runAtEntity(p, (t) -> {
                     // Rappel Discord si pas de perm
                     if (!p.hasPermission("genscore.discord.linked")) {
                         getLangManager().sendMessage(p, "reminder.discord");
@@ -98,6 +98,8 @@ public class CorePlugin extends JavaPlugin {
             }
         }, 36000L, 36000L); // 36000 ticks = 30 minutes
 
+        // L'arbre des commandes sera géré automatiquement par Bukkit / Player#updateCommands.
+        
         getLangManager().sendConsoleMessage("core.startup_ready");
     }
 
@@ -162,4 +164,7 @@ public class CorePlugin extends JavaPlugin {
         return foliaLib;
     }
 }
+
+
+
 

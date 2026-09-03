@@ -29,7 +29,7 @@ public class EconomyDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table economy", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table economy", e);
         }
     }
 
@@ -107,4 +107,6 @@ public class EconomyDAO {
         return total;
     }
 }
+
+
 

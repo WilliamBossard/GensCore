@@ -67,10 +67,10 @@ public class TeamManager {
         }
 
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             int id = module != null ? module.getTeamDAO().createTeam(name, leader) : -1;
             
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 if (id != -1) {
                     TeamData team = new TeamData(id, name, leader);
                     teamsById.put(id, team);
@@ -80,7 +80,7 @@ public class TeamManager {
                     teamsByPlayer.put(leader, team);
                     
                     if (module != null) {
-                        plugin.getFoliaLib().getImpl().runAsync((t3) -> module.getTeamDAO().initTeamStats(id));
+                        plugin.getFoliaLib().getScheduler().runAsync((t3) -> module.getTeamDAO().initTeamStats(id));
                     }
                     callback.accept(team);
                 } else {
@@ -116,7 +116,7 @@ public class TeamManager {
         teamsById.remove(team.getTeamId());
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 module.getTeamDAO().disbandTeam(team.getTeamId());
             });
         }
@@ -125,7 +125,7 @@ public class TeamManager {
     private void addMemberToDatabase(int teamId, UUID member) {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 module.getTeamDAO().addMember(teamId, member);
             });
         }
@@ -134,7 +134,7 @@ public class TeamManager {
     private void removeMemberFromDatabase(UUID member) {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 module.getTeamDAO().removeMember(member);
             });
         }
@@ -152,4 +152,7 @@ public class TeamManager {
         return module != null ? module.getTeamDAO().getAllTeamStats(plugin.getTeamQuestManager()) : java.util.Collections.emptyList();
     }
 }
+
+
+
 

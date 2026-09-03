@@ -47,11 +47,11 @@ public class ConfigManager {
             try {
                 plugin.saveResource(fileName, false);
             } catch (IllegalArgumentException e) {
-                // Le fichier n'existe pas dans le jar, on le crÃƒÆ’Ã‚Â©e vide
+                // Le fichier n'existe pas dans le jar, on le crée vide
                 try {
                     file.createNewFile();
                 } catch (IOException ex) {
-                    plugin.getLogger().severe("Impossible de crÃƒÆ’Ã‚Â©er le fichier de configuration: " + fileName);
+                    plugin.getLogger().severe("Impossible de créer le fichier de configuration: " + fileName);
                 }
             }
         }
@@ -97,4 +97,6 @@ public class ConfigManager {
         }
     }
 }
+
+
 

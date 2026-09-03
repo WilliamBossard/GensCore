@@ -17,8 +17,10 @@ public class GensScoreboard {
 
     private final Scoreboard scoreboard;
     private final Objective objective;
+    private final Player player;
 
     public GensScoreboard(Player player, String title) {
+        this.player = player;
 
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
         this.objective = scoreboard.registerNewObjective("gensboard", org.bukkit.scoreboard.Criteria.DUMMY, fr.gens.core.utils.PlaceholderUtils.parseToComponent(title));
@@ -33,12 +35,15 @@ public class GensScoreboard {
     }
 
     public void updateTitle(String title) {
+        if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            title = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, title);
+        }
         Component titleComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(title);
         objective.displayName(titleComp);
     }
 
     public void updateLines(List<String> lines) {
-        // Le scoreboard supporte jusqu'ÃƒÆ’Ã‚Â  15 lignes
+        // Le scoreboard supporte jusqu'à 15 lignes
         int size = Math.min(15, lines.size());
         
         for (int i = 0; i < 15; i++) {
@@ -54,14 +59,18 @@ public class GensScoreboard {
                 continue;
             }
             
-            // Mettre ÃƒÆ’Ã‚Â  jour ou crÃƒÆ’Ã‚Â©er
+            // Mettre à jour ou créer
             if (team == null) {
                 team = scoreboard.registerNewTeam(teamName);
                 team.addEntry(getEntry(i));
                 objective.getScore(getEntry(i)).setScore(15 - i);
             }
             
+            
             String text = lines.get(i);
+            if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+                text = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, text);
+            }
             Component finalComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(text);
             team.prefix(finalComp);
             team.suffix(Component.empty());
@@ -76,4 +85,6 @@ public class GensScoreboard {
         return "§" + "0123456789abcdef".charAt(line) + "§r";
     }
 }
+
+
 

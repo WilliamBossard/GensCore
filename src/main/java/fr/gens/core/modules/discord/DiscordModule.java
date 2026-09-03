@@ -46,7 +46,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
     private JDA jda;
     private WebhookClient webhookClient;
 
-    // Code liaison Discord ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ {UUID, timestamp d'expiration}
+    // Code liaison Discord → {UUID, timestamp d'expiration}
     private record PendingLink(UUID uuid, long expiresAt) {}
     private final Map<String, PendingLink> pendingLinks = new ConcurrentHashMap<>();
     private static final long LINK_EXPIRY_MS = 10L * 60 * 1000; // 10 minutes
@@ -63,7 +63,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re le bot Discord intÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©grÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© et la liaison des comptes (Remplace DiscordSRV).";
+        return "Gère le bot Discord intégré et la liaison des comptes (Remplace DiscordSRV).";
     }
 
     @Override
@@ -104,7 +104,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         }
 
 
-        // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactivation des logs intempestifs de JDA
+        // Désactivation des logs intempestifs de JDA
         java.util.logging.Logger.getLogger("net.dv8tion").setLevel(java.util.logging.Level.OFF);
         java.util.logging.Logger.getLogger("JDA").setLevel(java.util.logging.Level.OFF);
 
@@ -129,10 +129,11 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                 
                 plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
-                sendBotMessage("**Le serveur a dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©marrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !**");
+                sendBotMessage("🟢 **Le serveur a démarré !**");
                 
             } catch (Exception e) {
                 plugin.getLogger().severe("[Discord] Erreur lors de la connexion du bot : " + e.getMessage());
+                plugin.getLangManager().sendConsoleError("discordmodule.log_1");
             }
         });
     }
@@ -146,16 +147,33 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
 
     @Override
     public void disable() {
-        org.bukkit.event.HandlerList.unregisterAll(this);
+        if (!enabled) return;
         enabled = false;
+        org.bukkit.event.HandlerList.unregisterAll(this);
+        
         if (jda != null) {
-            sendBotMessage(" **Le serveur est maintenant ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©teint.**");
+            String channelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id");
+            if (channelId != null && !channelId.isEmpty()) {
+                TextChannel channel = jda.getTextChannelById(channelId);
+                if (channel != null) {
+                    try {
+                        channel.sendMessage("🔴 **Le serveur est maintenant éteint.**").complete();
+                    } catch (Exception ignored) {}
+                }
+            }
             
             if (webhookClient != null) {
                 webhookClient.close();
             }
             
             jda.shutdown();
+            
+            try {
+                // Attente pour laisser le temps à JDA de déconnecter ses WebSockets proprement
+                // afin d'éviter l'erreur "zip file closed" lors de la fermeture du serveur.
+                Thread.sleep(1500);
+            } catch (InterruptedException ignored) {}
+            
             jda = null;
         }
         pendingLinks.clear();
@@ -217,7 +235,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         if (channel != null) {
             EmbedBuilder embed = new EmbedBuilder();
             embed.setTitle("\uD83D\uDD12 " + action);
-            embed.setDescription("**" + playerName + "** s'est authentifiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s.");
+            embed.setDescription("**" + playerName + "** s'est authentifié avec succès.");
             embed.setColor(color);
             embed.setTimestamp(java.time.Instant.now());
             channel.sendMessageEmbeds(embed.build()).queue();
@@ -275,7 +293,11 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
         if (team != null) guild = "[" + team.getName() + "] ";
         
-        String username = prefix + guild + event.getPlayer().getName();
+        String platformPrefix = !fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled() ? "" : 
+                (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(event.getPlayer().getUniqueId()) 
+                ? fr.gens.core.utils.FloodgateUtil.getBedrockDiscordPrefix() : fr.gens.core.utils.FloodgateUtil.getJavaDiscordPrefix());
+        
+        String username = platformPrefix + prefix + guild + event.getPlayer().getName();
         String messageText = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.message());
         
         sendChatWebhook(messageText, "https://mc-heads.net/avatar/" + event.getPlayer().getName(), username);
@@ -288,7 +310,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         sendBotEmbed(p.getName() + " a rejoint le serveur", "https://mc-heads.net/avatar/" + p.getName(), Color.GREEN);
         
         // Synchroniser le badge Discord
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
             String discordId = statsModule != null ? statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) : null;
             boolean isLinked = (discordId != null && !discordId.isEmpty());
@@ -323,7 +345,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         if (!enabled) return;
-        sendBotEmbed(event.getPlayer().getName() + " a quittÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© le serveur", "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.RED);
+        sendBotEmbed(event.getPlayer().getName() + " a quitté le serveur", "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.RED);
     }
 
     @EventHandler
@@ -336,7 +358,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         if (!advancement.getDisplay().doesAnnounceToChat()) return;
 
         String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(advancement.getDisplay().title());
-        String message = event.getPlayer().getName() + " a accompli le progrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s [" + title + "] !";
+        String message = event.getPlayer().getName() + " a accompli le progrès [" + title + "] !";
         
         sendBotEmbed(message, "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.YELLOW);
     }
@@ -351,12 +373,12 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
             return;
         }
 
-        // Code sÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© : 6 chiffres via SecureRandom = 1 000 000 combinaisons
+        // Code sécurisé : 6 chiffres via SecureRandom = 1 000 000 combinaisons
         String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
         pendingLinks.put(code, new PendingLink(p.getUniqueId(), System.currentTimeMillis() + LINK_EXPIRY_MS));
         
         plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
-        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>!link " + code));
+        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>!link " + code));
         plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
     }
 
@@ -373,21 +395,25 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
 
         String[] args = event.getMessage().getContentRaw().split(" ");
         if (args[0].equalsIgnoreCase("!link") && args.length == 2) {
+            try {
+                event.getMessage().delete().queue(null, (error) -> {});
+            } catch (Exception ignored) {}
+            
             String code = args[1];
 
-            // Purger les codes expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s
+            // Purger les codes expirés
             pendingLinks.entrySet().removeIf(e -> System.currentTimeMillis() > e.getValue().expiresAt());
 
             PendingLink link = pendingLinks.remove(code);
             if (link == null || System.currentTimeMillis() > link.expiresAt()) {
-                event.getChannel().sendMessage("Code invalide ou expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© (10 min max). Utilisez `/discord link` en jeu pour en gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer un nouveau.").queue();
+                event.getChannel().sendMessage("Code invalide ou expiré (10 min max). Utilisez `/discord link` en jeu pour en générer un nouveau.").queue();
                 return;
             }
 
             UUID uuid = link.uuid();
             Guild finalTargetGuild = event.getGuild();
 
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 try {
                     LuckPerms api = LuckPermsProvider.get();
                     User user = api.getUserManager().getUser(uuid);
@@ -430,10 +456,10 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                 }
             });
 
-            event.getChannel().sendMessage("Ton compte Minecraft a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s !").queue();
+            event.getChannel().sendMessage("Ton compte Minecraft a été lié avec succès !").queue();
         } else if (event.getChannel().getId().equals(plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id"))) {
             // Discord -> Minecraft Chat
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
                 UUID uuid = statsModule != null ? statsModule.getStatsDAO().getUuidFromDiscord(event.getAuthor().getId()) : null;
                 String prefix = "<gray>[Joueur] ";
@@ -452,10 +478,15 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                     
                     fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
                     if (team != null) guild = "<yellow>[" + team.getName() + "] ";
+                    
+                    String platformPrefix = !fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled() ? "" : 
+                            (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(uuid) 
+                            ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix() : fr.gens.core.utils.FloodgateUtil.getJavaPrefix());
+                    prefix = platformPrefix + prefix;
                 }
                 
-                String finalMessage = "<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â» <gray>" + event.getMessage().getContentDisplay();
-                Bukkit.getServer().broadcast(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(finalMessage.replace("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§", "").replace("&", "")));
+                String finalMessage = "<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>» <gray>" + event.getMessage().getContentDisplay();
+                Bukkit.getServer().broadcast(fr.gens.core.utils.PlaceholderUtils.parseToComponent(finalMessage.replace("§", "").replace("&", "")));
             });
         }
     }
@@ -469,12 +500,12 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
             UUID uuid = statsModule != null ? statsModule.getStatsDAO().getUuidFromDiscord(discordId) : null;
             
             if (uuid == null) {
-                event.reply("Vous n'avez liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© aucun compte Minecraft ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  ce compte Discord.").setEphemeral(true).queue();
+                event.reply("Vous n'avez lié aucun compte Minecraft à ce compte Discord.").setEphemeral(true).queue();
                 return;
             }
             
             if (newPassword.length() < 4) {
-                event.reply("Le mot de passe doit faire au moins 4 caractÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨res.").setEphemeral(true).queue();
+                event.reply("Le mot de passe doit faire au moins 4 caractères.").setEphemeral(true).queue();
                 return;
             }
 
@@ -489,9 +520,12 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                 authModule.forceLogout(uuid);
             }
             
-            event.reply("Votre mot de passe Minecraft a ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© changÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© avec succÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s ! Vous pouvez maintenant vous connecter en jeu avec `/login`.").setEphemeral(true).queue();
+            event.reply("Votre mot de passe Minecraft a été changé avec succès ! Vous pouvez maintenant vous connecter en jeu avec `/login`.").setEphemeral(true).queue();
         }
     }
 }
+
+
+
 
 

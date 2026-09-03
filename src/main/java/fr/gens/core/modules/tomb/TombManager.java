@@ -14,7 +14,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+
 
 
 
@@ -52,17 +52,17 @@ public class TombManager {
         activeTombs.put(id, tomb);
         tombsByLocation.put(location.getBlock().getLocation(), id);
 
-        plugin.getFoliaLib().getImpl().runAtLocation(location, (t2) -> {
+        plugin.getFoliaLib().getScheduler().runAtLocation(location, (t2) -> {
             Location holoLoc = location.clone().add(0.5, 1.2, 0.5);
             TextDisplay display = (TextDisplay) location.getWorld().spawnEntity(holoLoc, EntityType.TEXT_DISPLAY);
             String ownerName = Bukkit.getOfflinePlayer(ownerId).getName();
             if (ownerName == null) ownerName = "Inconnu";
-            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>ProtÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e"));
+            display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée"));
             display.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             display.getPersistentDataContainer().set(new NamespacedKey(plugin, "tomb_id"), PersistentDataType.STRING, id.toString());
         });
 
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             module.getTombDAO().createTomb(id, ownerId, location, contents, xp, expirationTime);
         });
 
@@ -75,7 +75,7 @@ public class TombManager {
             tombsByLocation.remove(tomb.getLocation().getBlock().getLocation());
             
             // Remove block and hologram
-            plugin.getFoliaLib().getImpl().runAtLocation(tomb.getLocation(), (t2) -> {
+            plugin.getFoliaLib().getScheduler().runAtLocation(tomb.getLocation(), (t2) -> {
                 Block block = tomb.getLocation().getBlock();
                 block.setType(Material.AIR);
                 
@@ -90,7 +90,7 @@ public class TombManager {
                 }
             });
 
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 module.getTombDAO().deleteTomb(id);
             });
         }
@@ -126,7 +126,7 @@ public class TombManager {
                 } else if (action.equals("DROP")) {
                     TombData removed = removeTombAndGet(tomb.getId());
                     if (removed != null) {
-                        plugin.getFoliaLib().getImpl().runAtLocation(removed.getLocation(), (t2) -> {
+                        plugin.getFoliaLib().getScheduler().runAtLocation(removed.getLocation(), (t2) -> {
                             for (ItemStack item : removed.getContents()) {
                                 if (item != null && item.getType() != Material.AIR) {
                                     removed.getLocation().getWorld().dropItemNaturally(removed.getLocation(), item);
@@ -139,7 +139,7 @@ public class TombManager {
             }
 
             // Update Hologram
-            plugin.getFoliaLib().getImpl().runAtLocation(tomb.getLocation(), (t2) -> {
+            plugin.getFoliaLib().getScheduler().runAtLocation(tomb.getLocation(), (t2) -> {
                 for (Entity entity : tomb.getLocation().getWorld().getNearbyEntities(tomb.getLocation().clone().add(0.5, 0.5, 0.5), 2, 2, 2)) {
                     if (entity.getType() == EntityType.TEXT_DISPLAY && entity.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
                         String storedId = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
@@ -149,7 +149,7 @@ public class TombManager {
                             if (ownerName == null) ownerName = "Inconnu";
 
                             if (isExpired && action.equals("UNLOCK")) {
-                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  tous"));
+                                display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
                             } else if (!isExpired) {
                                 String timeStr = "";
                                 if (hasExpiration) {
@@ -159,7 +159,7 @@ public class TombManager {
                                         timeStr = "<br><gray>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â± <white>" + remainingSecs + "s";
                                     }
                                 }
-                                display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>ProtÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e" + timeStr));
+                                display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée" + timeStr));
                             }
                         }
                     }
@@ -168,4 +168,7 @@ public class TombManager {
         }
     }
 }
+
+
+
 

@@ -6,7 +6,7 @@ import cloud.commandframework.annotations.CommandPermission;
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
 import org.bukkit.command.CommandSender;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+
 
 public class ModuleCommand {
 
@@ -21,7 +21,7 @@ public class ModuleCommand {
     public void execute(CommandSender sender, @Argument("moduleName") String moduleName, @Argument("state") String stateStr) {
         Module module = plugin.getModuleManager().getModule(moduleName);
         if (module == null) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Module introuvable: " + moduleName));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Module introuvable: " + moduleName));
             return;
         }
 
@@ -31,22 +31,24 @@ public class ModuleCommand {
         } else if (stateStr.equalsIgnoreCase("off") || stateStr.equalsIgnoreCase("disable")) {
             state = false;
         } else {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>L'action doit \u00eatre 'on' ou 'off'."));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>L'action doit \u00eatre 'on' ou 'off'."));
             return;
         }
 
         if (module.isEnabled() == state) {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>Le module " + module.getName() + " est d\u00e9j\u00e0 sur ce statut."));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Le module " + module.getName() + " est d\u00e9j\u00e0 sur ce statut."));
             return;
         }
 
         boolean success = plugin.getModuleManager().toggleModule(moduleName, state);
         if (success) {
             String str = state ? "<green>ACTIV\u00c9" : "<red>D\u00c9SACTIV\u00c9";
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<green>Le module <gold>" + module.getName() + "<green> a \u00e9t\u00e9 " + str + "<green>."));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le module <gold>" + module.getName() + "<green> a \u00e9t\u00e9 " + str + "<green>."));
         } else {
-            sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>Une erreur est survenue lors du changement de statut."));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Une erreur est survenue lors du changement de statut."));
         }
     }
 }
+
+
 

@@ -22,3 +22,4 @@ public interface Module {
         org.bukkit.event.HandlerList.unregisterAll(listener);
     }
 }
+

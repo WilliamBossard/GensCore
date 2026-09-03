@@ -35,7 +35,7 @@ public class SpawnerLootGui implements Listener {
 
     public static void openGui(Player player, SpawnerData data, SpawnerModule module, int page) {
         setModule(module);
-        Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Loot: <gold>" + data.getType() + " <gray>(Page " + (page + 1) + ")"));
+        Inventory inv = Bukkit.createInventory(null, 54, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Loot: <gold>" + data.getType() + " <gray>(Page " + (page + 1) + ")"));
 
         int slot = 0;
         int startIndex = page * 45;
@@ -71,7 +71,7 @@ public class SpawnerLootGui implements Listener {
         }
         
         if (page > 0) {
-            inv.setItem(45, createGuiItem(Material.ARROW, "<red>Page PrÃƒÆ’Ã‚Â©cÃƒÆ’Ã‚Â©dente"));
+            inv.setItem(45, createGuiItem(Material.ARROW, "<red>Page Précédente"));
         }
         
         if (hasNextPage) {
@@ -91,7 +91,7 @@ public class SpawnerLootGui implements Listener {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
+            meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(name));
             item.setItemMeta(meta);
         }
         return item;
@@ -118,17 +118,17 @@ public class SpawnerLootGui implements Listener {
                 
                 if (slot == 45 && page > 0) {
                     syncItems(player, event.getView().getTopInventory(), data);
-                    moduleInstance.getPlugin().getFoliaLib().getImpl().runAtEntity(player, (wrappedTask) -> openGui(player, data, moduleInstance, page - 1));
+                    moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(player, (wrappedTask) -> openGui(player, data, moduleInstance, page - 1));
                 } else if (slot == 53 && event.getCurrentItem() != null && event.getCurrentItem().getType() == Material.ARROW) {
                     syncItems(player, event.getView().getTopInventory(), data);
-                    moduleInstance.getPlugin().getFoliaLib().getImpl().runAtEntity(player, (wrappedTask) -> openGui(player, data, moduleInstance, page + 1));
+                    moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(player, (wrappedTask) -> openGui(player, data, moduleInstance, page + 1));
                 } else if (slot == 49) {
                     player.closeInventory();
                 }
                 return;
             }
             
-            // Autoriser ÃƒÆ’Ã‚Â  prendre, mais interdire de poser
+            // Autoriser à prendre, mais interdire de poser
             if (event.getAction() == InventoryAction.PLACE_ALL || 
                 event.getAction() == InventoryAction.PLACE_ONE || 
                 event.getAction() == InventoryAction.PLACE_SOME ||
@@ -137,7 +137,7 @@ public class SpawnerLootGui implements Listener {
                 return;
             }
             
-            moduleInstance.getPlugin().getFoliaLib().getImpl().runAtEntity(player, (wrappedTask) -> syncItems(player, event.getView().getTopInventory(), data));
+            moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(player, (wrappedTask) -> syncItems(player, event.getView().getTopInventory(), data));
         } else {
             if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                 event.setCancelled(true);
@@ -166,8 +166,8 @@ public class SpawnerLootGui implements Listener {
                 SpawnerData data = openGuis.get(player.getUniqueId());
                 syncItems(player, event.getInventory(), data);
                 
-                // Si on ferme complÃƒÆ’Ã‚Â¨tement (pas juste un changement de page)
-                moduleInstance.getPlugin().getFoliaLib().getImpl().runLater((wrappedTask) -> {
+                // Si on ferme complètement (pas juste un changement de page)
+                moduleInstance.getPlugin().getFoliaLib().getScheduler().runLater((wrappedTask) -> {
                     if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(player.getOpenInventory().title()).startsWith("Loot: ")) {
                         openGuis.remove(player.getUniqueId());
                         guiSnapshots.remove(player.getUniqueId());
@@ -219,4 +219,7 @@ public class SpawnerLootGui implements Listener {
         moduleInstance.getSpawnerManager().updateHologram(data);
     }
 }
+
+
+
 

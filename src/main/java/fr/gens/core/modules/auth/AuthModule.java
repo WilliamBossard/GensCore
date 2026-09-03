@@ -44,7 +44,7 @@ public class AuthModule implements Module, Listener {
     private static final int  MAX_LOGIN_ATTEMPTS = 5;
     private static final long LOGIN_LOCKOUT_MS   = 5L * 60 * 1000; // 5 minutes
 
-    // TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches planifiÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es par ce module
+    // TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches planifiées gérées par ce module
     private final java.util.List<com.tcoded.folialib.wrapper.task.WrappedTask> taskIds = new ArrayList<>();
 
     public AuthModule(CorePlugin plugin) {
@@ -99,8 +99,10 @@ public class AuthModule implements Module, Listener {
     
     @Override
     public void registerCommands(fr.gens.core.CorePlugin plugin) {
+        System.out.println("[DEBUG] Registering commands for AuthModule...");
         if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null) {
             plugin.getCommandManager().getAnnotationParser().parse(this);
+            System.out.println("[DEBUG] Commands registered for AuthModule!");
         }
     }
 
@@ -113,8 +115,7 @@ public class AuthModule implements Module, Listener {
         }
     }
 
-    @CommandMethod("register <password> <confirm>")
-    public void executeRegister(org.bukkit.command.CommandSender sender, @Argument("password") String password, @Argument("confirm") String confirm) {
+    public void executeRegister(org.bukkit.command.CommandSender sender, String password, String confirm) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
@@ -124,18 +125,18 @@ public class AuthModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "authmodule.msg_3");
             return;
         }
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
-                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_4"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_4"));
                 return;
             }
             if (!password.equals(confirm)) {
-                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_6"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_6"));
                 return;
             }
             if (password.length() < 8) {
-                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_7"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_7"));
                 return;
             }
 
@@ -146,7 +147,7 @@ public class AuthModule implements Module, Listener {
 
             authDAO.registerPlayer(uuid, hash, salt, ip);
             authenticated.add(uuid);
-            plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_8"));
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_8"));
             
             fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
             if (discord != null && discord.isEnabled()) {
@@ -155,8 +156,7 @@ public class AuthModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("login <password>")
-    public void executeLogin(org.bukkit.command.CommandSender sender, @Argument("password") String password) {
+    public void executeLogin(org.bukkit.command.CommandSender sender, String password) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
@@ -167,14 +167,14 @@ public class AuthModule implements Module, Listener {
             return;
         }
 
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             // --- Rate-limiting : vérifier le lockout avant toute chose ---
             if (loginLockout.containsKey(uuid)) {
                 long remaining = (loginLockout.get(uuid) + LOGIN_LOCKOUT_MS) - System.currentTimeMillis();
                 if (remaining > 0) {
                     long minutes = remaining / 60000;
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
-                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
                             "<red>Trop de tentatives. Réessayez dans <bold>" + (minutes + 1) + " min</bold>.</red>"
                         ));
                     });
@@ -188,7 +188,7 @@ public class AuthModule implements Module, Listener {
 
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data == null) {
-                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_10"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_10"));
                 return;
             }
             
@@ -214,7 +214,7 @@ public class AuthModule implements Module, Listener {
                 if (needsMigration) {
                     String newHash = BCrypt.hashpw(password, BCrypt.gensalt());
                     authDAO.updatePassword(uuid, newHash, "");
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_12"));
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_12"));
                 }
                 
                 authDAO.updateLogin(uuid, ip);
@@ -223,7 +223,7 @@ public class AuthModule implements Module, Listener {
                 loginAttempts.remove(uuid);
                 loginLockout.remove(uuid);
                 
-                plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_13"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_13"));
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
                 if (discord != null && discord.isEnabled()) {
@@ -235,17 +235,17 @@ public class AuthModule implements Module, Listener {
                 if (attempts >= MAX_LOGIN_ATTEMPTS) {
                     loginLockout.put(uuid, System.currentTimeMillis());
                     loginAttempts.remove(uuid);
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
-                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
                             "<red><bold>Compte temporairement verrouillé</bold> (5 tentatives). Réessayez dans 5 minutes.</red>"
                         ));
                     });
                 } else {
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_14"));
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_14"));
                     fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
                     String discordId = statsModule != null ? statsModule.getStatsDAO().getDiscordId(uuid) : null;
                     if (discordId != null && !discordId.isEmpty()) {
-                        plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_15"));
+                        plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_15"));
                     }
                 }
             }
@@ -264,7 +264,7 @@ public class AuthModule implements Module, Listener {
             return;
         }
 
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
                 boolean isOldPasswordCorrect = false;
@@ -277,23 +277,23 @@ public class AuthModule implements Module, Listener {
                 
                 if (isOldPasswordCorrect) {
                     if (newPass.length() < 8) {
-                        plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_18"));
+                        plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_18"));
                         return;
                     }
                     String newHash = BCrypt.hashpw(newPass, BCrypt.gensalt());
                     authDAO.updatePassword(uuid, newHash, "");
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_19"));
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_19"));
                 } else {
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_20"));
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_20"));
                 }
             }
         });
     }
 
     private void requireAuth(Player p) {
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             AuthDAO.AuthData data = authDAO.getAuthData(p.getUniqueId());
-            plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
                 if (data == null) {
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_21");
                     plugin.getLangManager().sendMessage(p, "authmodule.msg_22");
@@ -317,7 +317,7 @@ public class AuthModule implements Module, Listener {
         Player p = event.getPlayer();
         UUID uuid = p.getUniqueId();
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
                 java.net.InetSocketAddress addr2 = p.getAddress();
@@ -328,7 +328,7 @@ public class AuthModule implements Module, Listener {
                     authenticated.add(uuid);
                     authDAO.updateLogin(uuid, currentIp);
                     
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t) -> {
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
                         plugin.getLangManager().sendMessage(p, "authmodule.msg_31");
                     });
                     
@@ -381,12 +381,85 @@ public class AuthModule implements Module, Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
-        if (!enabled) return;
+        String message = event.getMessage();
+        if (message.length() <= 1) return;
+        String cmdArgs = message.substring(1);
+        String cmdName = cmdArgs.split(" ")[0].toLowerCase();
+
+        // 1. Auth check
+        if (cmdName.equals("login") || cmdName.equals("l") || cmdName.equals("register") || cmdName.equals("reg")) {
+            event.setCancelled(true);
+            String[] args = cmdArgs.split(" ");
+            if (args.length < 2) {
+                plugin.getLangManager().sendMessage(event.getPlayer(), "error.invalid_syntax");
+                return;
+            }
+            if (cmdName.equals("login") || cmdName.equals("l")) {
+                executeLogin(event.getPlayer(), args[1]);
+            } else {
+                executeRegister(event.getPlayer(), args[1], args.length > 2 ? args[2] : args[1]);
+            }
+            return;
+        }
+
         if (!isAuth(event.getPlayer())) {
-            String cmd = event.getMessage().toLowerCase();
-            if (!cmd.startsWith("/login") && !cmd.startsWith("/register")) {
-                event.setCancelled(true);
-                requireAuth(event.getPlayer());
+            event.setCancelled(true);
+            requireAuth(event.getPlayer());
+            return;
+        }
+
+        // 2. Force execution via Cloud (Paper 26.2+ fix)
+        cloud.commandframework.paper.PaperCommandManager<org.bukkit.command.CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
+        if (mgr != null) {
+            try {
+                cloud.commandframework.CommandTree<org.bukkit.command.CommandSender> tree = mgr.getCommandTree();
+                if (tree != null) {
+                    java.util.Collection<cloud.commandframework.Command<org.bukkit.command.CommandSender>> cmds = mgr.getCommands();
+                    boolean isCloudCmd = false;
+                    for (cloud.commandframework.Command<org.bukkit.command.CommandSender> c : cmds) {
+                        if (c.getArguments().isEmpty()) continue;
+                        cloud.commandframework.arguments.CommandArgument<org.bukkit.command.CommandSender, ?> firstArg = c.getArguments().get(0);
+                        if (firstArg.getName().equalsIgnoreCase(cmdName)) {
+                            isCloudCmd = true;
+                            break;
+                        }
+                        if (firstArg instanceof cloud.commandframework.arguments.StaticArgument) {
+                            cloud.commandframework.arguments.StaticArgument<?> staticArg = (cloud.commandframework.arguments.StaticArgument<?>) firstArg;
+                            if (staticArg.getAlternativeAliases().contains(cmdName.toLowerCase())) {
+                                isCloudCmd = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (isCloudCmd) {
+                        event.setCancelled(true); // Stop Bukkit from trying to run it
+                        mgr.executeCommand(event.getPlayer(), cmdArgs).whenComplete((res, err) -> {
+                            if (err != null) {
+                                if (err instanceof java.util.concurrent.CompletionException) {
+                                    err = err.getCause();
+                                }
+                                
+                                if (err instanceof cloud.commandframework.exceptions.InvalidSyntaxException) {
+                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Erreur de syntaxe. Utilisation correcte : <yellow>" + ((cloud.commandframework.exceptions.InvalidSyntaxException) err).getCorrectSyntax()));
+                                } else if (err instanceof cloud.commandframework.exceptions.NoPermissionException) {
+                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez pas la permission d'exécuter cette commande."));
+                                } else if (err instanceof cloud.commandframework.exceptions.ArgumentParseException) {
+                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Argument invalide : " + err.getCause().getMessage()));
+                                } else if (err instanceof cloud.commandframework.exceptions.InvalidCommandSenderException) {
+                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous ne pouvez pas exécuter cette commande."));
+                                } else if (err instanceof cloud.commandframework.exceptions.CommandExecutionException) {
+                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Une erreur interne est survenue lors de l'exécution de la commande."));
+                                    err.getCause().printStackTrace();
+                                } else if (!(err instanceof cloud.commandframework.exceptions.NoSuchCommandException)) {
+                                    err.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
@@ -426,7 +499,7 @@ public class AuthModule implements Module, Listener {
     // Security Utilities
 
     public static String generateSalt() {
-        // GardÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© pour rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©trocompatibilitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© lors d'anciens resetmdp non-BCrypt si jamais
+        // Gardé pour rétrocompatibilité lors d'anciens resetmdp non-BCrypt si jamais
         SecureRandom random = new SecureRandom();
         byte[] saltBytes = new byte[16];
         random.nextBytes(saltBytes);
@@ -440,16 +513,19 @@ public class AuthModule implements Module, Listener {
             byte[] hashedBytes = md.digest(password.getBytes());
             return Base64.getEncoder().encodeToString(hashedBytes);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 non supportÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©", e);
+            throw new RuntimeException("SHA-256 non supporté", e);
         }
     }
 
     public static String hashPassword(String password, String salt) {
-        // N'est plus appelÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© qu'historiquement, BCrypt gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨re le hash maintenant.
-        // On retourne la version BCrypt par dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©faut.
+        // N'est plus appelé qu'historiquement, BCrypt gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨re le hash maintenant.
+        // On retourne la version BCrypt par défaut.
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }
 }
+
+
+
 
 
 

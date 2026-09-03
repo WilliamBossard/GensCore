@@ -23,7 +23,7 @@ public class ShopModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "GÃƒÆ’Ã‚Â¨re les boutiques des joueurs et l'ÃƒÆ’Ã‚Â©conomie interne.";
+        return "Gère les boutiques des joueurs et l'économie interne.";
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ShopModule implements Module, Listener {
     @Override
     public void enable() {
         enabled = true;
-        // Enregistrer les ÃƒÆ’Ã‚Â©vÃƒÆ’Ã‚Â©nements de ce module
+        // Enregistrer les événements de ce module
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getLangManager().sendConsoleMessage("shopmodule.log_1");
     }
@@ -49,16 +49,18 @@ public class ShopModule implements Module, Listener {
     @Override
     public void disable() {
         enabled = false;
-        // DÃƒÆ’Ã‚Â©senregistrer les ÃƒÆ’Ã‚Â©vÃƒÆ’Ã‚Â©nements de ce module pour qu'il s'arrÃƒÆ’Ã‚Âªte instantanÃƒÆ’Ã‚Â©ment
+        // Désenregistrer les événements de ce module pour qu'il s'arrête instantanément
         HandlerList.unregisterAll(this);
         plugin.getLangManager().sendConsoleMessage("shopmodule.log_2");
     }
 
-    // Exemple d'ÃƒÆ’Ã‚Â©vÃƒÆ’Ã‚Â©nement qui ne fonctionne que si le module est actif
+    // Exemple d'événement qui ne fonctionne que si le module est actif
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!enabled) return; // SÃƒÆ’Ã‚Â©curitÃƒÆ’Ã‚Â© supplÃƒÆ’Ã‚Â©mentaire
-        event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le Shop est actuellement ouvert !"));
+        if (!enabled) return; // Sécurité supplémentaire
+        event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le Shop est actuellement ouvert !"));
     }
 }
+
+
 

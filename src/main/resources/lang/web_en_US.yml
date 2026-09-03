@@ -113,8 +113,19 @@ web:
       tomb_title: Tombs Configuration
       tomb_xp: Save XP in Tomb
     shop:
-      new_cat: New Category
-      title: Shop Management
+      title: "Shop Management"
+      add_category: "Add Category"
+      add_item: "Add Item"
+      category_name: "Category Name"
+      category_icon: "Category Icon"
+      item_name: "Item Name"
+      buy_price: "Buy Price"
+      sell_price: "Sell Price"
+      material: "Material"
+      save: "Save"
+      cancel: "Cancel"
+      edit: "Edit"
+      delete: "Delete"
     files:
       sidebar_title: Files
       refresh: Refresh
@@ -133,22 +144,9 @@ web:
       ranks: Ranks
       settings: Settings
       shop: Shop
-        new_cat: New Category
-        title: Shop Management
-        add_item: Add Item
-        buy_price: Buy Price
-        sell_price: Sell Price
-        save: Save
-        delete: Delete
-        edit: Edit
-        material: Material
-        target_stock: Target Stock
-        categories: Categories
-        items: Items
-        name: Name
-        icon: Icon
-      web_inv: Web Inv.
+    web_inv: Web Inv.
     title: Admin Panel
+    badge: Administrator
   auth:
     logging_in: Logging in...
     login_btn: Login
@@ -348,18 +346,6 @@ web:
     table_player: Player
     table_playtime: Playtime (h)
     table_quests: Quests
-    ah:
-      disabled_title: Auction House Disabled
-      disabled_desc: The Auction House module is currently disabled by the administrator.
-      loading: Loading Auction House...
-      title: Auction House (AH)
-      subtitle: Browse items listed for sale by players in real time
-      offer: "Offer #"
-      seller: Seller
-      price: Price
-      expire_in: Expires in
-      days: days
-      empty: The Auction House is currently empty. Log in and use /ah sell to sell!
     map:
       title: Interactive Map
       open_fullscreen: Open map fullscreen
@@ -387,25 +373,3 @@ web:
       win_small_symbol: CHERRY
       win_medium_symbol: COINS
       jackpot_symbol: DIAMOND
-  admin:
-    badge: Administrator
-    settings:
-      shop_title: Shop Management
-      modules_title: Modules Management
-      files_title: File Editor
-      players_title: Moderation
-      title: Server Configuration
-    shop:
-      title: "Shop Management"
-      add_category: "Add Category"
-      add_item: "Add Item"
-      category_name: "Category Name"
-      category_icon: "Category Icon"
-      item_name: "Item Name"
-      buy_price: "Buy Price"
-      sell_price: "Sell Price"
-      material: "Material"
-      save: "Save"
-      cancel: "Cancel"
-      edit: "Edit"
-      delete: "Delete"

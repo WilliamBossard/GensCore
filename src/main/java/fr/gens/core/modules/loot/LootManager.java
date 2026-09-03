@@ -166,7 +166,7 @@ public class LootManager {
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);
         String key = locToString(loc);
         
-        // VÃƒÆ’Ã‚Â©rifier si l'inventaire est complÃƒÆ’Ã‚Â¨tement vide, on peut nettoyer pour allÃƒÆ’Ã‚Â©ger
+        // Vérifier si l'inventaire est complètement vide, on peut nettoyer pour alléger
         boolean isEmpty = true;
         for (ItemStack item : items) {
             if (item != null && !item.getType().isAir()) {
@@ -220,4 +220,6 @@ public class LootManager {
         }
     }
 }
+
+
 

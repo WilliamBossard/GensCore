@@ -14,7 +14,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
@@ -48,7 +48,7 @@ public class TombListener implements Listener {
         if (event.getKeepInventory()) return; // Pas de tombe si le joueur garde son inventaire
         
         List<ItemStack> drops = event.getDrops();
-        if (drops.isEmpty() && event.getDroppedExp() == 0) return; // Rien ÃƒÆ’Ã‚Â  sauver
+        if (drops.isEmpty() && event.getDroppedExp() == 0) return; // Rien à sauver
 
         Location pLoc = player.getLocation();
         if (pLoc == null) return;
@@ -56,7 +56,7 @@ public class TombListener implements Listener {
         // Trouver un emplacement libre (Air, Eau, Lave)
         Block targetBlock = loc.getBlock();
         
-        // Si on est dans un bloc solide ou non-remplaÃƒÆ’Ã‚Â§able (herbe haute, dalles, etc.), on monte
+        // Si on est dans un bloc solide ou non-remplaçable (herbe haute, dalles, etc.), on monte
         while (!targetBlock.getType().isAir() && targetBlock.getType() != Material.WATER && targetBlock.getType() != Material.LAVA) {
             if (targetBlock.getY() >= targetBlock.getWorld().getMaxHeight() - 1) {
                 break;
@@ -64,7 +64,7 @@ public class TombListener implements Listener {
             targetBlock = targetBlock.getRelative(0, 1, 0);
         }
         
-        // Si on est dans l'air/eau, on s'assure d'ÃƒÆ’Ã‚Âªtre sur un bloc solide
+        // Si on est dans l'air/eau, on s'assure d'être sur un bloc solide
         if (targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER || targetBlock.getType() == Material.LAVA) {
             while (targetBlock.getY() > targetBlock.getWorld().getMinHeight()) {
                 Block below = targetBlock.getRelative(0, -1, 0);
@@ -75,7 +75,7 @@ public class TombListener implements Listener {
             }
         }
 
-        // On crÃƒÆ’Ã‚Â©e un tableau avec les items
+        // On crée un tableau avec les items
         ItemStack[] contents = drops.toArray(new ItemStack[0]);
         
         int xp = 0;
@@ -130,8 +130,8 @@ public class TombListener implements Listener {
             }
         }
 
-        event.getDrops().clear(); // On empÃƒÆ’Ã‚Âªche les items de tomber par terre
-        player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Votre tombe a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© placÃƒÆ’Ã‚Â©e en " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "."));
+        event.getDrops().clear(); // On empêche les items de tomber par terre
+        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Votre tombe a été placée en " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "."));
     }
 
     @EventHandler
@@ -164,7 +164,7 @@ public class TombListener implements Listener {
         }
 
         if (canOpen) {
-            // Rendre l'inventaire et auto-ÃƒÆ’Ã‚Â©quiper si possible
+            // Rendre l'inventaire et auto-équiper si possible
             for (ItemStack item : tomb.getContents()) {
                 if (item != null && item.getType() != Material.AIR) {
                     boolean equipped = false;
@@ -200,9 +200,9 @@ public class TombListener implements Listener {
             }
 
             module.getTombManager().removeTomb(tomb.getId());
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<green>Vous avez rÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â© le contenu de la tombe."));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez récupéré le contenu de la tombe."));
         } else {
-            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Cette tombe ne vous appartient pas."));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Cette tombe ne vous appartient pas."));
         }
     }
 
@@ -211,7 +211,7 @@ public class TombListener implements Listener {
         TombData tomb = module.getTombManager().getTombAt(event.getBlock().getLocation());
         if (tomb != null) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize("<red>Faites un clic droit pour ouvrir la tombe, vous ne pouvez pas la casser."));
+            event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Faites un clic droit pour ouvrir la tombe, vous ne pouvez pas la casser."));
         }
     }
 
@@ -261,9 +261,9 @@ public class TombListener implements Listener {
                         String ownerName = Bukkit.getOfflinePlayer(tomb.getOwnerId()).getName();
                         if (ownerName == null) ownerName = "Inconnu";
                         if (tomb.isExpired() && plugin.getConfigManager().getConfig("modules/tomb.yml").getString("modules.tomb.expiration_action", "UNLOCK").toUpperCase().equals("UNLOCK")) {
-                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte ÃƒÆ’Ã‚Â  tous"));
+                            display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
                         } else {
-                            display.text(MiniMessage.miniMessage().deserialize("<gray>Tombe de <yellow>" + ownerName + "<br><red>ProtÃƒÆ’Ã‚Â©gÃƒÆ’Ã‚Â©e"));
+                            display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée"));
                         }
                     }
                 } catch (Exception e) {

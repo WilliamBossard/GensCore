@@ -49,7 +49,7 @@ public class TeleportHomeModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Commandes /home avec GUI sÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©curisÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e, limites et cooldowns.";
+        return "Commandes /home avec GUI sécurisée, limites et cooldowns.";
     }
 
     @Override
@@ -71,13 +71,13 @@ public class TeleportHomeModule implements Module, Listener {
         this.homeDAO = new fr.gens.core.database.HomeDAO(plugin);
         this.homeDAO.initDatabase();
         
-        // Chargement lazy : les homes sont chargÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  la connexion du joueur
+        // Chargement lazy : les homes sont chargés à la connexion du joueur
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        // PrÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©charger les homes des joueurs dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©jÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  connectÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s (reload en jeu)
+        // Précharger les homes des joueurs déjà connectés (reload en jeu)
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
             final UUID uuid = p.getUniqueId();
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> loadHomesForPlayer(uuid));
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> loadHomesForPlayer(uuid));
         }
         plugin.getLangManager().sendConsoleMessage("teleporthomemodule.log_1");
     }
@@ -99,26 +99,26 @@ public class TeleportHomeModule implements Module, Listener {
 
 
     private void saveHomeToDB(UUID uuid, String name, Location loc) {
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             homeDAO.saveHome(uuid, name, loc);
         });
     }
 
     private void deleteHomeFromDB(UUID uuid, String name) {
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             homeDAO.deleteHome(uuid, name);
         });
     }
 
     public void clearAllHomes() {
         homes.clear();
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             homeDAO.clearAllHomes();
         });
     }
-    // Chargement lazy : uniquement les homes d'un joueur donnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©
+    // Chargement lazy : uniquement les homes d'un joueur donné
     private void loadHomesForPlayer(UUID uuid) {
-        if (homes.containsKey(uuid)) return; // DÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©jÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  chargÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©
+        if (homes.containsKey(uuid)) return; // Déjà chargé
         Map<String, Location> playerHomes = homeDAO.loadPlayerHomes(uuid);
         homes.put(uuid, playerHomes);
     }
@@ -127,7 +127,7 @@ public class TeleportHomeModule implements Module, Listener {
     public void onJoin(PlayerJoinEvent event) {
         if (!enabled) return;
         final UUID uuid = event.getPlayer().getUniqueId();
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> loadHomesForPlayer(uuid));
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> loadHomesForPlayer(uuid));
     }
 
     @EventHandler
@@ -157,7 +157,7 @@ public class TeleportHomeModule implements Module, Listener {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
-            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est désactivé.</red>"));
             return;
         }
         if (!p.hasPermission("genscore.home")) {
@@ -181,12 +181,21 @@ public class TeleportHomeModule implements Module, Listener {
         );
     }
 
+    @cloud.commandframework.annotations.suggestions.Suggestions("homeNames")
+    public java.util.List<String> homeNames(cloud.commandframework.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
+        if (!(context.getSender() instanceof org.bukkit.entity.Player)) return java.util.Collections.emptyList();
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) context.getSender();
+        Map<String, Location> playerHomes = homes.get(p.getUniqueId());
+        if (playerHomes == null) return java.util.Collections.emptyList();
+        return new java.util.ArrayList<>(playerHomes.keySet());
+    }
+
     @CommandMethod("home [name]")
-    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "") String homeName) {
+    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "", suggestions = "homeNames") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
-            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est désactivé.</red>"));
             return;
         }
         if (!p.hasPermission("genscore.home")) {
@@ -194,7 +203,7 @@ public class TeleportHomeModule implements Module, Listener {
             return;
         }
         
-        if (!homeName.isEmpty()) {
+        if (homeName != null && !homeName.isEmpty()) {
             Map<String, Location> playerHomes = homes.get(p.getUniqueId());
             if (playerHomes != null && playerHomes.containsKey(homeName)) {
                 TeleportUtil.teleportWithCooldown(plugin, p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
@@ -209,11 +218,11 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @CommandMethod("delhome <name>")
-    public void executeDelHome(org.bukkit.command.CommandSender sender, @Argument("name") String homeName) {
+    public void executeDelHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "homeNames") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
-            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est désactivé.</red>"));
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est désactivé.</red>"));
             return;
         }
         if (!p.hasPermission("genscore.home")) {
@@ -237,7 +246,7 @@ public class TeleportHomeModule implements Module, Listener {
 
     private void openHomeGui(Player player) {
         HomeGuiHolder holder = new HomeGuiHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId(), new ConcurrentHashMap<>()).size() + "/" + getMaxHomes(player) + ")"));
+        Inventory inv = Bukkit.createInventory(holder, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId(), new ConcurrentHashMap<>()).size() + "/" + getMaxHomes(player) + ")"));
         holder.setInventory(inv);
 
         Map<String, Location> playerHomes = homes.getOrDefault(player.getUniqueId(), new ConcurrentHashMap<>());
@@ -247,10 +256,10 @@ public class TeleportHomeModule implements Module, Listener {
             ItemStack item = new ItemStack(Material.WHITE_BED);
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>" + homeName));
+                meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green><bold>" + homeName));
                 List<String> lore = new ArrayList<>();
-                lore.add("<gray>Cliquez pour GÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rer ce Home");
-                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+                lore.add("<gray>Cliquez pour Gérer ce Home");
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
                 NamespacedKey key = new NamespacedKey(plugin, "home_name");
                 meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, homeName);
                 item.setItemMeta(meta);
@@ -296,27 +305,27 @@ public class TeleportHomeModule implements Module, Listener {
 
     private void openConfirmGui(Player player, String homeName) {
         ConfirmHomeGuiHolder holder = new ConfirmHomeGuiHolder(homeName);
-        Inventory inv = Bukkit.createInventory(holder, 9, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Gestion: " + homeName));
+        Inventory inv = Bukkit.createInventory(holder, 9, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Gestion: " + homeName));
         holder.setInventory(inv);
 
-        // Bloc vert (TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©portation)
+        // Bloc vert (Téléportation)
         ItemStack tpItem = new ItemStack(Material.LIME_CONCRETE);
         ItemMeta tpMeta = tpItem.getItemMeta();
-        tpMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>Se TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©porter"));
+        tpMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green><bold>Se Téléporter"));
         tpItem.setItemMeta(tpMeta);
         inv.setItem(2, tpItem);
 
         // Bloc rouge (Suppression)
         ItemStack delItem = new ItemStack(Material.RED_CONCRETE);
         ItemMeta delMeta = delItem.getItemMeta();
-        delMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red><bold>Supprimer"));
+        delMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red><bold>Supprimer"));
         delItem.setItemMeta(delMeta);
         inv.setItem(6, delItem);
 
         // Bouton retour
         ItemStack backItem = new ItemStack(Material.BARRIER);
         ItemMeta backMeta = backItem.getItemMeta();
-        backMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow><bold>Retour aux Homes"));
+        backMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow><bold>Retour aux Homes"));
         backItem.setItemMeta(backMeta);
         inv.setItem(8, backItem);
 
@@ -369,5 +378,27 @@ public class TeleportHomeModule implements Module, Listener {
             }
         }
     }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!enabled) return;
+        String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (title.startsWith("Mes Homes") || title.startsWith("Gestion: ")) {
+            if (event.getClickedInventory() != null && event.getClickedInventory().equals(event.getView().getTopInventory())) {
+                event.setCancelled(true);
+                if (title.startsWith("Mes Homes")) {
+                    new HomeGuiHolder().onClick(event);
+                } else {
+                    String homeName = title.substring("Gestion: ".length());
+                    new ConfirmHomeGuiHolder(homeName).onClick(event);
+                }
+            } else if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY || event.getAction() == org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP) {
+                event.setCancelled(true);
+            }
+        }
+    }
 }
+
+
+
 

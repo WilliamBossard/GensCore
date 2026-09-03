@@ -34,7 +34,7 @@ public class JobsDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table player_jobs", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table player_jobs", e);
         }
     }
 
@@ -137,3 +137,5 @@ public class JobsDAO {
         return jobsLeaderboard;
     }
 }
+
+

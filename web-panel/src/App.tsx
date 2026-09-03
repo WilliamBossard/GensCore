@@ -463,7 +463,7 @@ function AdminPlayers({ password }: { password: string }) {
     <div>
       <h2 style={{marginBottom: '2rem'}}>{t('web.admin.players.title')} ({players.length})</h2>
       
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem'}}>
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))', gap: '1.5rem'}}>
         {players.map(p => (
           <div key={p.uuid} className="admin-card" style={{padding: '1.5rem'}}>
             <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '1.5rem'}}>
@@ -782,7 +782,7 @@ function AdminModules({ password }: { password: string }) {
               <button className="btn-small" style={{background: '#ef4444', color: 'white'}} onClick={() => toggleCategory(mods, false)}>{t('web.admin.modules_cat.disable_all') || 'Tout Désactiver'}</button>
             </div>
           </div>
-          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem'}}>
+          <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '1.5rem'}}>
             {mods.map(mod => (
               <div key={mod.name} className="admin-card" style={{padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '15px'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -1222,7 +1222,7 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
         <p>{t('web.public.ah.subtitle')}</p>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem'}}>
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: '1rem'}}>
         {items.map(item => (
           <div key={item.id} style={{background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem'}}>
             <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem'}}>

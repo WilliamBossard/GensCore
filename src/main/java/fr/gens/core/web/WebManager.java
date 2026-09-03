@@ -59,7 +59,7 @@ public class WebManager {
     }
 
     public void start() {
-        // Hachage du mot de passe admin si nÃ©cessaire
+        // Hachage du mot de passe admin si nécessaire
         org.bukkit.configuration.file.FileConfiguration webConfig = plugin.getConfigManager().getConfig("modules/web.yml");
         String adminPassword = webConfig.getString("admin-password", "gens");
         if (adminPassword != null && !adminPassword.startsWith("$2a$") && !adminPassword.startsWith("$2b$")) {
@@ -113,7 +113,7 @@ public class WebManager {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         
         try {
-            // Forcer le ClassLoader de Javalin pour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©viter les conflits dans un plugin
+            // Forcer le ClassLoader de Javalin pour éviter les conflits dans un plugin
             Thread.currentThread().setContextClassLoader(Javalin.class.getClassLoader());
 
             app = Javalin.create(config -> {
@@ -132,7 +132,7 @@ public class WebManager {
                 // Servir le site web depuis le dossier plugins/GensCore/web/
                 config.staticFiles.add(webDir.getAbsolutePath(), Location.EXTERNAL);
 
-                // GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer le routage SPA (Single Page Application)
+                // Gérer le routage SPA (Single Page Application)
                 config.spaRoot.addFile("/", new File(webDir, "index.html").getAbsolutePath(), Location.EXTERNAL);
 
                 config.routes.apiBuilder(() -> {
@@ -147,8 +147,22 @@ public class WebManager {
                         }
                         String token = authHeader.substring(7);
                         if (!activeSessions.containsKey(token) || activeSessions.get(token) < System.currentTimeMillis()) {
-                            activeSessions.remove(token);
-                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.session_expired"));
+                            // Compatibilité frontend: Le frontend utilise parfois le mot de passe en clair comme token.
+                            String storedHash = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "");
+                            boolean isPassword = false;
+                            try {
+                                if (org.mindrot.jbcrypt.BCrypt.checkpw(token, storedHash)) {
+                                    isPassword = true;
+                                    // Ajouter le mot de passe comme session valide pour ne pas recalculer bcrypt a chaque requete
+                                    activeSessions.put(token, System.currentTimeMillis() + (24L * 60 * 60 * 1000L));
+                                }
+                            } catch (Exception ignored) {}
+                            
+                            if (!isPassword) {
+                                activeSessions.remove(token);
+                                ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.session_expired"));
+                                return;
+                            }
                         }
                     });
 
@@ -206,7 +220,7 @@ public class WebManager {
             }).start(port);
             
             // Nettoyage périodique des sessions web expirées (Toutes les heures = 72000 ticks)
-            plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
                 long now = System.currentTimeMillis();
                 activeSessions.entrySet().removeIf(entry -> entry.getValue() < now);
             }, 72000L, 72000L);
@@ -302,7 +316,7 @@ public class WebManager {
     }
 
     private void setupRoutes() {
-        // Route API pour rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer la liste des modules (Public)
+        // Route API pour récupérer la liste des modules (Public)
         get("/api/modules", ctx -> {
             List<Map<String, Object>> modulesList = new ArrayList<>();
             for (Module m : plugin.getModuleManager().getModules()) {
@@ -348,15 +362,15 @@ public class WebManager {
             }
         });
 
-        // Route API pour activer/dÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©sactiver un module (ProtÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e Admin)
+        // Route API pour activer/désactiver un module (Protégée Admin)
         post("/api/admin/modules/{name}/toggle", ctx -> {
             String moduleName = ctx.pathParam("name");
             
-            // On rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re le body {"state": true/false}
+            // On récupère le body {"state": true/false}
             ToggleRequest request = ctx.bodyAsClass(ToggleRequest.class);
             
-            // On exÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cute l'activation sur le thread principal de Bukkit (TrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s important !)
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            // On exécute l'activation sur le thread principal de Bukkit (Très important !)
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 boolean success = plugin.getModuleManager().toggleModule(moduleName, request.state);
                 if(success) {
                     plugin.getLogger().info("Web panel changed state of module " + moduleName + " to " + request.state);
@@ -396,7 +410,7 @@ public class WebManager {
         post("/api/admin/config", ctx -> {
             ConfigRequest req = ctx.bodyAsClass(ConfigRequest.class);
             
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 plugin.getConfigManager().getConfig("modules/economy.yml").set("shop.inflation_exponent", req.inflationExponent);
                 plugin.getConfigManager().getConfig("modules/economy.yml").set("ah.tax_percentage", req.ahTaxPercentage);
                 plugin.getConfigManager().getConfig("modules/headdrop.yml").set("headdrop.chance", req.headDropChance);
@@ -457,7 +471,7 @@ public class WebManager {
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
             List<Map<String, Object>> knownPlayers = (statsModule != null) ? statsModule.getStatsDAO().getAllKnownPlayers() : new ArrayList<>();
             
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 List<Map<String, Object>> players = new ArrayList<>();
                 fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
                 
@@ -504,14 +518,14 @@ public class WebManager {
             // Fetch offline player synchronously in the web thread (which is already async/off the main thread)
             org.bukkit.OfflinePlayer targetOffline = plugin.getServer().getOfflinePlayer(req.playerName);
             
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 DiscordModule discord = (DiscordModule) plugin.getModuleManager().getModule("Discord");
                 fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
                 org.bukkit.entity.Player target = targetOffline.getPlayer();
 
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
+                        target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
                         plugin.getLogger().info("Web panel kicked " + req.playerName);
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, java.awt.Color.ORANGE);
                     }
@@ -527,7 +541,7 @@ public class WebManager {
                     org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                     banList.addBan(profile, "<red>" + reason, expires, "WebAdmin");
                     if (target != null) {
-                        target.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© banni.<br><gray>Raison : " + reason));
+                        target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été banni.<br><gray>Raison : " + reason));
                     }
                     plugin.getLogger().info("Web panel banned " + req.playerName);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);
@@ -545,7 +559,7 @@ public class WebManager {
                         mod.mutePlayer(targetOffline.getUniqueId(), reason, durationMs);
                         
                         if (target != null) {
-                            target.sendMessage("<red><bold>Vous avez ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© rendu muet par le WebAdmin ! Raison : " + reason);
+                            target.sendMessage("<red><bold>Vous avez été rendu muet par le WebAdmin ! Raison : " + reason);
                         }
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("MUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.YELLOW);
                     }
@@ -563,10 +577,10 @@ public class WebManager {
                     }
                 }
             });
-            ctx.status(200).json("Action effectuÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e");
+            ctx.status(200).json("Action effectuée");
         });
 
-        // ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°dition de fichiers
+        // Édition de fichiers
         get("/api/admin/file", ctx -> {
             String path = ctx.queryParam("path");
             if (path == null || path.contains("..")) {
@@ -769,10 +783,10 @@ public class WebManager {
                 if (bestTeam != null) {
                     ctx.json(bestTeam);
                 } else {
-                    ctx.status(404).result("Aucune guilde trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e.");
+                    ctx.status(404).result("Aucune guilde trouvée.");
                 }
             } else {
-                ctx.status(404).result("Team manager non trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©.");
+                ctx.status(404).result("Team manager non trouvé.");
             }
         });
 
@@ -781,7 +795,7 @@ public class WebManager {
             if (tm != null) {
                 ctx.json(tm.getAllTeamStats());
             } else {
-                ctx.status(404).result("Team manager non trouvÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©.");
+                ctx.status(404).result("Team manager non trouvé.");
             }
         });
 
@@ -831,7 +845,7 @@ public class WebManager {
         });
     }
     
-    // Classe DTO pour parser le JSON envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© par React
+    // Classe DTO pour parser le JSON envoyé par React
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class PlayerActionRequest {
         public String action; // kick, ban, mute, message
@@ -868,4 +882,7 @@ public class WebManager {
         public LoginResponse(String token) { this.token = token; }
     }
 }
+
+
+
 

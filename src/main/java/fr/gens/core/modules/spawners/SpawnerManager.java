@@ -84,7 +84,7 @@ public class SpawnerManager {
             data.setLastGenerateMillis(now); // Reset timer
             
             // Dispatch generation to the Region Thread
-            module.getPlugin().getFoliaLib().getImpl().runAtLocation(data.getLocation(), (t) -> {
+            module.getPlugin().getFoliaLib().getScheduler().runAtLocation(data.getLocation(), (t) -> {
                 Location loc = data.getLocation();
                 boolean isLoaded = loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
                 
@@ -274,7 +274,7 @@ public class SpawnerManager {
             display.setBillboard(Display.Billboard.CENTER);
             display.setDefaultBackground(false);
             display.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
-            display.setPersistent(false); // Eviter les hologrammes fantÃƒÆ’Ã‚Â´mes aprÃƒÆ’Ã‚Â¨s un redÃƒÆ’Ã‚Â©marrage
+            display.setPersistent(false); // Eviter les hologrammes fantômes après un redémarrage
             holograms.put(loc, display);
         }
         
@@ -284,9 +284,9 @@ public class SpawnerManager {
         
         String text;
         if (!module.isEnabled()) {
-            text = "<red><bold>Spawner DÃƒÆ’Ã‚Â©sactivÃƒÆ’Ã‚Â©\n<gray>(Les productions sont suspendues)";
+            text = "<red><bold>Spawner Désactivé\n<gray>(Les productions sont suspendues)";
         } else if (data.isLootChest()) {
-            text = "<yellow><bold>Coffre de RÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â©ration\n" +
+            text = "<yellow><bold>Coffre de Récupération\n" +
                    (totalItems == 0 && data.getStoredExp() == 0 ? "<red>Vide" : "<white>Stock: <yellow>" + totalItems + " items\n<green>Exp: <green>" + data.getStoredExp() + " XP");
         } else {
             text = "<gold><bold>" + data.getType() + " <gray>(x" + data.getStackCount() + ")\n" +
@@ -310,4 +310,7 @@ public class SpawnerManager {
         holograms.clear();
     }
 }
+
+
+
 

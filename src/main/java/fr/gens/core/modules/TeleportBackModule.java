@@ -2,7 +2,7 @@ package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.TeleportUtil;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+
 import org.bukkit.Location;
 import cloud.commandframework.annotations.CommandMethod;
 import org.bukkit.entity.Player;
@@ -85,8 +85,8 @@ public class TeleportBackModule implements Module, Listener {
 
         if (p.hasPermission("genscore.back")) {
             // Message cliquable via MiniMessage
-            p.sendMessage(MiniMessage.miniMessage().deserialize(
-                "<gray>Vous ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âªtes mort. <click:run_command:'/back'><hover:show_text:'<green>Cliquez ici pour vous tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©porter ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  votre point de mort !'><gold><b>[Cliquez ici pour utiliser /back]</b></gold></hover></click></gray>"
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
+                "<gray>Vous êtes mort. <click:run_command:'/back'><hover:show_text:'<green>Cliquez ici pour vous téléporter à votre point de mort !'><gold><b>[Cliquez ici pour utiliser /back]</b></gold></hover></click></gray>"
             ));
         }
     }
@@ -120,4 +120,6 @@ public class TeleportBackModule implements Module, Listener {
         }
     }
 }
+
+
 

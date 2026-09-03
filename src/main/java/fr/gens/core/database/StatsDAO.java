@@ -62,7 +62,7 @@ public class StatsDAO {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_transactions_uuid       ON player_transactions_history(uuid);");
 
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables stats", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création des tables stats", e);
         }
     }
 
@@ -179,7 +179,7 @@ public class StatsDAO {
 
     public java.util.concurrent.CompletableFuture<fr.gens.core.modules.stats.StatsModule.PlayerStats> loadPlayerStats(UUID uuid) {
         java.util.concurrent.CompletableFuture<fr.gens.core.modules.stats.StatsModule.PlayerStats> future = new java.util.concurrent.CompletableFuture<>();
-        plugin.getFoliaLib().getImpl().runAsync((task) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((task) -> {
             fr.gens.core.modules.stats.StatsModule.PlayerStats loadedStats = new fr.gens.core.modules.stats.StatsModule.PlayerStats();
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("SELECT blocks_broken, mobs_killed, playtime_minutes, deaths, player_kills FROM player_global_stats WHERE uuid = ?")) {
@@ -208,7 +208,7 @@ public class StatsDAO {
 
     public java.util.concurrent.CompletableFuture<Void> savePlayerStats(UUID uuid, fr.gens.core.modules.stats.StatsModule.PlayerStats stats) {
         java.util.concurrent.CompletableFuture<Void> future = new java.util.concurrent.CompletableFuture<>();
-        plugin.getFoliaLib().getImpl().runAsync((task) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((task) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("UPDATE player_global_stats SET blocks_broken = ?, mobs_killed = ?, playtime_minutes = ?, deaths = ?, player_kills = ?, last_updated = ? WHERE uuid = ?")) {
                 pstmt.setInt(1, stats.blocksBroken);
@@ -259,7 +259,7 @@ public class StatsDAO {
         };
 
         if (plugin.isEnabled()) {
-            plugin.getFoliaLib().getImpl().runAsync((t) -> task.run());
+            plugin.getFoliaLib().getScheduler().runAsync((t) -> task.run());
         } else {
             task.run();
         }
@@ -267,4 +267,7 @@ public class StatsDAO {
         return future;
     }
 }
+
+
+
 

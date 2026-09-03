@@ -48,3 +48,6 @@ local.properties
 
 # Local Maven
 maven/
+
+# Agent Scratch Folders
+scratch/

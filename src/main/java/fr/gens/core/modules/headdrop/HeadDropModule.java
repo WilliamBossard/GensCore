@@ -34,7 +34,7 @@ public class HeadDropModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Drop de tÃƒÆ’Ã‚Âªtes lors de la mort d'un joueur";
+        return "Drop de têtes lors de la mort d'un joueur";
     }
 
     @Override
@@ -47,13 +47,13 @@ public class HeadDropModule implements Module, Listener {
         enabled = true;
         // Ajouter la configuration si elle n'existe pas
         if (!plugin.getConfigManager().getConfig("modules/headdrop.yml").contains("headdrop.chance")) {
-            plugin.getConfigManager().getConfig("modules/headdrop.yml").set("headdrop.chance", 10.0); // 10% par dÃƒÆ’Ã‚Â©faut
+            plugin.getConfigManager().getConfig("modules/headdrop.yml").set("headdrop.chance", 10.0); // 10% par défaut
             plugin.getConfigManager().saveConfig("modules/headdrop.yml");
         }
         this.dropChance = plugin.getConfigManager().getConfig("modules/headdrop.yml").getDouble("headdrop.chance", 10.0);
         
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        plugin.getLogger().info("[HeadDrop] Module activÃƒÆ’Ã‚Â© avec " + dropChance + "% drop chance.");
+        plugin.getLogger().info("[HeadDrop] Module activé avec " + dropChance + "% drop chance.");
     }
 
     @Override
@@ -74,20 +74,20 @@ public class HeadDropModule implements Module, Listener {
         Player victim = event.getEntity();
         Player killer = victim.getKiller();
 
-        // VÃƒÆ’Ã‚Â©rifie si on est dans les probabilitÃƒÆ’Ã‚Â©s de drop
+        // Vérifie si on est dans les probabilités de drop
         if (random.nextDouble() * 100.0 <= dropChance) {
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
             
             if (meta != null) {
                 meta.setOwningPlayer(victim);
-                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>TÃƒÆ’Ã‚Âªte de <gold>" + victim.getName()));
+                meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Tête de <gold>" + victim.getName()));
 
                 List<String> lore = new ArrayList<>();
                 lore.add("<dark_gray><strikethrough>------------------------");
                 
                 if (killer != null) {
-                    lore.add("<red> TuÃƒÆ’Ã‚Â© par : <white>" + killer.getName());
+                    lore.add("<red> Tué par : <white>" + killer.getName());
                     
                     ItemStack weapon = killer.getInventory().getItemInMainHand();
                     String weaponName = "<gray>A mains nues";
@@ -106,14 +106,16 @@ public class HeadDropModule implements Module, Listener {
                 lore.add("<yellow> Date : <white>" + date);
                 lore.add("<dark_gray><strikethrough>------------------------");
                 
-                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
                 head.setItemMeta(meta);
             }
             
-            // Ajouter la tÃƒÆ’Ã‚Âªte au butin
+            // Ajouter la tête au butin
             event.getDrops().add(head);
         }
     }
 }
+
+
 
 

@@ -41,7 +41,7 @@ public class ShopModule implements Module {
 
     @Override
     public String getDescription() {
-        return "Boutique en jeu avec inflation dynamique gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e par l'offre et la demande.";
+        return "Boutique en jeu avec inflation dynamique gérée par l'offre et la demande.";
     }
 
     @Override
@@ -65,7 +65,7 @@ public class ShopModule implements Module {
         enabled = true;
         GLOBAL_INFLATION_EXPONENT = plugin.getConfig().getDouble("shop.inflation_exponent", 0.5);
 
-        // CrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©er ou vÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rifier la table
+        // Créer ou vérifier la table
         this.shopDAO = new fr.gens.core.database.ShopDAO(plugin);
         this.shopDAO.initDatabase();
         
@@ -145,7 +145,7 @@ public class ShopModule implements Module {
     public void openCategoryGui(Player player) {
         ShopCategoryGuiHolder holder = new ShopCategoryGuiHolder();
         int size = Math.max(9, (int) (Math.ceil(categories.size() / 9.0) * 9));
-        Inventory inv = Bukkit.createInventory(holder, size, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Boutique - CatÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©gories"));
+        Inventory inv = Bukkit.createInventory(holder, size, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Boutique - Catégories"));
         holder.setInventory(inv);
 
         for (int i = 0; i < categories.size(); i++) {
@@ -153,11 +153,11 @@ public class ShopModule implements Module {
             ItemStack item = new ItemStack(cat.getIcon());
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green><bold>" + cat.getDisplayName()));
+                meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green><bold>" + cat.getDisplayName()));
                 List<String> lore = new ArrayList<>();
                 lore.add("<gray>" + cat.getItems().size() + " objets disponibles.");
                 lore.add("<yellow>Cliquez pour ouvrir !");
-                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
                 item.setItemMeta(meta);
             }
             inv.setItem(i, item);
@@ -168,7 +168,7 @@ public class ShopModule implements Module {
 
     public void openItemsGui(Player player, ShopCategory category) {
         ShopItemsGuiHolder holder = new ShopItemsGuiHolder(category);
-        Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Shop - " + category.getDisplayName()));
+        Inventory inv = Bukkit.createInventory(holder, 54, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Shop - " + category.getDisplayName()));
         holder.setInventory(inv);
 
         int slot = 0;
@@ -178,18 +178,18 @@ public class ShopModule implements Module {
             ItemStack i = new ItemStack(item.getMaterial());
             ItemMeta meta = i.getItemMeta();
             if (meta != null) {
-                meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<white><bold>" + item.getMaterial().name()));
+                meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<white><bold>" + item.getMaterial().name()));
                 List<String> lore = new ArrayList<>();
                 lore.add("<dark_gray>Prix Dynamique (Inflation)");
                 lore.add("");
                 if (item.isCommand()) {
-                lore.add("<green>ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶ Achat Unique : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
-                lore.add("<dark_gray>(ExÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cute une commande sur votre compte)");
+                lore.add("<green>➔ Achat Unique : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
+                lore.add("<dark_gray>(Exécute une commande sur votre compte)");
                 lore.add("");
                 lore.add("<yellow>Clic Gauche pour Acheter");
             } else {
-                lore.add("<green>ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶ Achat (x1) : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
-                lore.add("<red>ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ Vente (x1) : <yellow>" + String.format("%.2f", item.getCurrentSellPrice()) + " $");
+                lore.add("<green>➔ Achat (x1) : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
+                lore.add("<red>➔ Vente (x1) : <yellow>" + String.format("%.2f", item.getCurrentSellPrice()) + " $");
                 lore.add("");
                 lore.add("<gray>Stock du Serveur: " + item.getStock() + " (Cible: " + item.getTargetStock() + ")");
                 lore.add("");
@@ -197,7 +197,7 @@ public class ShopModule implements Module {
                 lore.add("<yellow>Clic Droit pour Vendre");
                 lore.add("<dark_gray>(Shift pour x64)");
             }
-                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
                 i.setItemMeta(meta);
             }
             inv.setItem(slot++, i);
@@ -206,7 +206,7 @@ public class ShopModule implements Module {
         // Bouton retour
         ItemStack back = new ItemStack(Material.BARRIER);
         ItemMeta backMeta = back.getItemMeta();
-        backMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red><bold>Retour aux catÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©gories"));
+        backMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red><bold>Retour aux catégories"));
         back.setItemMeta(backMeta);
         inv.setItem(49, back);
 
@@ -269,10 +269,10 @@ public class ShopModule implements Module {
                         if (shopItem.isCommand()) {
                             String cmd = shopItem.getCommandToExecute().replace("%player%", p.getName());
                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Achat validÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
+                            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat validé ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
                         } else {
                             p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
-                            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
+                            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
                         }
                         
                         openItemsGui(p, category); // Refresh
@@ -318,7 +318,7 @@ public class ShopModule implements Module {
                         // Modifier le stock (augmente car les joueurs vendent au serveur)
                         shopItem.setStock(shopItem.getStock() + amount);
                         
-                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $"));
+                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $"));
                         openItemsGui(p, category); // Refresh
                         saveShop();
                         logTransaction(shopItem);
@@ -331,4 +331,6 @@ public class ShopModule implements Module {
         }
     }
 }
+
+
 

@@ -28,7 +28,7 @@ public class AuthDAO {
              java.sql.Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table genscore_auth", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table genscore_auth", e);
         }
     }
 
@@ -118,4 +118,6 @@ public class AuthDAO {
         }
     }
 }
+
+
 

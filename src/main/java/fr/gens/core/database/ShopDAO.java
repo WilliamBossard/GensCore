@@ -59,7 +59,7 @@ public class ShopDAO {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_shop_history_timestamp ON shop_history(timestamp);");
 
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables du shop", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création des tables du shop", e);
         }
     }
 
@@ -227,4 +227,6 @@ public class ShopDAO {
         return false;
     }
 }
+
+
 

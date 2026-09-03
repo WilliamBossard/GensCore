@@ -32,7 +32,7 @@ public class PendingCommandDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table pending_rewards", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table pending_rewards", e);
         }
     }
 
@@ -49,7 +49,7 @@ public class PendingCommandDAO {
     }
 
     public void processPendingCommands(Player p) {
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement ps = conn.prepareStatement("SELECT * FROM pending_rewards WHERE uuid = ?")) {
                 ps.setString(1, p.getUniqueId().toString());
@@ -59,7 +59,7 @@ public class PendingCommandDAO {
                         String cmd = rs.getString("command");
                         String msg = rs.getString("message");
                         
-                        plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+                        plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                             if (cmd != null && !cmd.isEmpty()) {
                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", p.getName()));
                             }
@@ -80,3 +80,6 @@ public class PendingCommandDAO {
         });
     }
 }
+
+
+

@@ -52,7 +52,7 @@ public class JobsModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "SystÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨me de mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers (Mineur, BÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â»cheron, Chasseur, Fermier).";
+        return "SystÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨me de métiers (Mineur, BÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢»cheron, Chasseur, Fermier).";
     }
 
     @Override
@@ -80,14 +80,14 @@ public class JobsModule implements Module, Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().registerEvents(gui, plugin);
 
-        // Charger les joueurs connectÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s
+        // Charger les joueurs connectés
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
             loadPlayer(p.getUniqueId());
         }
         
         // Auto-Save Task pour le WebPanel (Toutes les 10 secondes)
-        plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
                 savePlayer(p.getUniqueId());
@@ -116,7 +116,7 @@ public class JobsModule implements Module, Listener {
         playerLevel.put(uuid, new ConcurrentHashMap<>());
         activeJobs.put(uuid, new ConcurrentHashMap<>());
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             this.jobsDAO.loadPlayerJobs(uuid, playerXp.get(uuid), playerLevel.get(uuid), activeJobs.get(uuid));
         });
     }
@@ -145,14 +145,14 @@ public class JobsModule implements Module, Listener {
         playerLevel.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).putIfAbsent(type, 1);
         playerXp.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>()).putIfAbsent(type, 0.0);
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayer(uuid));
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayer(uuid));
     }
     
     public void leaveJob(UUID uuid, JobType type) {
         if (activeJobs.containsKey(uuid)) {
             activeJobs.get(uuid).put(type, false);
-            // On le supprime de la base de donnÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            // On le supprime de la base de données
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 this.jobsDAO.removePlayerJob(uuid, type);
             });
             playerXp.get(uuid).remove(type);
@@ -187,18 +187,18 @@ public class JobsModule implements Module, Listener {
             currentLevel++;
             playerLevel.get(uuid).put(type, currentLevel);
 
-            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le mÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tier " + type.getColor() + type.getDisplayName() + " <green>!"));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <green>Vous passez niveau <white>" + currentLevel + " <green>dans le métier " + type.getColor() + type.getDisplayName() + " <green>!"));
             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
             
-            // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compenses de Level Up (Battle Pass)
-            double reward = baseMoney * 10 * currentLevel; // Grosse rÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compense
+            // Récompenses de Level Up (Battle Pass)
+            double reward = baseMoney * 10 * currentLevel; // Grosse récompense
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null && eco.isEnabled()) {
                 eco.addMoney(uuid, reward);
-                player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <green>" + reward + "$ <gray>!"));
+                player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢§u <green>" + reward + "$ <gray>!"));
             }
             
-            // RÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©compenses Objets selon le palier
+            // Récompenses Objets selon le palier
             giveLevelUpItems(player, currentLevel);
         }
         
@@ -223,7 +223,7 @@ public class JobsModule implements Module, Listener {
             mat = r.nextBoolean() ? Material.DIAMOND : Material.EMERALD;
         }
         player.getInventory().addItem(new ItemStack(mat, amount));
-        player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold>MÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©tiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§u <yellow>" + amount + "x " + mat.name() + " <gray>!"));
+        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢§u <yellow>" + amount + "x " + mat.name() + " <gray>!"));
     }
 
     @CommandMethod("jobs")
@@ -256,7 +256,7 @@ public class JobsModule implements Module, Listener {
         activeJobs.remove(uuid);
         
         if (xpCopy != null && levelCopy != null && activeCopy != null) {
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 jobsDAO.savePlayerJobs(uuid, xpCopy, levelCopy, activeCopy);
             });
         }
@@ -302,5 +302,6 @@ public class JobsModule implements Module, Listener {
         }
     }
 }
+
 
 

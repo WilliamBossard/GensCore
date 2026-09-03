@@ -42,7 +42,7 @@ public class HomeDAO {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_homes_uuid ON player_homes(uuid);");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table player_homes", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table player_homes", e);
         }
     }
 
@@ -113,3 +113,5 @@ public class HomeDAO {
         return playerHomes;
     }
 }
+
+

@@ -36,7 +36,7 @@ public class AuctionHouseDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table auction_house", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table auction_house", e);
         }
     }
 
@@ -113,3 +113,5 @@ public class AuctionHouseDAO {
         return ahItems;
     }
 }
+
+

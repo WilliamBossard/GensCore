@@ -38,17 +38,17 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public String format(double amount) {
-        return String.format("%.2f piÃƒÆ’Ã‚Â¨ces", amount);
+        return String.format("%.2f pièces", amount);
     }
 
     @Override
     public String currencyNamePlural() {
-        return "piÃƒÆ’Ã‚Â¨ces";
+        return "pièces";
     }
 
     @Override
     public String currencyNameSingular() {
-        return "piÃƒÆ’Ã‚Â¨ce";
+        return "pièce";
     }
 
     @Override
@@ -238,4 +238,6 @@ public class GensVaultEconomy implements Economy {
         return Collections.emptyList();
     }
 }
+
+
 

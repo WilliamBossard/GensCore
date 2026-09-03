@@ -38,7 +38,7 @@ public class AuctionHouseModule implements Module {
 
     @Override
     public String getDescription() {
-        return "HÃƒÂ´tel de ventes entre joueurs";
+        return "Hôtel de ventes entre joueurs";
     }
 
     @Override
@@ -107,28 +107,28 @@ public class AuctionHouseModule implements Module {
         String base64Item = ItemSerializer.toBase64(item);
         long expireTime = System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 7); // 7 jours
 
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try {
                 ahDAO.addAuction(p.getUniqueId().toString(), p.getName(), price, base64Item, expireTime);
-                plugin.getFoliaLib().getImpl().runAtEntity(p, (t2) -> {
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
                     p.getInventory().setItemInMainHand(null);
-                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Objet mis en vente pour <yellow>" + price + " $ <green>!"));
-                    Bukkit.broadcast(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>[AH] <white>" + p.getName() + " <green>vient de mettre un objet en vente pour <yellow>" + price + " $ <green>!"));
+                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Objet mis en vente pour <yellow>" + price + " $ <green>!"));
+                    Bukkit.broadcast(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>[AH] <white>" + p.getName() + " <green>vient de mettre un objet en vente pour <yellow>" + price + " $ <green>!"));
                 });
             } catch (Exception e) {
-                plugin.getFoliaLib().getImpl().runAtEntity(p, (t2) -> plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5"));
                 e.printStackTrace();
             }
         });
     }
 
     private void openAhGui(Player p, int page) {
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             List<AhItem> items = ahDAO.getAuctions(45, page * 45);
 
-            plugin.getFoliaLib().getImpl().runAtEntity(p, (t2) -> {
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
                 AhGuiHolder holder = new AhGuiHolder(page);
-                Inventory inv = Bukkit.createInventory(holder, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>HÃƒÂ´tel de Ventes (Page " + (page + 1) + ")"));
+                Inventory inv = Bukkit.createInventory(holder, 54, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Hôtel de Ventes (Page " + (page + 1) + ")"));
                 holder.setInventory(inv);
 
                 int slot = 0;
@@ -141,13 +141,13 @@ public class AuctionHouseModule implements Module {
                             if (meta.hasLore()) {
                                 lore = new ArrayList<>(java.util.Objects.requireNonNull(meta.lore()));
                             }
-                            lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>----------------------"));
-                            lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Vendeur : <white>" + ahItem.sellerName));
-                            lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>Prix : <yellow>" + String.format("%.2f", ahItem.price) + " $"));
+                            lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>----------------------"));
+                            lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Vendeur : <white>" + ahItem.sellerName));
+                            lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Prix : <yellow>" + String.format("%.2f", ahItem.price) + " $"));
                             if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
-                                lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ã¢â€“Â¶ Cliquez pour annuler la vente"));
+                                lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>▶ Cliquez pour annuler la vente"));
                             } else {
-                                lore.add(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Ã¢â€“Â¶ Cliquez pour acheter"));
+                                lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>▶ Cliquez pour acheter"));
                             }
                             meta.lore(lore);
                             item.setItemMeta(meta);
@@ -157,10 +157,10 @@ public class AuctionHouseModule implements Module {
                     }
                 }
 
-                // Boutons de pagination (simplifiÃƒÂ© pour l'instant)
+                // Boutons de pagination (simplifié pour l'instant)
                 ItemStack info = new ItemStack(Material.PAPER);
                 ItemMeta infoMeta = info.getItemMeta();
-                infoMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Page " + (page + 1)));
+                infoMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Page " + (page + 1)));
                 info.setItemMeta(infoMeta);
                 inv.setItem(49, info);
 
@@ -198,9 +198,9 @@ public class AuctionHouseModule implements Module {
 
                 if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
                     // Annuler la vente
-                    plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+                    plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                         if (deleteFromDb(ahItem.id)) {
-                            plugin.getFoliaLib().getImpl().runAtEntity(p, (t2) -> {
+                            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
                                 ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
                                 p.getInventory().addItem(originalItem);
                                 plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_6");
@@ -210,14 +210,14 @@ public class AuctionHouseModule implements Module {
                     });
                 } else {
                     // Acheter
-                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t1) -> {
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t1) -> {
                         if (eco.takeMoneyAtomic(p.getUniqueId(), ahItem.price)) {
                             // On a réservé l'argent atomiquement !
                             
                             // Ensuite on supprime asynchroniquement de la BDD
-                            plugin.getFoliaLib().getImpl().runAsync((t2) -> {
+                            plugin.getFoliaLib().getScheduler().runAsync((t2) -> {
                                 if (deleteFromDb(ahItem.id)) { // Achat confirmé
-                                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t3) -> {
+                                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t3) -> {
                                         double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
                                         double taxAmount = ahItem.price * taxRate;
                                         double sellerProfit = ahItem.price - taxAmount;
@@ -225,21 +225,21 @@ public class AuctionHouseModule implements Module {
                                         
                                         ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
                                         p.getInventory().addItem(originalItem);
-                                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez achetÃ© un objet Ã  <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + ahItem.price + " $ <green>!"));
+                                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez acheté un objet à <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + ahItem.price + " $ <green>!"));
                                         
                                         Player seller = Bukkit.getPlayer(UUID.fromString(ahItem.sellerUuid));
                                         if (seller != null && seller.isOnline()) {
                                             if (taxAmount > 0) {
-                                                seller.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Un joueur a achetÃ© votre objet sur l'HÃ´tel de Ventes ! Vous gagnez <yellow>" + String.format("%.2f", sellerProfit) + " $ <dark_gray>(Taxe: -" + String.format("%.2f", taxAmount) + " $)"));
+                                                seller.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes ! Vous gagnez <yellow>" + String.format("%.2f", sellerProfit) + " $ <dark_gray>(Taxe: -" + String.format("%.2f", taxAmount) + " $)"));
                                             } else {
-                                                seller.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Un joueur a achetÃ© votre objet sur l'HÃ´tel de Ventes pour <yellow>" + ahItem.price + " $ <green>!"));
+                                                seller.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes pour <yellow>" + ahItem.price + " $ <green>!"));
                                             }
                                         }
                                         openAhGui(p, page); // Refresh
                                     });
                                 } else {
-                                    // Quelqu'un d'autre l'a achetÃ© juste avant ! On rembourse
-                                    plugin.getFoliaLib().getImpl().runAtEntity(p, (t4) -> {
+                                    // Quelqu'un d'autre l'a acheté juste avant ! On rembourse
+                                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t4) -> {
                                         eco.giveMoney(p.getUniqueId(), ahItem.price);
                                         plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_7");
                                         openAhGui(p, page);
@@ -282,3 +282,6 @@ public class AuctionHouseModule implements Module {
         }
     }
 }
+
+
+

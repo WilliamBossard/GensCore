@@ -25,7 +25,7 @@ public class GuiModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Moteur interne pour la crÃƒÆ’Ã‚Â©ation d'inventaires interactifs.";
+        return "Moteur interne pour la création d'inventaires interactifs.";
     }
 
     @Override
@@ -47,7 +47,7 @@ public class GuiModule implements Module, Listener {
         plugin.getLangManager().sendConsoleMessage("guimodule.log_2");
     }
 
-    // Intercepte les clics dans nos menus custom pour empÃƒÆ’Ã‚Âªcher les joueurs de voler les items
+    // Intercepte les clics dans nos menus custom pour empêcher les joueurs de voler les items
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!enabled) return;
@@ -87,9 +87,11 @@ public class GuiModule implements Module, Listener {
         }
     }
 
-    // Interface pour identifier nos menus personnalisÃƒÆ’Ã‚Â©s
+    // Interface pour identifier nos menus personnalisés
     public interface GensGuiHolder extends InventoryHolder {
         void onClick(InventoryClickEvent event);
     }
 }
+
+
 

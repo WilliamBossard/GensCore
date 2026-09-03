@@ -66,7 +66,7 @@ public class QuestDAO {
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_quests_history_date     ON player_quests_history(completion_date);");
 
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables de quÃƒÆ’Ã‚Âªtes", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création des tables de quêtes", e);
         }
     }
 
@@ -195,4 +195,6 @@ public class QuestDAO {
         return result;
     }
 }
+
+
 

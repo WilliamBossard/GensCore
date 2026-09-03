@@ -104,7 +104,7 @@ public class WebPlayerAPI implements Listener {
 
             // Trouver le joueur
             java.util.concurrent.CompletableFuture<Player> futurePlayer = new java.util.concurrent.CompletableFuture<>();
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 futurePlayer.complete(Bukkit.getPlayer(req.username));
             });
             Player targetOnline = futurePlayer.join();
@@ -167,6 +167,27 @@ public class WebPlayerAPI implements Listener {
             ctx.json(response);
         });
 
+        get("/api/head/{name}", ctx -> {
+            String name = ctx.pathParam("name");
+            UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            if (uuid != null && fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(uuid)) {
+                ctx.redirect("https://mc-heads.net/avatar/MHF_Steve");
+            } else {
+                ctx.redirect("https://mc-heads.net/avatar/" + name);
+            }
+        });
+
+        get("/api/head/{name}/{size}", ctx -> {
+            String name = ctx.pathParam("name");
+            String size = ctx.pathParam("size");
+            UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            if (uuid != null && fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(uuid)) {
+                ctx.redirect("https://mc-heads.net/avatar/MHF_Steve/" + size);
+            } else {
+                ctx.redirect("https://mc-heads.net/avatar/" + name + "/" + size);
+            }
+        });
+
         get("/api/player/stats", ctx -> {
             String uuidStr = ctx.queryParam("uuid");
             if (uuidStr == null) {
@@ -184,10 +205,18 @@ public class WebPlayerAPI implements Listener {
             // Eco
             stats.put("balance", webDAO.getPlayerBalance(uuidStr));
 
-            // Global Stats (Lecture en direct depuis la RAM via le module Stats)
+            // Global Stats
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+            fr.gens.core.modules.stats.StatsModule.PlayerStats pStats = null;
+            
             if (statsModule != null && statsModule.isEnabled()) {
-                fr.gens.core.modules.stats.StatsModule.PlayerStats pStats = statsModule.getStats(UUID.fromString(uuidStr));
+                pStats = statsModule.getStatsIfCached(UUID.fromString(uuidStr));
+                if (pStats == null) {
+                    pStats = statsModule.getStatsDAO().loadPlayerStats(UUID.fromString(uuidStr)).join();
+                }
+            }
+            
+            if (pStats != null) {
                 stats.put("blocksBroken", pStats.blocksBroken);
                 stats.put("mobsKilled", pStats.mobsKilled);
                 stats.put("playtimeMinutes", pStats.playtimeMinutes);
@@ -227,7 +256,7 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
             java.util.concurrent.CompletableFuture<Boolean> futureOp = new java.util.concurrent.CompletableFuture<>();
-            plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                 org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(uuidStr));
                 futureOp.complete(op != null && op.isOp());
             });
@@ -340,9 +369,9 @@ public class WebPlayerAPI implements Listener {
             // Si le joueur est en ligne, on ex\u00e9cute, sinon on met en attente
             Player target = Bukkit.getPlayer(playerUUID);
             if (target != null && target.isOnline()) {
-                plugin.getFoliaLib().getImpl().runNextTick((t2) -> {
+                plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), rewardCommand.replace("%player%", target.getName()));
-                    target.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>[Web] " + rewardMessage));
+                    target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Web] " + rewardMessage));
                 });
             } else {
                 fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
@@ -402,7 +431,7 @@ public class WebPlayerAPI implements Listener {
         pcd.initDatabase(); // just to ensure table exists
         pcd.processPendingCommands(player);
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection()) {
                 try (PreparedStatement profileStmt = conn.prepareStatement("INSERT OR REPLACE INTO player_profiles (uuid, username) VALUES (?, ?)")) {
                     profileStmt.setString(1, player.getUniqueId().toString());
@@ -415,3 +444,6 @@ public class WebPlayerAPI implements Listener {
         });
     }
 }
+
+
+

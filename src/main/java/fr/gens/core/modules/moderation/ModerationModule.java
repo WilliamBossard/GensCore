@@ -194,7 +194,7 @@ public class ModerationModule implements Module, Listener {
         if (mod instanceof DiscordModule && mod.isEnabled()) {
             DiscordModule discord = (DiscordModule) mod;
             String dur = durationMs > 0 ? "Temporaire" : "Permanent";
-            String msg = "Action : **" + action + "**\nJoueur : " + player + "\nAdmin : " + admin + "\nRaison : " + reason + "\nDurÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©e : " + dur;
+            String msg = "Action : **" + action + "**\nJoueur : " + player + "\nAdmin : " + admin + "\nRaison : " + reason + "\nDurée : " + dur;
             discord.sendBotLogEmbed(action, msg, java.awt.Color.RED);
         }
     }
@@ -214,18 +214,18 @@ public class ModerationModule implements Module, Listener {
         UUID uuid = target.getUniqueId();
         
         // Exécution sur le thread du joueur ciblé pour éviter les crashs AsyncCatcher sur Folia
-        plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
+        plugin.getFoliaLib().getScheduler().runAtEntity(target, (t) -> {
             if (frozenPlayers.contains(uuid)) {
                 frozenPlayers.remove(uuid);
                 target.setGravity(true);
                 
                 // Retour sur le thread du sender pour le message si c'est un joueur
                 if (sender instanceof Player) {
-                    plugin.getFoliaLib().getImpl().runAtEntity((Player) sender, (s) -> {
-                        sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été dégelé."));
+                    plugin.getFoliaLib().getScheduler().runAtEntity((Player) sender, (s) -> {
+                        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + target.getName() + " a été dégelé."));
                     });
                 } else {
-                    sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été dégelé."));
+                    sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + target.getName() + " a été dégelé."));
                 }
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_4");
             } else {
@@ -233,11 +233,11 @@ public class ModerationModule implements Module, Listener {
                 target.setGravity(false); // Geler en l'air
                 
                 if (sender instanceof Player) {
-                    plugin.getFoliaLib().getImpl().runAtEntity((Player) sender, (s) -> {
-                        sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été gelé."));
+                    plugin.getFoliaLib().getScheduler().runAtEntity((Player) sender, (s) -> {
+                        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + target.getName() + " a été gelé."));
                     });
                 } else {
-                    sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été gelé."));
+                    sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + target.getName() + " a été gelé."));
                 }
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_5");
             }
@@ -259,18 +259,34 @@ public class ModerationModule implements Module, Listener {
             return;
         }
         
+        if (!plugin.getFoliaLib().isFolia()) {
+            p.openInventory(target.getInventory());
+            return;
+        }
+
         // Impossible d'ouvrir l'inventaire d'une autre région sur Folia. On utilise un clone.
-        plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
+        plugin.getFoliaLib().getScheduler().runAtEntity(target, (t) -> {
             ItemStack[] contents = target.getInventory().getContents();
             
-            plugin.getFoliaLib().getImpl().runAtEntity(p, (s) -> {
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (s) -> {
                 org.bukkit.inventory.Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.Component.text("Inv: " + target.getName()));
                 inv.setContents(contents);
                 p.openInventory(inv);
-                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Lecture seule (Clone Folia)"));
+                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Lecture seule (Clone Folia)"));
             });
         });
     }
+
+    @EventHandler
+    public void onModerationInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+        if (event.getView().title() != null) {
+            String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+            if (title.startsWith("Inv: ")) {
+                event.setCancelled(true);
+            }
+        }
+    }
+
 
     @CommandMethod("resetmdp <target>")
     public void executeResetMdp(CommandSender sender, @Argument("target") String targetName) {
@@ -302,7 +318,7 @@ public class ModerationModule implements Module, Listener {
         }
         
         final UUID finalUUID = targetUUID;
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
             if (authModule == null || authModule.getAuthDAO().getAuthData(finalUUID) == null) {
                 plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_41");
@@ -312,7 +328,7 @@ public class ModerationModule implements Module, Listener {
             authModule.getAuthDAO().removeAuthData(finalUUID);
             
             if (targetOnline != null) {
-                plugin.getFoliaLib().getImpl().runAtEntity(targetOnline, (t) -> {
+                plugin.getFoliaLib().getScheduler().runAtEntity(targetOnline, (t) -> {
                     Module authMod = plugin.getModuleManager().getModule("auth");
                     if (authMod != null && authMod.isEnabled() && authMod instanceof AuthModule) {
                         ((AuthModule) authMod).forceLogout(finalUUID);
@@ -320,7 +336,7 @@ public class ModerationModule implements Module, Listener {
                 });
             }
             
-            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le mot de passe de " + targetName + " a été supprimé."));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le mot de passe de " + targetName + " a été supprimé."));
         });
     }
 
@@ -332,7 +348,7 @@ public class ModerationModule implements Module, Listener {
             return;
         }
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target == null || target.getUniqueId() == null) {
                 plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_16");
@@ -359,12 +375,12 @@ public class ModerationModule implements Module, Listener {
             }
             
             mutePlayer(target.getUniqueId(), reason, duration);
-            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez rendu muet " + (target.getName() != null ? target.getName() : targetName)));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez rendu muet " + (target.getName() != null ? target.getName() : targetName)));
             Player online = target.getPlayer();
             if (online != null) {
                 final String finalReason = reason;
-                plugin.getFoliaLib().getImpl().runAtEntity(online, (t) -> {
-                    online.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red><bold>Vous avez été rendu muet par un modérateur ! Raison : " + finalReason));
+                plugin.getFoliaLib().getScheduler().runAtEntity(online, (t) -> {
+                    online.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red><bold>Vous avez été rendu muet par un modérateur ! Raison : " + finalReason));
                 });
             }
             if (target.getName() != null) sendDiscordLog("MUTE", target.getName(), sender.getName(), reason, duration);
@@ -376,14 +392,14 @@ public class ModerationModule implements Module, Listener {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.mute")) return;
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target != null && target.getUniqueId() != null) {
                 unmutePlayer(target.getUniqueId());
-                sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + (target.getName() != null ? target.getName() : targetName) + " n'est plus muet."));
+                sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + (target.getName() != null ? target.getName() : targetName) + " n'est plus muet."));
                 Player online = target.getPlayer();
                 if (online != null) {
-                    plugin.getFoliaLib().getImpl().runAtEntity(online, (t) -> {
+                    plugin.getFoliaLib().getScheduler().runAtEntity(online, (t) -> {
                         plugin.getLangManager().sendMessage(online, "moderationmodule.msg_17");
                     });
                 }
@@ -400,7 +416,7 @@ public class ModerationModule implements Module, Listener {
             return;
         }
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target == null || target.getUniqueId() == null) return;
 
@@ -431,11 +447,11 @@ public class ModerationModule implements Module, Listener {
             Player online = target.getPlayer();
             if (online != null) {
                 final String finalReason = reason;
-                plugin.getFoliaLib().getImpl().runAtEntity(online, (t) -> {
-                    online.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez été banni du serveur.<br><white>Raison : " + finalReason));
+                plugin.getFoliaLib().getScheduler().runAtEntity(online, (t) -> {
+                    online.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été banni du serveur.<br><white>Raison : " + finalReason));
                 });
             }
-            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + (target.getName() != null ? target.getName() : targetName) + " a été banni."));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + (target.getName() != null ? target.getName() : targetName) + " a été banni."));
             sendDiscordLog("BAN", target.getName() != null ? target.getName() : targetName, sender.getName(), reason, durationMs);
         });
     }
@@ -448,7 +464,7 @@ public class ModerationModule implements Module, Listener {
             return;
         }
         
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             Player target = Bukkit.getPlayer(targetName);
             if (target == null) {
                 plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_3");
@@ -464,12 +480,12 @@ public class ModerationModule implements Module, Listener {
             }
             
             final String finalReason = reason;
-            plugin.getFoliaLib().getImpl().runAtEntity(target, (t) -> {
+            plugin.getFoliaLib().getScheduler().runAtEntity(target, (t) -> {
                 target.kick(plugin.getLangManager().get("moderationmodule.kick_screen").replaceText(net.kyori.adventure.text.TextReplacementConfig.builder().matchLiteral("<reason>").replacement(finalReason).build()));
             });
             
             String msg = plugin.getLangManager().getRaw("moderationmodule.msg_19");
-            if (msg != null) sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(msg.replace("<target>", target.getName())));
+            if (msg != null) sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(msg.replace("<target>", target.getName())));
             sendDiscordLog("KICK", target.getName(), sender.getName(), reason, 0);
         });
     }
@@ -478,19 +494,19 @@ public class ModerationModule implements Module, Listener {
     public void executeUnban(CommandSender sender, @Argument("target") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.ban")) return;
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target != null && target.getName() != null) {
                 com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
                 org.bukkit.ban.ProfileBanList banList = Bukkit.getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                 banList.pardon(profile);
-                sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Le joueur " + target.getName() + " a été débanni."));
+                sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + target.getName() + " a été débanni."));
                 sendDiscordLog("UNBAN", target.getName(), sender.getName(), "Pardonné", 0);
             }
         });
     }
 
-    // --- EVÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°NEMENTS POUR LE FREEZE ET MUTE ---
+    // --- EVÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢âÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°NEMENTS POUR LE FREEZE ET MUTE ---
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onAsyncPlayerChat(AsyncChatEvent event) {
@@ -505,7 +521,7 @@ public class ModerationModule implements Module, Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent event) {
         if (frozenPlayers.contains(event.getPlayer().getUniqueId())) {
-            // EmpÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªcher les mouvements de camÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ra ou X/Z/Y mais autoriser la camÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ra
+            // EmpÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªcher les mouvements de caméra ou X/Z/Y mais autoriser la caméra
             if (event.getFrom().getX() != event.getTo().getX() || 
                 event.getFrom().getY() != event.getTo().getY() || 
                 event.getFrom().getZ() != event.getTo().getZ()) {
@@ -573,6 +589,9 @@ public class ModerationModule implements Module, Listener {
         }
     }
 }
+
+
+
 
 
 

@@ -36,12 +36,12 @@ public class LockListener implements Listener {
     private boolean canAccess(Player player, LockData lock) {
         if (player.hasPermission("genscore.lock.bypass")) return true;
 
-        // Si le verrou est strictement privÃƒÆ’Ã‚Â© (-2), seul le propriÃƒÆ’Ã‚Â©taire peut l'ouvrir.
+        // Si le verrou est strictement privé (-2), seul le propriétaire peut l'ouvrir.
         if (lock.getTeamId() == -2) {
             return lock.getOwnerUuid() != null && lock.getOwnerUuid().equals(player.getUniqueId());
         }
 
-        // Si le verrou appartient ÃƒÆ’Ã‚Â  une guilde (teamId > 0)
+        // Si le verrou appartient à une guilde (teamId > 0)
         if (lock.getTeamId() > 0) {
             TeamData team = plugin.getTeamManager().getTeam(lock.getTeamId());
             if (team != null && team.hasMember(player.getUniqueId())) {
@@ -50,14 +50,14 @@ public class LockListener implements Listener {
         }
 
         // Si le verrou est personnel (-1) mais que le joueur a rejoint une guilde
-        // On autorise les membres de la guilde du propriÃƒÆ’Ã‚Â©taire ÃƒÆ’Ã‚Â  ouvrir ses coffres personnels (partage).
+        // On autorise les membres de la guilde du propriétaire à ouvrir ses coffres personnels (partage).
         if (lock.getTeamId() == -1 && lock.getOwnerUuid() != null) {
             if (lock.getOwnerUuid().equals(player.getUniqueId())) return true;
             
             TeamData ownerTeam = plugin.getTeamManager().getPlayerTeam(lock.getOwnerUuid());
             TeamData playerTeam = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
             if (ownerTeam != null && playerTeam != null && ownerTeam.getTeamId() == playerTeam.getTeamId()) {
-                return true; // Ils sont dans la mÃƒÆ’Ã‚Âªme guilde !
+                return true; // Ils sont dans la même guilde !
             }
         }
 
@@ -74,7 +74,7 @@ public class LockListener implements Listener {
 
         if (team != null && team.isAutoLock()) {
             lockModule.createLock(block.getLocation(), null, team.getTeamId());
-            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>[Verrous] <green>Conteneur verrouillÃƒÆ’Ã‚Â© pour l'ÃƒÆ’Ã‚Â©quipe <yellow>" + team.getName() + "<green>."));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>[Verrous] <green>Conteneur verrouillé pour l'équipe <yellow>" + team.getName() + "<green>."));
         } else {
             lockModule.createLock(block.getLocation(), player.getUniqueId(), -1);
             plugin.getLangManager().sendMessage(player, "locklistener.msg_1");
@@ -103,7 +103,7 @@ public class LockListener implements Listener {
                     TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
                     if (team != null) {
                         lockModule.createLock(block.getLocation(), null, team.getTeamId());
-                        player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>VerrouillÃƒÆ’Ã‚Â© pour la guilde " + team.getName() + "."));
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Verrouillé pour la guilde " + team.getName() + "."));
                     } else {
                         plugin.getLangManager().sendMessage(player, "locklistener.msg_3");
                     }
@@ -128,7 +128,7 @@ public class LockListener implements Listener {
             return;
         }
 
-        // EmpÃƒÆ’Ã‚Âªcher l'ouverture si verrouillÃƒÆ’Ã‚Â© (Clic droit)
+        // Empêcher l'ouverture si verrouillé (Clic droit)
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             LockData lock = lockModule.getLock(block.getLocation());
             if (lock != null) {
@@ -160,7 +160,7 @@ public class LockListener implements Listener {
 
     @EventHandler
     public void onInventoryMove(InventoryMoveItemEvent event) {
-        // EmpÃƒÆ’Ã‚Âªcher les Hoppers/Minecart-Hoppers d'aspirer depuis un bloc verrouillÃƒÆ’Ã‚Â©
+        // Empêcher les Hoppers/Minecart-Hoppers d'aspirer depuis un bloc verrouillé
         if (event.getSource().getLocation() != null) {
             LockData lock = lockModule.getLock(event.getSource().getLocation());
             if (lock != null) {
@@ -168,7 +168,7 @@ public class LockListener implements Listener {
             }
         }
         
-        // EmpÃƒÆ’Ã‚Âªcher les Hoppers de pousser dans un bloc verrouillÃƒÆ’Ã‚Â© (optionnel mais recommandÃƒÆ’Ã‚Â©)
+        // Empêcher les Hoppers de pousser dans un bloc verrouillé (optionnel mais recommandé)
         if (event.getDestination().getLocation() != null) {
             LockData lock = lockModule.getLock(event.getDestination().getLocation());
             if (lock != null) {
@@ -177,4 +177,6 @@ public class LockListener implements Listener {
         }
     }
 }
+
+
 

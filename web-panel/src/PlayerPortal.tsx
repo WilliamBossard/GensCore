@@ -84,7 +84,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
     <div className="dashboard-content" style={{padding: '2rem'}}>
       <h2 style={{marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '10px'}}><BarChart2/> {t('web.public.stats.global_title')}</h2>
       
-      <div className="stats-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '2rem'}}>
+      <div className="stats-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '20px', marginBottom: '2rem'}}>
         
         <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
           <Clock size={40} style={{color: 'var(--accent)', marginBottom: '1rem', margin: '0 auto'}}/>

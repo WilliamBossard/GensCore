@@ -30,7 +30,7 @@ public class LockModule implements Module {
     public String getName() { return "Locks"; }
 
     @Override
-    public String getDescription() { return "SystÃƒÆ’Ã‚Â¨me de verrouillage de conteneurs avec support de guildes."; }
+    public String getDescription() { return "Système de verrouillage de conteneurs avec support de guildes."; }
 
     @Override
     public boolean isEnabled() { return enabled; }
@@ -48,7 +48,7 @@ public class LockModule implements Module {
         lockListener = new LockListener(plugin, this);
 
         Bukkit.getPluginManager().registerEvents(lockListener, plugin);
-        plugin.getLogger().info("[Locks] Module activÃƒÆ’Ã‚Â© ! (" + locks.size() + " locks loaded)");
+        plugin.getLogger().info("[Locks] Module activé ! (" + locks.size() + " locks loaded)");
     }
 
     @Override
@@ -94,7 +94,7 @@ public class LockModule implements Module {
         LockData lock = new LockData(locStr, ownerUuid, teamId);
         locks.put(locStr, lock);
 
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement stmt = conn.prepareStatement(
                          "INSERT OR REPLACE INTO genscore_locks (location, owner_uuid, team_id) VALUES (?, ?, ?)")) {
@@ -112,7 +112,7 @@ public class LockModule implements Module {
         String locStr = serializeLocation(loc);
         locks.remove(locStr);
 
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_locks WHERE location = ?")) {
                 stmt.setString(1, locStr);
@@ -127,4 +127,7 @@ public class LockModule implements Module {
         return loc.getWorld().getName() + "," + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ();
     }
 }
+
+
+
 

@@ -41,7 +41,7 @@ public class TombDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table tombs", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table tombs", e);
         }
     }
 
@@ -106,3 +106,5 @@ public class TombDAO {
         }
     }
 }
+
+

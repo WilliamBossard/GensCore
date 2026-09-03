@@ -35,7 +35,7 @@ public class SpawnDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table spawn_location", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table spawn_location", e);
         }
     }
 
@@ -80,3 +80,5 @@ public class SpawnDAO {
         }
     }
 }
+
+

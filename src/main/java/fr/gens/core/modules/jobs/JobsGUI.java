@@ -26,12 +26,12 @@ public class JobsGUI implements Listener {
     }
 
     public void openGUI(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 36, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â  Ãƒâ€šÃ‚Â§x<white><white><aqua><gray><black><dark_aqua>MÃƒÆ’Ã‚Â©tiers <dark_gray>ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â "));
+        Inventory inv = Bukkit.createInventory(null, 36, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>■ §x<white><white><aqua><gray><black><dark_aqua>Métiers <dark_gray>■"));
 
         // Fill background
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(" "));
+        glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < inv.getSize(); i++) {
             inv.setItem(i, glass);
@@ -54,7 +54,7 @@ public class JobsGUI implements Listener {
             
             ItemStack item = new ItemStack(mat);
             ItemMeta meta = item.getItemMeta();
-            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(type.getColor() + "<bold>" + type.getDisplayName()));
+            meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(type.getColor() + "<bold>" + type.getDisplayName()));
             List<String> lore = new ArrayList<>();
             lore.add("");
             lore.add("<gray>Niveau: <white>" + level);
@@ -66,13 +66,13 @@ public class JobsGUI implements Listener {
             lore.add("<dark_gray>" + progressBar + " <dark_gray>(<gray>" + percent + "%<dark_gray>)");
             lore.add("");
             if (hasJob) {
-                lore.add("<green>ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â  <gray>Statut : <green><bold>Actif");
-                lore.add("<dark_gray>ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â¶ <red>Cliquez pour dÃƒÆ’Ã‚Â©missionner");
+                lore.add("<green>■ <gray>Statut : <green><bold>Actif");
+                lore.add("<dark_gray>▶ <red>Cliquez pour démissionner");
             } else {
-                lore.add("<red>ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â  <gray>Statut : <red><bold>Inactif");
-                lore.add("<dark_gray>ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â¶ <green>Cliquez pour rejoindre");
+                lore.add("<red>■ <gray>Statut : <red><bold>Inactif");
+                lore.add("<dark_gray>▶ <green>Cliquez pour rejoindre");
             }
-            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
             item.setItemMeta(meta);
             
             inv.setItem(slots[i], item);
@@ -115,13 +115,13 @@ public class JobsGUI implements Listener {
             if (targetJob != null) {
                 if (jobsModule.hasJob(p.getUniqueId(), targetJob)) {
                     jobsModule.leaveJob(p.getUniqueId(), targetJob);
-                    p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous avez quittÃƒÆ’Ã‚Â© le mÃƒÆ’Ã‚Â©tier " + targetJob.getDisplayName() + " !"));
+                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez quitté le métier " + targetJob.getDisplayName() + " !"));
                 } else {
                     if (jobsModule.getActiveJobsCount(p.getUniqueId()) >= 2) {
                         plugin.getLangManager().sendMessage(p, "jobsgui.msg_1");
                     } else {
                         jobsModule.joinJob(p.getUniqueId(), targetJob);
-                        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez rejoint le mÃƒÆ’Ã‚Â©tier " + targetJob.getDisplayName() + " !"));
+                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez rejoint le métier " + targetJob.getDisplayName() + " !"));
                     }
                 }
                 openGUI(p);
@@ -129,4 +129,6 @@ public class JobsGUI implements Listener {
         }
     }
 }
+
+
 

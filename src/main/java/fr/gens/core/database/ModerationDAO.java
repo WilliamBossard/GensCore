@@ -38,7 +38,7 @@ public class ModerationDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation des tables de modÃƒÆ’Ã‚Â©ration", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création des tables de modération", e);
         }
     }
 

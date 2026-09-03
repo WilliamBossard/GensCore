@@ -64,7 +64,7 @@ public class SpawnerListener implements Listener {
             int storageLvl = meta.getPersistentDataContainer().getOrDefault(storageKey, PersistentDataType.INTEGER, 0);
             
             if (!module.getSpawnerManager().isValidType(type)) {
-                event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Type de spawner invalide."));
+                event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Type de spawner invalide."));
                 return;
             }
             
@@ -75,7 +75,7 @@ public class SpawnerListener implements Listener {
             data.setLastInteractedPlayer(event.getPlayer().getName());
             module.addSpawner(data);
             
-            event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Spawner GensCore posÃƒÆ’Ã‚Â© !"));
+            event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Spawner GensCore posé !"));
             
             // Set vanilla spawner type just for visuals
             try {
@@ -133,10 +133,10 @@ public class SpawnerListener implements Listener {
             if (!data.getStoredItems().isEmpty()) {
                 block.setType(Material.CHEST);
                 data.setLootChest(true);
-                plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> module.saveSpawnerToDB(data));
+                plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> module.saveSpawnerToDB(data));
                 module.getSpawnerManager().updateHologram(data);
                 plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_3");
-                event.setCancelled(true); // Annuler la casse car on a remplacÃƒÆ’Ã‚Â© le block par un coffre
+                event.setCancelled(true); // Annuler la casse car on a remplacé le block par un coffre
             } else {
                 module.removeSpawner(loc);
                 plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_4");
@@ -222,7 +222,7 @@ public class SpawnerListener implements Listener {
                         int spaceLeft = maxStack - data.getStackCount();
                         
                         if (spaceLeft < itemInternalStack) {
-                            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Pas assez de place dans ce spawner pour ajouter cette pile de " + itemInternalStack + " spawner(s). (Espace libre: " + spaceLeft + ")"));
+                            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Pas assez de place dans ce spawner pour ajouter cette pile de " + itemInternalStack + " spawner(s). (Espace libre: " + spaceLeft + ")"));
                             return;
                         }
                         
@@ -237,7 +237,7 @@ public class SpawnerListener implements Listener {
                         data.setStackCount(data.getStackCount() + totalAdded);
                         item.setAmount(item.getAmount() - physicalItemsToConsume);
                         
-                        // Fusionner les niveaux d'amÃƒÆ’Ã‚Â©liorations (prendre le plus haut)
+                        // Fusionner les niveaux d'améliorations (prendre le plus haut)
                         int expLvl = meta.getPersistentDataContainer().getOrDefault(expKey, PersistentDataType.INTEGER, 0);
                         int speedLvl = meta.getPersistentDataContainer().getOrDefault(speedKey, PersistentDataType.INTEGER, 0);
                         int storageLvl = meta.getPersistentDataContainer().getOrDefault(storageKey, PersistentDataType.INTEGER, 0);
@@ -249,7 +249,7 @@ public class SpawnerListener implements Listener {
                         data.setLastInteractedPlayer(player.getName());
                         
                         module.getSpawnerManager().updateHologram(data);
-                        player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez ajoutÃƒÆ’Ã‚Â© " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")"));
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez ajouté " + totalAdded + " spawner(s). (Total: " + data.getStackCount() + "/" + maxStack + ")"));
                         return;
                     } else {
                         plugin.getLangManager().sendMessage(player, "spawnerlistener.msg_9");
@@ -282,4 +282,7 @@ public class SpawnerListener implements Listener {
         }
     }
 }
+
+
+
 

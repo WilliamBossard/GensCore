@@ -24,7 +24,7 @@ public class ActionBarManager {
     }
 
     public void start() {
-        plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
             task = wrappedTask;
             tick();
         }, 0L, 10L); // every 0.5 sec
@@ -118,4 +118,7 @@ public class ActionBarManager {
         }
     }
 }
+
+
+
 

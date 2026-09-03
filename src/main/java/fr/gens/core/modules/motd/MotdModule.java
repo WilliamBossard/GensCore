@@ -23,7 +23,7 @@ public class MotdModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "GÃƒÆ’Ã‚Â¨re le message de bienvenue (MOTD) affichÃƒÆ’Ã‚Â© dans la liste des serveurs.";
+        return "Gère le message de bienvenue (MOTD) affiché dans la liste des serveurs.";
     }
 
     @Override

@@ -22,7 +22,7 @@ public class TeamModule implements Module {
     public String getName() { return "Teams"; }
 
     @Override
-    public String getDescription() { return "SystÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me de guildes et d'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©quipes."; }
+    public String getDescription() { return "Système de guildes et d'équipes."; }
 
     @Override
     public boolean isEnabled() { return enabled; }
@@ -74,4 +74,6 @@ public class TeamModule implements Module {
         plugin.getLangManager().sendConsoleMessage("teammodule.log_2");
     }
 }
+
+
 

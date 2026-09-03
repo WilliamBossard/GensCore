@@ -34,23 +34,23 @@ public class SpawnerCommand {
         ItemStack item = new ItemStack(Material.SPAWNER, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gold><bold>Spawner de " + type));
+            meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Spawner de " + type));
             List<String> lore = new ArrayList<>();
             lore.add("<gray>Type: <white>" + type);
             lore.add("<gray>Stack: <white>" + stack);
             
             if (expLvl > 0 || speedLvl > 0 || storageLvl > 0) {
                 lore.add("");
-                lore.add("<aqua><bold>AmÃƒÆ’Ã‚Â©liorations :");
+                lore.add("<aqua><bold>Améliorations :");
                 if (expLvl > 0) lore.add(" <dark_gray>- <gray>XP: <white>Niv." + expLvl);
                 if (speedLvl > 0) lore.add(" <dark_gray>- <gray>Vitesse: <white>Niv." + speedLvl);
                 if (storageLvl > 0) lore.add(" <dark_gray>- <gray>Stockage: <white>Niv." + storageLvl);
             }
             
             lore.add("");
-            lore.add("<yellow>Posez ce gÃƒÆ’Ã‚Â©nÃƒÆ’Ã‚Â©rateur pour commencer");
-            lore.add("<yellow>ÃƒÆ’Ã‚Â  accumuler des objets !");
-            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize((String)s)).collect(java.util.stream.Collectors.toList()));
+            lore.add("<yellow>Posez ce générateur pour commencer");
+            lore.add("<yellow>à accumuler des objets !");
+            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
 
             NamespacedKey typeKey = new NamespacedKey(plugin, "spawner_type");
             NamespacedKey stackKey = new NamespacedKey(plugin, "spawner_stack");
@@ -90,8 +90,10 @@ public class SpawnerCommand {
 
         ItemStack spawner = createSpawnerItem(plugin, type, stack);
         target.getInventory().addItem(spawner);
-        sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez donnÃƒÆ’Ã‚Â© un spawner " + type + " (x" + stack + ") ÃƒÆ’Ã‚Â  " + target.getName() + "."));
-        target.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez reÃƒÆ’Ã‚Â§u un spawner " + type + " (x" + stack + ")."));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez donné un spawner " + type + " (x" + stack + ") à " + target.getName() + "."));
+        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez reçu un spawner " + type + " (x" + stack + ")."));
     }
 }
+
+
 

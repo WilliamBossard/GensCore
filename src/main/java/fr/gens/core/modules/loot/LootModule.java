@@ -49,10 +49,10 @@ public class LootModule implements Module, Listener {
     private boolean preventBreak = false;
     private boolean particlesEnabled = true;
     private int breakConfirmTime = 3;
-    private net.kyori.adventure.text.Component breakConfirmMsg = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !");
-    private net.kyori.adventure.text.Component chestBrokenMsg = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Coffre Lootr retiré !");
-    private net.kyori.adventure.text.Component cannotBreakMsg = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Tu ne peux pas casser ce coffre !");
-    private net.kyori.adventure.text.Component inventoryTitle = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin");
+    private net.kyori.adventure.text.Component breakConfirmMsg = fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !");
+    private net.kyori.adventure.text.Component chestBrokenMsg = fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Coffre Lootr retiré !");
+    private net.kyori.adventure.text.Component cannotBreakMsg = fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Tu ne peux pas casser ce coffre !");
+    private net.kyori.adventure.text.Component inventoryTitle = fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin");
 
     public LootModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -65,7 +65,7 @@ public class LootModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "SystÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨me de coffres instanciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©s pour chaque joueur";
+        return "Système de coffres instanciés pour chaque joueur";
     }
 
     @Override
@@ -103,9 +103,9 @@ public class LootModule implements Module, Listener {
             config.set("lootr.particles-enabled", true);
             config.set("lootr.break-confirm-time", 3);
             config.set("lootr.messages.break-confirm", "<yellow>Casse-le encore une fois dans les 3 secondes pour confirmer !");
-            config.set("lootr.messages.chest-broken", "<green>Coffre Lootr retirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© !");
+            config.set("lootr.messages.chest-broken", "<green>Coffre Lootr retiré !");
             config.set("lootr.messages.cannot-break", "<red>Tu ne peux pas casser ce coffre !");
-            config.set("lootr.inventory.title", "<dark_gray>[<gold><dark_gray>] <yellow>Coffre ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  Butin");
+            config.set("lootr.inventory.title", "<dark_gray>[<gold><dark_gray>] <yellow>Coffre à Butin");
             plugin.getConfigManager().saveConfig("modules/lootr.yml");
         }
         
@@ -143,7 +143,7 @@ public class LootModule implements Module, Listener {
     }
 
     private void startParticleTask() {
-        particleTask = plugin.getFoliaLib().getImpl().runTimer(() -> {
+        particleTask = plugin.getFoliaLib().getScheduler().runTimer(() -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
                 Location pLoc = p != null ? p.getLocation() : null;
@@ -328,6 +328,9 @@ public class LootModule implements Module, Listener {
         }
     }
 }
+
+
+
 
 
 

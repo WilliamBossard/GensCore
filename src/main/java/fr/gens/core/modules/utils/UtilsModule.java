@@ -138,7 +138,7 @@ public class UtilsModule implements Module, Listener {
                 return;
             }
             p.openInventory(target.getEnderChest());
-            p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous regardez l'enderchest de <yellow>" + target.getName() + "<green>."));
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous regardez l'enderchest de <yellow>" + target.getName() + "<green>."));
         } else {
             p.openInventory(p.getEnderChest());
         }
@@ -164,3 +164,5 @@ public class UtilsModule implements Module, Listener {
         plugin.getLangManager().sendMessage(p, "utilsmodule.msg_8");
     }
 }
+
+

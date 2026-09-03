@@ -25,7 +25,7 @@ public class StatsModule implements Module, Listener {
     private com.tcoded.folialib.wrapper.task.WrappedTask task;
     private fr.gens.core.database.StatsDAO statsDAO;
 
-    // Cache pour ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©viter de spammer la BDD
+    // Cache pour éviter de spammer la BDD
     private final Map<UUID, PlayerStats> statsCache = new ConcurrentHashMap<>();
 
     public StatsModule(CorePlugin plugin) {
@@ -65,8 +65,8 @@ public class StatsModule implements Module, Listener {
         this.statsDAO.initDatabase();
         Bukkit.getPluginManager().registerEvents(this, plugin);
 
-        // TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢che asynchrone toutes les minutes pour ajouter le playtime et sauvegarder le cache
-        plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
+        // Tâche asynchrone toutes les minutes pour ajouter le playtime et sauvegarder le cache
+        plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
             task = wrappedTask;
             for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
@@ -94,6 +94,10 @@ public class StatsModule implements Module, Listener {
         // Si non présent (ex: l'événement join n'a pas encore fini de charger), on met des stats vides temporaires
         // qui seront fusionnées par la suite.
         return statsCache.computeIfAbsent(uuid, k -> new PlayerStats());
+    }
+
+    public PlayerStats getStatsIfCached(UUID uuid) {
+        return statsCache.get(uuid);
     }
 
     private void saveAllToDatabase() {
@@ -144,7 +148,7 @@ public class StatsModule implements Module, Listener {
         // Chargement asynchrone des stats via DAO
         statsDAO.loadPlayerStats(uuid).thenAccept(loadedStats -> {
             // Sync vanilla stats on the next tick to ensure we are on the main thread for Bukkit API calls
-            plugin.getFoliaLib().getImpl().runAtEntity(p, (syncTask) -> {
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (syncTask) -> {
                 if (!p.isOnline()) return;
                 
                 int vanillaMobs = p.getStatistic(Statistic.MOB_KILLS);
@@ -195,5 +199,8 @@ public class StatsModule implements Module, Listener {
         public int playerKills = 0;
     }
 }
+
+
+
 
 

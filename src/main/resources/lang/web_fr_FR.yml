@@ -102,6 +102,10 @@ web:
       security_title: Sécurité
       server_ip: IP Serveur (Accueil)
       title: Configuration du Serveur
+      shop_title: Gestion de la Boutique
+      modules_title: Gestion des Modules
+      files_title: Éditeur de Fichiers
+      players_title: Modération
       tomb_access: Accès par défaut
       tomb_access_everyone: EVERYONE (Tout le monde)
       tomb_access_owner: OWNER_ONLY (Seulement le propriétaire)
@@ -134,22 +138,23 @@ web:
       ranks: Grades
       settings: Paramètres
       shop: Boutique
-        new_cat: Nouvelle Catégorie
-        title: Gestion de la Boutique
-        add_item: Ajouter un Objet
-        buy_price: Prix Achat
-        sell_price: Prix Vente
-        save: Sauvegarder
-        delete: Supprimer
-        edit: Éditer
-        material: Matériel
-        target_stock: Objectif Stock
-        categories: Catégories
-        items: Objets
-        name: Nom
-        icon: Icône
-      web_inv: Inv. Web
+    web_inv: Inv. Web
     title: Panel Administrateur
+    badge: Administrateur
+    shop:
+      title: "Gestion de la Boutique"
+      add_category: "Ajouter une Catégorie"
+      add_item: "Ajouter un Objet"
+      category_name: "Nom de la Catégorie"
+      category_icon: "Icône de la Catégorie"
+      item_name: "Nom de l'Objet"
+      buy_price: "Prix d'achat"
+      sell_price: "Prix de vente"
+      material: "Matériau"
+      save: "Sauvegarder"
+      cancel: "Annuler"
+      edit: "Modifier"
+      delete: "Supprimer"
   auth:
     logging_in: Connexion...
     login_btn: Se Connecter
@@ -313,18 +318,6 @@ web:
     table_player: Joueur
     table_playtime: Temps de jeu (h)
     table_quests: Quêtes
-    ah:
-      disabled_title: Hôtel des Ventes Désactivé
-      disabled_desc: Le module d'Hôtel des Ventes est actuellement désactivé par l'administrateur.
-      loading: Chargement de l'Hôtel des Ventes...
-      title: Hôtel des Ventes (AH)
-      subtitle: Découvrez les objets mis en vente par les joueurs en direct
-      offer: "Offre n°"
-      seller: Vendeur
-      price: Prix
-      expire_in: Expire dans
-      days: jours
-      empty: L'Hôtel des Ventes est actuellement vide. Connectez-vous et utilisez /ah sell pour vendre !
     map:
       title: Carte Interactive
       open_fullscreen: Ouvrir la carte en plein écran
@@ -352,25 +345,3 @@ web:
       win_small_symbol: CERISE
       win_medium_symbol: PIECES
       jackpot_symbol: DIAMANT
-  admin:
-    badge: Administrateur
-    settings:
-      shop_title: Gestion de la Boutique
-      modules_title: Gestion des Modules
-      files_title: Éditeur de Fichiers
-      players_title: Modération
-      title: Configuration du Serveur
-    shop:
-      title: "Gestion de la Boutique"
-      add_category: "Ajouter une Catégorie"
-      add_item: "Ajouter un Objet"
-      category_name: "Nom de la Catégorie"
-      category_icon: "Icône de la Catégorie"
-      item_name: "Nom de l'Objet"
-      buy_price: "Prix d'achat"
-      sell_price: "Prix de vente"
-      material: "Matériau"
-      save: "Sauvegarder"
-      cancel: "Annuler"
-      edit: "Modifier"
-      delete: "Supprimer"

@@ -1,4 +1,5 @@
 package fr.gens.core.utils;
+// Refreshing for IDE
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.EconomyModule;
@@ -19,7 +20,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 
 public class PlaceholderUtils {
@@ -27,37 +27,34 @@ public class PlaceholderUtils {
     public static Component parseToComponent(String text) {
         if (text == null) return Component.empty();
         
-        String processed = text.replace("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§", "&");
+        String processed = text.replace("§", "&");
         
-        if (processed.contains("<") && processed.contains(">")) {
-            // Convert legacy ampersand codes to MiniMessage tags
-            String mmString = processed
-                .replace("<black>", "<black>")
-                .replace("<dark_blue>", "<dark_blue>")
-                .replace("<dark_green>", "<dark_green>")
-                .replace("<dark_aqua>", "<dark_aqua>")
-                .replace("<dark_red>", "<dark_red>")
-                .replace("<dark_purple>", "<dark_purple>")
-                .replace("<gold>", "<gold>")
-                .replace("<gray>", "<gray>")
-                .replace("<dark_gray>", "<dark_gray>")
-                .replace("<blue>", "<blue>")
-                .replace("<green>", "<green>")
-                .replace("<aqua>", "<aqua>")
-                .replace("<red>", "<red>")
-                .replace("<light_purple>", "<light_purple>")
-                .replace("<yellow>", "<yellow>")
-                .replace("<white>", "<white>")
-                .replace("<obfuscated>", "<obfuscated>")
-                .replace("<bold>", "<bold>")
-                .replace("<strikethrough>", "<strikethrough>")
-                .replace("<underlined>", "<underlined>")
-                .replace("<italic>", "<italic>")
-                .replace("<reset>", "<reset>");
-            return MiniMessage.miniMessage().deserialize(mmString);
-        } else {
-            return LegacyComponentSerializer.legacyAmpersand().deserialize(processed);
-        }
+        // Convertir tous les codes legacy (&a, &l, etc.) en balises MiniMessage
+        String mmString = processed
+            .replace("&0", "<black>")
+            .replace("&1", "<dark_blue>")
+            .replace("&2", "<dark_green>")
+            .replace("&3", "<dark_aqua>")
+            .replace("&4", "<dark_red>")
+            .replace("&5", "<dark_purple>")
+            .replace("&6", "<gold>")
+            .replace("&7", "<gray>")
+            .replace("&8", "<dark_gray>")
+            .replace("&9", "<blue>")
+            .replace("&a", "<green>")
+            .replace("&b", "<aqua>")
+            .replace("&c", "<red>")
+            .replace("&d", "<light_purple>")
+            .replace("&e", "<yellow>")
+            .replace("&f", "<white>")
+            .replace("&k", "<obfuscated>")
+            .replace("&l", "<bold>")
+            .replace("&m", "<strikethrough>")
+            .replace("&n", "<underlined>")
+            .replace("&o", "<italic>")
+            .replace("&r", "<reset>");
+            
+        return MiniMessage.miniMessage().deserialize("<!italic>" + mmString);
     }
 
     /**
@@ -108,13 +105,12 @@ public class PlaceholderUtils {
 
         // Discord
         boolean linked = p.hasPermission("genscore.discord.linked");
-        String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold> <red>Discord non liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â© ! <aqua>/linktuto";
-        resolvers.add(Placeholder.parsed("discord_status", discordStatus)); // We parse it as a placeholder string, wait, no, if we parse it, it won't resolve colors.
+        String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold>🔗 <red>Discord non lié ! <aqua>/linktuto";
         
         // Wait, if it contains colors, we should use MiniMessage Component
         resolvers.add(Placeholder.component("discord_status", parseToComponent(discordStatus)));
         
-        String discordName = linked ? "Compte LiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©" : "Non liÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©";
+        String discordName = linked ? "Compte Lié" : "Non lié";
         resolvers.add(Placeholder.parsed("discord_name", discordName));
 
         // Statistics
@@ -173,7 +169,7 @@ public class PlaceholderUtils {
         }
 
         // Before passing to MiniMessage, let's pre-convert Legacy variables (%) to MiniMessage Tags (<>)
-        String mmText = text.replace("ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§", "&")
+        String mmText = text.replace("§", "&")
                             .replace("%player%", "<player>")
                             .replace("%player_name%", "<player_name>")
                             .replace("%quests%", "<quests>")
@@ -200,32 +196,32 @@ public class PlaceholderUtils {
             mmText = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, mmText);
         }
 
-        // Also convert legacy colors in the base string to MiniMessage tags so everything is handled cleanly
+        // Convertir également les codes couleurs legacy introduits par PAPI en MiniMessage
         mmText = mmText
-                .replace("<black>", "<black>")
-                .replace("<dark_blue>", "<dark_blue>")
-                .replace("<dark_green>", "<dark_green>")
-                .replace("<dark_aqua>", "<dark_aqua>")
-                .replace("<dark_red>", "<dark_red>")
-                .replace("<dark_purple>", "<dark_purple>")
-                .replace("<gold>", "<gold>")
-                .replace("<gray>", "<gray>")
-                .replace("<dark_gray>", "<dark_gray>")
-                .replace("<blue>", "<blue>")
-                .replace("<green>", "<green>")
-                .replace("<aqua>", "<aqua>")
-                .replace("<red>", "<red>")
-                .replace("<light_purple>", "<light_purple>")
-                .replace("<yellow>", "<yellow>")
-                .replace("<white>", "<white>")
-                .replace("<obfuscated>", "<obfuscated>")
-                .replace("<bold>", "<bold>")
-                .replace("<strikethrough>", "<strikethrough>")
-                .replace("<underlined>", "<underlined>")
-                .replace("<italic>", "<italic>")
-                .replace("<reset>", "<reset>");
+                .replace("&0", "<black>")
+                .replace("&1", "<dark_blue>")
+                .replace("&2", "<dark_green>")
+                .replace("&3", "<dark_aqua>")
+                .replace("&4", "<dark_red>")
+                .replace("&5", "<dark_purple>")
+                .replace("&6", "<gold>")
+                .replace("&7", "<gray>")
+                .replace("&8", "<dark_gray>")
+                .replace("&9", "<blue>")
+                .replace("&a", "<green>")
+                .replace("&b", "<aqua>")
+                .replace("&c", "<red>")
+                .replace("&d", "<light_purple>")
+                .replace("&e", "<yellow>")
+                .replace("&f", "<white>")
+                .replace("&k", "<obfuscated>")
+                .replace("&l", "<bold>")
+                .replace("&m", "<strikethrough>")
+                .replace("&n", "<underlined>")
+                .replace("&o", "<italic>")
+                .replace("&r", "<reset>");
 
-        return MiniMessage.miniMessage().deserialize(mmText, TagResolver.resolver(resolvers));
+        return MiniMessage.miniMessage().deserialize(mmText, resolvers.toArray(new TagResolver[0]));
     }
 
 }

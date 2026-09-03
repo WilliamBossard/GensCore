@@ -39,6 +39,7 @@ public class ModuleManager {
         addModule(new fr.gens.core.modules.lock.LockModule(plugin));
         addModule(new fr.gens.core.modules.headdrop.HeadDropModule(plugin));
         addModule(new fr.gens.core.modules.gui.CustomGuiModule(plugin));
+        addModule(new fr.gens.core.modules.GuiModule(plugin));
         addModule(new fr.gens.core.modules.jobs.JobsModule(plugin));
         addModule(new fr.gens.core.modules.FastLeafDecayModule(plugin));
         addModule(new fr.gens.core.modules.EconomyModule(plugin));
@@ -107,4 +108,6 @@ public class ModuleManager {
         return false;
     }
 }
+
+
 

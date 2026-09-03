@@ -39,3 +39,4 @@ public enum QuestType {
         return null;
     }
 }
+

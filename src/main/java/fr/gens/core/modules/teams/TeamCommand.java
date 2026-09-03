@@ -23,23 +23,23 @@ public class TeamCommand {
         this.module = module;
     }
 
-    @CommandMethod("team")
+    @CommandMethod("team|guild|guilde")
     public void executeTeamGui(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) {
-            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement désactivé.</red>"));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement désactivé.</red>"));
             return;
         }
         teamGui.openTeamGui(player);
     }
 
-    @CommandMethod("team create <name>")
+    @CommandMethod("team|guild|guilde create <name>")
     public void executeTeamCreate(org.bukkit.command.CommandSender sender, @Argument("name") String name) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) {
-            player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement désactivé.</red>"));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement désactivé.</red>"));
             return;
         }
         TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
@@ -56,12 +56,12 @@ public class TeamCommand {
             if (newTeam == null) {
                 plugin.getLangManager().sendMessage(player, "teamcommand.msg_4");
             } else {
-                player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Guilde " + name + " créée avec succès !"));
+                player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Guilde " + name + " créée avec succès !"));
             }
         });
     }
 
-    @CommandMethod("team invite <target>")
+    @CommandMethod("team|guild|guilde invite <target>")
     public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -82,12 +82,12 @@ public class TeamCommand {
             return;
         }
         invites.put(target.getUniqueId(), player.getUniqueId());
-        target.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Vous avez reçu une invitation pour rejoindre la guilde <yellow>" + team.getName() + "<green> !"));
+        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez reçu une invitation pour rejoindre la guilde <yellow>" + team.getName() + "<green> !"));
         plugin.getLangManager().sendMessage(target, "teamcommand.msg_9");
-        player.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Invitation envoyée à " + target.getName()));
+        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Invitation envoyée à " + target.getName()));
     }
 
-    @CommandMethod("team accept")
+    @CommandMethod("team|guild|guilde accept")
     public void executeTeamAccept(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -118,4 +118,6 @@ public class TeamCommand {
         invites.values().removeIf(val -> val.equals(uuid)); // If they were the inviter
     }
 }
+
+
 

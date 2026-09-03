@@ -44,7 +44,7 @@ public class SpawnerModule implements Module {
 
     @Override
     public String getDescription() {
-        return "GÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rateurs d'objets et d'expÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©rience (remplacement de SmartSpawner)";
+        return "Générateurs d'objets et d'expérience (remplacement de SmartSpawner)";
     }
 
     @Override
@@ -85,7 +85,7 @@ public class SpawnerModule implements Module {
         this.spawnerDAO.initDatabase();
         
         // Load from DB
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> loadSpawnersFromDB());
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> loadSpawnersFromDB());
         
         // Register events
         if (!listenersRegistered) {
@@ -101,14 +101,14 @@ public class SpawnerModule implements Module {
         }
         
         if (generationTask == null) {
-            plugin.getFoliaLib().getImpl().runTimer((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runTimer((wrappedTask) -> {
             generationTask = wrappedTask;
             spawnerManager.generateTick();
         }, 5L, 5L);
         }
         
         if (saveTask == null) {
-            plugin.getFoliaLib().getImpl().runTimerAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
             saveTask = wrappedTask;
             saveAllSpawnersToDB();
         }, 6000L, 6000L);
@@ -117,7 +117,7 @@ public class SpawnerModule implements Module {
         // Update holograms if re-enabled
         if (!activeSpawners.isEmpty()) {
             for (SpawnerData data : activeSpawners.values()) {
-                plugin.getFoliaLib().getImpl().runAtLocation(data.getLocation(), (t2) -> {
+                plugin.getFoliaLib().getScheduler().runAtLocation(data.getLocation(), (t2) -> {
                     spawnerManager.updateHologram(data);
                 });
             }
@@ -154,13 +154,13 @@ public class SpawnerModule implements Module {
         }
         listenersRegistered = false;
         
-        // Mettre ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â  jour les holograms pour afficher "DÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©sactivÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©"
+        // Mettre à jour les holograms pour afficher "Désactivé"
         for (SpawnerData data : activeSpawners.values()) {
             spawnerManager.updateHologram(data);
         }
         
         saveAllSpawnersToDB();
-        // On ne clear() pas activeSpawners pour continuer de protÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ger les blocs
+        // On ne clear() pas activeSpawners pour continuer de protéger les blocs
         
         plugin.getLangManager().sendConsoleMessage("spawnermodule.log_2");
     }
@@ -193,7 +193,7 @@ public class SpawnerModule implements Module {
         long chunkKey = org.bukkit.Chunk.getChunkKey(data.getLocation().getBlockX() >> 4, data.getLocation().getBlockZ() >> 4);
         spawnersByChunk.computeIfAbsent(chunkKey, k -> new java.util.concurrent.CopyOnWriteArrayList<>()).add(data);
         spawnerManager.updateHologram(data);
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> saveSpawnerToDB(data));
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> saveSpawnerToDB(data));
     }
     
     public void removeSpawner(Location loc) {
@@ -206,7 +206,7 @@ public class SpawnerModule implements Module {
                 if (chunkList.isEmpty()) spawnersByChunk.remove(chunkKey);
             }
             spawnerManager.removeHologram(loc);
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> deleteSpawnerFromDB(data.getId()));
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> deleteSpawnerFromDB(data.getId()));
         }
     }
     
@@ -227,7 +227,7 @@ public class SpawnerModule implements Module {
         
         // Need to spawn holograms synchronously for the loaded spawners
         for (SpawnerData data : activeSpawners.values()) {
-            plugin.getFoliaLib().getImpl().runAtLocation(data.getLocation(), (t2) -> {
+            plugin.getFoliaLib().getScheduler().runAtLocation(data.getLocation(), (t2) -> {
                 spawnerManager.updateHologram(data);
             });
         }
@@ -247,4 +247,7 @@ public class SpawnerModule implements Module {
         this.spawnerDAO.deleteSpawner(id);
     }
 }
+
+
+
 

@@ -26,7 +26,7 @@ public class ChatModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "GÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨re le formatage du chat. Permission: genscore.chat";
+        return "Gère le formatage du chat. Permission: genscore.chat";
     }
 
     @Override
@@ -54,12 +54,12 @@ public class ChatModule implements Module, Listener {
         
         // Exige la permission pour parler
         if (!event.getPlayer().hasPermission("genscore.chat")) {
-            event.getPlayer().sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Vous n'avez pas la permission de parler dans le chat (genscore.chat)."));
+            event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez pas la permission de parler dans le chat (genscore.chat)."));
             event.setCancelled(true);
             return;
         }
 
-        // RÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©cupÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rer le prÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©fixe depuis LuckPerms
+        // Récupérer le préfixe depuis LuckPerms
         String resolvedPrefix;
         try {
             net.luckperms.api.LuckPerms api = net.luckperms.api.LuckPermsProvider.get();
@@ -68,11 +68,7 @@ public class ChatModule implements Module, Listener {
                 String lpPrefix = user.getCachedData().getMetaData().getPrefix();
                 if (lpPrefix != null) {
                     net.kyori.adventure.text.Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix);
-                    resolvedPrefix = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.builder()
-                        .character('\u00A7')
-                        .hexColors()
-                        .build()
-                        .serialize(prefixComp) + " ";
+                    resolvedPrefix = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().serialize(prefixComp) + " ";
                 } else {
                     resolvedPrefix = "<gray>[Joueur] ";
                 }
@@ -87,6 +83,10 @@ public class ChatModule implements Module, Listener {
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
         final String guildTag = (team != null) ? "<yellow>[" + team.getName() + "] " : "";
         
+        final String platformPrefix = !fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled() ? "" : 
+                (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(event.getPlayer().getUniqueId()) 
+                ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix() : fr.gens.core.utils.FloodgateUtil.getJavaPrefix());
+        
         // Variables effectively final pour le lambda
         final String finalPrefix = resolvedPrefix;
         final String messageText = PlainTextComponentSerializer.plainText().serialize(event.message());
@@ -94,7 +94,7 @@ public class ChatModule implements Module, Listener {
         // AsyncChatEvent utilise un ChatRenderer pour formater le message
         event.renderer((source, sourceDisplayName, message, viewer) ->
             net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
-                .deserialize(finalPrefix + guildTag + "<white>" + source.getName() + " <dark_gray>ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â» <gray>" + messageText)
+                .deserialize(platformPrefix + finalPrefix + guildTag + "<white>" + source.getName() + " <dark_gray>» <gray>" + messageText)
         );
     }
 
@@ -118,4 +118,6 @@ public class ChatModule implements Module, Listener {
         event.quitMessage(plugin.getLangManager().get("chat.quit", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("player", event.getPlayer().getName())));
     }
 }
+
+
 

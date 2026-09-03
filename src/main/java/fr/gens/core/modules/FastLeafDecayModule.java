@@ -33,7 +33,7 @@ public class FastLeafDecayModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Les feuilles disparaissent instantanÃƒÆ’Ã‚Â©ment d'un coup quand un arbre est coupÃƒÆ’Ã‚Â©.";
+        return "Les feuilles disparaissent instantanément d'un coup quand un arbre est coupé.";
     }
 
     @Override
@@ -60,7 +60,7 @@ public class FastLeafDecayModule implements Module, Listener {
         if (!enabled) return;
         Block block = event.getBlock();
         if (isLog(block.getType())) {
-            plugin.getFoliaLib().getImpl().runAtLocationLater(block.getLocation(), (t2) -> triggerDecay(block), 2L);
+            plugin.getFoliaLib().getScheduler().runAtLocationLater(block.getLocation(), (t2) -> triggerDecay(block), 2L);
         }
     }
 
@@ -142,7 +142,7 @@ public class FastLeafDecayModule implements Module, Listener {
                 }
             }
         };
-        plugin.getFoliaLib().getImpl().runAtLocationTimer(startBlock.getLocation(), decayTask, 1L, 1L);
+        plugin.getFoliaLib().getScheduler().runAtLocationTimer(startBlock.getLocation(), decayTask, 1L, 1L);
     }
 
     private boolean isCloseToLog(Block block) {
@@ -172,4 +172,7 @@ public class FastLeafDecayModule implements Module, Listener {
         return material.name().endsWith("_LOG") || material.name().endsWith("_WOOD");
     }
 }
+
+
+
 

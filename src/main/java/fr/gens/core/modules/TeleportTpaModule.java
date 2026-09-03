@@ -38,7 +38,7 @@ public class TeleportTpaModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "Commandes de demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation (/tpa, /tpaccept, /tpdeny, /tpacancel).";
+        return "Commandes de demande de téléportation (/tpa, /tpaccept, /tpdeny, /tpacancel).";
     }
 
     @Override
@@ -98,7 +98,7 @@ public class TeleportTpaModule implements Module, Listener {
 
         tpaRequests.put(target.getUniqueId(), p.getUniqueId());
         
-        p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation envoyÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  <yellow>" + target.getName() + "<green>."));
+        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Demande de téléportation envoyée à <yellow>" + target.getName() + "<green>."));
         
         Component acceptBtn = Component.text("[Accepter] ")
                 .color(NamedTextColor.GREEN).decorate(TextDecoration.BOLD)
@@ -108,15 +108,15 @@ public class TeleportTpaModule implements Module, Listener {
                 .color(NamedTextColor.RED).decorate(TextDecoration.BOLD)
                 .clickEvent(ClickEvent.runCommand("/tpdeny"));
 
-        target.sendMessage(Component.text("<yellow>" + p.getName() + " <green>souhaite se tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©porter ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â  vous."));
+        target.sendMessage(Component.text("<yellow>" + p.getName() + " <green>souhaite se téléporter à vous."));
         target.sendMessage(acceptBtn.append(denyBtn));
 
-        // Expiration aprÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¨s 60 secondes
-        plugin.getFoliaLib().getImpl().runLater((t2) -> {
+        // Expiration après 60 secondes
+        plugin.getFoliaLib().getScheduler().runLater((t2) -> {
             if (tpaRequests.containsKey(target.getUniqueId()) && tpaRequests.get(target.getUniqueId()).equals(p.getUniqueId())) {
                 tpaRequests.remove(target.getUniqueId());
-                p.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Votre demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation vers <yellow>" + target.getName() + " <red>a expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."));
-                target.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>La demande de tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation de <yellow>" + p.getName() + " <red>a expirÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©."));
+                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Votre demande de téléportation vers <yellow>" + target.getName() + " <red>a expiré."));
+                target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>La demande de téléportation de <yellow>" + p.getName() + " <red>a expiré."));
             }
         }, 20 * 60L);
     }
@@ -135,7 +135,7 @@ public class TeleportTpaModule implements Module, Listener {
         Player requester = Bukkit.getPlayer(requesterId);
         if (requester != null && requester.isOnline()) {
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_7");
-            requester.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<green>Demande acceptÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e par <yellow>" + p.getName() + "<green>. TÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©portation..."));
+            requester.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Demande acceptée par <yellow>" + p.getName() + "<green>. Téléportation..."));
             TeleportUtil.teleportWithCooldown(plugin, requester, p.getLocation(), p.getName(), "genscore.bypass.cooldown.tpa");
         } else {
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_8");
@@ -156,7 +156,7 @@ public class TeleportTpaModule implements Module, Listener {
         Player requester = Bukkit.getPlayer(requesterId);
         plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_10");
         if (requester != null && requester.isOnline()) {
-            requester.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Demande refusÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©e par <yellow>" + p.getName() + "<red>."));
+            requester.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Demande refusée par <yellow>" + p.getName() + "<red>."));
         }
     }
 
@@ -179,4 +179,7 @@ public class TeleportTpaModule implements Module, Listener {
         }
     }
 }
+
+
+
 

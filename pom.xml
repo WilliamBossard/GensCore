@@ -37,13 +37,17 @@
             <id>devmart-other</id>
             <url>https://nexuslite.gcnt.net/repos/other/</url>
         </repository>
+        <repository>
+            <id>opencollab-repo-main</id>
+            <url>https://repo.opencollab.dev/main/</url>
+        </repository>
     </repositories>
 
     <dependencies>
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>26.2.build.112-stable</version>
+            <version>26.2-rc-2.build.9-alpha</version>
             <scope>provided</scope>
         </dependency>
 
@@ -70,7 +74,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.17.0</version>
+            <version>2.22.2</version>
         </dependency>
         
         <!-- Vault API -->
@@ -85,14 +89,14 @@
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.45.1.0</version>
+            <version>3.53.4.0</version>
         </dependency>
         
         <!-- LuckPerms API pour le Scoreboard et Nametags -->
         <dependency>
             <groupId>net.luckperms</groupId>
             <artifactId>api</artifactId>
-            <version>5.4</version>
+            <version>5.5</version>
             <scope>provided</scope>
         </dependency>
         
@@ -120,7 +124,7 @@
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>5.1.0</version>
+            <version>7.1.0</version>
         </dependency>
 
         <!-- jBcrypt pour le hashage des mots de passe -->
@@ -152,7 +156,7 @@
         <dependency>
             <groupId>com.tcoded</groupId>
             <artifactId>FoliaLib</artifactId>
-            <version>0.3.1</version>
+            <version>0.4.2</version>
             <scope>compile</scope>
         </dependency>
 
@@ -160,7 +164,15 @@
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
-            <version>2.11.5</version>
+            <version>2.12.3</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Floodgate API for Bedrock checks -->
+        <dependency>
+            <groupId>org.geysermc.floodgate</groupId>
+            <artifactId>api</artifactId>
+            <version>2.2.2-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -45,7 +45,7 @@ public class SpawnerDAO {
                     ");");
                     
         } catch (SQLException e) {
-            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la crÃƒÆ’Ã‚Â©ation de la table spawners", e);
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création de la table spawners", e);
         }
     }
 
@@ -163,3 +163,5 @@ public class SpawnerDAO {
         }
     }
 }
+
+

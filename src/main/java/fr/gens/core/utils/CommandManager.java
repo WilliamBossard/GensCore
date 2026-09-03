@@ -27,10 +27,7 @@ public class CommandManager {
                 Function.identity()
             );
             
-            try {
-                this.paperCommandManager.registerBrigadier();
-            } catch (Exception ignored) {}
-            
+            // Removed registerBrigadier because it breaks on Paper 26.2+ with Cloud v1
             try {
                 this.paperCommandManager.registerAsynchronousCompletions();
             } catch (Exception ignored) {}

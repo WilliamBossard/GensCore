@@ -133,9 +133,9 @@ public class EconomyModule implements Module, Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (enabled) {
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 double bal = this.economyDAO.getBalance(e.getPlayer().getUniqueId());
-                plugin.getFoliaLib().getImpl().runNextTick((t2) -> balances.put(e.getPlayer().getUniqueId(), bal));
+                plugin.getFoliaLib().getScheduler().runNextTick((t2) -> balances.put(e.getPlayer().getUniqueId(), bal));
             });
         }
     }
@@ -159,21 +159,21 @@ public class EconomyModule implements Module, Listener {
         } else {
             offlineCache.put(uuid, amount);
         }
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, amount));
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, amount));
     }
 
     public void addMoney(UUID uuid, double amount) {
         if (balances.containsKey(uuid)) {
             balances.compute(uuid, (k, current) -> {
                 double newBal = (current == null ? getBalance(uuid) : current) + amount;
-                plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
                 return newBal;
             });
         } else {
             synchronized (offlineCache) {
                 double current = getBalance(uuid);
                 offlineCache.put(uuid, current + amount);
-                plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, current + amount));
+                plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, current + amount));
             }
         }
     }
@@ -194,7 +194,7 @@ public class EconomyModule implements Module, Listener {
                 if (bal >= amount) {
                     success.set(true);
                     double newBal = bal - amount;
-                    plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                    plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
                     return newBal;
                 }
                 return bal;
@@ -206,7 +206,7 @@ public class EconomyModule implements Module, Listener {
                 if (bal >= amount) {
                     double newBal = bal - amount;
                     offlineCache.put(uuid, newBal);
-                    plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                    plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
                     return true;
                 }
                 return false;
@@ -218,14 +218,24 @@ public class EconomyModule implements Module, Listener {
         setBalance(uuid, Math.max(0, amount));
     }
 
-    @CommandMethod("money|balance [target]")
-    public void executeMoney(CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) {
+    public enum EcoAction {
+        GIVE, TAKE, SET
+    }
+
+    @cloud.commandframework.annotations.suggestions.Suggestions("onlinePlayers")
+    public java.util.List<String> suggestOnlinePlayers(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+        return org.bukkit.Bukkit.getOnlinePlayers().stream().map(org.bukkit.entity.Player::getName).filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
+    }
+
+    @CommandMethod("money [target]")
+    @cloud.commandframework.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
+    public void executeMoney(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers") String targetName) {
         if (!enabled) {
-            sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Ce module est actuellement d\u00e9sactiv\u00e9.</red>"));
+            sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement d\u00e9sactiv\u00e9.</red>"));
             return;
         }
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
-            if (targetName.isEmpty()) {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            if (targetName == null || targetName.isEmpty()) {
                 if (!(sender instanceof Player)) return;
                 Player p = (Player) sender;
                 plugin.getLangManager().sendMessage(p, "economy.balance", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.format("%.2f", getBalance(p.getUniqueId()))));
@@ -239,11 +249,17 @@ public class EconomyModule implements Module, Listener {
         });
     }
 
+    @CommandMethod("balance [target]")
+    @cloud.commandframework.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
+    public void executeBalance(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers") String targetName) {
+        executeMoney(sender, targetName);
+    }
+
     @CommandMethod("baltop")
     public void executeBaltop(CommandSender sender) {
         if (!enabled) return;
         plugin.getLangManager().sendMessage(sender, "economymodule.msg_1");
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try {
                 Map<UUID, Double> top = this.economyDAO.getTopBalances(10);
                 int rank = 1;
@@ -252,7 +268,7 @@ public class EconomyModule implements Module, Listener {
                     double bal = entry.getValue();
                     OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
                     String name = p.getName() != null ? p.getName() : "Inconnu";
-                    sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<yellow>" + rank + ". <gray>" + name + " <dark_gray>- <gold>" + String.format("%.2f", bal) + " $"));
+                    sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>" + rank + ". <gray>" + name + " <dark_gray>- <gold>" + String.format("%.2f", bal) + " $"));
                     rank++;
                 }
             } catch (Exception e) {
@@ -263,11 +279,12 @@ public class EconomyModule implements Module, Listener {
     }
 
     @CommandMethod("pay <target> <amount>")
-    public void executePay(org.bukkit.command.CommandSender sender, @Argument("target") String targetName, @Argument("amount") double amount) {
+    @cloud.commandframework.annotations.CommandDescription("Envoyer de l'argent a un joueur")
+    public void executePay(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName, @Argument("amount") double amount) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (!target.hasPlayedBefore() && !target.isOnline()) {
                 plugin.getLangManager().sendMessage(p, "error.player_offline");
@@ -294,13 +311,21 @@ public class EconomyModule implements Module, Listener {
         });
     }
 
+    @CommandMethod("eco")
+    @CommandPermission("genscore.admin")
+    public void executeEcoHelp(CommandSender sender) {
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Syntaxe invalide. Utilisez: /eco <give|take|set> <joueur> <montant>"));
+    }
+
     @CommandMethod("eco <action> <target> <amount>")
     @CommandPermission("genscore.admin")
-    public void executeEco(CommandSender sender, @Argument("action") String action, @Argument("target") String targetName, @Argument("amount") double amount) {
+    @cloud.commandframework.annotations.CommandDescription("Gerer l'economie d'un joueur")
+    public void executeEco(CommandSender sender, @Argument("action") EcoAction actionEnum, @Argument(value = "target", suggestions = "onlinePlayers") String targetName, @Argument("amount") double amount) {
         if (!enabled) return;
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             String tName = target.getName() != null ? target.getName() : "Inconnu";
+            String action = actionEnum.name();
             
             switch (action.toLowerCase()) {
                 case "give":
@@ -325,8 +350,11 @@ public class EconomyModule implements Module, Listener {
                     );
                     break;
                 default:
-                    sender.sendMessage(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Action inconnue. Utilisez give, take ou set.</red>"));
+                    sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Action inconnue. Utilisez give, take ou set.</red>"));
             }
         });
     }
 }
+
+
+

@@ -54,7 +54,7 @@ public class WebCommand implements Listener {
             return;
         }
 
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_bets (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
                 pstmt.setString(1, player.getUniqueId().toString());
@@ -63,7 +63,7 @@ public class WebCommand implements Listener {
                 pstmt.setString(4, base64);
                 pstmt.executeUpdate();
 
-                plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
+                plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
                     player.getInventory().setItemInMainHand(null);
                     plugin.getLangManager().sendMessage(player, "webcommand.msg_4");
                 });
@@ -82,7 +82,7 @@ public class WebCommand implements Listener {
     }
 
     private void openWithdrawGUI(Player player) {
-        plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("SELECT id, base64_data FROM player_web_rewards WHERE uuid = ?")) {
                 pstmt.setString(1, player.getUniqueId().toString());
@@ -93,8 +93,8 @@ public class WebCommand implements Listener {
                     items.add(new WebRewardItem(rs.getInt("id"), rs.getString("base64_data")));
                 }
 
-                plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
-                    Inventory inv = Bukkit.createInventory(null, 54, net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<dark_gray>Retraits Web (R\u00e9compenses)"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
+                    Inventory inv = Bukkit.createInventory(null, 54, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Retraits Web (R\u00e9compenses)"));
                     int slot = 0;
                     for (WebRewardItem wItem : items) {
                         if (slot >= 54) break;
@@ -143,13 +143,13 @@ public class WebCommand implements Listener {
             Player player = (Player) event.getWhoClicked();
             
             // Delete from DB and give to player
-            plugin.getFoliaLib().getImpl().runAsync((wrappedTask) -> {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 try (Connection conn = plugin.getDatabaseManager().getConnection();
                      PreparedStatement pstmt = conn.prepareStatement("DELETE FROM player_web_rewards WHERE id = ?")) {
                     pstmt.setInt(1, id);
                     int affected = pstmt.executeUpdate();
                     if (affected > 0) {
-                        plugin.getFoliaLib().getImpl().runAtEntity(player, (t2) -> {
+                        plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
                             meta.getPersistentDataContainer().remove(rewardKey);
                             clicked.setItemMeta(meta);
                             player.getInventory().addItem(clicked).forEach((idx, itm) -> {
@@ -176,3 +176,6 @@ public class WebCommand implements Listener {
         }
     }
 }
+
+
+

@@ -32,7 +32,7 @@ public class LangManager {
             langDir.mkdirs();
         }
 
-        // CrÃƒÆ’Ã‚Â©er les fichiers par dÃƒÆ’Ã‚Â©faut s'ils n'existent pas
+        // Créer les fichiers par défaut s'ils n'existent pas
         createDefaultLangFile("fr_FR.yml");
         createDefaultLangFile("en_US.yml");
         createDefaultLangFile("web_fr_FR.yml");
@@ -55,7 +55,7 @@ public class LangManager {
                 if (in != null) {
                     plugin.saveResource("lang/" + fileName, false);
                 } else {
-                    // CrÃƒÆ’Ã‚Â©ation d'un fichier vide avec quelques traductions basiques si non prÃƒÆ’Ã‚Â©sent dans le jar
+                    // Création d'un fichier vide avec quelques traductions basiques si non présent dans le jar
                     FileConfiguration defConfig = YamlConfiguration.loadConfiguration(file);
                     defConfig.set("prefix", "<gray>[<gradient:gold:yellow>GensCore</gradient>] <reset>");
                     defConfig.set("error.no_permission", "<red>Vous n'avez pas la permission.</red>");
@@ -96,14 +96,14 @@ public class LangManager {
     }
 
     /**
-     * RÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â¨re une chaÃƒÆ’Ã‚Â®ne de caractÃƒÆ’Ã‚Â¨re brute depuis la configuration.
+     * Récupère une chaîne de caractère brute depuis la configuration.
      */
     public String getRaw(String path) {
         return langConfig.getString(path, "<red>Missing Translation: " + path + "</red>");
     }
 
     /**
-     * RÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â¨re et parse un message avec MiniMessage sans arguments.
+     * Récupère et parse un message avec MiniMessage sans arguments.
      */
     public Component get(String path) {
         String message = getRaw(path);
@@ -113,7 +113,7 @@ public class LangManager {
     }
 
     /**
-     * RÃƒÆ’Ã‚Â©cupÃƒÆ’Ã‚Â¨re et parse un message avec MiniMessage et des arguments de remplacement.
+     * Récupère et parse un message avec MiniMessage et des arguments de remplacement.
      * Exemple d'usage: get("economy.balance", Placeholder.parsed("amount", "100.0"))
      */
     public Component get(String path, TagResolver... placeholders) {
@@ -151,4 +151,6 @@ public class LangManager {
         plugin.getServer().getConsoleSender().sendMessage(msg);
     }
 }
+
+
 
