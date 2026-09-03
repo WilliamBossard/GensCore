@@ -58,6 +58,13 @@ public class ConfigManager {
 
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 
+        // Autonettoyeur : on sauvegarde immédiatement la configuration pour que SnakeYAML efface les clés dupliquées
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         // Si on a des defaults dans le jar, on les ajoute
         InputStream defConfigStream = plugin.getResource(fileName);
         if (defConfigStream != null) {

@@ -74,6 +74,13 @@ public class LangManager {
         try {
             boolean changed = false;
             FileConfiguration diskConfig = YamlConfiguration.loadConfiguration(file);
+            
+            // Autonettoyeur
+            try {
+                diskConfig.save(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             try (InputStream in = plugin.getResource("lang/" + fileName)) {
                 if (in == null) return;
                 try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
