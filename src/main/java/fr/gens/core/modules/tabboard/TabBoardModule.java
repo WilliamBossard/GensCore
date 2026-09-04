@@ -228,6 +228,12 @@ public class TabBoardModule implements Module, Listener {
             String prefixStr = getLuckPermsPrefix(target);
             if (prefixStr.length() > 50) prefixStr = prefixStr.substring(0, 50); // Laisse de la place pour la guilde
             
+            // Ajout du tag Java/Bedrock devant le grade
+            String platformTag = fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(target.getUniqueId())
+                ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix()
+                : fr.gens.core.utils.FloodgateUtil.getJavaPrefix();
+            prefixStr = platformTag + prefixStr;
+            
             // Ajout du tag de Guilde (Team)
             fr.gens.core.modules.teams.TeamData tData = plugin.getTeamManager().getPlayerTeam(target.getUniqueId());
             if (tData != null) {
