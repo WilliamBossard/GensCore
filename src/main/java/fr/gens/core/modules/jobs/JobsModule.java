@@ -207,7 +207,7 @@ public class JobsModule implements Module, Listener {
         // Action Bar Manager
         String formattedXp = String.format("%.1f", currentXp);
         String formattedNext = String.format("%.1f", nextXp);
-        Component msg = Component.text("<dark_gray>[" + type.getColor() + type.getDisplayName() + "<dark_gray>] <white>" + formattedXp + " <gray>/ " + formattedNext + " XP");
+        Component msg = fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[" + type.getColor() + type.getDisplayName() + "<dark_gray>] <white>" + formattedXp + " <gray>/ " + formattedNext + " XP");
         plugin.getActionBarManager().sendMessage(player, "jobs", msg, 40);
     }
     
@@ -223,7 +223,7 @@ public class JobsModule implements Module, Listener {
             mat = r.nextBoolean() ? Material.DIAMOND : Material.EMERALD;
         }
         player.getInventory().addItem(new ItemStack(mat, amount));
-        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢§u <yellow>" + amount + "x " + mat.name() + " <gray>!"));
+        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reçu <yellow>" + amount + "x " + mat.name() + " <gray>!"));
     }
 
     @CommandMethod("jobs")
@@ -231,6 +231,11 @@ public class JobsModule implements Module, Listener {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         gui.openGUI(p);
+    }
+    
+    @CommandMethod("job")
+    public void executeJob(org.bukkit.command.CommandSender sender) {
+        executeJobs(sender);
     }
     
     // --- EVENTS ---

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package } from 'lucide-react';
+import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package, Gem, Crown, Coins, XCircle, Gift } from 'lucide-react';
 import { Route, Routes, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
@@ -264,7 +264,7 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
       });
       const data = await res.json();
       
-      if (res.ok) {
+      if (res.ok && !data.error) {
         const sliceDeg = 360 / rewards.length;
         const prizeIndex = data.prizeIndex || 0;
         const targetDeg = -(prizeIndex * sliceDeg + sliceDeg / 2);
@@ -292,11 +292,17 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
     setCasinoResult(null);
 
     const interval = setInterval(() => {
-        const symbols = ['DIAMANT', 'POMME', 'PIECES', 'ECHEC', 'CERISE'];
+        const symbolIcons = [
+          <Gem color="#8b5cf6" size={48} key="gem"/>,
+          <Crown color="#f59e0b" size={48} key="crown"/>,
+          <Coins color="#10b981" size={48} key="coins"/>,
+          <XCircle color="#ef4444" size={48} key="xcircle"/>,
+          <Gift color="#ec4899" size={48} key="gift"/>
+        ];
         setSlotReels([
-            symbols[Math.floor(Math.random() * symbols.length)],
-            symbols[Math.floor(Math.random() * symbols.length)],
-            symbols[Math.floor(Math.random() * symbols.length)]
+            symbolIcons[Math.floor(Math.random() * symbolIcons.length)],
+            symbolIcons[Math.floor(Math.random() * symbolIcons.length)],
+            symbolIcons[Math.floor(Math.random() * symbolIcons.length)]
         ]);
     }, 100);
 
@@ -311,18 +317,18 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
       setTimeout(() => {
           clearInterval(interval);
           setIsRolling(false);
-          if (res.ok) {
+          if (res.ok && !data.error) {
               if (data.result === 'LOSS') {
-                  setSlotReels([t('web.public.games.loss_symbol'), t('web.public.games.loss_symbol'), t('web.public.games.loss_symbol')]);
+                  setSlotReels([<XCircle color="#ef4444" size={48} key="loss1"/>, <XCircle color="#ef4444" size={48} key="loss2"/>, <XCircle color="#ef4444" size={48} key="loss3"/>]);
                   setCasinoResult(t('web.public.games.casino_loss'));
               } else if (data.result === 'WIN_SMALL') {
-                  setSlotReels([t('web.public.games.win_small_symbol'), t('web.public.games.win_small_symbol'), t('web.public.games.win_small_symbol')]);
+                  setSlotReels([<Coins color="#10b981" size={48} key="win_s1"/>, <Coins color="#10b981" size={48} key="win_s2"/>, <Coins color="#10b981" size={48} key="win_s3"/>]);
                   setCasinoResult(t('web.public.games.casino_win_small'));
               } else if (data.result === 'WIN_MEDIUM') {
-                  setSlotReels([t('web.public.games.win_medium_symbol'), t('web.public.games.win_medium_symbol'), t('web.public.games.win_medium_symbol')]);
+                  setSlotReels([<Crown color="#f59e0b" size={48} key="win_m1"/>, <Crown color="#f59e0b" size={48} key="win_m2"/>, <Crown color="#f59e0b" size={48} key="win_m3"/>]);
                   setCasinoResult(t('web.public.games.casino_win_medium'));
               } else if (data.result === 'JACKPOT') {
-                  setSlotReels([t('web.public.games.jackpot_symbol'), t('web.public.games.jackpot_symbol'), t('web.public.games.jackpot_symbol')]);
+                  setSlotReels([<Gem color="#8b5cf6" size={48} key="jackpot1"/>, <Gem color="#8b5cf6" size={48} key="jackpot2"/>, <Gem color="#8b5cf6" size={48} key="jackpot3"/>]);
                   setCasinoResult(t('web.public.games.casino_jackpot'));
               }
               setSelectedBet(null);

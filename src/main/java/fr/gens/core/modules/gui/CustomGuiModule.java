@@ -156,9 +156,10 @@ public class CustomGuiModule implements Module, Listener {
     }
 
     @CommandMethod("menu [name]")
-    public void executeMenu(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "principal") String menuName) {
+    public void executeMenu(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "principal", suggestions = "menus") String menuName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+        if (menuName == null || menuName.isEmpty()) menuName = "principal";
         if (menuName.equals("principal") && !menus.containsKey("principal")) {
             String menuList = String.join(", ", menus.keySet());
             p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold>Menus disponibles : <yellow>" + (menuList.isEmpty() ? "Aucun" : menuList)));
@@ -240,7 +241,9 @@ public class CustomGuiModule implements Module, Listener {
         }
 
         net.kyori.adventure.text.Component parsedTitle = PlaceholderUtils.setPlaceholdersComponent(plugin, player, menu.getTitle());
-        Inventory inv = Bukkit.createInventory(null, menu.getSize(), parsedTitle);
+        CustomGuiHolder holder = new CustomGuiHolder(menu);
+        Inventory inv = Bukkit.createInventory(holder, menu.getSize(), parsedTitle);
+        holder.setInventory(inv);
 
         for (Map.Entry<Integer, CustomMenu.MenuItem> entry : menu.getItems().entrySet()) {
             CustomMenu.MenuItem mi = entry.getValue();
@@ -273,6 +276,12 @@ public class CustomGuiModule implements Module, Listener {
                     }
                     meta.lore(newLore);
                 }
+                
+                if (item.getType() == Material.PLAYER_HEAD) {
+                    org.bukkit.inventory.meta.SkullMeta skullMeta = (org.bukkit.inventory.meta.SkullMeta) meta;
+                    skullMeta.setPlayerProfile(player.getPlayerProfile());
+                }
+                
                 item.setItemMeta(meta);
             }
             inv.setItem(entry.getKey(), item);
@@ -337,22 +346,25 @@ public class CustomGuiModule implements Module, Listener {
         }
     }
 
+    public static class CustomGuiHolder implements org.bukkit.inventory.InventoryHolder {
+        private Inventory inventory;
+        private final CustomMenu menu;
+        
+        public CustomGuiHolder(CustomMenu menu) { this.menu = menu; }
+        public void setInventory(Inventory inv) { this.inventory = inv; }
+        @Override public Inventory getInventory() { return inventory; }
+        public CustomMenu getMenu() { return menu; }
+    }
+
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!enabled) return;
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player p = (Player) event.getWhoClicked();
 
-        String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
-        CustomMenu clickedMenu = null;
-        for (CustomMenu menu : menus.values()) {
-            net.kyori.adventure.text.Component parsedTitle = PlaceholderUtils.setPlaceholdersComponent(plugin, p, menu.getTitle());
-            String parsedTitleStr = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(parsedTitle);
-            if (parsedTitleStr.equals(title)) {
-                clickedMenu = menu;
-                break;
-            }
-        }
+        if (!(event.getInventory().getHolder() instanceof CustomGuiHolder)) return;
+        CustomGuiHolder holder = (CustomGuiHolder) event.getInventory().getHolder();
+        CustomMenu clickedMenu = holder.getMenu();
 
         if (clickedMenu != null) {
             if (event.getClickedInventory() == null) return;
@@ -381,19 +393,22 @@ public class CustomGuiModule implements Module, Listener {
                     if (cmdToRun.equalsIgnoreCase("close")) {
                         return;
                     }
-                    if (cmdToRun.startsWith("player: ")) {
-                        String cmd = cmdToRun.substring(8).replace("%player_name%", p.getName());
-                        if (cmd.equals("profil") || cmd.equals("tuto")) {
-                            openMenu(p, menus.get(cmd));
+                    final String finalCmdToRun = cmdToRun;
+                    plugin.getFoliaLib().getScheduler().runNextTick((t) -> {
+                        if (finalCmdToRun.startsWith("player: ")) {
+                            String cmd = finalCmdToRun.substring(8).replace("%player_name%", p.getName());
+                            if (cmd.equals("profil") || cmd.equals("tuto")) {
+                                openMenu(p, menus.get(cmd));
+                            } else {
+                                p.performCommand(cmd);
+                            }
+                        } else if (finalCmdToRun.startsWith("console: ")) {
+                            String cmd = finalCmdToRun.substring(9).replace("%player_name%", p.getName());
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
                         } else {
-                            p.performCommand(cmd);
+                            p.performCommand(finalCmdToRun);
                         }
-                    } else if (cmdToRun.startsWith("console: ")) {
-                        String cmd = cmdToRun.substring(9).replace("%player_name%", p.getName());
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                    } else {
-                        p.performCommand(cmdToRun);
-                    }
+                    });
                 }
             }
         }
@@ -444,6 +459,10 @@ public class CustomGuiModule implements Module, Listener {
                 this.fallbackCommand = fbCmd;
             }
         }
+    }
+    @cloud.commandframework.annotations.suggestions.Suggestions("menus")
+    public java.util.List<String> suggestMenus(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+        return menus.keySet().stream().filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 }
 

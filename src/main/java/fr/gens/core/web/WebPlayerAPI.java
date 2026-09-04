@@ -285,7 +285,7 @@ public class WebPlayerAPI implements Listener {
             String sessionUuid = ctx.attribute("playerUuid"); 
             
             if (sessionUuid == null || req.betId <= 0) {
-                ctx.status(400).json(Map.of("error", "Requete invalide"));
+                ctx.json(Map.of("error", "Requete invalide"));
                 return;
             }
 
@@ -296,7 +296,7 @@ public class WebPlayerAPI implements Listener {
                 long timeLeft = (60 * 60 * 1000L) - (now - lastPlayed);
                 long minutes = timeLeft / (60 * 1000L);
                 long seconds = (timeLeft % (60 * 1000L)) / 1000L;
-                ctx.status(400).json(Map.of("error", "La machine surchauffe ! Revenez dans " + minutes + "m " + seconds + "s."));
+                ctx.json(Map.of("error", "La machine surchauffe ! Revenez dans " + minutes + "m " + seconds + "s."));
                 return;
             }
 
@@ -306,7 +306,7 @@ public class WebPlayerAPI implements Listener {
             // Casino Logic with Transaction via DAO
             Map<String, Object> result = webDAO.playCasino(sessionUuid, req.betId);
             if (result.containsKey("error")) {
-                ctx.status(400).json(result);
+                ctx.json(result);
             } else {
                 ctx.json(result);
             }
@@ -321,7 +321,7 @@ public class WebPlayerAPI implements Listener {
             PlayRequest req = ctx.bodyAsClass(PlayRequest.class);
             String sessionUuidStr = ctx.attribute("playerUuid"); // Secure
             if (sessionUuidStr == null || req.gameId == null) {
-                ctx.status(400).json(Map.of("error", "Requete invalide"));
+                ctx.json(Map.of("error", "Requete invalide"));
                 return;
             }
             
@@ -334,7 +334,7 @@ public class WebPlayerAPI implements Listener {
                 long timeLeft = (24 * 60 * 60 * 1000L) - (now - lastPlayed);
                 long hours = timeLeft / (60 * 60 * 1000L);
                 long minutes = (timeLeft % (60 * 60 * 1000L)) / (60 * 1000L);
-                ctx.status(400).json(Map.of("error", "Vous avez d\u00e9j\u00e0 jou\u00e9 aujourd'hui ! Revenez dans " + hours + "h " + minutes + "m."));
+                ctx.json(Map.of("error", "Vous avez d\u00e9j\u00e0 jou\u00e9 aujourd'hui ! Revenez dans " + hours + "h " + minutes + "m."));
                 return;
             }
 
@@ -343,7 +343,7 @@ public class WebPlayerAPI implements Listener {
 
             List<WheelReward> activeRewards = getActiveWheelRewards();
             if (activeRewards.isEmpty()) {
-                ctx.status(400).json(Map.of("error", "Aucune r\u00e9compense configur\u00e9e."));
+                ctx.json(Map.of("error", "Aucune r\u00e9compense configur\u00e9e."));
                 return;
             }
 
@@ -411,6 +411,7 @@ public class WebPlayerAPI implements Listener {
         }
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class CasinoPlayRequest {
         public int betId;
     }

@@ -18,7 +18,7 @@ public class ModuleCommand {
 
     @CommandMethod("module <moduleName> <state>")
     @CommandPermission("genscore.admin")
-    public void execute(CommandSender sender, @Argument("moduleName") String moduleName, @Argument("state") String stateStr) {
+    public void execute(CommandSender sender, @Argument(value = "moduleName", suggestions = "moduleNames") String moduleName, @Argument(value = "state", suggestions = "moduleStates") String stateStr) {
         Module module = plugin.getModuleManager().getModule(moduleName);
         if (module == null) {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Module introuvable: " + moduleName));
@@ -47,6 +47,15 @@ public class ModuleCommand {
         } else {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Une erreur est survenue lors du changement de statut."));
         }
+    }
+    @cloud.commandframework.annotations.suggestions.Suggestions("moduleNames")
+    public java.util.List<String> suggestModules(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+        return plugin.getModuleManager().getModules().stream().map(fr.gens.core.modules.Module::getName).filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
+    }
+
+    @cloud.commandframework.annotations.suggestions.Suggestions("moduleStates")
+    public java.util.List<String> suggestStates(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+        return java.util.Arrays.asList("on", "off").stream().filter(name -> name.startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 }
 

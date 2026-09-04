@@ -66,7 +66,9 @@ public class JobsGUI implements Listener {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 36, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>■ §x<white><white><aqua><gray><black><dark_aqua>Métiers <dark_gray>■"));
+        JobsGuiHolder holder = new JobsGuiHolder();
+        Inventory inv = Bukkit.createInventory(holder, 36, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>■ §x<white><white><aqua><gray><black><dark_aqua>Métiers <dark_gray>■"));
+        holder.setInventory(inv);
 
         // Fill background
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
@@ -132,9 +134,15 @@ public class JobsGUI implements Listener {
         return sb.toString();
     }
 
+    public static class JobsGuiHolder implements org.bukkit.inventory.InventoryHolder {
+        private Inventory inventory;
+        public void setInventory(Inventory inv) { this.inventory = inv; }
+        @Override public Inventory getInventory() { return inventory; }
+    }
+
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(e.getView().title()).equals("■ Métiers ■")) {
+        if (e.getInventory().getHolder() instanceof JobsGuiHolder) {
             e.setCancelled(true);
             if (!(e.getWhoClicked() instanceof Player)) return;
             Player p = (Player) e.getWhoClicked();

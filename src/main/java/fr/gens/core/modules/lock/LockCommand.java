@@ -22,7 +22,7 @@ public class LockCommand {
     }
 
     @CommandMethod("lock [action]")
-    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", defaultValue = "") String action) {
+    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", defaultValue = "", suggestions = "lockActions") String action) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!lockModule.isEnabled()) {
@@ -57,6 +57,10 @@ public class LockCommand {
         }
 
         plugin.getLangManager().sendMessage(player, "lockcommand.msg_5");
+    }
+    @cloud.commandframework.annotations.suggestions.Suggestions("lockActions")
+    public java.util.List<String> suggestLockActions(cloud.commandframework.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
+        return java.util.Arrays.asList("private", "unlock", "guild").stream().filter(name -> name.startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 }
 

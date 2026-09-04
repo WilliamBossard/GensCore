@@ -168,7 +168,7 @@ public class WebManager {
 
                     // Middleware d'authentification pour les jeux
                     before("/api/games/*", ctx -> {
-                        if (ctx.path().equals("/api/games/config") || ctx.path().equals("/api/games/wheel")) return; // public routes
+                        if (ctx.path().equals("/api/games/config") || ctx.path().equals("/api/games/wheel") || ctx.path().equals("/api/games/casino/inventory")) return; // public routes
                         
                         String authHeader = ctx.header("Authorization");
                         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -559,7 +559,7 @@ public class WebManager {
                         mod.mutePlayer(targetOffline.getUniqueId(), reason, durationMs);
                         
                         if (target != null) {
-                            target.sendMessage("<red><bold>Vous avez été rendu muet par le WebAdmin ! Raison : " + reason);
+                            target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red><bold>Vous avez été rendu muet par le WebAdmin ! Raison : " + reason));
                         }
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("MUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.YELLOW);
                     }
@@ -573,7 +573,7 @@ public class WebManager {
                     }
                 } else if ("message".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.sendMessage("<dark_gray>[<red>WebAdmin<dark_gray>] <gray>" + req.reason);
+                        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<red>WebAdmin<dark_gray>] <gray>" + req.reason));
                     }
                 }
             });

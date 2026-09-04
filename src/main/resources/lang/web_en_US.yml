@@ -20,16 +20,16 @@ web:
       auth: Login system for offline servers.
       bluemap: BlueMap integration and markers.
       chat: Chat formatting and prefixes/channels management.
-      cmdback: Command to return to last location.
-      cmdhome: Homes management command.
-      cmdspawn: Spawn teleportation command.
-      cmdtpa: Teleportation command to other players.
-      customgui: Custom interface via web.
+      back: Command to return to the last position.
+      home: Command to manage homes.
+      spawn: Command to teleport to spawn.
+      tpa: Command to teleport to other players.
+      customgui: Custom interface via the web.
       discord: Link in-game chat with a Discord bot.
-      dynamicshop: In-game shop with dynamic pricing based on supply and demand.
-      economy: Vault economy management, currencies and transactions.
+      dynamicshop: In-game shop whose prices fluctuate based on supply and demand.
+      economy: Management of Vault economy, currencies, and transactions.
       fastleafdecay: Fast destruction of leaves from cut trees.
-      gui: Creation of custom virtual menus.
+      'gui api': Creation of custom virtual menus.
       headdrop: Players and mobs have a chance to drop their head.
       jobs: Jobs system and leveling for players.
       locks: Locking of chests and doors via signs.
@@ -114,6 +114,7 @@ web:
       tomb_xp: Save XP in Tomb
     shop:
       title: "Shop Management"
+      new_cat: "New Category"
       add_category: "Add Category"
       add_item: "Add Item"
       category_name: "Category Name"

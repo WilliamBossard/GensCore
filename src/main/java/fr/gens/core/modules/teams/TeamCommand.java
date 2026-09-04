@@ -62,7 +62,7 @@ public class TeamCommand {
     }
 
     @CommandMethod("team|guild|guilde invite <target>")
-    public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
+    public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) return;

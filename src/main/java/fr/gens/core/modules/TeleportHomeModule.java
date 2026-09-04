@@ -153,7 +153,7 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @CommandMethod("sethome [name]")
-    public void executeSetHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "maison") String homeName) {
+    public void executeSetHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "maison", description = "Le nom de la maison") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -191,7 +191,7 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @CommandMethod("home [name]")
-    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "", suggestions = "homeNames") String homeName) {
+    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "", suggestions = "homeNames", description = "Le nom de la maison") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -218,7 +218,7 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @CommandMethod("delhome <name>")
-    public void executeDelHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "homeNames") String homeName) {
+    public void executeDelHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "homeNames", description = "Le nom de la maison") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -245,6 +245,21 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     private void openHomeGui(Player player) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            Map<String, Location> playerHomes = homes.getOrDefault(player.getUniqueId(), new ConcurrentHashMap<>());
+            
+            for (String homeName : playerHomes.keySet()) {
+                String btnText = "§a" + homeName + "\n§8Cliquez pour gérer ce home";
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, Material.WHITE_BED, p -> {
+                    openConfirmGui(p, homeName);
+                }));
+            }
+            
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Mes Homes", "Gérez vos " + playerHomes.size() + "/" + getMaxHomes(player) + " homes :", buttons);
+            return;
+        }
+
         HomeGuiHolder holder = new HomeGuiHolder();
         Inventory inv = Bukkit.createInventory(holder, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Mes Homes (" + homes.getOrDefault(player.getUniqueId(), new ConcurrentHashMap<>()).size() + "/" + getMaxHomes(player) + ")"));
         holder.setInventory(inv);
@@ -304,6 +319,36 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     private void openConfirmGui(Player player, String homeName) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§a§lSe Téléporter", Material.ENDER_PEARL, p -> {
+                Map<String, Location> playerHomes = homes.get(p.getUniqueId());
+                if (playerHomes != null && playerHomes.containsKey(homeName)) {
+                    TeleportUtil.teleportWithCooldown(plugin, p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");
+                }
+            }));
+            
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§c§lSupprimer", Material.RED_CONCRETE, p -> {
+                Map<String, Location> playerHomes = homes.get(p.getUniqueId());
+                if (playerHomes != null && playerHomes.containsKey(homeName)) {
+                    playerHomes.remove(homeName);
+                    deleteHomeFromDB(p.getUniqueId(), homeName);
+                    plugin.getLangManager().sendMessage(p, "home.delete", 
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("name", homeName)
+                    );
+                    openHomeGui(p);
+                }
+            }));
+            
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§e§lRetour aux Homes", Material.BARRIER, p -> {
+                openHomeGui(p);
+            }));
+            
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Gestion: " + homeName, "Que voulez-vous faire avec le home " + homeName + " ?", buttons);
+            return;
+        }
+
         ConfirmHomeGuiHolder holder = new ConfirmHomeGuiHolder(homeName);
         Inventory inv = Bukkit.createInventory(holder, 9, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Gestion: " + homeName));
         holder.setInventory(inv);

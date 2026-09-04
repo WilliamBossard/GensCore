@@ -32,6 +32,19 @@ public class CommandManager {
                 this.paperCommandManager.registerAsynchronousCompletions();
             } catch (Exception ignored) {}
             
+            this.paperCommandManager.parserRegistry().registerSuggestionProvider("onlinePlayers", 
+                (context, input) -> org.bukkit.Bukkit.getOnlinePlayers().stream()
+                    .map(org.bukkit.entity.Player::getName)
+                    .collect(java.util.stream.Collectors.toList())
+            );
+            
+            this.paperCommandManager.parserRegistry().registerSuggestionProvider("spawnerTypes", 
+                (context, input) -> java.util.Arrays.stream(org.bukkit.entity.EntityType.values())
+                    .filter(org.bukkit.entity.EntityType::isAlive)
+                    .map(Enum::name)
+                    .collect(java.util.stream.Collectors.toList())
+            );
+            
             this.annotationParser = new AnnotationParser<>(this.paperCommandManager, CommandSender.class, parameters -> SimpleCommandMeta.empty());
             
             new MinecraftExceptionHandler<CommandSender>()

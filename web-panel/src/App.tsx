@@ -1172,7 +1172,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
           {selectedItem ? (
             <div style={{height: '300px', width: '100%'}}>
               {history.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={300} minWidth={100}>
                   <LineChart data={history}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                     <XAxis dataKey="time" stroke="var(--text-muted)" />
@@ -1237,8 +1237,12 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
           <div key={item.id} style={{background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem'}}>
             <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem'}}>
               <Package size={24} color="var(--accent)" />
-              <div style={{fontWeight: 'bold', fontSize: '1.1rem'}}>{t('web.public.ah.offer')}{item.id}</div>
+              <div style={{fontWeight: 'bold', fontSize: '1.1rem'}}>
+                {item.displayName ? item.displayName : (item.material ? item.material.replace(/_/g, ' ') : `${t('web.public.ah.offer')}${item.id}`)} 
+                {item.amount && item.amount > 1 && ` (x${item.amount})`}
+              </div>
             </div>
+            <div style={{color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '10px'}}>{t('web.public.ah.offer')}{item.id}</div>
             <div style={{color: 'var(--text-muted)', marginBottom: '5px'}}>{t('web.public.ah.seller')} : <span style={{color: '#fff'}}>{item.sellerName}</span></div>
             <div style={{color: 'var(--text-muted)', marginBottom: '15px'}}>{t('web.public.ah.price')} : <span style={{color: '#10b981', fontWeight: 'bold'}}>{item.price.toFixed(2)} $</span></div>
             <div style={{fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid var(--card-border)', paddingTop: '10px'}}>

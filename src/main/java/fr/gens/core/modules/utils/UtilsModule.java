@@ -119,7 +119,7 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("ec [target]")
-    public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) {
+    public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
@@ -127,7 +127,7 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_4");
             return;
         }
-        if (!targetName.isEmpty()) {
+        if (targetName != null && !targetName.isEmpty()) {
             if (!p.hasPermission("genscore.admin")) {
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_5");
                 return;
@@ -145,7 +145,7 @@ public class UtilsModule implements Module, Listener {
     }
 
     @CommandMethod("enderchest [target]")
-    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "") String targetName) { 
+    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers") String targetName) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         executeEnderChest(p, targetName); 

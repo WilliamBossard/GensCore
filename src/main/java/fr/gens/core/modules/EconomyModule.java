@@ -229,7 +229,7 @@ public class EconomyModule implements Module, Listener {
 
     @CommandMethod("money [target]")
     @cloud.commandframework.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
-    public void executeMoney(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers") String targetName) {
+    public void executeMoney(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!enabled) {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement d\u00e9sactiv\u00e9.</red>"));
             return;
@@ -251,7 +251,7 @@ public class EconomyModule implements Module, Listener {
 
     @CommandMethod("balance [target]")
     @cloud.commandframework.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
-    public void executeBalance(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers") String targetName) {
+    public void executeBalance(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         executeMoney(sender, targetName);
     }
 
@@ -280,7 +280,7 @@ public class EconomyModule implements Module, Listener {
 
     @CommandMethod("pay <target> <amount>")
     @cloud.commandframework.annotations.CommandDescription("Envoyer de l'argent a un joueur")
-    public void executePay(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName, @Argument("amount") double amount) {
+    public void executePay(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "amount", description = "Montant d'argent") double amount) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
@@ -320,7 +320,7 @@ public class EconomyModule implements Module, Listener {
     @CommandMethod("eco <action> <target> <amount>")
     @CommandPermission("genscore.admin")
     @cloud.commandframework.annotations.CommandDescription("Gerer l'economie d'un joueur")
-    public void executeEco(CommandSender sender, @Argument("action") EcoAction actionEnum, @Argument(value = "target", suggestions = "onlinePlayers") String targetName, @Argument("amount") double amount) {
+    public void executeEco(CommandSender sender, @Argument(value = "action", description = "L'action à effectuer") EcoAction actionEnum, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "amount", description = "Le montant") double amount) {
         if (!enabled) return;
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);

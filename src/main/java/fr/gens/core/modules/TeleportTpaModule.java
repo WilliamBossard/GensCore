@@ -75,7 +75,7 @@ public class TeleportTpaModule implements Module, Listener {
     }
 
     @CommandMethod("tpa <target>")
-    public void executeTpa(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
+    public void executeTpa(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -108,7 +108,7 @@ public class TeleportTpaModule implements Module, Listener {
                 .color(NamedTextColor.RED).decorate(TextDecoration.BOLD)
                 .clickEvent(ClickEvent.runCommand("/tpdeny"));
 
-        target.sendMessage(Component.text("<yellow>" + p.getName() + " <green>souhaite se téléporter à vous."));
+        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>" + p.getName() + " <green>souhaite se téléporter à vous."));
         target.sendMessage(acceptBtn.append(denyBtn));
 
         // Expiration après 60 secondes

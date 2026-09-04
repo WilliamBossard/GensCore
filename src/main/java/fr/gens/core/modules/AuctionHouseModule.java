@@ -84,7 +84,7 @@ public class AuctionHouseModule implements Module {
     }
 
     @CommandMethod("ah sell <price>")
-    public void executeAhSell(org.bukkit.command.CommandSender sender, @Argument("price") double price) {
+    public void executeAhSell(org.bukkit.command.CommandSender sender, @Argument(value = "price", description = "Prix de vente") double price) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {

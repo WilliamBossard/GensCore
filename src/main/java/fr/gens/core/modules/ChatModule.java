@@ -60,42 +60,43 @@ public class ChatModule implements Module, Listener {
         }
 
         // Récupérer le préfixe depuis LuckPerms
-        String resolvedPrefix;
+        net.kyori.adventure.text.Component resolvedPrefixComp;
         try {
             net.luckperms.api.LuckPerms api = net.luckperms.api.LuckPermsProvider.get();
             net.luckperms.api.model.user.User user = api.getUserManager().getUser(event.getPlayer().getUniqueId());
             if (user != null) {
                 String lpPrefix = user.getCachedData().getMetaData().getPrefix();
                 if (lpPrefix != null) {
-                    net.kyori.adventure.text.Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix);
-                    resolvedPrefix = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().serialize(prefixComp).stripTrailing() + " ";
+                    resolvedPrefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix).append(net.kyori.adventure.text.Component.text(" "));
                 } else {
-                    resolvedPrefix = "<gray>[Joueur] ";
+                    resolvedPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>[Joueur] ");
                 }
             } else {
-                resolvedPrefix = "<gray>[Joueur] ";
+                resolvedPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>[Joueur] ");
             }
         } catch (Exception e) {
-            resolvedPrefix = event.getPlayer().hasPermission("genscore.admin") ? "<red>[Admin] " : "<gray>[Joueur] ";
+            resolvedPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(event.getPlayer().hasPermission("genscore.admin") ? "<red>[Admin] " : "<gray>[Joueur] ");
         }
         
         // Ajout du tag de guilde si le joueur en a une
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
-        final String guildTag = (team != null) ? "<yellow>[" + team.getName() + "] " : "";
+        final String guildTagStr = (team != null) ? "<yellow>[" + team.getName() + "] " : "";
         
-        final String platformPrefix = !fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled() ? "" : 
+        final String platformPrefixStr = !fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled() ? "" : 
                 (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(event.getPlayer().getUniqueId()) 
                 ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix() : fr.gens.core.utils.FloodgateUtil.getJavaPrefix());
         
         // Variables effectively final pour le lambda
-        final String finalPrefix = resolvedPrefix;
-        final String messageText = PlainTextComponentSerializer.plainText().serialize(event.message());
+        final net.kyori.adventure.text.Component finalPrefixComp = resolvedPrefixComp;
+        final net.kyori.adventure.text.Component platformPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(platformPrefixStr);
+        final net.kyori.adventure.text.Component guildTagComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(guildTagStr);
+        final String messageText = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.message());
 
         // AsyncChatEvent utilise un ChatRenderer pour formater le message
-        event.renderer((source, sourceDisplayName, message, viewer) ->
-            net.kyori.adventure.text.minimessage.MiniMessage.miniMessage()
-                .deserialize(platformPrefix + finalPrefix + guildTag + "<white>" + source.getName() + " <dark_gray>» <gray>" + messageText)
-        );
+        event.renderer((source, sourceDisplayName, message, viewer) -> {
+            net.kyori.adventure.text.Component nameComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<white>" + source.getName() + " <dark_gray>» <gray>" + messageText);
+            return net.kyori.adventure.text.Component.empty().append(platformPrefixComp).append(finalPrefixComp).append(guildTagComp).append(nameComp);
+        });
     }
 
     @EventHandler

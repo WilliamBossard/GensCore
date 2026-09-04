@@ -112,8 +112,9 @@ export function ClientJobs() {
 
       {activeTab === 'JOBS' ? (
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 350px), 1fr))', gap: '2.5rem', animation: 'fadeIn 0.5s'}}>
-          {Object.entries(jobsData).map(([jobName, players]: [string, any], groupIdx) => {
-            const config = jobConfig[jobName] || jobConfig.DEFAULT;
+          {Object.keys(jobConfig).filter(k => k !== 'DEFAULT').map((jobName, groupIdx) => {
+            const players = jobsData[jobName] || [];
+            const config = jobConfig[jobName];
             const Icon = config.icon;
             
             return (

@@ -96,7 +96,7 @@ public class AuctionHouseDAO {
         List<Map<String, Object>> ahItems = new ArrayList<>();
         try (Connection conn = plugin.getDatabaseManager().getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT id, seller_name, price, expire_time FROM auction_house ORDER BY id DESC LIMIT 100")) {
+                     "SELECT id, seller_name, price, expire_time, item_data FROM auction_house ORDER BY id DESC LIMIT 100")) {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> ahItem = new HashMap<>();
@@ -104,6 +104,21 @@ public class AuctionHouseDAO {
                     ahItem.put("sellerName", rs.getString("seller_name"));
                     ahItem.put("price", rs.getDouble("price"));
                     ahItem.put("expireTime", rs.getLong("expire_time"));
+                    
+                    String itemData = rs.getString("item_data");
+                    try {
+                        org.bukkit.inventory.ItemStack item = fr.gens.core.utils.ItemSerializer.fromBase64(itemData);
+                        if (item != null) {
+                            ahItem.put("material", item.getType().name());
+                            ahItem.put("amount", item.getAmount());
+                            if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+                                ahItem.put("displayName", net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()));
+                            }
+                        }
+                    } catch (Exception ignored) {
+                        ahItem.put("material", "UNKNOWN");
+                    }
+
                     ahItems.add(ahItem);
                 }
             }

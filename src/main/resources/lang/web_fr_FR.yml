@@ -20,16 +20,16 @@ web:
       auth: Système de connexion pour serveurs offline.
       bluemap: Intégration et marqueurs BlueMap.
       chat: Formatage du chat et gestion des préfixes/canaux.
-      cmdback: Commande de retour à la dernière position.
-      cmdhome: Commande de gestion des homes.
-      cmdspawn: Commande de téléportation au spawn.
-      cmdtpa: Commande de téléportation vers d'autres joueurs.
+      back: Commande de retour à la dernière position.
+      home: Commande de gestion des homes.
+      spawn: Commande de téléportation au spawn.
+      tpa: Commande de téléportation vers d'autres joueurs.
       customgui: Interface personnalisée via le web.
       discord: Liaison du chat en jeu avec un bot Discord.
       dynamicshop: Boutique en jeu dont les prix fluctuent selon l'offre et la demande.
       economy: Gestion de l'économie Vault, des devises et des transactions.
       fastleafdecay: Destruction rapide des feuilles des arbres coupés.
-      gui: Création de menus virtuels personnalisés.
+      'gui api': Création de menus virtuels personnalisés.
       headdrop: Les joueurs et mobs ont une chance de drop leur tête.
       jobs: Système de métiers et de niveaux pour les joueurs.
       locks: Verrouillage des coffres et portes par panneaux.
@@ -117,9 +117,7 @@ web:
       tomb_expire: Temps d'expiration (Secondes)
       tomb_title: Configuration Tombes
       tomb_xp: Sauvegarder l'XP dans la tombe
-    shop:
-      new_cat: Nouvelle Catégorie
-      title: Gestion de la Boutique
+
     files:
       sidebar_title: Fichiers
       refresh: Actualiser
@@ -142,6 +140,7 @@ web:
     title: Panel Administrateur
     badge: Administrateur
     shop:
+      new_cat: Nouvelle Catégorie
       title: "Gestion de la Boutique"
       add_category: "Ajouter une Catégorie"
       add_item: "Ajouter un Objet"

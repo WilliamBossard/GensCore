@@ -272,7 +272,6 @@ public class TabBoardModule implements Module, Listener {
 
             // Utilise le cache de préfixe LuckPerms
             String prefixStr = prefixCache.computeIfAbsent(target.getUniqueId(), uuid -> getLuckPermsPrefix(target));
-            if (prefixStr.length() > 50) prefixStr = prefixStr.substring(0, 50);
 
             String platformTag = fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(target.getUniqueId())
                 ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix()

@@ -631,7 +631,9 @@ public class QuestModule implements Module, Listener {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quêtes Journalières"));
+        QuestGuiHolder holder = new QuestGuiHolder();
+        Inventory inv = Bukkit.createInventory(holder, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quêtes Journalières"));
+        holder.setInventory(inv);
         PlayerQuestData data = playerData.get(p.getUniqueId());
         
         if (data == null) {
@@ -745,10 +747,16 @@ public class QuestModule implements Module, Listener {
         p.openInventory(inv);
     }
 
+    public static class QuestGuiHolder implements org.bukkit.inventory.InventoryHolder {
+        private Inventory inventory;
+        public void setInventory(Inventory inv) { this.inventory = inv; }
+        @Override public Inventory getInventory() { return inventory; }
+    }
+
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!enabled) return;
-        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quêtes Journalières")) {
+        if (event.getInventory().getHolder() instanceof QuestGuiHolder) {
             if (event.getClickedInventory() == null) return;
             if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
                 if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {

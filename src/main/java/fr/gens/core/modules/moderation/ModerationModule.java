@@ -200,7 +200,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("freeze <target>")
-    public void executeFreeze(CommandSender sender, @Argument("target") String targetName) {
+    public void executeFreeze(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.freeze")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_1");
@@ -246,7 +246,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("openinv <target>")
-    public void executeOpenInv(org.bukkit.command.CommandSender sender, @Argument("target") String targetName) {
+    public void executeOpenInv(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
@@ -270,7 +270,9 @@ public class ModerationModule implements Module, Listener {
             ItemStack[] contents = target.getInventory().getContents();
             
             plugin.getFoliaLib().getScheduler().runAtEntity(p, (s) -> {
-                org.bukkit.inventory.Inventory inv = Bukkit.createInventory(null, 45, net.kyori.adventure.text.Component.text("Inv: " + target.getName()));
+                ModerationInvseeHolder holder = new ModerationInvseeHolder();
+                org.bukkit.inventory.Inventory inv = Bukkit.createInventory(holder, 45, net.kyori.adventure.text.Component.text("Inv: " + target.getName()));
+                holder.setInventory(inv);
                 inv.setContents(contents);
                 p.openInventory(inv);
                 p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Lecture seule (Clone Folia)"));
@@ -278,19 +280,22 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
+    public static class ModerationInvseeHolder implements org.bukkit.inventory.InventoryHolder {
+        private org.bukkit.inventory.Inventory inventory;
+        public void setInventory(org.bukkit.inventory.Inventory inv) { this.inventory = inv; }
+        @Override public org.bukkit.inventory.Inventory getInventory() { return inventory; }
+    }
+
     @EventHandler
     public void onModerationInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event) {
-        if (event.getView().title() != null) {
-            String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
-            if (title.startsWith("Inv: ")) {
-                event.setCancelled(true);
-            }
+        if (event.getInventory().getHolder() instanceof ModerationInvseeHolder) {
+            event.setCancelled(true);
         }
     }
 
 
     @CommandMethod("resetmdp <target>")
-    public void executeResetMdp(CommandSender sender, @Argument("target") String targetName) {
+    public void executeResetMdp(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.admin")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_10");
@@ -342,7 +347,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("mute <target> [args]")
-    public void executeMute(CommandSender sender, @Argument("target") String targetName, @Argument(value = "args", defaultValue = "") @Greedy String argsString) {
+    public void executeMute(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName, @Argument(value = "args", defaultValue = "") @Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.mute")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_14");
@@ -389,7 +394,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("unmute <target>")
-    public void executeUnmute(CommandSender sender, @Argument("target") String targetName) {
+    public void executeUnmute(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.mute")) return;
         
@@ -410,7 +415,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("ban <target> [args]")
-    public void executeBan(CommandSender sender, @Argument("target") String targetName, @Argument(value = "args", defaultValue = "") @Greedy String argsString) {
+    public void executeBan(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName, @Argument(value = "args", defaultValue = "") @Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.ban")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
@@ -458,7 +463,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("kick <target> [args]")
-    public void executeKick(org.bukkit.command.CommandSender sender, @Argument("target") String targetName, @Argument(value = "args", defaultValue = "") @cloud.commandframework.annotations.specifier.Greedy String argsString) {
+    public void executeKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName, @Argument(value = "args", defaultValue = "") @cloud.commandframework.annotations.specifier.Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.kick")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
@@ -492,7 +497,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("unban <target>")
-    public void executeUnban(CommandSender sender, @Argument("target") String targetName) {
+    public void executeUnban(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.ban")) return;
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {

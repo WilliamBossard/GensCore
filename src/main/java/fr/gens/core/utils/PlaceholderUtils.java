@@ -29,6 +29,10 @@ public class PlaceholderUtils {
         
         String processed = text.replace("§", "&");
         
+        // Convertir les couleurs hex legacy (&x&r&r&g&g&b&b) et (&#rrggbb) en MiniMessage
+        processed = processed.replaceAll("&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
+        processed = processed.replaceAll("&#([0-9a-fA-F]{6})", "<#$1>");
+        
         // Convertir tous les codes legacy (&a, &l, etc.) en balises MiniMessage
         String mmString = processed
             .replace("&0", "<black>")
@@ -197,6 +201,9 @@ public class PlaceholderUtils {
         }
 
         // Convertir également les codes couleurs legacy introduits par PAPI en MiniMessage
+        mmText = mmText.replaceAll("&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
+        mmText = mmText.replaceAll("&#([0-9a-fA-F]{6})", "<#$1>");
+        
         mmText = mmText
                 .replace("&0", "<black>")
                 .replace("&1", "<dark_blue>")
