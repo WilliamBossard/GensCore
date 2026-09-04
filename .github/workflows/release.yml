@@ -84,7 +84,7 @@ jobs:
         run: |
           cd web-panel
           npm ci
-          npm run build
+          npx vite build
 
       # Mettre à jour la version dans pom.xml pour que le JAR porte le bon numéro
       - name: Set Plugin Version in pom.xml
