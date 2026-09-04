@@ -273,41 +273,52 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         });
     }
 
+    private String getAvatarUrl(Player p) {
+        if (p == null) return "https://mc-heads.net/avatar/Steve";
+        String name = p.getName();
+        if (name.startsWith(".")) {
+            name = name.substring(1);
+        }
+        return "https://mc-heads.net/avatar/" + name;
+    }
+
     @EventHandler
     public void onChat(AsyncChatEvent event) {
         if (!enabled) return;
         
-        String prefix = "";
+        String prefix = fr.gens.core.utils.FloodgateUtil.getJavaDiscordPrefix();
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(event.getPlayer().getUniqueId())) {
+            prefix = fr.gens.core.utils.FloodgateUtil.getBedrockDiscordPrefix();
+        }
+
+        // Récupérer le préfixe LuckPerms (ex: Owner, Admin)
+        String platformPrefix = "";
         try {
-            net.luckperms.api.model.user.User user = net.luckperms.api.LuckPermsProvider.get().getUserManager().getUser(event.getPlayer().getUniqueId());
+            LuckPerms api = LuckPermsProvider.get();
+            User user = api.getUserManager().getUser(event.getPlayer().getUniqueId());
             if (user != null) {
                 String lpPrefix = user.getCachedData().getMetaData().getPrefix();
                 if (lpPrefix != null) {
-                    net.kyori.adventure.text.Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix);
-                    prefix = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(prefixComp) + " ";
+                    // On retire les codes couleurs MiniMessage
+                    platformPrefix = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().stripTags(lpPrefix).trim() + " ";
                 }
             }
         } catch (Exception ignored) {}
-        
-        String guild = "";
+
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
-        if (team != null) guild = "[" + team.getName() + "] ";
-        
-        String platformPrefix = !fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled() ? "" : 
-                (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(event.getPlayer().getUniqueId()) 
-                ? fr.gens.core.utils.FloodgateUtil.getBedrockDiscordPrefix() : fr.gens.core.utils.FloodgateUtil.getJavaDiscordPrefix());
-        
+        String guild = (team != null) ? "[" + team.getName() + "] " : "";
+
         String username = platformPrefix + prefix + guild + event.getPlayer().getName();
         String messageText = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.message());
         
-        sendChatWebhook(messageText, "https://mc-heads.net/avatar/" + event.getPlayer().getName(), username);
+        sendChatWebhook(messageText, getAvatarUrl(event.getPlayer()), username);
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         if (!enabled) return;
         Player p = event.getPlayer();
-        sendBotEmbed(p.getName() + " a rejoint le serveur", "https://mc-heads.net/avatar/" + p.getName(), Color.GREEN);
+        sendBotEmbed(p.getName() + " a rejoint le serveur", getAvatarUrl(p), Color.GREEN);
         
         // Synchroniser le badge Discord
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
@@ -345,7 +356,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         if (!enabled) return;
-        sendBotEmbed(event.getPlayer().getName() + " a quitté le serveur", "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.RED);
+        sendBotEmbed(event.getPlayer().getName() + " a quitté le serveur", getAvatarUrl(event.getPlayer()), Color.RED);
     }
 
     @EventHandler
@@ -360,7 +371,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(advancement.getDisplay().title());
         String message = event.getPlayer().getName() + " a accompli le progrès [" + title + "] !";
         
-        sendBotEmbed(message, "https://mc-heads.net/avatar/" + event.getPlayer().getName(), Color.YELLOW);
+        sendBotEmbed(message, getAvatarUrl(event.getPlayer()), Color.YELLOW);
     }
 
     @CommandMethod("discord link")
