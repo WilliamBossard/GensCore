@@ -78,6 +78,9 @@ jobs:
           cache-dependency-path: web-panel/package-lock.json
 
       - name: Build Web Panel (React)
+        timeout-minutes: 5
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd web-panel
           npm ci
