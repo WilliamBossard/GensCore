@@ -68,7 +68,7 @@ public class ChatModule implements Module, Listener {
                 String lpPrefix = user.getCachedData().getMetaData().getPrefix();
                 if (lpPrefix != null) {
                     net.kyori.adventure.text.Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix);
-                    resolvedPrefix = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().serialize(prefixComp) + " ";
+                    resolvedPrefix = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().serialize(prefixComp).stripTrailing() + " ";
                 } else {
                     resolvedPrefix = "<gray>[Joueur] ";
                 }

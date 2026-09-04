@@ -420,8 +420,10 @@ public class WebPlayerAPI implements Listener {
         public String password;
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class PlayRequest {
         public String gameId;
+        public String uuid; // Accepté (envoyé par le panel web) mais non utilisé côté serveur
     }
 
     @EventHandler
