@@ -143,6 +143,19 @@ public class ShopModule implements Module {
     }
 
     public void openCategoryGui(Player player) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            for (ShopCategory cat : categories) {
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(
+                    cat.getDisplayName() + "\n§8" + cat.getItems().size() + " objets",
+                    cat.getIcon(),
+                    p -> openItemsGui(p, cat)
+                ));
+            }
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Boutique", "Sélectionnez une catégorie :", buttons);
+            return;
+        }
+
         ShopCategoryGuiHolder holder = new ShopCategoryGuiHolder();
         int size = Math.max(9, (int) (Math.ceil(categories.size() / 9.0) * 9));
         Inventory inv = Bukkit.createInventory(holder, size, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Boutique - Catégories"));
@@ -167,6 +180,29 @@ public class ShopModule implements Module {
     }
 
     public void openItemsGui(Player player, ShopCategory category) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§c§lRetour\n§r§8Menu Principal", org.bukkit.Material.BARRIER, p -> openCategoryGui(p)));
+
+            for (ShopItem item : category.getItems()) {
+                if (!item.isEnabled()) continue;
+                String btnText = item.getMaterial().name() + "\n";
+                if (item.isCommand()) {
+                    btnText += "§aPrix: " + String.format("%.2f", item.getCurrentBuyPrice()) + "$";
+                } else {
+                    btnText += "§aAchat: " + String.format("%.2f", item.getCurrentBuyPrice()) + "$";
+                    if (item.getBaseSellPrice() > 0) {
+                        btnText += " | §cVente: " + String.format("%.2f", item.getCurrentSellPrice()) + "$";
+                    }
+                }
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, item.getMaterial(), p -> {
+                    openBedrockItemAction(p, category, item);
+                }));
+            }
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Shop - " + category.getDisplayName(), "Sélectionnez un objet :", buttons);
+            return;
+        }
+
         ShopItemsGuiHolder holder = new ShopItemsGuiHolder(category);
         Inventory inv = Bukkit.createInventory(holder, 54, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Shop - " + category.getDisplayName()));
         holder.setInventory(inv);
@@ -213,6 +249,51 @@ public class ShopModule implements Module {
         player.openInventory(inv);
     }
 
+    public void openBedrockItemAction(Player player, ShopCategory category, ShopItem item) {
+        java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+        
+        if (item.isCommand()) {
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAcheter (x1)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice()) + "$", org.bukkit.Material.EMERALD, p -> {
+                buyItem(p, item, 1);
+                openItemsGui(p, category);
+            }));
+        } else {
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAcheter (x1)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice()) + "$", org.bukkit.Material.EMERALD, p -> {
+                buyItem(p, item, 1);
+                openItemsGui(p, category);
+            }));
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAcheter (x64)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice() * 64) + "$", org.bukkit.Material.EMERALD_BLOCK, p -> {
+                buyItem(p, item, 64);
+                openItemsGui(p, category);
+            }));
+            if (item.getBaseSellPrice() > 0) {
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cVendre (x1)\n§r§8" + String.format("%.2f", item.getCurrentSellPrice()) + "$", org.bukkit.Material.REDSTONE, p -> {
+                    sellItem(p, item, 1);
+                    openItemsGui(p, category);
+                }));
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cVendre Tout\n§r§8Inventaire", org.bukkit.Material.REDSTONE_BLOCK, p -> {
+                    sellAll(p, item);
+                    openItemsGui(p, category);
+                }));
+            }
+        }
+        
+        buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cRetour\n§r§8Objets", org.bukkit.Material.BARRIER, p -> openItemsGui(p, category)));
+
+        fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Action: " + item.getMaterial().name(), "Que voulez-vous faire ?", buttons);
+    }
+
+    private void sellAll(Player p, ShopItem item) {
+        int count = 0;
+        for (ItemStack invItem : p.getInventory().getContents()) {
+            if (invItem != null && invItem.getType() == item.getMaterial()) {
+                count += invItem.getAmount();
+            }
+        }
+        if (count > 0) sellItem(p, item, count);
+        else plugin.getLangManager().sendMessage(p, "shopmodule.msg_4");
+    }
+
     private class ShopCategoryGuiHolder implements GensGuiHolder {
         private Inventory inventory;
 
@@ -255,82 +336,85 @@ public class ShopModule implements Module {
 
             ShopItem shopItem = category.getItem(clicked.getType());
             if (shopItem != null) {
-                EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
-                if (eco == null) return;
-
-                int amount = (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) ? 64 : 1;
-                boolean isBuy = (event.getClick() == ClickType.LEFT || event.getClick() == ClickType.SHIFT_LEFT);
+                int amount = (event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_LEFT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) ? 64 : 1;
+                boolean isBuy = (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_LEFT);
 
                 if (isBuy) {
-                    double totalCost = shopItem.getCurrentBuyPrice() * amount;
-                    if (eco.takeMoneyAtomic(p.getUniqueId(), totalCost)) {
-                        shopItem.setStock(Math.max(0, shopItem.getStock() - amount));
-                        
-                        if (shopItem.isCommand()) {
-                            String cmd = shopItem.getCommandToExecute().replace("%player%", p.getName());
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat validé ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
-                        } else {
-                            p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
-                            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
-                        }
-                        
-                        openItemsGui(p, category); // Refresh
-                        saveShop();
-                        logTransaction(shopItem);
-                        logPlayerTransaction(p.getUniqueId(), "ACHAT", shopItem.getMaterial().name(), amount, totalCost);
-                    } else {
-                        plugin.getLangManager().sendMessage(p, "shopmodule.msg_2");
-                    }
+                    buyItem(p, shopItem, amount);
+                    openItemsGui(p, category); // Refresh
                 } else {
                     if (shopItem.isCommand()) {
                         plugin.getLangManager().sendMessage(p, "shopmodule.msg_3");
                         return;
                     }
-                    
-                    int playerHas = 0;
-                    for (ItemStack i : p.getInventory().getContents()) {
-                        if (i != null && i.getType() == shopItem.getMaterial()) {
-                            playerHas += i.getAmount();
-                        }
-                    }
-
-                    if (playerHas >= amount) {
-                        double totalEarn = shopItem.getCurrentSellPrice() * amount;
-                        
-                        // Retirer l'item de l'inventaire
-                        int toRemove = amount;
-                        for (ItemStack i : p.getInventory().getContents()) {
-                            if (i != null && i.getType() == shopItem.getMaterial()) {
-                                if (i.getAmount() <= toRemove) {
-                                    toRemove -= i.getAmount();
-                                    i.setAmount(0);
-                                } else {
-                                    i.setAmount(i.getAmount() - toRemove);
-                                    toRemove = 0;
-                                }
-                                if (toRemove <= 0) break;
-                            }
-                        }
-
-                        eco.giveMoney(p.getUniqueId(), totalEarn);
-                        
-                        // Modifier le stock (augmente car les joueurs vendent au serveur)
-                        shopItem.setStock(shopItem.getStock() + amount);
-                        
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $"));
-                        openItemsGui(p, category); // Refresh
-                        saveShop();
-                        logTransaction(shopItem);
-                        logPlayerTransaction(p.getUniqueId(), "VENTE", shopItem.getMaterial().name(), amount, totalEarn);
-                    } else {
-                        plugin.getLangManager().sendMessage(p, "shopmodule.msg_4");
-                    }
+                    sellItem(p, shopItem, amount);
+                    openItemsGui(p, category); // Refresh
                 }
             }
         }
     }
+
+    public void buyItem(Player p, ShopItem shopItem, int amount) {
+        EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
+        if (eco == null) return;
+        double totalCost = shopItem.getCurrentBuyPrice() * amount;
+        if (eco.takeMoneyAtomic(p.getUniqueId(), totalCost)) {
+            shopItem.setStock(Math.max(0, shopItem.getStock() - amount));
+            
+            if (shopItem.isCommand()) {
+                String cmd = shopItem.getCommandToExecute().replace("%player%", p.getName());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat validé ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
+            } else {
+                p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
+                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
+            }
+            
+            saveShop();
+            logTransaction(shopItem);
+            logPlayerTransaction(p.getUniqueId(), "ACHAT", shopItem.getMaterial().name(), amount, totalCost);
+        } else {
+            plugin.getLangManager().sendMessage(p, "shopmodule.msg_2");
+        }
+    }
+
+    public void sellItem(Player p, ShopItem shopItem, int amount) {
+        EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
+        if (eco == null) return;
+        
+        int playerHas = 0;
+        for (ItemStack i : p.getInventory().getContents()) {
+            if (i != null && i.getType() == shopItem.getMaterial()) {
+                playerHas += i.getAmount();
+            }
+        }
+
+        if (playerHas >= amount) {
+            double totalEarn = shopItem.getCurrentSellPrice() * amount;
+            
+            // Retirer l'item de l'inventaire
+            int toRemove = amount;
+            for (ItemStack i : p.getInventory().getContents()) {
+                if (i != null && i.getType() == shopItem.getMaterial()) {
+                    if (i.getAmount() <= toRemove) {
+                        toRemove -= i.getAmount();
+                        i.setAmount(0);
+                    } else {
+                        i.setAmount(i.getAmount() - toRemove);
+                        toRemove = 0;
+                    }
+                    if (toRemove <= 0) break;
+                }
+            }
+
+            eco.giveMoney(p.getUniqueId(), totalEarn);
+            shopItem.setStock(shopItem.getStock() + amount);
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $"));
+            saveShop();
+            logTransaction(shopItem);
+            logPlayerTransaction(p.getUniqueId(), "VENTE", shopItem.getMaterial().name(), amount, totalEarn);
+        } else {
+            plugin.getLangManager().sendMessage(p, "shopmodule.msg_4");
+        }
+    }
 }
-
-
-

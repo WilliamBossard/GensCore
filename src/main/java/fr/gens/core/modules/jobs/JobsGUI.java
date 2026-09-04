@@ -26,6 +26,46 @@ public class JobsGUI implements Listener {
     }
 
     public void openGUI(Player player) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new ArrayList<>();
+            for (JobType type : JobType.values()) {
+                boolean hasJob = jobsModule.hasJob(player.getUniqueId(), type);
+                int level = jobsModule.getLevel(player.getUniqueId(), type);
+                double xp = jobsModule.getXp(player.getUniqueId(), type);
+                
+                Material mat = Material.IRON_PICKAXE;
+                if (type == JobType.BUCHERON) mat = Material.IRON_AXE;
+                if (type == JobType.FERMIER) mat = Material.IRON_HOE;
+                if (type == JobType.CHASSEUR) mat = Material.IRON_SWORD;
+                
+                String btnText = type.getDisplayName() + "\n";
+                btnText += "Niveau: " + level + " | XP: " + String.format("%.0f", xp) + "\n";
+                if (hasJob) {
+                    btnText += "§2[Actif] Cliquez pour quitter";
+                } else {
+                    btnText += "§4[Inactif] Cliquez pour rejoindre";
+                }
+                
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, mat, p -> {
+                    if (jobsModule.hasJob(p.getUniqueId(), type)) {
+                        jobsModule.leaveJob(p.getUniqueId(), type);
+                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez quitté le métier " + type.getDisplayName() + " !"));
+                    } else {
+                        if (jobsModule.getActiveJobsCount(p.getUniqueId()) >= 2) {
+                            plugin.getLangManager().sendMessage(p, "jobsgui.msg_1");
+                        } else {
+                            jobsModule.joinJob(p.getUniqueId(), type);
+                            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez rejoint le métier " + type.getDisplayName() + " !"));
+                        }
+                    }
+                    openGUI(p); // Re-open
+                }));
+            }
+            
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Métiers", "Sélectionnez un métier pour le rejoindre ou le quitter :", buttons);
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(null, 36, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>■ §x<white><white><aqua><gray><black><dark_aqua>Métiers <dark_gray>■"));
 
         // Fill background

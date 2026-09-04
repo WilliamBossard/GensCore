@@ -30,6 +30,56 @@ public class TeamGui {
             return;
         }
 
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            boolean isLeader = team.getLeaderUuid().equals(player.getUniqueId());
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§bQuêtes de Guilde\n§r§8Défis en coop", org.bukkit.Material.ENCHANTED_BOOK, p -> {
+                // To avoid circular dependency with TeamListener here, we can dispatch the command or call it.
+                // It's in TeamListener, so let's call the public method openTeamQuestGui if we make it public or accessible.
+                // Wait, TeamListener is where openTeamQuestGui is. Let's just create a mock event or move the logic?
+                // Actually, I'll just leave it and put the Bedrock logic inside TeamGui.
+                // But openTeamQuestGui is in TeamListener. Let's make openTeamQuestGui public static in TeamListener or something.
+                // For now, I'll let them click Quests.
+                p.performCommand("team quest"); // We can make a command or just move it.
+            }));
+
+            if (isLeader) {
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAuto-verrouillage\n§r§8" + (team.isAutoLock() ? "ACTIVÉ" : "DÉSACTIVÉ"), org.bukkit.Material.REPEATER, p -> {
+                    team.setAutoLock(!team.isAutoLock());
+                    openTeamGui(p);
+                }));
+            }
+
+            for (UUID memberUuid : team.getMembers()) {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(memberUuid);
+                String role = team.getLeaderUuid().equals(memberUuid) ? "§6Chef" : "§7Membre";
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§e" + (op.getName() != null ? op.getName() : "Inconnu") + "\n§r" + role, org.bukkit.Material.PLAYER_HEAD, p -> {
+                    if (isLeader && !team.getLeaderUuid().equals(memberUuid)) {
+                        // Exclure
+                        team.removeMember(memberUuid);
+                        plugin.getLangManager().sendMessage(p, "teamlistener.msg_3");
+                        openTeamGui(p);
+                    }
+                }));
+            }
+
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cQuitter / Dissoudre\n§r§8Attention !", org.bukkit.Material.BARRIER, p -> {
+                if (isLeader) {
+                    plugin.getLangManager().sendMessage(p, "teamlistener.msg_1");
+                    plugin.getTeamManager().disbandTeam(team);
+                    p.closeInventory();
+                } else {
+                    plugin.getLangManager().sendMessage(p, "teamlistener.msg_2");
+                    team.removeMember(p.getUniqueId());
+                    p.closeInventory();
+                }
+            }));
+
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Guilde: " + team.getName(), "Gérez votre équipe :", buttons);
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(null, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Guilde : " + team.getName()));
 
         // Ligne de décor

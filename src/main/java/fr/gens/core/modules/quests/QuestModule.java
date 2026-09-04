@@ -564,6 +564,62 @@ public class QuestModule implements Module, Listener {
     }
 
     public void openQuestsMenu(Player p) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
+            PlayerQuestData data = playerData.get(p.getUniqueId());
+            if (data == null) {
+                plugin.getLangManager().sendMessage(p, "questmodule.msg_3");
+                return;
+            }
+
+            int achieved = 0;
+            int totalDay = 0;
+            for (java.util.Map<String, Boolean> comp : data.getCompletedQuests().values()) {
+                for (Boolean b : comp.values()) {
+                    if (b) achieved++;
+                }
+            }
+            for (java.util.Map<String, Integer> act : data.getActiveQuests().values()) {
+                totalDay += act.size();
+            }
+
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§b§lStatistiques\n§r§8" + achieved + "/" + totalDay + " quêtes accomplies", org.bukkit.Material.PLAYER_HEAD, player -> openQuestsMenu(player)));
+
+            for (java.util.Map.Entry<String, java.util.Map<String, Integer>> catEntry : data.getActiveQuests().entrySet()) {
+                String category = catEntry.getKey();
+                for (java.util.Map.Entry<String, Integer> qEntry : catEntry.getValue().entrySet()) {
+                    String questId = qEntry.getKey();
+                    boolean completed = data.isCompleted(category, questId);
+                    Quest q = getQuest(category, questId);
+                    if (q == null) continue;
+
+                    org.bukkit.Material mat = org.bukkit.Material.matchMaterial(q.getMenuItem());
+                    if (mat == null) mat = org.bukkit.Material.PAPER;
+                    
+                    String btnText = q.getName() + "\n";
+                    if (completed) {
+                        btnText += "§2[TERMINÉ]";
+                    } else {
+                        btnText += "§7Progression: " + qEntry.getValue() + " / " + q.getRequiredAmount() + " (Clic Reroll)";
+                    }
+
+                    buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, mat, player -> {
+                        int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
+                        if (!completed && data.getRerollsDone() < limit) {
+                            rerollQuest(player, category, questId, data);
+                            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>La quête a été remplacée !"));
+                            openQuestsMenu(player);
+                        } else if (!completed) {
+                            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez plus de rerolls disponibles !"));
+                        }
+                    }));
+                }
+            }
+
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(p, "Quêtes Journalières", "Voici vos quêtes du jour :", buttons);
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(null, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quêtes Journalières"));
         PlayerQuestData data = playerData.get(p.getUniqueId());
         

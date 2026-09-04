@@ -173,6 +173,63 @@ public class CustomGuiModule implements Module, Listener {
     }
 
     public void openMenu(Player player, CustomMenu menu) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            // Sort by slot to keep order
+            java.util.List<Map.Entry<Integer, CustomMenu.MenuItem>> sortedItems = new java.util.ArrayList<>(menu.getItems().entrySet());
+            sortedItems.sort(Map.Entry.comparingByKey());
+
+            for (Map.Entry<Integer, CustomMenu.MenuItem> entry : sortedItems) {
+                CustomMenu.MenuItem mi = entry.getValue();
+                ItemStack baseItem = mi.item;
+                String cmdToRun = mi.command;
+                
+                if (mi.isPredicate) {
+                    if (mi.permission != null && player.hasPermission(mi.permission)) {
+                        baseItem = mi.item;
+                        cmdToRun = mi.command;
+                    } else {
+                        baseItem = mi.fallbackItem;
+                        cmdToRun = mi.fallbackCommand;
+                    }
+                }
+                
+                if (baseItem == null) continue;
+                // Ignorer les vitres de décoration sans commande
+                if ((cmdToRun == null || cmdToRun.isEmpty()) && baseItem.getType().name().contains("GLASS_PANE")) continue;
+                
+                ItemMeta meta = baseItem.getItemMeta();
+                String btnText = "Objet";
+                if (meta != null && meta.hasDisplayName()) {
+                    btnText = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(meta.displayName());
+                } else {
+                    btnText = baseItem.getType().name();
+                }
+                
+                final String finalCmd = cmdToRun;
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, baseItem.getType(), p -> {
+                    if (finalCmd != null && !finalCmd.isEmpty()) {
+                        if (finalCmd.equalsIgnoreCase("close")) return;
+                        if (finalCmd.startsWith("player: ")) {
+                            String cmd = finalCmd.substring(8).replace("%player_name%", p.getName());
+                            if (cmd.equals("profil") || cmd.equals("tuto")) {
+                                openMenu(p, menus.get(cmd));
+                            } else {
+                                p.performCommand(cmd);
+                            }
+                        } else if (finalCmd.startsWith("console: ")) {
+                            String cmd = finalCmd.substring(9).replace("%player_name%", p.getName());
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                        } else {
+                            p.performCommand(finalCmd);
+                        }
+                    }
+                }));
+            }
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, menu.getTitle(), "Sélectionnez une option :", buttons);
+            return;
+        }
+
         net.kyori.adventure.text.Component parsedTitle = PlaceholderUtils.setPlaceholdersComponent(plugin, player, menu.getTitle());
         Inventory inv = Bukkit.createInventory(null, menu.getSize(), parsedTitle);
 
