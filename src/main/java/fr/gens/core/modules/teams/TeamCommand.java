@@ -35,7 +35,7 @@ public class TeamCommand {
     }
 
     @CommandMethod("team|guild|guilde create <name>")
-    public void executeTeamCreate(org.bukkit.command.CommandSender sender, @Argument("name") String name) {
+    public void executeTeamCreate(org.bukkit.command.CommandSender sender, @Argument(value = "name", description = "Nom de la team") String name) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) {
@@ -62,7 +62,7 @@ public class TeamCommand {
     }
 
     @CommandMethod("team|guild|guilde invite <target>")
-    public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers") String targetName) {
+    public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!module.isEnabled()) return;

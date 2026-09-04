@@ -22,7 +22,7 @@ public class LockCommand {
     }
 
     @CommandMethod("lock [action]")
-    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", defaultValue = "", suggestions = "lockActions") String action) {
+    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", defaultValue = "", suggestions = "lockActions", description = "L'action à effectuer") String action) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!lockModule.isEnabled()) {

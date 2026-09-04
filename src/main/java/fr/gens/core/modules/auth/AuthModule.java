@@ -260,7 +260,7 @@ public class AuthModule implements Module, Listener {
     }
 
     @CommandMethod("changemdp <oldPass> <newPass>")
-    public void executeChangeMdp(org.bukkit.command.CommandSender sender, @Argument("oldPass") String oldPass, @Argument("newPass") String newPass) {
+    public void executeChangeMdp(org.bukkit.command.CommandSender sender, @Argument(value = "oldPass", description = "Ancien mot de passe") String oldPass, @Argument(value = "newPass", description = "Nouveau mot de passe") String newPass) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;

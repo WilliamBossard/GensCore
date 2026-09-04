@@ -156,7 +156,7 @@ public class CustomGuiModule implements Module, Listener {
     }
 
     @CommandMethod("menu [name]")
-    public void executeMenu(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "principal", suggestions = "menus") String menuName) {
+    public void executeMenu(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "principal", suggestions = "menus", description = "Le nom du menu") String menuName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (menuName == null || menuName.isEmpty()) menuName = "principal";

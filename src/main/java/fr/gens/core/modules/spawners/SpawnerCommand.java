@@ -70,7 +70,7 @@ public class SpawnerCommand {
     }
 
     @CommandMethod("spawner give <player> <type> [stack]")
-    public void executeSpawnerGive(CommandSender sender, @Argument(value = "player", suggestions = "onlinePlayers") String playerName, @Argument(value = "type", suggestions = "spawnerTypes") String type, @Argument(value = "stack", defaultValue = "1") int stack) {
+    public void executeSpawnerGive(CommandSender sender, @Argument(value = "player", suggestions = "onlinePlayers", description = "Le joueur ciblé") String playerName, @Argument(value = "type", suggestions = "spawnerTypes", description = "Le type de spawner") String type, @Argument(value = "stack", defaultValue = "1", description = "La quantité") int stack) {
         if (!sender.hasPermission("genscore.admin.spawner")) {
             plugin.getLangManager().sendMessage(sender, "spawnercommand.msg_1");
             return;

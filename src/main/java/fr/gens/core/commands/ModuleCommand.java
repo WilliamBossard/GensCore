@@ -18,7 +18,7 @@ public class ModuleCommand {
 
     @CommandMethod("module <moduleName> <state>")
     @CommandPermission("genscore.admin")
-    public void execute(CommandSender sender, @Argument(value = "moduleName", suggestions = "moduleNames") String moduleName, @Argument(value = "state", suggestions = "moduleStates") String stateStr) {
+    public void execute(CommandSender sender, @Argument(value = "moduleName", suggestions = "moduleNames", description = "Le nom du module") String moduleName, @Argument(value = "state", suggestions = "moduleStates", description = "enable ou disable") String stateStr) {
         Module module = plugin.getModuleManager().getModule(moduleName);
         if (module == null) {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Module introuvable: " + moduleName));
