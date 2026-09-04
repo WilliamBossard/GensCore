@@ -80,7 +80,7 @@ public class HeadDropModule implements Module, Listener {
             SkullMeta meta = (SkullMeta) head.getItemMeta();
             
             if (meta != null) {
-                meta.setOwningPlayer(victim);
+                meta.setPlayerProfile(victim.getPlayerProfile());
                 meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Tête de <gold>" + victim.getName()));
 
                 List<String> lore = new ArrayList<>();

@@ -111,7 +111,7 @@ public class TeamGui {
             OfflinePlayer op = Bukkit.getOfflinePlayer(memberUuid);
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
-            meta.setOwningPlayer(op);
+            meta.setPlayerProfile(op.getPlayerProfile());
             meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>" + (op.getName() != null ? op.getName() : "Joueur Inconnu")));
             List<String> lore = new ArrayList<>();
             if (team.getLeaderUuid().equals(memberUuid)) {

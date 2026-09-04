@@ -643,7 +643,7 @@ public class QuestModule implements Module, Listener {
         int completedTotal = data.getCompletedTotal();
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta sm = (SkullMeta) head.getItemMeta();
-        sm.setOwningPlayer(p);
+        sm.setPlayerProfile(p.getPlayerProfile());
         sm.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<aqua>" + p.getName()));
         List<String> hl = new ArrayList<>();
         hl.add("<dark_aqua>Statut:");

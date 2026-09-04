@@ -123,9 +123,9 @@ public class TombListener implements Listener {
             org.bukkit.block.BlockState state = targetBlock.getState();
             if (state instanceof org.bukkit.block.Skull) {
                 org.bukkit.block.Skull skull = (org.bukkit.block.Skull) state;
-                // Use setOwningPlayer for better compatibility since Paper deprecated all Bukkit methods
-                org.bukkit.OfflinePlayer owningPlayer = player;
-                skull.setOwningPlayer(owningPlayer);
+                // Use setPlayerProfile for better compatibility since Paper deprecated all Bukkit methods
+                // and it preserves Bedrock skins from SkinsRestorer
+                skull.setPlayerProfile(player.getPlayerProfile());
                 skull.update();
             }
         }
