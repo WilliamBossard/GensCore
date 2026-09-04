@@ -54,6 +54,13 @@ interface ShopCategory {
 // === CONSTANTES ===
 const API_URL = '/api';
 
+// Retourne l'URL de l'avatar (compatible Bedrock)
+function getPlayerAvatarUrl(name: string, size: number = 64): string {
+  if (!name) return `https://mc-heads.net/avatar/Steve/${size}`;
+  const cleanName = name.startsWith('.') ? name.substring(1) : name;
+  return `https://mc-heads.net/avatar/${encodeURIComponent(cleanName)}/${size}`;
+}
+
 // === COMPOSANT : LOGIN ADMIN ===
 function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
   const { t } = useTranslation();
@@ -468,7 +475,7 @@ function AdminPlayers({ password }: { password: string }) {
           <div key={p.uuid} className="admin-card" style={{padding: '1.5rem'}}>
             <div style={{display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '1.5rem'}}>
               <div style={{position: 'relative'}}>
-                <img src={`https://mc-heads.net/avatar/${p.name}`} alt={p.name} style={{width: '48px', height: '48px', borderRadius: '8px'}} />
+                <img src={getPlayerAvatarUrl(p.name)} alt={p.name} style={{width: '48px', height: '48px', borderRadius: '8px'}} />
                 <div style={{
                   position: 'absolute', bottom: '-4px', right: '-4px', width: '14px', height: '14px', borderRadius: '50%',
                   background: p.online ? 'var(--success)' : 'var(--text-muted)', border: '2px solid var(--card-bg)'
@@ -1333,7 +1340,7 @@ export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
                   {index + 1}
                 </td>
                 <td style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
-                  <img src={`https://mc-heads.net/avatar/${player.playerName}`} alt="skin" style={{width: '32px', height: '32px', borderRadius: '4px'}} />
+                  <img src={getPlayerAvatarUrl(player.playerName, 32)} alt="skin" style={{width: '32px', height: '32px', borderRadius: '4px'}} />
                   <strong style={{fontSize: '1.1rem'}}>{player.playerName}</strong>
                 </td>
                 <td style={{textAlign: 'right', fontWeight: 'bold', color: '#10b981', fontSize: '1.1rem'}}>
@@ -1392,7 +1399,7 @@ function PublicHome({ playerData }: { playerData: any }) {
         </div>
         {playerData ? (
           <Link to="/dashboard" className="btn" style={{display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 20px', background: 'var(--card-bg)', border: '1px solid var(--card-border)'}}>
-            <img src={`https://mc-heads.net/avatar/${playerData.username}`} alt="avatar" style={{width: '24px', height: '24px', borderRadius: '4px'}} />
+            <img src={getPlayerAvatarUrl(playerData.username)} alt="avatar" style={{width: '24px', height: '24px', borderRadius: '4px'}} />
             {t('web.public.profile_btn')}
           </Link>
         ) : (

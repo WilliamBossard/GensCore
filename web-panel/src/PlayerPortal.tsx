@@ -7,6 +7,16 @@ import { ClientJobs } from './ClientJobs';
 
 const API_URL = '/api';
 
+// Retourne l'URL de l'avatar du joueur.
+// Les joueurs Bedrock (nom commençant par '.') n'ont pas de skin sur mc-heads.net
+// donc on utilise un skin Steve générique avec un indicateur Bedrock.
+function getPlayerAvatarUrl(name: string, size: number = 64): string {
+  if (!name) return `https://mc-heads.net/avatar/Steve/${size}`;
+  const cleanName = name.startsWith('.') ? name.substring(1) : name;
+  // mc-heads.net supporte les noms avec/sans point, mais pour Bedrock on essaie via SkinsRestorer
+  return `https://mc-heads.net/avatar/${encodeURIComponent(cleanName)}/${size}`;
+}
+
 export function PlayerLogin({ onLogin }: { onLogin: (data: any) => void }) {
   const { t } = useTranslation();
   const [username, setUsername] = useState('');
@@ -187,7 +197,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
             <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
               {bestTeam.members && bestTeam.members.map((member: any, idx: number) => (
                 <div key={idx} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px'}}>
-                  <img src={`https://mc-heads.net/avatar/${member.name}/32`} alt="Head" style={{borderRadius: '4px'}} />
+                  <img src={getPlayerAvatarUrl(member.name, 32)} alt="Head" style={{borderRadius: '4px'}} />
                   <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{member.name}</span>
                 </div>
               ))}
@@ -504,7 +514,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header" style={{flexDirection: 'column', gap: '15px'}}>
-          <img src={`https://mc-heads.net/avatar/${playerData.username}/100`} alt="Avatar" style={{width: '64px', height: '64px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'}} />
+          <img src={getPlayerAvatarUrl(playerData.username, 100)} alt="Avatar" style={{width: '64px', height: '64px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'}} />
           <h2 style={{fontSize: '1.2rem', textAlign: 'center'}}>{playerData.username}</h2>
           {playerData.isOp && <span style={{background: '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold'}}>ADMIN</span>}
         </div>
