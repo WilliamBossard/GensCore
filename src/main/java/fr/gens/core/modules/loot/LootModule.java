@@ -327,6 +327,12 @@ public class LootModule implements Module, Listener {
             event.setCancelled(true);
         }
     }
+
+    @EventHandler
+    public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        if (!enabled) return;
+        lootManager.removePlayerCache(event.getPlayer().getUniqueId());
+    }
 }
 
 

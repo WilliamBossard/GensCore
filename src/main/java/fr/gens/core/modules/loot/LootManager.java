@@ -26,6 +26,7 @@ public class LootManager {
     private final File playerDataFolder;
 
     private final Map<String, LootChestData> chestsCache = new ConcurrentHashMap<>();
+    private final Map<UUID, FileConfiguration> playerCache = new ConcurrentHashMap<>();
 
     public LootManager(CorePlugin plugin) {
         this.plugin = plugin;
@@ -136,11 +137,20 @@ public class LootManager {
         return new File(playerDataFolder, uuid.toString() + ".yml");
     }
 
-    public ItemStack[] getPlayerLoot(UUID uuid, Location loc) {
-        File file = getPlayerFile(uuid);
-        if (!file.exists()) return null;
+    public void removePlayerCache(UUID uuid) {
+        playerCache.remove(uuid);
+    }
 
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+    private FileConfiguration getPlayerConfig(UUID uuid) {
+        return playerCache.computeIfAbsent(uuid, k -> {
+            File file = getPlayerFile(uuid);
+            if (!file.exists()) return new YamlConfiguration();
+            return YamlConfiguration.loadConfiguration(file);
+        });
+    }
+
+    public ItemStack[] getPlayerLoot(UUID uuid, Location loc) {
+        FileConfiguration config = getPlayerConfig(uuid);
         String key = locToString(loc);
         
         if (config.contains(key + ".items")) {
@@ -163,7 +173,7 @@ public class LootManager {
 
     public void savePlayerLoot(UUID uuid, Location loc, ItemStack[] items) {
         File file = getPlayerFile(uuid);
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        FileConfiguration config = getPlayerConfig(uuid);
         String key = locToString(loc);
         
         // Vérifier si l'inventaire est complètement vide, on peut nettoyer pour alléger
@@ -190,9 +200,7 @@ public class LootManager {
     }
 
     public boolean hasPlayerLooted(UUID uuid, Location loc) {
-        File file = getPlayerFile(uuid);
-        if (!file.exists()) return false;
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        FileConfiguration config = getPlayerConfig(uuid);
         return config.contains(locToString(loc));
     }
 

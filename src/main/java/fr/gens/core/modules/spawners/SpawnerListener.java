@@ -281,8 +281,9 @@ public class SpawnerListener implements Listener {
             module.getSpawnerManager().updateHologram(data);
         }
     }
+
+    @EventHandler
+    public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        vanillaBreakConfirm.remove(event.getPlayer().getUniqueId());
+    }
 }
-
-
-
-
