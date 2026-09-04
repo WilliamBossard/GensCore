@@ -63,6 +63,8 @@ public class StorageManager {
     }
 
     @SuppressWarnings("deprecation")
+    // NOTE: BukkitObjectInputStream is deprecated but intentionally used here for backward-compatibility
+    // with legacy serialized data (Java serialization format, prefix "rO0AB"). New data uses ItemStack.deserializeBytes().
     public ItemStack itemStackFromBase64(String data) {
         if (data == null || data.isEmpty()) return null;
         
@@ -111,6 +113,7 @@ public class StorageManager {
     }
 
     @SuppressWarnings("deprecation")
+    // NOTE: Same as above — legacy migration path only. New data uses ItemStack.deserializeBytes().
     public ItemStack[] itemStackArrayFromBase64(String data) {
         if (data == null || data.isEmpty()) return null;
         

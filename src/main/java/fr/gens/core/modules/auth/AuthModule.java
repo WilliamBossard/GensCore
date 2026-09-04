@@ -5,7 +5,8 @@ import fr.gens.core.modules.Module;
 import fr.gens.core.database.AuthDAO;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -147,7 +148,10 @@ public class AuthModule implements Module, Listener {
 
             authDAO.registerPlayer(uuid, hash, salt, ip);
             authenticated.add(uuid);
-            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_8"));
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                removeAuthEffects(p);
+                plugin.getLangManager().sendMessage(p, "authmodule.msg_8");
+            });
             
             fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
             if (discord != null && discord.isEnabled()) {
@@ -223,7 +227,10 @@ public class AuthModule implements Module, Listener {
                 loginAttempts.remove(uuid);
                 loginLockout.remove(uuid);
                 
-                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> plugin.getLangManager().sendMessage(p, "authmodule.msg_13"));
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                    removeAuthEffects(p);
+                    plugin.getLangManager().sendMessage(p, "authmodule.msg_13");
+                });
                 
                 fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
                 if (discord != null && discord.isEnabled()) {
@@ -329,6 +336,7 @@ public class AuthModule implements Module, Listener {
                     authDAO.updateLogin(uuid, currentIp);
                     
                     plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                        // Auto-authenticated: no movement restriction needed
                         plugin.getLangManager().sendMessage(p, "authmodule.msg_31");
                     });
                     
@@ -340,7 +348,8 @@ public class AuthModule implements Module, Listener {
                 }
             }
             
-            // Not authenticated
+            // Not authenticated: apply movement-blocking potion effects
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> applyAuthEffects(p));
             requireAuth(p);
         });
     }
@@ -358,15 +367,21 @@ public class AuthModule implements Module, Listener {
         return authenticated.contains(p.getUniqueId());
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onMove(PlayerMoveEvent event) {
-        if (!enabled) return;
-        if (!isAuth(event.getPlayer())) {
-            Location from = event.getFrom();
-            Location to = event.getTo();
-            if (to != null && (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ())) {
-                event.setTo(from);
-            }
+    /** Applies movement-blocking potion effects to a non-authenticated player. Zero CPU cost vs PlayerMoveEvent. */
+    private void applyAuthEffects(Player p) {
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 255, false, false, false));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, Integer.MAX_VALUE, 250, false, false, false));
+    }
+
+    /** Removes only the auth-related potion effects without touching any pre-existing effects. */
+    private void removeAuthEffects(Player p) {
+        PotionEffect existing = p.getPotionEffect(PotionEffectType.SLOWNESS);
+        if (existing != null && existing.getAmplifier() == 255) {
+            p.removePotionEffect(PotionEffectType.SLOWNESS);
+        }
+        PotionEffect existingJump = p.getPotionEffect(PotionEffectType.JUMP_BOOST);
+        if (existingJump != null && existingJump.getAmplifier() == 250) {
+            p.removePotionEffect(PotionEffectType.JUMP_BOOST);
         }
     }
 

@@ -763,14 +763,22 @@ public class WebManager {
             }
         });
 
-        delete("/api/admin/homes", ctx -> {
-            fr.gens.core.modules.TeleportHomeModule homeModule = (fr.gens.core.modules.TeleportHomeModule) plugin.getModuleManager().getModule("CmdHome");
-            if (homeModule != null) {
-                homeModule.clearAllHomes();
-                ctx.status(200).result("OK");
-            } else {
-                ctx.status(404).json("CmdHome module disabled");
-            }
+        post("/api/admin/wipe-server", ctx -> {
+            plugin.setWiping(true);
+            
+            plugin.getFoliaLib().getScheduler().runNextTick((task) -> {
+                for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    p.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Wipe du serveur en cours... Relancez manuellement après suppression de la carte."));
+                }
+            });
+
+            plugin.getFoliaLib().getScheduler().runAsync((task) -> {
+                plugin.getDatabaseManager().wipeServerData();
+                plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
+                    org.bukkit.Bukkit.shutdown();
+                });
+            });
+            ctx.status(200).json("Wipe successful. Server is shutting down.");
         });
 
         // ==============================================

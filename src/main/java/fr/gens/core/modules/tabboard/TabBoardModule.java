@@ -34,9 +34,11 @@ public class TabBoardModule implements Module, Listener {
     private com.tcoded.folialib.wrapper.task.WrappedTask updateTask = null;
     private final Map<UUID, String> prefixCache = new ConcurrentHashMap<>();
     private int tickCount = 0;
-    // Cache des config tablist pour éviter de lire le YAML à chaque tick
+    // Cache des lignes de config scoreboard/tablist pour éviter de lire le YAML à chaque tick
     private String cachedTabHeader = null;
     private String cachedTabFooter = null;
+    private List<String> cachedScoreboardLines = null;
+    private String cachedScoreboardTitle = null;
 
     public TabBoardModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -70,6 +72,7 @@ public class TabBoardModule implements Module, Listener {
 
         // Tâche de mise à jour toutes les secondes (20 ticks)
         updateTask = plugin.getFoliaLib().getScheduler().runTimer(() -> this.updateAll(), 20L, 20L);
+        reloadConfigCache();
         plugin.getLangManager().sendConsoleMessage("tabboardmodule.log_1");
     }
 
@@ -86,7 +89,18 @@ public class TabBoardModule implements Module, Listener {
             p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         }
         boards.clear();
+        cachedScoreboardLines = null;
+        cachedScoreboardTitle = null;
         plugin.getLangManager().sendConsoleMessage("tabboardmodule.log_2");
+    }
+
+    /** Reloads the scoreboard and tablist config cache. Call this after a /reload or web panel config update. */
+    public void reloadConfigCache() {
+        var cfg = plugin.getConfigManager().getConfig("modules/tabboard.yml");
+        cachedScoreboardLines = cfg.getStringList("tabboard.scoreboard.lines");
+        cachedScoreboardTitle = cfg.getString("tabboard.scoreboard.title", "<gold><bold>Serveur");
+        cachedTabHeader = cfg.getString("tabboard.tab.header", null);
+        cachedTabFooter = cfg.getString("tabboard.tab.footer", null);
     }
 
     @EventHandler
@@ -135,7 +149,8 @@ public class TabBoardModule implements Module, Listener {
 
     private void updateScoreboard(Player p, GensScoreboard board) {
         List<String> lines = new ArrayList<>();
-        List<String> configLines = plugin.getConfigManager().getConfig("modules/tabboard.yml").getStringList("tabboard.scoreboard.lines");
+        // Use cached config lines — reloadConfigCache() is called on enable() and after reloads
+        List<String> configLines = cachedScoreboardLines;
         if (configLines == null || configLines.isEmpty()) {
             configLines = new ArrayList<>();
             configLines.add("<gray><strikethrough>--------------------");
@@ -152,13 +167,15 @@ public class TabBoardModule implements Module, Listener {
             configLines.add("<white>En ligne: <aqua>%online%");
             configLines.add("<gray><strikethrough>--------------------");
             configLines.add("<yellow>IP: <white>82.64.129.187");
+            // Persist defaults and update cache
             plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.scoreboard.lines", configLines);
             plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.scoreboard.title", "<gold><bold>Serveur");
             plugin.getConfigManager().saveConfig("modules/tabboard.yml");
+            cachedScoreboardLines = configLines;
+            cachedScoreboardTitle = "<gold><bold>Serveur";
         }
 
-        String title = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.scoreboard.title", "<gold><bold>Serveur");
-        board.updateTitle(title);
+        board.updateTitle(cachedScoreboardTitle != null ? cachedScoreboardTitle : "<gold><bold>Serveur");
 
         EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
         boolean ecoEnabled = eco != null && eco.isEnabled();

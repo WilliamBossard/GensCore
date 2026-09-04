@@ -96,7 +96,7 @@ public class LootModule implements Module, Listener {
     }
 
     public void loadConfig() {
-        FileConfiguration config = plugin.getConfig();
+        FileConfiguration config = plugin.getConfigManager().getConfig("modules/lootr.yml");
         if (!config.contains("lootr.prevent-hopper")) {
             config.set("lootr.prevent-hopper", true);
             config.set("lootr.prevent-break", false);

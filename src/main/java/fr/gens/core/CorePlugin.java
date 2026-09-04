@@ -25,6 +25,15 @@ public class CorePlugin extends JavaPlugin {
     private fr.gens.core.modules.teams.TeamQuestManager teamQuestManager;
     private fr.gens.core.utils.CommandManager commandManager;
     private FoliaLib foliaLib;
+    private boolean isWiping = false;
+
+    public boolean isWiping() {
+        return isWiping;
+    }
+
+    public void setWiping(boolean wiping) {
+        isWiping = wiping;
+    }
 
     @Override
     public void onLoad() {
@@ -48,6 +57,9 @@ public class CorePlugin extends JavaPlugin {
         
         // 1.5 Initialiser le gestionnaire de commandes Cloud
         this.commandManager = new fr.gens.core.utils.CommandManager(this);
+        
+        // 1.6 Vérification des mises à jour
+        new fr.gens.core.utils.UpdateChecker(this).checkForUpdates();
         
         // 2. Initialiser le gestionnaire de modules
         this.moduleManager = new ModuleManager(this);
@@ -105,9 +117,18 @@ public class CorePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (this.webManager != null) {
-            this.webManager.stop();
+        if (webManager != null) {
+            webManager.stop();
         }
+        
+        if (isWiping) {
+            getLangManager().sendConsoleMessage("core.wiping_shutdown");
+            if (databaseManager != null) {
+                databaseManager.close();
+            }
+            return;
+        }
+
         if (this.actionBarManager != null) {
             this.actionBarManager.stop();
         }

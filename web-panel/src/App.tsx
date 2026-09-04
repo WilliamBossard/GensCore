@@ -362,21 +362,24 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                 <div className="settings-section-title"><Trash2 size={20} /> {t('web.admin.settings.data_title')}</div>
                 <div className="form-group" style={{ marginBottom: '0' }}>
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                    {t('web.admin.settings.data_homes_desc')}
+                    ⚠️ <b>ATTENTION :</b> Ce bouton va formater la base de données (tous les stats, homes, inventaires, teams). Seuls le shop et les paramètres yml seront conservés. 
                   </p>
                   <button 
                     type="button" 
                     className="btn" 
                     style={{ background: '#ef4444', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
                     onClick={async () => {
-                      if (confirm(t('web.admin.settings.data_homes_confirm'))) {
-                        const res = await fetch(`${API_URL}/admin/homes`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${password}` } });
-                        if (res.ok) alert(t('web.admin.settings.data_homes_success'));
-                        else alert(t('web.admin.settings.data_homes_error'));
+                      const confirmPassword = prompt("Cette action est irréversible et supprimera toutes les données joueurs. Tapez le mot de passe admin pour confirmer :");
+                      if (confirmPassword === password) {
+                        const res = await fetch(`${API_URL}/admin/wipe-server`, { method: 'POST', headers: { 'Authorization': `Bearer ${password}` } });
+                        if (res.ok) alert("✅ Wipe terminé avec succès ! Le serveur est en train de s'arrêter. Supprimez le dossier de la map puis redémarrez le serveur.");
+                        else alert("❌ Erreur lors du wipe.");
+                      } else if (confirmPassword !== null) {
+                        alert("Mot de passe incorrect, wipe annulé.");
                       }
                     }}
                   >
-                    <Trash2 size={18} /> {t('web.admin.settings.data_homes_btn')}
+                    <Trash2 size={18} /> Wipe Serveur (Nouvelle Saison)
                   </button>
                 </div>
               </div>

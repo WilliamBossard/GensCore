@@ -94,3 +94,121 @@ GensCore has a configured Workflow (in `.github/workflows/release.yml`).
 
 ---
 *Plugin developed with passion for GensBien.*
+
+---
+
+## Language Support
+
+GensCore fully supports multiple languages. The active language is set in `config.yml`:
+
+```yaml
+lang: fr_FR  # or en_US
+```
+
+Available language files are located in `plugins/GensCore/lang/`. Each file contains all player-facing messages that can be freely customized. Supported languages out of the box:
+
+| Code | Language |
+|------|----------|
+| `fr_FR` | French |
+| `en_US` | English |
+
+---
+
+## Automatic Update Checker
+
+On startup and when a player with the `genscore.admin` permission (or operator status) joins the server, GensCore automatically checks for a new release on [GitHub](https://github.com/WilliamBossard/GensCore/releases).
+
+- If a new version is available, a notification is sent in **chat** (visible to admins/ops only) and logged to the **server console**.
+- The check is non-blocking and runs asynchronously to avoid any impact on startup time.
+- The installed version is compared against the latest GitHub Release tag (e.g. `1.0.0` vs `1.0.1`).
+
+---
+
+## Commands & Permissions
+
+### Authentication
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/login <password>` | — | Log in to your account |
+| `/register <password> <confirm>` | — | Create an account |
+| `/changemdp <old> <new>` | — | Change your password |
+| `/resetmdp <player>` | `genscore.admin` | Reset another player's password |
+
+### Economy
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/money` | — | View your balance |
+| `/money <player>` | `genscore.admin` | View another player's balance |
+| `/pay <player> <amount>` | — | Transfer money |
+| `/addmoney <player> <amount>` | `genscore.admin` | Add money to a player |
+| `/removemoney <player> <amount>` | `genscore.admin` | Remove money from a player |
+
+### Teleportation
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/sethome [name]` | — | Set a home |
+| `/home [name]` | — | Teleport to a home |
+| `/delhome [name]` | — | Delete a home |
+| `/spawn` | — | Teleport to spawn |
+| `/setspawn` | `genscore.admin` | Set the spawn point |
+| `/tpa <player>` | — | Request a teleport |
+| `/tpaccept` | — | Accept a TPA request |
+| `/tpdeny` | — | Deny a TPA request |
+| `/back` | — | Return to your last location |
+
+### Moderation
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/ban <player> [reason]` | `genscore.ban` | Permanently ban a player |
+| `/unban <player>` | `genscore.ban` | Unban a player |
+| `/mute <player> [duration] [reason]` | `genscore.mute` | Mute a player |
+| `/unmute <player>` | `genscore.mute` | Unmute a player |
+| `/kick <player> [reason]` | `genscore.kick` | Kick a player |
+| `/freeze <player>` | `genscore.freeze` | Freeze/unfreeze a player |
+| `/openinv <player>` | `genscore.openinv` | Open a player's inventory |
+
+### Teams / Guilds
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/team create <name>` | — | Create a team |
+| `/team invite <player>` | — | Invite a player |
+| `/team leave` | — | Leave your team |
+| `/team disband` | — | Disband your team |
+| `/team info` | — | View team info |
+
+### Other
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/ec` | — | Open your enderchest |
+| `/feed` | `genscore.admin` | Feed yourself |
+| `/genscore reload` | `genscore.admin` | Reload plugin config |
+
+> **Note:** Players with operator status (`/op`) automatically inherit the `genscore.admin` permission.
+
+---
+
+## Lootr Integration
+
+GensCore integrates configuration options for the [Lootr](https://www.curseforge.com/minecraft/mc-mods/lootr) mod/plugin (per-player loot chests). If Lootr is installed, you can configure its behaviour in the main `config.yml`:
+
+```yaml
+lootr:
+  prevent-hopper: true
+  prevent-break: false
+  particles-enabled: true
+  break-confirm-time: 3
+```
+
+---
+
+## Server Wipe
+
+> [!WARNING]
+> **This action is irreversible.** A server wipe permanently deletes all player data from the database (homes, economy, stats, auth, quests, etc.). It does **not** delete world files.
+
+The Web Admin Panel includes a "Wipe Server Data" button at the bottom of the Configuration page. To prevent accidents:
+1. The button is prominently marked in red.
+2. Clicking it requires entering the **admin password** to confirm.
+3. The console will log a confirmation message when the wipe completes.
+
+To perform a wipe from the console, the Web Panel must be running and accessible.

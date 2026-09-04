@@ -4,7 +4,10 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
 import fr.gens.core.modules.auth.AuthModule;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.inventory.ItemStack;
+
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import cloud.commandframework.annotations.Argument;
@@ -21,17 +24,14 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
+import fr.gens.core.modules.discord.DiscordModule;
+import io.papermc.paper.event.player.AsyncChatEvent;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import fr.gens.core.modules.discord.DiscordModule;
-import io.papermc.paper.event.player.AsyncChatEvent;
 
 
 public class ModerationModule implements Module, Listener {
@@ -218,8 +218,8 @@ public class ModerationModule implements Module, Listener {
             if (frozenPlayers.contains(uuid)) {
                 frozenPlayers.remove(uuid);
                 target.setGravity(true);
+                removeFreezeEffects(target);
                 
-                // Retour sur le thread du sender pour le message si c'est un joueur
                 if (sender instanceof Player) {
                     plugin.getFoliaLib().getScheduler().runAtEntity((Player) sender, (s) -> {
                         sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + target.getName() + " a été dégelé."));
@@ -230,7 +230,8 @@ public class ModerationModule implements Module, Listener {
                 plugin.getLangManager().sendMessage(target, "moderationmodule.msg_4");
             } else {
                 frozenPlayers.add(uuid);
-                target.setGravity(false); // Geler en l'air
+                target.setGravity(false);
+                applyFreezeEffects(target);
                 
                 if (sender instanceof Player) {
                     plugin.getFoliaLib().getScheduler().runAtEntity((Player) sender, (s) -> {
@@ -518,19 +519,21 @@ public class ModerationModule implements Module, Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlayerMove(PlayerMoveEvent event) {
-        if (frozenPlayers.contains(event.getPlayer().getUniqueId())) {
-            // EmpÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªcher les mouvements de caméra ou X/Z/Y mais autoriser la caméra
-            if (event.getFrom().getX() != event.getTo().getX() || 
-                event.getFrom().getY() != event.getTo().getY() || 
-                event.getFrom().getZ() != event.getTo().getZ()) {
-                
-                Location newLoc = event.getFrom();
-                newLoc.setPitch(event.getTo().getPitch());
-                newLoc.setYaw(event.getTo().getYaw());
-                event.setTo(newLoc);
-            }
+    /** Applies movement-blocking potion effects to a frozen player. */
+    private void applyFreezeEffects(Player p) {
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, Integer.MAX_VALUE, 255, false, false, false));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, Integer.MAX_VALUE, 250, false, false, false));
+    }
+
+    /** Removes only freeze-specific potion effects without affecting pre-existing ones. */
+    private void removeFreezeEffects(Player p) {
+        PotionEffect slow = p.getPotionEffect(PotionEffectType.SLOWNESS);
+        if (slow != null && slow.getAmplifier() == 255) {
+            p.removePotionEffect(PotionEffectType.SLOWNESS);
+        }
+        PotionEffect jump = p.getPotionEffect(PotionEffectType.JUMP_BOOST);
+        if (jump != null && jump.getAmplifier() == 250) {
+            p.removePotionEffect(PotionEffectType.JUMP_BOOST);
         }
     }
 

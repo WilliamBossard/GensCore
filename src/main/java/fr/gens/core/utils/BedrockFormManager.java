@@ -51,11 +51,8 @@ public class BedrockFormManager {
             if (clickedButtonId >= 0 && clickedButtonId < buttons.size()) {
                 BedrockButton btn = buttons.get(clickedButtonId);
                 if (btn.getAction() != null) {
-                    // Les menus s'exécutent en asynchrone par défaut avec Cumulus, on s'assure d'être sur le main thread
-                    org.bukkit.Bukkit.getScheduler().runTask(
-                        org.bukkit.Bukkit.getPluginManager().getPlugin("GensCore"),
-                        () -> btn.getAction().onClick(player)
-                    );
+                    // Cumulus callbacks execute on the main server thread — direct call is safe
+                    btn.getAction().onClick(player);
                 }
             }
         });

@@ -97,6 +97,31 @@ public class DatabaseManager {
         }
     }
 
+    public void wipeServerData() {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             java.sql.ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
+            
+            java.util.List<String> tables = new java.util.ArrayList<>();
+            while (rs.next()) {
+                String tableName = rs.getString(1);
+                if (!tableName.equals("sqlite_sequence") && 
+                    !tableName.equals("shop_categories") && 
+                    !tableName.equals("shop_items")) {
+                    tables.add(tableName);
+                }
+            }
+            
+            for (String table : tables) {
+                stmt.execute("DELETE FROM " + table);
+            }
+            plugin.getLogger().info("Wipe success: all player tables have been cleared.");
+        } catch (SQLException e) {
+            plugin.getLogger().severe("Failed to wipe database: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }
 
 
