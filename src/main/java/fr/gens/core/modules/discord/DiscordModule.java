@@ -274,12 +274,8 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
     }
 
     private String getAvatarUrl(Player p) {
-        if (p == null) return "https://mc-heads.net/avatar/Steve";
-        String name = p.getName();
-        if (name.startsWith(".")) {
-            name = name.substring(1);
-        }
-        return "https://mc-heads.net/avatar/" + name;
+        if (p == null) return "https://crafthead.net/avatar/Steve";
+        return "https://crafthead.net/avatar/" + p.getUniqueId().toString();
     }
 
     @EventHandler

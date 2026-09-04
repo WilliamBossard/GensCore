@@ -170,10 +170,10 @@ public class WebPlayerAPI implements Listener {
         get("/api/head/{name}", ctx -> {
             String name = ctx.pathParam("name");
             UUID uuid = webDAO.getPlayerUuidByUsername(name);
-            if (uuid != null && fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(uuid)) {
-                ctx.redirect("https://mc-heads.net/avatar/MHF_Steve");
+            if (uuid != null) {
+                ctx.redirect("https://crafthead.net/avatar/" + uuid.toString());
             } else {
-                ctx.redirect("https://mc-heads.net/avatar/" + name);
+                ctx.redirect("https://crafthead.net/avatar/" + name);
             }
         });
 
@@ -181,10 +181,10 @@ public class WebPlayerAPI implements Listener {
             String name = ctx.pathParam("name");
             String size = ctx.pathParam("size");
             UUID uuid = webDAO.getPlayerUuidByUsername(name);
-            if (uuid != null && fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(uuid)) {
-                ctx.redirect("https://mc-heads.net/avatar/MHF_Steve/" + size);
+            if (uuid != null) {
+                ctx.redirect("https://crafthead.net/avatar/" + uuid.toString() + "/" + size);
             } else {
-                ctx.redirect("https://mc-heads.net/avatar/" + name + "/" + size);
+                ctx.redirect("https://crafthead.net/avatar/" + name + "/" + size);
             }
         });
 
