@@ -67,13 +67,15 @@ public class TeamListener implements Listener {
             }
 
             if (item.getType() == Material.PLAYER_HEAD && isLeader) {
-                SkullMeta meta = (SkullMeta) item.getItemMeta();
-                if (meta.getOwningPlayer() != null) {
-                    UUID targetUuid = meta.getOwningPlayer().getUniqueId();
-                    if (!targetUuid.equals(player.getUniqueId())) {
-                        plugin.getTeamManager().removeMember(team, targetUuid);
-                        plugin.getLangManager().sendMessage(player, "teamlistener.msg_3");
-                        teamGui.openTeamGui(player);
+                if (event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) {
+                    SkullMeta meta = (SkullMeta) item.getItemMeta();
+                    if (meta.getOwningPlayer() != null) {
+                        UUID targetUuid = meta.getOwningPlayer().getUniqueId();
+                        if (!targetUuid.equals(player.getUniqueId())) {
+                            plugin.getTeamManager().removeMember(team, targetUuid);
+                            plugin.getLangManager().sendMessage(player, "teamlistener.msg_3");
+                            teamGui.openTeamGui(player);
+                        }
                     }
                 }
             }

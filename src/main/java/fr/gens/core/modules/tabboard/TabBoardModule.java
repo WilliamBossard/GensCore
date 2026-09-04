@@ -175,7 +175,11 @@ public class TabBoardModule implements Module, Listener {
             cachedScoreboardTitle = "<gold><bold>Serveur";
         }
 
-        board.updateTitle(cachedScoreboardTitle != null ? cachedScoreboardTitle : "<gold><bold>Serveur");
+        String title = cachedScoreboardTitle != null ? cachedScoreboardTitle : "<gold><bold>Serveur";
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
+            title = title.replaceAll("[\\uE000-\\uF8FF]", "");
+        }
+        board.updateTitle(title);
 
         EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
         boolean ecoEnabled = eco != null && eco.isEnabled();
@@ -201,6 +205,7 @@ public class TabBoardModule implements Module, Listener {
             if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
                 parsed = parsed.replace("§m", "");
                 parsed = parsed.replace("<strikethrough>", "");
+                parsed = parsed.replaceAll("[\\uE000-\\uF8FF]", "");
             }
             
             lines.add(parsed);

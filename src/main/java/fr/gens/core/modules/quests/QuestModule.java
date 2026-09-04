@@ -597,10 +597,21 @@ public class QuestModule implements Module, Listener {
                     if (mat == null) mat = org.bukkit.Material.PAPER;
                     
                     String btnText = q.getName() + "\n";
+                    for (String l : q.getDescription()) {
+                        l = l.replace("%required%", String.valueOf(q.getRequiredAmount()));
+                        if (l.contains("%status%")) {
+                            if (completed) {
+                                l = l.replace("%status%", "TERMINÉ");
+                            } else {
+                                l = l.replace("%status%", qEntry.getValue() + "/" + q.getRequiredAmount());
+                            }
+                        }
+                        btnText += "§7" + net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(fr.gens.core.utils.PlaceholderUtils.parseToComponent(l)) + "\n";
+                    }
                     if (completed) {
                         btnText += "§2[TERMINÉ]";
                     } else {
-                        btnText += "§7Progression: " + qEntry.getValue() + " / " + q.getRequiredAmount() + " (Clic Reroll)";
+                        btnText += "§eProgression: " + qEntry.getValue() + " / " + q.getRequiredAmount() + " (Clic Reroll)";
                     }
 
                     buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, mat, player -> {

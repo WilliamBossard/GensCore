@@ -10,6 +10,11 @@ import java.util.List;
 
 public class BedrockFormManager {
 
+    private static String clean(String text) {
+        if (text == null) return null;
+        return text.replaceAll("[\\uE000-\\uF8FF]", "");
+    }
+
     public interface BedrockButtonAction {
         void onClick(Player player);
     }
@@ -17,16 +22,26 @@ public class BedrockFormManager {
     public static class BedrockButton {
         private final String text;
         private final Material icon;
+        private final String iconUrl;
         private final BedrockButtonAction action;
 
         public BedrockButton(String text, Material icon, BedrockButtonAction action) {
             this.text = text;
             this.icon = icon;
+            this.iconUrl = null;
+            this.action = action;
+        }
+
+        public BedrockButton(String text, String iconUrl, BedrockButtonAction action) {
+            this.text = text;
+            this.icon = null;
+            this.iconUrl = iconUrl;
             this.action = action;
         }
 
         public String getText() { return text; }
         public Material getIcon() { return icon; }
+        public String getIconUrl() { return iconUrl; }
         public BedrockButtonAction getAction() { return action; }
     }
 
@@ -34,15 +49,15 @@ public class BedrockFormManager {
         if (!FloodgateUtil.isFloodgateInstalled()) return;
 
         SimpleForm.Builder builder = SimpleForm.builder()
-                .title(title)
-                .content(content);
+                .title(clean(title))
+                .content(clean(content));
 
         for (BedrockButton btn : buttons) {
-            String iconUrl = getIconUrl(btn.getIcon());
-            if (iconUrl != null) {
-                builder.button(btn.getText(), FormImage.Type.URL, iconUrl);
+            String url = btn.getIconUrl() != null ? btn.getIconUrl() : getIconUrl(btn.getIcon());
+            if (url != null) {
+                builder.button(clean(btn.getText()), FormImage.Type.URL, url);
             } else {
-                builder.button(btn.getText());
+                builder.button(clean(btn.getText()));
             }
         }
 

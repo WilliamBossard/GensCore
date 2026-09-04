@@ -336,12 +336,10 @@ public class ShopModule implements Module {
             ShopItem shopItem = category.getItem(clicked.getType());
             if (shopItem != null) {
                 int amount = (event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_LEFT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) ? 64 : 1;
-                boolean isBuy = (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_LEFT);
-
-                if (isBuy) {
+                if (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_LEFT) {
                     buyItem(p, shopItem, amount);
                     openItemsGui(p, category); // Refresh
-                } else {
+                } else if (event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) {
                     if (shopItem.isCommand()) {
                         plugin.getLangManager().sendMessage(p, "shopmodule.msg_3");
                         return;

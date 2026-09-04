@@ -206,25 +206,34 @@ public class CustomGuiModule implements Module, Listener {
                     btnText = baseItem.getType().name();
                 }
                 
-                final String finalCmd = cmdToRun;
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, baseItem.getType(), p -> {
-                    if (finalCmd != null && !finalCmd.isEmpty()) {
-                        if (finalCmd.equalsIgnoreCase("close")) return;
-                        if (finalCmd.startsWith("player: ")) {
-                            String cmd = finalCmd.substring(8).replace("%player_name%", p.getName());
-                            if (cmd.equals("profil") || cmd.equals("tuto")) {
-                                openMenu(p, menus.get(cmd));
-                            } else {
-                                p.performCommand(cmd);
-                            }
-                        } else if (finalCmd.startsWith("console: ")) {
-                            String cmd = finalCmd.substring(9).replace("%player_name%", p.getName());
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                        } else {
-                            p.performCommand(finalCmd);
+                if (meta != null && meta.hasLore()) {
+                    for (net.kyori.adventure.text.Component loreLine : meta.lore()) {
+                        String lineText = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(loreLine);
+                        if (!lineText.contains("REMOVE_LINE")) {
+                            btnText += "\n" + lineText;
                         }
                     }
-                }));
+                }
+                
+                final String finalCmd = cmdToRun;
+                
+                fr.gens.core.utils.BedrockFormManager.BedrockButton btn;
+                if (baseItem.getType() == Material.PLAYER_HEAD) {
+                    String headUrl;
+                    if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+                        headUrl = "https://crafthead.net/helm/" + player.getUniqueId().toString() + ".png";
+                    } else {
+                        headUrl = "https://crafthead.net/helm/" + player.getName() + ".png";
+                    }
+                    btn = new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, headUrl, p -> {
+                        executeCommand(p, finalCmd);
+                    });
+                } else {
+                    btn = new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, baseItem.getType(), p -> {
+                        executeCommand(p, finalCmd);
+                    });
+                }
+                buttons.add(btn);
             }
             fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, menu.getTitle(), "Sélectionnez une option :", buttons);
             return;
@@ -269,6 +278,25 @@ public class CustomGuiModule implements Module, Listener {
             inv.setItem(entry.getKey(), item);
         }
         player.openInventory(inv);
+    }
+    
+    private void executeCommand(Player p, String cmdToRun) {
+        if (cmdToRun != null && !cmdToRun.isEmpty()) {
+            if (cmdToRun.equalsIgnoreCase("close")) return;
+            if (cmdToRun.startsWith("player: ")) {
+                String cmd = cmdToRun.substring(8).replace("%player_name%", p.getName());
+                if (cmd.equals("profil") || cmd.equals("tuto")) {
+                    openMenu(p, menus.get(cmd));
+                } else {
+                    p.performCommand(cmd);
+                }
+            } else if (cmdToRun.startsWith("console: ")) {
+                String cmd = cmdToRun.substring(9).replace("%player_name%", p.getName());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            } else {
+                p.performCommand(cmdToRun);
+            }
+        }
     }
 
     private void registerDynamicCommand(String cmd, CustomMenu menu) {
