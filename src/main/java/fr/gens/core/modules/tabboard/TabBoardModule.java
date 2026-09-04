@@ -180,10 +180,16 @@ public class TabBoardModule implements Module, Listener {
             }
             
             String parsed = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, line));
+            
+            if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
+                parsed = parsed.replace("§m", "");
+                parsed = parsed.replace("<strikethrough>", "");
+            }
+            
             lines.add(parsed);
             
             // Inject Jobs after Economy if it's the blank line before Quests, or just dynamically
-            if (line.equals("&b Quêtes:")) {
+            if (line.equals("&b🎯 Quêtes:") || line.equals("&b Quêtes:")) {
                 // Insert Jobs before Quests
                 int insertIdx = lines.size() - 1;
                 lines.add(insertIdx, "<green> Métiers:");
