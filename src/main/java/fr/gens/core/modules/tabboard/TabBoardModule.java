@@ -166,7 +166,7 @@ public class TabBoardModule implements Module, Listener {
         for (String line : configLines) {
             if (!ecoEnabled && (line.contains("%money%") || line.contains("Économie") || line.contains("/shop") || line.contains("Bourse"))) {
                 if (line.contains("Économie")) {
-                    lines.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, "<gold>\u2694 Statistiques:")));
+                    lines.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, "<gold> Statistiques:")));
                 } else if (line.contains("%money%")) {
                     int playMinutes = p.getStatistic(org.bukkit.Statistic.PLAY_ONE_MINUTE) / 1200;
                     int playHours = playMinutes / 60;
