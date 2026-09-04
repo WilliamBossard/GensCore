@@ -32,6 +32,11 @@ public class TabBoardModule implements Module, Listener {
     private boolean enabled = false;
     private final Map<UUID, GensScoreboard> boards = new ConcurrentHashMap<>();
     private com.tcoded.folialib.wrapper.task.WrappedTask updateTask = null;
+    private final Map<UUID, String> prefixCache = new ConcurrentHashMap<>();
+    private int tickCount = 0;
+    // Cache des config tablist pour éviter de lire le YAML à chaque tick
+    private String cachedTabHeader = null;
+    private String cachedTabFooter = null;
 
     public TabBoardModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -94,6 +99,7 @@ public class TabBoardModule implements Module, Listener {
     public void onQuit(PlayerQuitEvent event) {
         if (!enabled) return;
         boards.remove(event.getPlayer().getUniqueId());
+        prefixCache.remove(event.getPlayer().getUniqueId());
     }
 
     private void setupBoard(Player player) {
@@ -102,13 +108,27 @@ public class TabBoardModule implements Module, Listener {
     }
 
     private void updateAll() {
+        tickCount++;
+        boolean updateNametag = (tickCount % 5 == 0); // nametags toutes les 5s
+        boolean invalidatePrefix = (tickCount % 30 == 0); // invalide le cache de préfixe toutes les 30s
+
+        if (invalidatePrefix) prefixCache.clear();
+
+        // Mise à jour des nametags une seule fois pour tous les joueurs (pas O(n²))
+        if (updateNametag) {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (p == null) continue;
+                GensScoreboard board = boards.get(p.getUniqueId());
+                if (board != null) updateNametags(board.getScoreboard());
+            }
+        }
+
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
             GensScoreboard board = boards.get(p.getUniqueId());
             if (board != null) {
                 updateScoreboard(p, board);
                 updateTabList(p);
-                updateNametags(p, board.getScoreboard());
             }
         }
     }
@@ -191,64 +211,53 @@ public class TabBoardModule implements Module, Listener {
     }
 
     private void updateTabList(Player p) {
-        if (!plugin.getConfigManager().getConfig("modules/tabboard.yml").contains("tabboard.tablist.header")) {
-            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.header", "<strikethrough>                                                                <reset>\n<dark_aqua><bold>Le Serveur Des Gens Bien\n<reset><gray><bold>>> <yellow>Bienvenue <dark_aqua><bold>%player% <gray><bold>! <<\n<reset><gray>Joueurs en ligne: <white>%online%\n<gold>Staff en ligne: <yellow>%staff%");
-            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.footer", "\n<dark_green>Ping: %ping%ms\n<gray><bold>Mémoire: %mem_used% MB / %mem_max% MB\n<gray>Quêtes terminées: <yellow>0\n\n%discord_status%\n<strikethrough>                                                                ");
-            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.discord_not_linked", "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto");
-            plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.tablist.discord_linked", "<reset><gray>Le Discord: <aqua>discord.gg/gensbien");
-            plugin.getConfigManager().saveConfig("modules/tabboard.yml");
+        // Charge la config une seule fois et met en cache
+        if (cachedTabHeader == null) {
+            var cfg = plugin.getConfigManager().getConfig("modules/tabboard.yml");
+            if (!cfg.contains("tabboard.tablist.header")) {
+                cfg.set("tabboard.tablist.header", "<strikethrough>                                                                <reset>\n<dark_aqua><bold>Le Serveur Des Gens Bien\n<reset><gray><bold>>> <yellow>Bienvenue <dark_aqua><bold>%player% <gray><bold>! <<\n<reset><gray>Joueurs en ligne: <white>%online%\n<gold>Staff en ligne: <yellow>%staff%");
+                cfg.set("tabboard.tablist.footer", "\n<dark_green>Ping: %ping%ms\n<gray><bold>Mémoire: %mem_used% MB / %mem_max% MB\n<gray>Quêtes terminées: <yellow>0\n\n%discord_status%\n<strikethrough>                                                                ");
+                cfg.set("tabboard.tablist.discord_not_linked", "<yellow><bold> <red>Discord non lié ! <aqua>/linktuto");
+                cfg.set("tabboard.tablist.discord_linked", "<reset><gray>Le Discord: <aqua>discord.gg/gensbien");
+                plugin.getConfigManager().saveConfig("modules/tabboard.yml");
+            }
+            cachedTabHeader = cfg.getString("tabboard.tablist.header", "");
+            cachedTabFooter = cfg.getString("tabboard.tablist.footer", "");
         }
 
-
-        String rawHeader = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.header", "");
-        String rawFooter = plugin.getConfigManager().getConfig("modules/tabboard.yml").getString("tabboard.tablist.footer", "");
-
-        Component headerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, rawHeader);
-        Component footerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, rawFooter);
-
+        Component headerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, cachedTabHeader);
+        Component footerComp = fr.gens.core.utils.PlaceholderUtils.setPlaceholdersComponent(plugin, p, cachedTabFooter);
         p.sendPlayerListHeaderAndFooter(headerComp, footerComp);
     }
 
-    private void updateNametags(Player p, Scoreboard scoreboard) {
+    // updateNametags ne boucle plus pour chaque joueur (plus O(n²)) :
+    // on met à jour le scoreboard global une seule fois pour TOUS les joueurs.
+    private void updateNametags(Scoreboard scoreboard) {
         for (Player target : Bukkit.getOnlinePlayers()) {
             if (target == null) continue;
             String teamName = getTeamWeight(target) + "_" + target.getName();
-            // Maximum 16 characters for team names in older versions, safe in 1.21+
             if (teamName.length() > 16) teamName = teamName.substring(0, 16);
 
             Team team = scoreboard.getTeam(teamName);
-            if (team == null) {
-                team = scoreboard.registerNewTeam(teamName);
-            }
+            if (team == null) team = scoreboard.registerNewTeam(teamName);
+            if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
 
-            if (!team.hasEntry(target.getName())) {
-                team.addEntry(target.getName());
-            }
+            // Utilise le cache de préfixe LuckPerms
+            String prefixStr = prefixCache.computeIfAbsent(target.getUniqueId(), uuid -> getLuckPermsPrefix(target));
+            if (prefixStr.length() > 50) prefixStr = prefixStr.substring(0, 50);
 
-            String prefixStr = getLuckPermsPrefix(target);
-            if (prefixStr.length() > 50) prefixStr = prefixStr.substring(0, 50); // Laisse de la place pour la guilde
-            
-            // Ajout du tag Java/Bedrock devant le grade
             String platformTag = fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(target.getUniqueId())
                 ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix()
                 : fr.gens.core.utils.FloodgateUtil.getJavaPrefix();
             prefixStr = platformTag + prefixStr;
-            
-            // Ajout du tag de Guilde (Team)
+
             fr.gens.core.modules.teams.TeamData tData = plugin.getTeamManager().getPlayerTeam(target.getUniqueId());
-            if (tData != null) {
-                prefixStr = prefixStr + " <yellow>[" + tData.getName() + "] ";
-            } else {
-                prefixStr = prefixStr + " ";
-            }
-            
+            prefixStr = prefixStr + (tData != null ? " <yellow>[" + tData.getName() + "] " : " ");
+
             String suffixStr = target.hasPermission("genscore.discord.linked") ? " <aqua><bold>" : "";
 
-            Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr);
-            Component suffixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr);
-
-            team.prefix(prefixComp);
-            team.suffix(suffixComp);
+            team.prefix(fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr));
+            team.suffix(fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr));
         }
     }
 
