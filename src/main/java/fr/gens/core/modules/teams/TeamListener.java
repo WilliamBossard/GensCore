@@ -43,7 +43,7 @@ public class TeamListener implements Listener {
             boolean isLeader = team.getLeaderUuid().equals(player.getUniqueId());
 
             if (item.getType() == Material.ENCHANTED_BOOK) {
-                openTeamQuestGui(player, team);
+                teamGui.openTeamQuestGui(player, team);
                 return;
             }
 
@@ -80,48 +80,6 @@ public class TeamListener implements Listener {
                 }
             }
         }
-    }
-    private void openTeamQuestGui(Player player, TeamData team) {
-        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quête de Guilde"));
-        
-        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
-        glass.setItemMeta(glassMeta);
-        for (int i = 0; i < 27; i++) inv.setItem(i, glass);
-        
-        fr.gens.core.modules.teams.TeamQuestManager tqm = plugin.getTeamQuestManager();
-        if (tqm != null) {
-            ItemStack questItem = new ItemStack(Material.NETHER_STAR);
-            org.bukkit.inventory.meta.ItemMeta qmeta = questItem.getItemMeta();
-            qmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Quête Hebdomadaire"));
-            java.util.List<String> lore = new java.util.ArrayList<>();
-            lore.add("<gray>" + tqm.getDesc());
-            lore.add("");
-            int progress = tqm.getProgress(team.getTeamId());
-            int goal = tqm.getGoal();
-            if (progress >= goal) {
-                lore.add("<green><bold>TERMINÉE !");
-            } else {
-                lore.add("<yellow>Progression: <white>" + progress + " <yellow>/ <white>" + goal);
-            }
-            qmeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
-            questItem.setItemMeta(qmeta);
-            inv.setItem(13, questItem);
-            
-            // Add points info
-            ItemStack pointsItem = new ItemStack(Material.SUNFLOWER);
-            org.bukkit.inventory.meta.ItemMeta pmeta = pointsItem.getItemMeta();
-            pmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Points de Guilde"));
-            java.util.List<String> plore = new java.util.ArrayList<>();
-            plore.add("<gray>Hebdomadaire : <white>" + team.getWeeklyPoints());
-            plore.add("<gray>Total : <white>" + team.getTotalPoints());
-            pmeta.lore(java.util.Optional.ofNullable(plore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
-            pointsItem.setItemMeta(pmeta);
-            inv.setItem(22, pointsItem);
-        }
-        
-        player.openInventory(inv);
     }
 
     @EventHandler

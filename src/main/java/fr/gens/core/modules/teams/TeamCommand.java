@@ -23,7 +23,7 @@ public class TeamCommand {
         this.module = module;
     }
 
-    @Command("team|guild|guilde")
+    @Command("team")
     public void executeTeamGui(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -34,7 +34,23 @@ public class TeamCommand {
         teamGui.openTeamGui(player);
     }
 
-    @Command("team|guild|guilde create <name>")
+    @Command("team quest")
+    public void executeTeamQuest(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof org.bukkit.entity.Player)) return;
+        org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
+        if (!module.isEnabled()) {
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement désactivé.</red>"));
+            return;
+        }
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            plugin.getLangManager().sendMessage(player, "teamgui.msg_1"); // or teamcommand.msg_x
+            return;
+        }
+        teamGui.openTeamQuestGui(player, team);
+    }
+
+    @Command("team create <name>")
     public void executeTeamCreate(org.bukkit.command.CommandSender sender, @Argument(value = "name", description = "Nom de la team") String name) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -61,7 +77,7 @@ public class TeamCommand {
         });
     }
 
-    @Command("team|guild|guilde invite <target>")
+    @Command("team invite <target>")
     public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -87,7 +103,7 @@ public class TeamCommand {
         player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Invitation envoyée à " + target.getName()));
     }
 
-    @Command("team|guild|guilde accept")
+    @Command("team accept")
     public void executeTeamAccept(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;

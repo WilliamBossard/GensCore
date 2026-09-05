@@ -192,7 +192,7 @@ public class TeleportHomeModule implements Module, Listener {
     }
 
     @Command("home [name]")
-    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "homeNames", description = "Le nom de la maison") @Default("") String homeName) {
+    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "homeNames", description = "Le nom de la maison") @Default(" ") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -204,7 +204,7 @@ public class TeleportHomeModule implements Module, Listener {
             return;
         }
         
-        if (homeName != null && !homeName.isEmpty()) {
+        if (homeName != null && !homeName.trim().isEmpty()) {
             Map<String, Location> playerHomes = homes.get(p.getUniqueId());
             if (playerHomes != null && playerHomes.containsKey(homeName)) {
                 TeleportUtil.teleportWithCooldown(plugin, p, playerHomes.get(homeName), "le home " + homeName, "genscore.bypass.cooldown.home");

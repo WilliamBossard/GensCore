@@ -38,12 +38,14 @@ public class JobsGUI implements Listener {
                 if (type == JobType.FERMIER) mat = Material.IRON_HOE;
                 if (type == JobType.CHASSEUR) mat = Material.IRON_SWORD;
                 
-                String btnText = type.getDisplayName() + "\n";
-                btnText += "Niveau: " + level + " | XP: " + String.format("%.0f", xp) + "\n";
+                String title = type.getDisplayName().replaceAll("[\\uE000-\\uF8FF]", "");
+                title = title.replaceAll("(?i)&([0-9a-fk-or])", "§$1");
+                String btnText = title + "\n";
+                btnText += "Niv: " + level + " | XP: " + String.format("%.0f", xp) + " | ";
                 if (hasJob) {
-                    btnText += "§2[Actif] Cliquez pour quitter";
+                    btnText += "§2[Actif]";
                 } else {
-                    btnText += "§4[Inactif] Cliquez pour rejoindre";
+                    btnText += "§4[Inactif]";
                 }
                 
                 buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, mat, p -> {

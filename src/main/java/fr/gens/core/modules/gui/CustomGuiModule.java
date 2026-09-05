@@ -208,14 +208,24 @@ public class CustomGuiModule implements Module, Listener {
                     btnText = baseItem.getType().name();
                 }
                 
+                String fullTextForDetail = btnText;
+                
                 if (meta != null && meta.hasLore()) {
                     for (net.kyori.adventure.text.Component loreLine : meta.lore()) {
                         String lineText = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(loreLine);
                         if (!lineText.contains("REMOVE_LINE")) {
-                            btnText += "\n" + lineText;
+                            fullTextForDetail += "\n" + lineText;
                         }
                     }
                 }
+                
+                // Parser les placeholders pour Bedrock !
+                net.kyori.adventure.text.Component parsedBtn = PlaceholderUtils.setPlaceholdersComponent(plugin, player, btnText);
+                final String finalBtnText = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(parsedBtn);
+
+                net.kyori.adventure.text.Component parsedDetail = PlaceholderUtils.setPlaceholdersComponent(plugin, player, fullTextForDetail);
+                final String finalDetailText = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(parsedDetail);
+
                 
                 final String finalCmd = cmdToRun;
                 
@@ -230,17 +240,29 @@ public class CustomGuiModule implements Module, Listener {
                     } else {
                         headUrl = "https://crafthead.net/helm/" + player.getName() + ".png";
                     }
-                    btn = new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, headUrl, p -> {
-                        executeCommand(p, finalCmd);
+                    final String finalHeadUrl = headUrl;
+                    btn = new fr.gens.core.utils.BedrockFormManager.BedrockButton(finalBtnText, headUrl, p -> {
+                        if (finalCmd == null || finalCmd.isEmpty()) {
+                            openDetailForm(p, menu, finalDetailText, finalHeadUrl, null);
+                        } else {
+                            executeCommand(p, finalCmd);
+                        }
                     });
                 } else {
-                    btn = new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, baseItem.getType(), p -> {
-                        executeCommand(p, finalCmd);
+                    final Material finalMat = baseItem.getType();
+                    btn = new fr.gens.core.utils.BedrockFormManager.BedrockButton(finalBtnText, finalMat, p -> {
+                        if (finalCmd == null || finalCmd.isEmpty()) {
+                            openDetailForm(p, menu, finalDetailText, null, finalMat);
+                        } else {
+                            executeCommand(p, finalCmd);
+                        }
                     });
                 }
                 buttons.add(btn);
             }
-            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, menu.getTitle(), "Sélectionnez une option :", buttons);
+            net.kyori.adventure.text.Component parsedTitle = PlaceholderUtils.setPlaceholdersComponent(plugin, player, menu.getTitle());
+            String titleStr = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(parsedTitle);
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, titleStr, "Sélectionnez une option :", buttons);
             return;
         }
 
@@ -291,6 +313,15 @@ public class CustomGuiModule implements Module, Listener {
             inv.setItem(entry.getKey(), item);
         }
         player.openInventory(inv);
+    }
+    
+    private void openDetailForm(Player p, CustomMenu menu, String fullText, String iconUrl, Material mat) {
+        String[] parts = fullText.split("\n", 2);
+        String title = parts[0];
+        String content = parts.length > 1 ? parts[1] : "";
+        java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> backBtn = new java.util.ArrayList<>();
+        backBtn.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§8Retour", Material.ARROW, p2 -> openMenu(p2, menu)));
+        fr.gens.core.utils.BedrockFormManager.openSimpleForm(p, title, content, backBtn);
     }
     
     private void executeCommand(Player p, String cmdToRun) {

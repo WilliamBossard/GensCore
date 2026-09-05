@@ -177,11 +177,8 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
             
-            if (uuid != null) {
-                ctx.redirect("https://crafthead.net/avatar/" + uuid.toString());
-            } else {
-                ctx.redirect("https://crafthead.net/avatar/" + name);
-            }
+            String cleanName = name.startsWith(".") ? name.substring(1) : name;
+            ctx.redirect("https://crafthead.net/avatar/" + cleanName);
         });
 
         get("/api/head/{name}/{size}", ctx -> {
@@ -190,27 +187,20 @@ public class WebPlayerAPI implements Listener {
             UUID uuid = webDAO.getPlayerUuidByUsername(name);
             
             fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            String cleanName = name.startsWith(".") ? name.substring(1) : name;
             if (skinModule != null) {
                 String baseUrl = skinModule.getHeadUrl(uuid, name);
                 // Si l'URL contient mc-heads.net, on gère la taille avec le paramètre de taille
                 if (baseUrl.contains("mc-heads.net")) {
-                    ctx.redirect(baseUrl + "/" + size);
+                    ctx.redirect(baseUrl.replace(".png", "") + "/" + size);
                 } else {
-                    // Pour crafthead, il faut insérer la taille
-                    if (uuid != null) {
-                        ctx.redirect("https://crafthead.net/avatar/" + uuid.toString() + "/" + size);
-                    } else {
-                        ctx.redirect("https://crafthead.net/avatar/" + name + "/" + size);
-                    }
+                    // Pour crafthead, il faut insérer la taille et utiliser le pseudo car c'est un serveur crack
+                    ctx.redirect("https://crafthead.net/avatar/" + cleanName + "/" + size);
                 }
                 return;
             }
             
-            if (uuid != null) {
-                ctx.redirect("https://crafthead.net/avatar/" + uuid.toString() + "/" + size);
-            } else {
-                ctx.redirect("https://crafthead.net/avatar/" + name + "/" + size);
-            }
+            ctx.redirect("https://crafthead.net/avatar/" + cleanName + "/" + size);
         });
 
         get("/api/player/stats", ctx -> {

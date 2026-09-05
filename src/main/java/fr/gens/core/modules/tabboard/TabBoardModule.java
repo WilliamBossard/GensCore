@@ -177,7 +177,9 @@ public class TabBoardModule implements Module, Listener {
 
         String title = cachedScoreboardTitle != null ? cachedScoreboardTitle : "<gold><bold>Serveur";
         if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
-            title = title.replaceAll("[\\uE000-\\uF8FF]", "");
+            title = title.replaceAll("[^\\p{ASCII}§éàèùâêîôûäëïöüçÇÉÀÈÂÊÎÔÛÄËÏÖÜ]", "");
+            title = title.replaceAll("(?i)<bold>", "");
+            title = title.replaceAll("(?i)[§&]l", "");
         }
         board.updateTitle(title);
 
@@ -185,6 +187,12 @@ public class TabBoardModule implements Module, Listener {
         boolean ecoEnabled = eco != null && eco.isEnabled();
 
         for (String line : configLines) {
+            if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
+                line = line.replaceAll("[^\\p{ASCII}§éàèùâêîôûäëïöüçÇÉÀÈÂÊÎÔÛÄËÏÖÜ]", "");
+                line = line.replaceAll("(?i)<bold>", "");
+                line = line.replaceAll("(?i)[§&]l", "");
+            }
+            
             if (!ecoEnabled && (line.contains("%money%") || line.contains("Économie") || line.contains("/shop") || line.contains("Bourse"))) {
                 if (line.contains("Économie")) {
                     lines.add(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().serialize(PlaceholderUtils.setPlaceholdersComponent(plugin, p, "<gold> Statistiques:")));

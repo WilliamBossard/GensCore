@@ -153,7 +153,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         
         if (jda != null) {
             String channelId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.chat_channel_id");
-            if (channelId != null && !channelId.isEmpty()) {
+            if (channelId != null && !channelId.trim().isEmpty()) {
                 TextChannel channel = jda.getTextChannelById(channelId);
                 if (channel != null) {
                     try {
@@ -379,30 +379,24 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         sendBotEmbed(message, getAvatarUrl(event.getPlayer()), Color.YELLOW);
     }
 
-    @Command("discord link")
-    public void executeDiscordLink(org.bukkit.command.CommandSender sender) {
+    @Command("discord [subcommand]")
+    public void executeDiscord(org.bukkit.command.CommandSender sender, @org.incendo.cloud.annotations.Argument(value = "subcommand") @org.incendo.cloud.annotations.Default(" ") String subcommand) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
-        if (p.hasPermission("genscore.discord.linked") && statsModule != null && statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
-            plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
-            return;
+        if ("link".equalsIgnoreCase(subcommand)) {
+            fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+            if (p.hasPermission("genscore.discord.linked") && statsModule != null && statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) != null) {
+                plugin.getLangManager().sendMessage(p, "discordmodule.msg_1");
+                return;
+            }
+            String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+            pendingLinks.put(code, new PendingLink(p.getUniqueId(), System.currentTimeMillis() + LINK_EXPIRY_MS));
+            plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>!link " + code));
+            plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
+        } else {
+            plugin.getLangManager().sendMessage(p, "discordmodule.msg_4");
         }
-
-        // Code sécurisé : 6 chiffres via SecureRandom = 1 000 000 combinaisons
-        String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
-        pendingLinks.put(code, new PendingLink(p.getUniqueId(), System.currentTimeMillis() + LINK_EXPIRY_MS));
-        
-        plugin.getLangManager().sendMessage(p, "discordmodule.msg_2");
-        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>!link " + code));
-        plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
-    }
-
-    @Command("discord")
-    public void executeDiscord(org.bukkit.command.CommandSender sender) {
-        if (!(sender instanceof org.bukkit.entity.Player)) return;
-        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        plugin.getLangManager().sendMessage(p, "discordmodule.msg_4");
     }
 
     @Override

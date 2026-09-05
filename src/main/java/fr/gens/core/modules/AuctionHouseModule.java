@@ -84,8 +84,8 @@ public class AuctionHouseModule implements Module {
         openAhGui(p, 0);
     }
 
-    @Command("ah sell <price>")
-    public void executeAhSell(org.bukkit.command.CommandSender sender, @Argument(value = "price", description = "Prix de vente") double price) {
+    @Command("ah sell <prix>")
+    public void executeAhSell(org.bukkit.command.CommandSender sender, @Argument(value = "prix", description = "Prix de vente", suggestions = "prices") double price) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -131,6 +131,17 @@ public class AuctionHouseModule implements Module {
                 AhGuiHolder holder = new AhGuiHolder(page);
                 Inventory inv = Bukkit.createInventory(holder, 54, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Hôtel de Ventes (Page " + (page + 1) + ")"));
                 holder.setInventory(inv);
+
+                // Fill background
+                ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+                ItemMeta glassMeta = glass.getItemMeta();
+                if (glassMeta != null) {
+                    glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
+                    glass.setItemMeta(glassMeta);
+                }
+                for (int i = 45; i < 54; i++) {
+                    inv.setItem(i, glass);
+                }
 
                 int slot = 0;
                 for (AhItem ahItem : items) {

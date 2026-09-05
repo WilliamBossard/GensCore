@@ -232,9 +232,9 @@ public class JobsModule implements Module, Listener {
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         gui.openGUI(p);
     }
-    
+
     @Command("job")
-    public void executeJob(org.bukkit.command.CommandSender sender) {
+    public void executeJobAlias(org.bukkit.command.CommandSender sender) {
         executeJobs(sender);
     }
     

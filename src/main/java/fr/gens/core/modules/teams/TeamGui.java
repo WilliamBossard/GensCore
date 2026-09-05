@@ -54,11 +54,14 @@ public class TeamGui {
             for (UUID memberUuid : team.getMembers()) {
                 org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(memberUuid);
                 String role = team.getLeaderUuid().equals(memberUuid) ? "§6Chef" : "§7Membre";
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§e" + (op.getName() != null ? op.getName() : "Inconnu") + "\n§r" + role, org.bukkit.Material.PLAYER_HEAD, p -> {
+                String pName = op.getName() != null ? op.getName() : "Inconnu";
+                fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+                String headUrl = (skinModule != null) ? skinModule.getHeadUrl(memberUuid, pName) : "https://minotar.net/helm/Steve/64.png";
+                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§e" + pName + "\n§r" + role, headUrl, p -> {
                     if (isLeader && !team.getLeaderUuid().equals(memberUuid)) {
                         // Exclure
                         team.removeMember(memberUuid);
-                        plugin.getLangManager().sendMessage(p, "teamlistener.msg_3");
+                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Joueur expulsé de l'équipe."));
                         openTeamGui(p);
                     }
                 }));
@@ -153,6 +156,70 @@ public class TeamGui {
         leave.setItemMeta(lmeta);
         inv.setItem(44, leave);
 
+        player.openInventory(inv);
+    }
+
+    public void openTeamQuestGui(Player player, TeamData team) {
+        fr.gens.core.modules.teams.TeamQuestManager tqm = plugin.getTeamQuestManager();
+        if (tqm == null) {
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Quêtes de guilde indisponibles."));
+            return;
+        }
+
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            int progress = tqm.getProgress(team.getTeamId());
+            int goal = tqm.getGoal();
+            String status = progress >= goal ? "§2[TERMINÉE]" : "Progression: " + progress + " / " + goal;
+            
+            String btnText = "§6Quête Hebdomadaire\n" + status;
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, Material.NETHER_STAR, p -> openTeamQuestGui(p, team)));
+            
+            String ptsText = "§ePoints de Guilde\n§8Hebdo: " + team.getWeeklyPoints() + " | Total: " + team.getTotalPoints();
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(ptsText, Material.SUNFLOWER, p -> openTeamQuestGui(p, team)));
+            
+            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Quête de Guilde", "Objectif actuel :\n" + tqm.getDesc(), buttons);
+            return;
+        }
+
+        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quête de Guilde"));
+        
+        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
+        glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
+        glass.setItemMeta(glassMeta);
+        for (int i = 0; i < 27; i++) inv.setItem(i, glass);
+        
+        if (tqm != null) {
+            ItemStack questItem = new ItemStack(Material.NETHER_STAR);
+            org.bukkit.inventory.meta.ItemMeta qmeta = questItem.getItemMeta();
+            qmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Quête Hebdomadaire"));
+            java.util.List<String> lore = new java.util.ArrayList<>();
+            lore.add("<gray>" + tqm.getDesc());
+            lore.add("");
+            int progress = tqm.getProgress(team.getTeamId());
+            int goal = tqm.getGoal();
+            if (progress >= goal) {
+                lore.add("<green><bold>TERMINÉE !");
+            } else {
+                lore.add("<yellow>Progression: <white>" + progress + " <yellow>/ <white>" + goal);
+            }
+            qmeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+            questItem.setItemMeta(qmeta);
+            inv.setItem(13, questItem);
+            
+            // Add points info
+            ItemStack pointsItem = new ItemStack(Material.SUNFLOWER);
+            org.bukkit.inventory.meta.ItemMeta pmeta = pointsItem.getItemMeta();
+            pmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Points de Guilde"));
+            java.util.List<String> plore = new java.util.ArrayList<>();
+            plore.add("<gray>Hebdomadaire : <white>" + team.getWeeklyPoints());
+            plore.add("<gray>Total : <white>" + team.getTotalPoints());
+            pmeta.lore(java.util.Optional.ofNullable(plore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+            pointsItem.setItemMeta(pmeta);
+            inv.setItem(22, pointsItem);
+        }
+        
         player.openInventory(inv);
     }
 }

@@ -142,7 +142,7 @@ public class TeleportTpaModule implements Module, Listener {
         }
     }
 
-    @Command("tpdeny|tpadeny")
+    @Command("tpdeny")
     public void executeTpdeny(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -158,6 +158,11 @@ public class TeleportTpaModule implements Module, Listener {
         if (requester != null && requester.isOnline()) {
             requester.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Demande refusée par <yellow>" + p.getName() + "<red>."));
         }
+    }
+
+    @Command("tpadeny")
+    public void executeTpadenyAlias(org.bukkit.command.CommandSender sender) {
+        executeTpdeny(sender);
     }
 
     @Command("tpacancel")

@@ -63,6 +63,7 @@ public class UtilsModule implements Module, Listener {
     }
 
     @Command("anvil")
+    @SuppressWarnings("deprecation")
     public void executeAnvil(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -71,10 +72,11 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_1");
             return;
         }
-        p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.ANVIL));
+        p.openAnvil(p.getLocation(), true);
     }
 
     @Command("craftingtable")
+    @SuppressWarnings("deprecation")
     public void executeCraftingTable(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -83,7 +85,7 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
             return;
         }
-        p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.WORKBENCH));
+        p.openWorkbench(p.getLocation(), true);
     }
 
     @Command("craft")
@@ -101,6 +103,7 @@ public class UtilsModule implements Module, Listener {
     }
 
     @Command("enchanttable")
+    @SuppressWarnings("deprecation")
     public void executeEnchantTable(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -109,7 +112,7 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_3");
             return;
         }
-        p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.ENCHANTING));
+        p.openEnchanting(p.getLocation(), true);
     }
 
     @Command("enchanting")
@@ -120,7 +123,7 @@ public class UtilsModule implements Module, Listener {
     }
 
     @Command("ec [target]")
-    public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) {
+    public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default(" ") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
@@ -128,7 +131,7 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_4");
             return;
         }
-        if (targetName != null && !targetName.isEmpty()) {
+        if (targetName != null && !targetName.trim().isEmpty()) {
             if (!p.hasPermission("genscore.admin")) {
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_5");
                 return;
@@ -146,7 +149,7 @@ public class UtilsModule implements Module, Listener {
     }
 
     @Command("enderchest [target]")
-    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) { 
+    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default(" ") String targetName) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         executeEnderChest(p, targetName); 

@@ -48,6 +48,16 @@ public class CommandManager {
                     .map(org.incendo.cloud.suggestion.Suggestion::suggestion)
                     .collect(Collectors.toList()))
             );
+
+            this.paperCommandManager.parserRegistry().registerSuggestionProvider("prices", 
+                (context, input) -> java.util.concurrent.CompletableFuture.completedFuture(Arrays.asList(
+                    org.incendo.cloud.suggestion.Suggestion.suggestion("100"),
+                    org.incendo.cloud.suggestion.Suggestion.suggestion("500"),
+                    org.incendo.cloud.suggestion.Suggestion.suggestion("1000"),
+                    org.incendo.cloud.suggestion.Suggestion.suggestion("5000"),
+                    org.incendo.cloud.suggestion.Suggestion.suggestion("10000")
+                ))
+            );
             
             this.annotationParser = new AnnotationParser<>(this.paperCommandManager, CommandSender.class);
             

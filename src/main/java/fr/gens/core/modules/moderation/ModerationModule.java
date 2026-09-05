@@ -348,7 +348,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @Command("mute <target> [args]")
-    public void executeMute(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison et/ou durée") @Default("") @Greedy String argsString) {
+    public void executeMute(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison et/ou durée") @Default(" ") @Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.mute")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_14");
@@ -416,7 +416,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @Command("ban <target> [args]")
-    public void executeBan(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison et/ou durée") @Default("") @Greedy String argsString) {
+    public void executeBan(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison et/ou durée") @Default(" ") @Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.ban")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
@@ -464,7 +464,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @Command("kick <target> [args]")
-    public void executeKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison du renvoi") @Default("") @org.incendo.cloud.annotation.specifier.Greedy String argsString) {
+    public void executeKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison du renvoi") @Default(" ") @org.incendo.cloud.annotation.specifier.Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.kick")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");

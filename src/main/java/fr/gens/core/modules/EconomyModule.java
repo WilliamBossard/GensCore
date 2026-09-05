@@ -230,13 +230,13 @@ public class EconomyModule implements Module, Listener {
 
     @Command("money [target]")
     @org.incendo.cloud.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
-    public void executeMoney(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) {
+    public void executeMoney(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default(" ") String targetName) {
         if (!enabled) {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement d\u00e9sactiv\u00e9.</red>"));
             return;
         }
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
-            if (targetName == null || targetName.isEmpty()) {
+            if (targetName == null || targetName.trim().isEmpty()) {
                 if (!(sender instanceof Player)) return;
                 Player p = (Player) sender;
                 plugin.getLangManager().sendMessage(p, "economy.balance", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.format("%.2f", getBalance(p.getUniqueId()))));
@@ -252,7 +252,7 @@ public class EconomyModule implements Module, Listener {
 
     @Command("balance [target]")
     @org.incendo.cloud.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
-    public void executeBalance(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) {
+    public void executeBalance(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default(" ") String targetName) {
         executeMoney(sender, targetName);
     }
 
@@ -310,12 +310,6 @@ public class EconomyModule implements Module, Listener {
                 );
             }
         });
-    }
-
-    @Command("eco")
-    @Permission("genscore.admin")
-    public void executeEcoHelp(CommandSender sender) {
-        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Syntaxe invalide. Utilisez: /eco <give|take|set> <joueur> <montant>"));
     }
 
     @Command("eco <action> <target> <amount>")

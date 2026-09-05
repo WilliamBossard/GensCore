@@ -23,7 +23,7 @@ public class LockCommand {
     }
 
     @Command("lock [action]")
-    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", suggestions = "lockActions", description = "L'action à effectuer") @Default("") String action) {
+    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", suggestions = "lockActions", description = "L'action à effectuer") @Default(" ") String action) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!lockModule.isEnabled()) {
@@ -31,7 +31,7 @@ public class LockCommand {
             return;
         }
 
-        if (action.isEmpty()) {
+        if (action == null || action.trim().isEmpty()) {
             plugin.getLangManager().sendMessage(player, "lockcommand.msg_1");
             pendingActions.put(player.getUniqueId(), "private");
             return;

@@ -514,55 +514,43 @@ public class QuestModule implements Module, Listener {
         // Data is saved in real-time, no need for massive sync
     }
 
-    @Command("quests")
-    public void executeQuestsCommand(org.bukkit.command.CommandSender sender) {
+    @Command("quests [subcommand]")
+    public void executeQuestsCommand(org.bukkit.command.CommandSender sender, @org.incendo.cloud.annotations.Argument(value = "subcommand") @org.incendo.cloud.annotations.Default(" ") String subcommand) {
         if (!(sender instanceof Player)) return;
         Player p = (Player) sender;
         if (!enabled) {
             plugin.getLangManager().sendMessage(p, "questmodule.msg_1");
             return;
         }
-        openQuestsMenu(p);
-    }
-
-    @Command("quest")
-    public void executeQuestCommand(org.bukkit.command.CommandSender sender) {
-        executeQuestsCommand(sender);
-    }
-
-    @Command("quete")
-    public void executeQueteCommand(org.bukkit.command.CommandSender sender) {
-        executeQuestsCommand(sender);
-    }
-
-    @Command("quests reroll")
-    public void executeQuestsReroll(org.bukkit.command.CommandSender sender) {
-        if (!(sender instanceof org.bukkit.entity.Player)) return;
-        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        if (!enabled) {
-            plugin.getLangManager().sendMessage(p, "questmodule.msg_1");
-            return;
+        if ("reroll".equalsIgnoreCase(subcommand)) {
+            if (!p.hasPermission("genscore.quests.admin")) return;
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection()) {
+                    PlayerQuestData data = new PlayerQuestData(p.getUniqueId(), getTodayString());
+                    assignNewQuests(p.getUniqueId(), data, conn);
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
+                        playerData.put(p.getUniqueId(), data);
+                        plugin.getLangManager().sendMessage(p, "questmodule.msg_2");
+                        openQuestsMenu(p);
+                    });
+                } catch (java.sql.SQLException e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
+            openQuestsMenu(p);
         }
-        if (!p.hasPermission("genscore.quests.admin")) {
-            return;
-        }
-
-        // Forcibly reroll all quests
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                PlayerQuestData data = new PlayerQuestData(p.getUniqueId(), getTodayString());
-                assignNewQuests(p.getUniqueId(), data, conn);
-                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
-                    playerData.put(p.getUniqueId(), data);
-                    plugin.getLangManager().sendMessage(p, "questmodule.msg_2");
-                    openQuestsMenu(p);
-                });
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
     }
 
+    @Command("quest [subcommand]")
+    public void executeQuestAlias1(org.bukkit.command.CommandSender sender, @org.incendo.cloud.annotations.Argument(value = "subcommand") @org.incendo.cloud.annotations.Default(" ") String subcommand) {
+        executeQuestsCommand(sender, subcommand);
+    }
+
+    @Command("quete [subcommand]")
+    public void executeQuestAlias2(org.bukkit.command.CommandSender sender, @org.incendo.cloud.annotations.Argument(value = "subcommand") @org.incendo.cloud.annotations.Default(" ") String subcommand) {
+        executeQuestsCommand(sender, subcommand);
+    }
     public void openQuestsMenu(Player p) {
         if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
             PlayerQuestData data = playerData.get(p.getUniqueId());
@@ -583,7 +571,9 @@ public class QuestModule implements Module, Listener {
             }
 
             java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§b§lStatistiques\n§r§8" + achieved + "/" + totalDay + " quêtes accomplies", org.bukkit.Material.PLAYER_HEAD, player -> openQuestsMenu(player)));
+            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            String headUrl = (skinModule != null) ? skinModule.getHeadUrl(p.getUniqueId(), p.getName()) : "https://minotar.net/helm/Steve/64.png";
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§bStatistiques\n§r§8" + achieved + "/" + totalDay + " quêtes accomplies", headUrl, player -> openQuestsMenu(player)));
 
             for (java.util.Map.Entry<String, java.util.Map<String, Integer>> catEntry : data.getActiveQuests().entrySet()) {
                 String category = catEntry.getKey();
@@ -596,7 +586,17 @@ public class QuestModule implements Module, Listener {
                     org.bukkit.Material mat = org.bukkit.Material.matchMaterial(q.getMenuItem());
                     if (mat == null) mat = org.bukkit.Material.PAPER;
                     
-                    String btnText = q.getName() + "\n";
+                    String title = q.getName().replaceAll("[\\uE000-\\uF8FF]", "");
+                    title = title.replaceAll("(?i)&([0-9a-fk-or])", "§$1");
+                    
+                    String btnText = title + "\n";
+                    if (completed) {
+                        btnText += "§2[TERMINÉ]";
+                    } else {
+                        btnText += "§8Progression: " + qEntry.getValue() + " / " + q.getRequiredAmount();
+                    }
+                    
+                    StringBuilder detailContent = new StringBuilder();
                     for (String l : q.getDescription()) {
                         l = l.replace("%required%", String.valueOf(q.getRequiredAmount()));
                         if (l.contains("%status%")) {
@@ -606,23 +606,30 @@ public class QuestModule implements Module, Listener {
                                 l = l.replace("%status%", qEntry.getValue() + "/" + q.getRequiredAmount());
                             }
                         }
-                        btnText += "§7" + net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(fr.gens.core.utils.PlaceholderUtils.parseToComponent(l)) + "\n";
+                        String cleanedLore = l.replaceAll("[\\uE000-\\uF8FF]", "");
+                        cleanedLore = cleanedLore.replaceAll("(?i)&([0-9a-fk-or])", "§$1");
+                        detailContent.append("§f").append(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(fr.gens.core.utils.PlaceholderUtils.parseToComponent(cleanedLore))).append("\n");
                     }
-                    if (completed) {
-                        btnText += "§2[TERMINÉ]";
-                    } else {
-                        btnText += "§eProgression: " + qEntry.getValue() + " / " + q.getRequiredAmount() + " (Clic Reroll)";
-                    }
+                    
+                    String finalDetailContent = detailContent.toString();
+                    String finalTitle = title;
 
                     buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, mat, player -> {
-                        int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
-                        if (!completed && data.getRerollsDone() < limit) {
-                            rerollQuest(player, category, questId, data);
-                            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>La quête a été remplacée !"));
-                            openQuestsMenu(player);
-                        } else if (!completed) {
-                            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez plus de rerolls disponibles !"));
+                        java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> detailBtns = new java.util.ArrayList<>();
+                        if (!completed) {
+                            detailBtns.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cRelancer la quête\n§r§8(Reroll)", org.bukkit.Material.ENDER_PEARL, p2 -> {
+                                int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
+                                if (data.getRerollsDone() < limit) {
+                                    rerollQuest(p2, category, questId, data);
+                                    p2.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>La quête a été remplacée !"));
+                                    openQuestsMenu(p2);
+                                } else {
+                                    p2.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez plus de rerolls disponibles !"));
+                                }
+                            }));
                         }
+                        detailBtns.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§8Retour", org.bukkit.Material.ARROW, p2 -> openQuestsMenu(p2)));
+                        fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, finalTitle, finalDetailContent, detailBtns);
                     }));
                 }
             }

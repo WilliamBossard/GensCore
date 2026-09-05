@@ -31,6 +31,11 @@ public class SpawnerGui implements Listener {
     }
 
     public static void openGui(Player player, SpawnerData data) {
+        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            openBedrockGui(player, data);
+            return;
+        }
+
         Inventory inv = Bukkit.createInventory(null, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Gestion: <gold>" + data.getType()));
 
         // Vitres de décoration
@@ -98,6 +103,57 @@ public class SpawnerGui implements Listener {
         player.openInventory(inv);
     }
     
+    private static void openBedrockGui(Player player, SpawnerData data) {
+        java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+        
+        // XP Button
+        String xpText = "§aRécupérer l'XP\n§8" + data.getStoredExp() + " / " + moduleInstance.getSpawnerManager().getMaxStorageExp(data.getExpLevel());
+        buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(xpText, Material.EXPERIENCE_BOTTLE, p -> {
+            if (data.getStoredExp() > 0) {
+                p.giveExp(data.getStoredExp());
+                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez récupéré " + data.getStoredExp() + " points d'expérience !"));
+                p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+                data.setStoredExp(0);
+                moduleInstance.getSpawnerManager().updateHologram(data);
+                moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(p, (wrappedTask) -> openGui(p, data));
+            } else {
+                moduleInstance.getPlugin().getLangManager().sendMessage(p, "spawnergui.msg_1");
+            }
+        }));
+
+        // Items Button
+        int totalItems = data.getStoredItems().values().stream().mapToInt(Integer::intValue).sum();
+        String itemsText = "§6Stockage d'objets\n§8" + totalItems + " / " + moduleInstance.getSpawnerManager().getMaxStorageItems(data.getStorageLevel());
+        buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(itemsText, Material.CHEST, p -> {
+            moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(p, (wrappedTask) -> SpawnerLootGui.openGui(p, data, moduleInstance));
+        }));
+
+        EconomyModule eco = moduleInstance != null ? (EconomyModule) moduleInstance.getPlugin().getModuleManager().getModule("economy") : null;
+        boolean ecoEnabled = eco != null && eco.isEnabled();
+
+        // Upgrades
+        buttons.add(createBedrockUpgradeBtn("Capacité XP", Material.EMERALD, "exp", data, data.getExpLevel(), ecoEnabled));
+        buttons.add(createBedrockUpgradeBtn("Vitesse", Material.SUGAR, "speed", data, data.getSpeedLevel(), ecoEnabled));
+        buttons.add(createBedrockUpgradeBtn("Capacité Stockage", Material.DIAMOND, "storage", data, data.getStorageLevel(), ecoEnabled));
+
+        String content = "Type: " + data.getType() + "\nStack: " + data.getStackCount() + "\nDernier accès: " + data.getLastInteractedPlayer();
+        fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Gestion: " + data.getType(), content, buttons);
+    }
+
+    private static fr.gens.core.utils.BedrockFormManager.BedrockButton createBedrockUpgradeBtn(String name, Material mat, String type, SpawnerData data, int currentLevel, boolean ecoEnabled) {
+        String text = "§bAméliorer " + name + "\n§8Niv: " + currentLevel;
+        if (currentLevel >= 10) {
+            text += " (MAX)";
+        } else {
+            if (ecoEnabled) {
+                text += " | Cout: " + getUpgradeCost(currentLevel) + "$";
+            } else {
+                text += " | Cout: " + getUpgradeXpCost(currentLevel) + " Niv";
+            }
+        }
+        return new fr.gens.core.utils.BedrockFormManager.BedrockButton(text, mat, p -> handleUpgrade(p, data, type));
+    }
+    
     private static ItemStack createUpgradeItem(String name, Material mat, int currentLevel, boolean ecoEnabled) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
@@ -111,9 +167,9 @@ public class SpawnerGui implements Listener {
                 lore.add("<gray>Niveau suivant: <white>" + (currentLevel + 1));
                 lore.add("");
                 if (ecoEnabled) {
-                    lore.add("<gray>CoÃƒÆ’Ã‚Â»t: <gold>" + getUpgradeCost(currentLevel) + "$");
+                    lore.add("<gray>Cout: <gold>" + getUpgradeCost(currentLevel) + "$");
                 } else {
-                    lore.add("<gray>CoÃƒÆ’Ã‚Â»t: <green>" + getUpgradeXpCost(currentLevel) + " Niveaux");
+                    lore.add("<gray>Cout: <green>" + getUpgradeXpCost(currentLevel) + " Niveaux");
                 }
                 lore.add("<yellow>Cliquez pour améliorer !");
             }
@@ -168,6 +224,7 @@ public class SpawnerGui implements Listener {
             } else {
                 moduleInstance.getPlugin().getLangManager().sendMessage(player, "spawnergui.msg_1");
             }
+        } else if (slot == 24) {
             // Coffre Items
             moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(player, (wrappedTask) -> SpawnerLootGui.openGui(player, data, moduleInstance));
         } else if (slot == 38) {
@@ -179,7 +236,7 @@ public class SpawnerGui implements Listener {
         }
     }
     
-    private void handleUpgrade(Player player, SpawnerData data, String type) {
+    public static void handleUpgrade(Player player, SpawnerData data, String type) {
         int currentLevel = 0;
         switch (type) {
             case "exp" -> currentLevel = data.getExpLevel();
@@ -221,7 +278,7 @@ public class SpawnerGui implements Listener {
         }
     }
     
-    private void applyUpgrade(Player player, SpawnerData data, String type, int currentLevel) {
+    public static void applyUpgrade(Player player, SpawnerData data, String type, int currentLevel) {
         switch (type) {
             case "exp" -> data.setExpLevel(currentLevel + 1);
             case "speed" -> data.setSpeedLevel(currentLevel + 1);
