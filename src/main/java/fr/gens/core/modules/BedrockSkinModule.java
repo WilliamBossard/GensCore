@@ -159,19 +159,27 @@ public class BedrockSkinModule implements Module, Listener {
                 if (rs != null && rs.next()) {
                     String hash = rs.getString("hash");
                     if (hash != null && !hash.isEmpty()) {
+                        plugin.getLogger().info("[BedrockSkinModule] getHeadUrl: Hash trouve en BDD pour " + uuid + " -> " + hash);
                         return "https://mc-heads.net/avatar/" + hash;
                     }
                 }
+                plugin.getLogger().info("[BedrockSkinModule] getHeadUrl: Aucun hash en BDD pour " + uuid);
             } catch (Exception e) {
+                plugin.getLogger().warning("[BedrockSkinModule] getHeadUrl: Erreur SQL pour " + uuid);
                 e.printStackTrace();
             }
         }
+        
         // Fallback standard pour les joueurs Java ou Bedrock sans hash en cache
         // On privilégie le nom plutôt que l'UUID car sur un serveur crack/offline,
         // l'UUID est un offline UUID qui retourne Steve sur crafthead.net.
         if (name != null && !name.isEmpty()) {
-            return "https://crafthead.net/helm/" + name + ".png";
+            plugin.getLogger().info("[BedrockSkinModule] getHeadUrl: Fallback sur le pseudo " + name);
+            // Corriger le pseudo si c'est un joueur Bedrock pour ne pas envoyer le prefixe floodgate
+            String cleanName = name.startsWith(".") ? name.substring(1) : name;
+            return "https://crafthead.net/helm/" + cleanName + ".png";
         } else if (uuid != null) {
+            plugin.getLogger().info("[BedrockSkinModule] getHeadUrl: Fallback sur l'UUID " + uuid);
             return "https://crafthead.net/helm/" + uuid.toString() + ".png";
         }
         return "https://crafthead.net/helm/Steve.png";
