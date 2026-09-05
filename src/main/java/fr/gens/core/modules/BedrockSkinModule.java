@@ -17,7 +17,6 @@ import com.google.gson.JsonParser;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.ResultSet;
 import java.util.UUID;
 
 public class BedrockSkinModule implements Module, Listener {
