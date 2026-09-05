@@ -774,6 +774,18 @@ public class WebManager {
 
             plugin.getFoliaLib().getScheduler().runAsync((task) -> {
                 plugin.getDatabaseManager().wipeServerData();
+                try {
+                    java.io.File lootrDir = new java.io.File(plugin.getDataFolder(), "lootr");
+                    if (lootrDir.exists()) {
+                        java.nio.file.Files.walk(lootrDir.toPath())
+                                .sorted(java.util.Comparator.reverseOrder())
+                                .map(java.nio.file.Path::toFile)
+                                .forEach(java.io.File::delete);
+                        plugin.getLogger().info("Wipe success: Lootr folder has been cleared.");
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Failed to wipe Lootr folder: " + e.getMessage());
+                }
                 plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                     org.bukkit.Bukkit.shutdown();
                 });
