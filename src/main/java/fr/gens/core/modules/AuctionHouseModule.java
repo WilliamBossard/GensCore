@@ -73,6 +73,7 @@ public class AuctionHouseModule implements Module {
     }
 
     @Command("ah")
+    @org.incendo.cloud.annotations.CommandDescription("Ouvre l'hôtel de ventes")
     public void executeAh(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
