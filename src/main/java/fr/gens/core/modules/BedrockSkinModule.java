@@ -80,7 +80,7 @@ public class BedrockSkinModule implements Module, Listener {
                 plugin.getFoliaLib().getScheduler().runAsync((asyncTask) -> {
                     try {
                         String xuid = org.geysermc.floodgate.api.FloodgateApi.getInstance().getPlayer(uuid).getXuid();
-                        URL url = new URL("https://api.geysermc.org/v2/skin/" + xuid);
+                        URL url = java.net.URI.create("https://api.geysermc.org/v2/skin/" + xuid).toURL();
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                         conn.setRequestMethod("GET");
                         conn.setConnectTimeout(5000);
