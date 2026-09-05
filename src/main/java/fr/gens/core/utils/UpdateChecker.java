@@ -28,23 +28,23 @@ public class UpdateChecker implements Listener {
     public void checkForUpdates() {
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try {
-                URL url = new URL("https://api.github.com/repos/" + repoName + "/releases/latest");
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
-                conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                    URL url = java.net.URI.create("https://api.github.com/repos/" + repoName + "/releases/latest").toURL();
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("GET");
+                    conn.setConnectTimeout(5000);
+                    conn.setReadTimeout(5000);
+                    conn.setRequestProperty("Accept", "application/vnd.github.v3+json");
 
-                int responseCode = conn.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    InputStreamReader reader = new InputStreamReader(conn.getInputStream());
-                    JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
-                    reader.close();
+                    int responseCode = conn.getResponseCode();
+                    if (responseCode == HttpURLConnection.HTTP_OK) {
+                        InputStreamReader reader = new InputStreamReader(conn.getInputStream());
+                        JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
+                        reader.close();
 
-                    latestVersion = json.get("tag_name").getAsString();
-                    updateUrl = json.get("html_url").getAsString();
+                        latestVersion = json.get("tag_name").getAsString();
+                        updateUrl = json.get("html_url").getAsString();
 
-                    String currentVersion = plugin.getDescription().getVersion();
+                        String currentVersion = plugin.getPluginMeta().getVersion();
 
                     if (!currentVersion.equalsIgnoreCase(latestVersion)) {
                         updateAvailable = true;

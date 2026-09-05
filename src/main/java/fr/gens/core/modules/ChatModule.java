@@ -2,7 +2,6 @@ package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
 import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
