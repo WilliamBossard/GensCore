@@ -428,16 +428,10 @@ public class TeleportHomeModule implements Module, Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!enabled) return;
-        String title = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title());
-        if (title.startsWith("Mes Homes") || title.startsWith("Gestion: ")) {
+        if (event.getView().getTopInventory().getHolder() instanceof GensGuiHolder) {
+            GensGuiHolder holder = (GensGuiHolder) event.getView().getTopInventory().getHolder();
             if (event.getClickedInventory() != null && event.getClickedInventory().equals(event.getView().getTopInventory())) {
-                event.setCancelled(true);
-                if (title.startsWith("Mes Homes")) {
-                    new HomeGuiHolder().onClick(event);
-                } else {
-                    String homeName = title.substring("Gestion: ".length());
-                    new ConfirmHomeGuiHolder(homeName).onClick(event);
-                }
+                holder.onClick(event);
             } else if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY || event.getAction() == org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP) {
                 event.setCancelled(true);
             }

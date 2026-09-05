@@ -268,6 +268,14 @@
                                     <pattern>com.tcoded.folialib</pattern>
                                     <shadedPattern>fr.gens.core.lib.folialib</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>io.leangen.geantyref</pattern>
+                                    <shadedPattern>fr.gens.core.lib.geantyref</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.incendo</pattern>
+                                    <shadedPattern>fr.gens.core.lib.incendo</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
