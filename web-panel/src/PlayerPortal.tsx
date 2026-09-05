@@ -278,11 +278,15 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
         }, 5000);
       } else {
         setIsSpinning(false);
-        setError(data.error || "Erreur inconnue");
+        if (res.status === 401 || data.error === 'Session expired' || data.error === 'Unauthorized') {
+            setError("Session expirée ! Veuillez vous déconnecter en bas à gauche et relancer /web en jeu.");
+        } else {
+            setError(data.error || "Erreur inconnue");
+        }
       }
     } catch (err) {
       setIsSpinning(false);
-      setError("Erreur réseau.");
+      setError("Erreur réseau ou session expirée. Veuillez vous reconnecter.");
     }
   };
 
@@ -335,14 +339,18 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
               fetchCasinoInventory();
           } else {
               setSlotReels(['?', '?', '?']);
-              setCasinoResult(data.error || t('web.public.games.casino_error'));
+              if (res.status === 401 || data.error === 'Session expired' || data.error === 'Unauthorized') {
+                  setCasinoResult(`[ERROR] Session expirée ! Veuillez vous déconnecter en bas à gauche et relancer /web.`);
+              } else {
+                  setCasinoResult(`[ERROR] ${data.error || t('web.public.games.casino_error')}`);
+              }
           }
       }, 2000);
 
     } catch (err) {
       clearInterval(interval);
       setIsRolling(false);
-      setCasinoResult("Erreur réseau.");
+      setCasinoResult("[ERROR] Erreur réseau ou session expirée. Veuillez vous reconnecter.");
     }
   };
 
@@ -466,13 +474,13 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
             {casinoResult && (
               <div style={{
                 marginTop: '1.5rem', padding: '1rem', 
-                background: casinoResult.includes('Perdu') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
+                background: casinoResult.includes('Perdu') || casinoResult.startsWith('[ERROR]') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
                 borderRadius: '8px', 
-                border: `1px solid ${casinoResult.includes('Perdu') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`, 
-                color: casinoResult.includes('Perdu') ? '#ef4444' : '#10b981',
+                border: `1px solid ${casinoResult.includes('Perdu') || casinoResult.startsWith('[ERROR]') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`, 
+                color: casinoResult.includes('Perdu') || casinoResult.startsWith('[ERROR]') ? '#ef4444' : '#10b981',
                 fontSize: '1.1rem', fontWeight: 'bold'
               }}>
-                {casinoResult}
+                {casinoResult.replace('[ERROR] ', '')}
               </div>
             )}
           </div>
