@@ -55,10 +55,10 @@ interface ShopCategory {
 const API_URL = '/api';
 
 // Retourne l'URL de l'avatar (compatible Bedrock)
+// On passe par l'API du serveur qui gère les skins Bedrock via la BDD
 function getPlayerAvatarUrl(name: string, size: number = 64): string {
-  if (!name) return `https://mc-heads.net/avatar/Steve/${size}`;
-  const cleanName = name.startsWith('.') ? name.substring(1) : name;
-  return `https://mc-heads.net/avatar/${encodeURIComponent(cleanName)}/${size}`;
+  if (!name) return `${API_URL}/head/Steve/${size}`;
+  return `${API_URL}/head/${encodeURIComponent(name)}/${size}`;
 }
 
 // === COMPOSANT : LOGIN ADMIN ===

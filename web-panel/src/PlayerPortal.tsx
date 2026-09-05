@@ -8,13 +8,10 @@ import { ClientJobs } from './ClientJobs';
 const API_URL = '/api';
 
 // Retourne l'URL de l'avatar du joueur.
-// Les joueurs Bedrock (nom commençant par '.') n'ont pas de skin sur mc-heads.net
-// donc on utilise un skin Steve générique avec un indicateur Bedrock.
+// On passe par l'API du serveur qui gère les skins Bedrock via la BDD
 function getPlayerAvatarUrl(name: string, size: number = 64): string {
-  if (!name) return `https://mc-heads.net/avatar/Steve/${size}`;
-  const cleanName = name.startsWith('.') ? name.substring(1) : name;
-  // mc-heads.net supporte les noms avec/sans point, mais pour Bedrock on essaie via SkinsRestorer
-  return `https://mc-heads.net/avatar/${encodeURIComponent(cleanName)}/${size}`;
+  if (!name) return `${API_URL}/head/Steve/${size}`;
+  return `${API_URL}/head/${encodeURIComponent(name)}/${size}`;
 }
 
 export function PlayerLogin({ onLogin }: { onLogin: (data: any) => void }) {
