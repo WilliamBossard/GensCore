@@ -117,10 +117,13 @@ public class BedrockSkinModule implements Module, Listener {
                                     }
                                     
                                     if (!hash.isEmpty()) {
+                                        plugin.getLogger().info("[BedrockSkinModule] Hash trouve pour " + player.getName() + " : " + hash);
                                         // Save hash to database for Web/Discord use
                                         plugin.getDatabaseManager().executeStatement(
                                             "REPLACE INTO player_skins (uuid, hash) VALUES ('" + uuid.toString() + "', '" + hash + "');"
                                         );
+                                    } else {
+                                        plugin.getLogger().warning("[BedrockSkinModule] Impossible de trouver le hash/texture_id dans la reponse de Geyser pour " + player.getName());
                                     }
                                     
                                     // Apply skin to player in game
@@ -128,7 +131,10 @@ public class BedrockSkinModule implements Module, Listener {
                                         PlayerProfile profile = player.getPlayerProfile();
                                         profile.setProperty(new ProfileProperty("textures", value, signature));
                                         player.setPlayerProfile(profile);
+                                        plugin.getLogger().info("[BedrockSkinModule] Profil applique a " + player.getName() + " en jeu !");
                                     });
+                                } else {
+                                    plugin.getLogger().warning("[BedrockSkinModule] Le JSON de Geyser ne contient pas value ou signature pour " + player.getName());
                                 }
                             }
                         }
@@ -161,10 +167,13 @@ public class BedrockSkinModule implements Module, Listener {
             }
         }
         // Fallback standard pour les joueurs Java ou Bedrock sans hash en cache
-        if (uuid != null) {
-            return "https://crafthead.net/helm/" + uuid.toString() + ".png";
-        } else {
+        // On privilégie le nom plutôt que l'UUID car sur un serveur crack/offline,
+        // l'UUID est un offline UUID qui retourne Steve sur crafthead.net.
+        if (name != null && !name.isEmpty()) {
             return "https://crafthead.net/helm/" + name + ".png";
+        } else if (uuid != null) {
+            return "https://crafthead.net/helm/" + uuid.toString() + ".png";
         }
+        return "https://crafthead.net/helm/Steve.png";
     }
 }
