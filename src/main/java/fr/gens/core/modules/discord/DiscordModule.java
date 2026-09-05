@@ -275,6 +275,12 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
 
     private String getAvatarUrl(Player p) {
         if (p == null) return "https://crafthead.net/helm/Steve.png";
+        
+        fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+        if (skinModule != null) {
+            return skinModule.getHeadUrl(p.getUniqueId(), p.getName());
+        }
+        
         if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(p.getUniqueId())) {
             return "https://crafthead.net/helm/" + p.getUniqueId().toString() + ".png";
         }

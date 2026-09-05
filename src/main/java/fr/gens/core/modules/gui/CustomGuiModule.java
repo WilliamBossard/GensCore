@@ -222,7 +222,10 @@ public class CustomGuiModule implements Module, Listener {
                 fr.gens.core.utils.BedrockFormManager.BedrockButton btn;
                 if (baseItem.getType() == Material.PLAYER_HEAD) {
                     String headUrl;
-                    if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+                    fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+                    if (skinModule != null) {
+                        headUrl = skinModule.getHeadUrl(player.getUniqueId(), player.getName());
+                    } else if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
                         headUrl = "https://crafthead.net/helm/" + player.getUniqueId().toString() + ".png";
                     } else {
                         headUrl = "https://crafthead.net/helm/" + player.getName() + ".png";

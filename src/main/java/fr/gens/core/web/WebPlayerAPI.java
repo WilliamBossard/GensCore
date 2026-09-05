@@ -170,6 +170,13 @@ public class WebPlayerAPI implements Listener {
         get("/api/head/{name}", ctx -> {
             String name = ctx.pathParam("name");
             UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            
+            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            if (skinModule != null) {
+                ctx.redirect(skinModule.getHeadUrl(uuid, name));
+                return;
+            }
+            
             if (uuid != null) {
                 ctx.redirect("https://crafthead.net/avatar/" + uuid.toString());
             } else {
@@ -181,6 +188,24 @@ public class WebPlayerAPI implements Listener {
             String name = ctx.pathParam("name");
             String size = ctx.pathParam("size");
             UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            
+            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            if (skinModule != null) {
+                String baseUrl = skinModule.getHeadUrl(uuid, name);
+                // Si l'URL contient mc-heads.net, on gère la taille avec le paramètre de taille
+                if (baseUrl.contains("mc-heads.net")) {
+                    ctx.redirect(baseUrl + "/" + size);
+                } else {
+                    // Pour crafthead, il faut insérer la taille
+                    if (uuid != null) {
+                        ctx.redirect("https://crafthead.net/avatar/" + uuid.toString() + "/" + size);
+                    } else {
+                        ctx.redirect("https://crafthead.net/avatar/" + name + "/" + size);
+                    }
+                }
+                return;
+            }
+            
             if (uuid != null) {
                 ctx.redirect("https://crafthead.net/avatar/" + uuid.toString() + "/" + size);
             } else {

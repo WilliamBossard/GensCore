@@ -48,6 +48,7 @@ public class ModuleManager {
         addModule(new fr.gens.core.modules.discord.DiscordModule(plugin));
         addModule(new fr.gens.core.modules.AuctionHouseModule(plugin));
         addModule(new fr.gens.core.modules.auth.AuthModule(plugin));
+        addModule(new fr.gens.core.modules.BedrockSkinModule(plugin));
 
         plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 
