@@ -786,6 +786,19 @@ public class WebManager {
                 } catch (Exception e) {
                     plugin.getLogger().severe("Failed to wipe Lootr folder: " + e.getMessage());
                 }
+                
+                try {
+                    java.io.File blueMapMapsDir = new java.io.File(plugin.getDataFolder().getParentFile(), "BlueMap/web/maps");
+                    if (blueMapMapsDir.exists()) {
+                        java.nio.file.Files.walk(blueMapMapsDir.toPath())
+                                .sorted(java.util.Comparator.reverseOrder())
+                                .map(java.nio.file.Path::toFile)
+                                .forEach(java.io.File::delete);
+                        plugin.getLogger().info("Wipe success: BlueMap maps folder has been cleared.");
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Failed to wipe BlueMap maps folder: " + e.getMessage());
+                }
                 plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                     org.bukkit.Bukkit.shutdown();
                 });
