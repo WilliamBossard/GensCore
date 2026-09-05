@@ -1242,7 +1242,7 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
                 {item.amount && item.amount > 1 && ` (x${item.amount})`}
               </div>
             </div>
-            <div style={{color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '10px'}}>{t('web.public.ah.offer')}{item.id}</div>
+            <div style={{color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '10px'}}>#{item.id}</div>
             <div style={{color: 'var(--text-muted)', marginBottom: '5px'}}>{t('web.public.ah.seller')} : <span style={{color: '#fff'}}>{item.sellerName}</span></div>
             <div style={{color: 'var(--text-muted)', marginBottom: '15px'}}>{t('web.public.ah.price')} : <span style={{color: '#10b981', fontWeight: 'bold'}}>{item.price.toFixed(2)} $</span></div>
             <div style={{fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid var(--card-border)', paddingTop: '10px'}}>
