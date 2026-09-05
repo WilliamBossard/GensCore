@@ -27,7 +27,12 @@ public class CommandManager {
                 SenderMapper.identity()
             );
             
-            // Cloud v2 gère automatiquement Brigadier sur Paper 1.20.6+ via LifecycleEventManager !
+            // Enregistrement manuel de Brigadier (requis pour LegacyPaperCommandManager dans Cloud V2)
+            if (this.paperCommandManager.hasCapability(org.incendo.cloud.bukkit.CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+                this.paperCommandManager.registerBrigadier();
+            } else if (this.paperCommandManager.hasCapability(org.incendo.cloud.bukkit.CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+                this.paperCommandManager.registerAsynchronousCompletions();
+            }
             
             this.paperCommandManager.parserRegistry().registerSuggestionProvider("onlinePlayers", 
                 (context, input) -> java.util.concurrent.CompletableFuture.completedFuture(org.bukkit.Bukkit.getOnlinePlayers().stream()
