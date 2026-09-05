@@ -157,9 +157,9 @@ public class AuctionHouseModule implements Module {
                             lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Vendeur : <white>" + ahItem.sellerName));
                             lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Prix : <yellow>" + String.format("%.2f", ahItem.price) + " $"));
                             if (ahItem.sellerUuid.equals(p.getUniqueId().toString())) {
-                                lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>▶ Cliquez pour annuler la vente"));
+                                lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>> Cliquez pour annuler la vente"));
                             } else {
-                                lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>▶ Cliquez pour acheter"));
+                                lore.add(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>> Cliquez pour acheter"));
                             }
                             meta.lore(lore);
                             item.setItemMeta(meta);

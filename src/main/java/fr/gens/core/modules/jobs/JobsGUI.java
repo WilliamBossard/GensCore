@@ -69,7 +69,7 @@ public class JobsGUI implements Listener {
         }
 
         JobsGuiHolder holder = new JobsGuiHolder();
-        Inventory inv = Bukkit.createInventory(holder, 36, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>■ §x<white><white><aqua><gray><black><dark_aqua>Métiers <dark_gray>■"));
+        Inventory inv = Bukkit.createInventory(holder, 36, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>- §x<white><white><aqua><gray><black><dark_aqua>Métiers <dark_gray>-"));
         holder.setInventory(inv);
 
         // Fill background
@@ -110,11 +110,11 @@ public class JobsGUI implements Listener {
             lore.add("<dark_gray>" + progressBar + " <dark_gray>(<gray>" + percent + "%<dark_gray>)");
             lore.add("");
             if (hasJob) {
-                lore.add("<green>■ <gray>Statut : <green><bold>Actif");
-                lore.add("<dark_gray>▶ <red>Cliquez pour démissionner");
+                lore.add("<green>- <gray>Statut : <green><bold>Actif");
+                lore.add("<dark_gray>> <red>Cliquez pour démissionner");
             } else {
-                lore.add("<red>■ <gray>Statut : <red><bold>Inactif");
-                lore.add("<dark_gray>▶ <green>Cliquez pour rejoindre");
+                lore.add("<red>- <gray>Statut : <red><bold>Inactif");
+                lore.add("<dark_gray>> <green>Cliquez pour rejoindre");
             }
             meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
             item.setItemMeta(meta);
