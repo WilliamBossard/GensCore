@@ -152,7 +152,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
   const saveConfigToServer = (newConfig: ConfigState) => {
     fetch(`${API_URL}/admin/config`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
       body: JSON.stringify(newConfig)
     }).then(res => {
       if (!res.ok) alert('Erreur lors de la sauvegarde de la configuration');
@@ -450,7 +450,7 @@ function AdminPlayers({ password }: { password: string }) {
 
     fetch(`${API_URL}/admin/players/action`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
       body: JSON.stringify({ 
         action: actionModal.action, 
         playerName: actionModal.player, 
@@ -600,7 +600,7 @@ function AdminFiles({ password }: { password: string }) {
   const saveFile = () => {
     fetch(`${API_URL}/admin/file?path=${currentFile}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
       body: JSON.stringify({ content })
     }).then(() => {
       setSaved(true);
@@ -749,7 +749,7 @@ function AdminModules({ password }: { password: string }) {
     
     fetch(`${API_URL}/admin/modules/${name}/toggle`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
       body: JSON.stringify({ state: !currentState })
     });
   };
@@ -887,7 +887,7 @@ function AdminShop({ password }: { password: string }) {
   const toggleItemEnabled = (categoryId: string, item: any) => {
     fetch(`${API_URL}/admin/shop/item`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
       body: JSON.stringify({ categoryId, ...item, isEnabled: !item.isEnabled })
     }).then(() => fetchShop());
   };
@@ -896,7 +896,7 @@ function AdminShop({ password }: { password: string }) {
     e.preventDefault();
     await fetch(`${API_URL}/admin/shop/category`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
       body: JSON.stringify({ id: catId, displayName: catName, icon: catIcon, items: [] })
     });
     setShowCatModal(false);
@@ -907,7 +907,7 @@ function AdminShop({ password }: { password: string }) {
     e.preventDefault();
     await fetch(`${API_URL}/admin/shop/item`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${password}` },
+      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
       body: JSON.stringify({
         categoryId: editingCategoryId,
         material: itemMat, baseBuyPrice: buyP, baseSellPrice: sellP, targetStock: targetS, isCommand: isCmd, commandToExecute: cmdExec, isEnabled: isEnabled
@@ -1052,7 +1052,7 @@ function AdminShop({ password }: { password: string }) {
                       setItemMat(item.material);
                       setBuyP(item.baseBuyPrice);
                       setSellP(item.baseSellPrice);
-                      setTargetS(item.targetStock);
+                      setTargetS(item.targetStock || 1000);
                       setIsCmd(item.isCommand || false);
                       setCmdExec(item.commandToExecute || '');
                       setIsEnabled(item.isEnabled ?? true);

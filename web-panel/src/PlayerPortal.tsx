@@ -28,7 +28,7 @@ export function PlayerLogin({ onLogin }: { onLogin: (data: any) => void }) {
     try {
       const res = await fetch(`${API_URL}/player/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ username, password })
       });
       const data = await res.json();
@@ -227,7 +227,7 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
   const [selectedBet, setSelectedBet] = useState<number | null>(null);
   const [casinoResult, setCasinoResult] = useState<string | null>(null);
   const [isRolling, setIsRolling] = useState(false);
-  const [slotReels, setSlotReels] = useState(['?', '?', '?']);
+  const [slotReels, setSlotReels] = useState<React.ReactNode[]>(['?', '?', '?']);
 
   useEffect(() => {
     fetch(`${API_URL}/games/config`)
@@ -259,7 +259,7 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
     try {
       const res = await fetch(`${API_URL}/games/play`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ gameId: 'wheel' })
       });
       const data = await res.json();
@@ -279,7 +279,7 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
       } else {
         setIsSpinning(false);
         if (res.status === 401 || data.error === 'Session expired' || data.error === 'Unauthorized') {
-            setError("Session expirée ! Veuillez vous déconnecter en bas à gauche et relancer /web en jeu.");
+            setError("Session expirée ! Veuillez vous déconnecter en bas à gauche et vous reconnecter en jeu.");
         } else {
             setError(data.error || "Erreur inconnue");
         }
@@ -313,7 +313,7 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
     try {
       const res = await fetch(`${API_URL}/games/casino/play`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ betId: selectedBet })
       });
       const data = await res.json();
@@ -340,7 +340,7 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
           } else {
               setSlotReels(['?', '?', '?']);
               if (res.status === 401 || data.error === 'Session expired' || data.error === 'Unauthorized') {
-                  setCasinoResult(`[ERROR] Session expirée ! Veuillez vous déconnecter en bas à gauche et relancer /web.`);
+                  setCasinoResult(`[ERROR] Session expirée ! Veuillez vous déconnecter en bas à gauche et vous reconnecter.`);
               } else {
                   setCasinoResult(`[ERROR] ${data.error || t('web.public.games.casino_error')}`);
               }
