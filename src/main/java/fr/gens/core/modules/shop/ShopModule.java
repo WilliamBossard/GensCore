@@ -6,7 +6,7 @@ import fr.gens.core.modules.GuiModule.GensGuiHolder;
 import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -130,7 +130,7 @@ public class ShopModule implements Module {
         return this.shopDAO.deleteCategory(categoryId);
     }
 
-    @CommandMethod("shop")
+    @Command("shop")
     public void executeShop(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

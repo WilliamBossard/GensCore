@@ -4,7 +4,7 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.TeleportUtil;
 
 import org.bukkit.Location;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -98,7 +98,7 @@ public class TeleportBackModule implements Module, Listener {
         saveBacks();
     }
 
-    @CommandMethod("back")
+    @Command("back")
     public void executeBack(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

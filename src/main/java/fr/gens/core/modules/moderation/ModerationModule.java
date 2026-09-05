@@ -11,8 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
-import org.incendo.cloud.annotations.specifier.Greedy;
+import org.incendo.cloud.annotations.Default;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotation.specifier.Greedy;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -199,7 +200,7 @@ public class ModerationModule implements Module, Listener {
         }
     }
 
-    @CommandMethod("freeze <target>")
+    @Command("freeze <target>")
     public void executeFreeze(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.freeze")) {
@@ -245,7 +246,7 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("openinv <target>")
+    @Command("openinv <target>")
     public void executeOpenInv(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -294,7 +295,7 @@ public class ModerationModule implements Module, Listener {
     }
 
 
-    @CommandMethod("resetmdp <target>")
+    @Command("resetmdp <target>")
     public void executeResetMdp(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.admin")) {
@@ -346,8 +347,8 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("mute <target> [args]")
-    public void executeMute(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", defaultValue = "", description = "Raison et/ou durée") @Greedy String argsString) {
+    @Command("mute <target> [args]")
+    public void executeMute(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison et/ou durée") @Default("") @Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.mute")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_14");
@@ -393,7 +394,7 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("unmute <target>")
+    @Command("unmute <target>")
     public void executeUnmute(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.mute")) return;
@@ -414,8 +415,8 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("ban <target> [args]")
-    public void executeBan(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", defaultValue = "", description = "Raison et/ou durée") @Greedy String argsString) {
+    @Command("ban <target> [args]")
+    public void executeBan(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison et/ou durée") @Default("") @Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.ban")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
@@ -462,8 +463,8 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("kick <target> [args]")
-    public void executeKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", defaultValue = "", description = "Raison du renvoi") @org.incendo.cloud.annotations.specifier.Greedy String argsString) {
+    @Command("kick <target> [args]")
+    public void executeKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", description = "Raison du renvoi") @Default("") @org.incendo.cloud.annotation.specifier.Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.kick")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");
@@ -496,7 +497,7 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("unban <target>")
+    @Command("unban <target>")
     public void executeUnban(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.ban")) return;

@@ -1,6 +1,6 @@
 package fr.gens.core.commands;
 
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import fr.gens.core.CorePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -31,14 +31,14 @@ public class WebCommand implements Listener {
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
-    @CommandMethod("web")
+    @Command("web")
     public void executeHelp(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         plugin.getLangManager().sendMessage(player, "webcommand.msg_1");
     }
 
-    @CommandMethod("web deposit")
+    @Command("web deposit")
     public void executeDeposit(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -74,7 +74,7 @@ public class WebCommand implements Listener {
         });
     }
 
-    @CommandMethod("web withdraw")
+    @Command("web withdraw")
     public void executeWithdraw(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;

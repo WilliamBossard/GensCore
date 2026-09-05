@@ -1,8 +1,9 @@
 package fr.gens.core.modules;
 
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
-import org.incendo.cloud.annotations.CommandPermission;
+import org.incendo.cloud.annotations.Default;
+import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Permission;
 import fr.gens.core.CorePlugin;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -222,14 +223,14 @@ public class EconomyModule implements Module, Listener {
         GIVE, TAKE, SET
     }
 
-    @org.incendo.cloud.annotations.suggestions.Suggestions("onlinePlayers")
+    @org.incendo.cloud.annotations.suggestion.Suggestions("onlinePlayers")
     public java.util.List<String> suggestOnlinePlayers(org.incendo.cloud.context.CommandContext<CommandSender> context, String input) {
         return org.bukkit.Bukkit.getOnlinePlayers().stream().map(org.bukkit.entity.Player::getName).filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 
-    @CommandMethod("money [target]")
+    @Command("money [target]")
     @org.incendo.cloud.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
-    public void executeMoney(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
+    public void executeMoney(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) {
         if (!enabled) {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement d\u00e9sactiv\u00e9.</red>"));
             return;
@@ -249,13 +250,13 @@ public class EconomyModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("balance [target]")
+    @Command("balance [target]")
     @org.incendo.cloud.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
-    public void executeBalance(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
+    public void executeBalance(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) {
         executeMoney(sender, targetName);
     }
 
-    @CommandMethod("baltop")
+    @Command("baltop")
     public void executeBaltop(CommandSender sender) {
         if (!enabled) return;
         plugin.getLangManager().sendMessage(sender, "economymodule.msg_1");
@@ -278,7 +279,7 @@ public class EconomyModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("pay <target> <amount>")
+    @Command("pay <target> <amount>")
     @org.incendo.cloud.annotations.CommandDescription("Envoyer de l'argent a un joueur")
     public void executePay(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "amount", description = "Montant d'argent") double amount) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
@@ -311,14 +312,14 @@ public class EconomyModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("eco")
-    @CommandPermission("genscore.admin")
+    @Command("eco")
+    @Permission("genscore.admin")
     public void executeEcoHelp(CommandSender sender) {
         sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Syntaxe invalide. Utilisez: /eco <give|take|set> <joueur> <montant>"));
     }
 
-    @CommandMethod("eco <action> <target> <amount>")
-    @CommandPermission("genscore.admin")
+    @Command("eco <action> <target> <amount>")
+    @Permission("genscore.admin")
     @org.incendo.cloud.annotations.CommandDescription("Gerer l'economie d'un joueur")
     public void executeEco(CommandSender sender, @Argument(value = "action", description = "L'action à effectuer") EcoAction actionEnum, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "amount", description = "Le montant") double amount) {
         if (!enabled) return;

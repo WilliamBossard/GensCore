@@ -6,7 +6,7 @@ import fr.gens.core.utils.ItemSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -72,7 +72,7 @@ public class AuctionHouseModule implements Module {
         enabled = false;
     }
 
-    @CommandMethod("ah")
+    @Command("ah")
     public void executeAh(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -83,7 +83,7 @@ public class AuctionHouseModule implements Module {
         openAhGui(p, 0);
     }
 
-    @CommandMethod("ah sell <price>")
+    @Command("ah sell <price>")
     public void executeAhSell(org.bukkit.command.CommandSender sender, @Argument(value = "price", description = "Prix de vente") double price) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

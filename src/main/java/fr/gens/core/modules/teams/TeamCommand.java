@@ -4,7 +4,7 @@ import fr.gens.core.CorePlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +23,7 @@ public class TeamCommand {
         this.module = module;
     }
 
-    @CommandMethod("team|guild|guilde")
+    @Command("team|guild|guilde")
     public void executeTeamGui(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -34,7 +34,7 @@ public class TeamCommand {
         teamGui.openTeamGui(player);
     }
 
-    @CommandMethod("team|guild|guilde create <name>")
+    @Command("team|guild|guilde create <name>")
     public void executeTeamCreate(org.bukkit.command.CommandSender sender, @Argument(value = "name", description = "Nom de la team") String name) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -61,7 +61,7 @@ public class TeamCommand {
         });
     }
 
-    @CommandMethod("team|guild|guilde invite <target>")
+    @Command("team|guild|guilde invite <target>")
     public void executeTeamInvite(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
@@ -87,7 +87,7 @@ public class TeamCommand {
         player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Invitation envoyée à " + target.getName()));
     }
 
-    @CommandMethod("team|guild|guilde accept")
+    @Command("team|guild|guilde accept")
     public void executeTeamAccept(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;

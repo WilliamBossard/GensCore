@@ -6,7 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Default;
+import org.incendo.cloud.annotations.Command;
 
 
 public class UtilsModule implements Module, Listener {
@@ -61,7 +62,7 @@ public class UtilsModule implements Module, Listener {
         plugin.getLangManager().sendConsoleMessage("utilsmodule.log_2");
     }
 
-    @CommandMethod("anvil")
+    @Command("anvil")
     public void executeAnvil(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -73,7 +74,7 @@ public class UtilsModule implements Module, Listener {
         p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.ANVIL));
     }
 
-    @CommandMethod("craftingtable")
+    @Command("craftingtable")
     public void executeCraftingTable(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -85,21 +86,21 @@ public class UtilsModule implements Module, Listener {
         p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.WORKBENCH));
     }
 
-    @CommandMethod("craft")
+    @Command("craft")
     public void executeCraft(org.bukkit.command.CommandSender sender) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         executeCraftingTable(p); 
     }
 
-    @CommandMethod("workbench")
+    @Command("workbench")
     public void executeWorkbench(org.bukkit.command.CommandSender sender) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         executeCraftingTable(p); 
     }
 
-    @CommandMethod("enchanttable")
+    @Command("enchanttable")
     public void executeEnchantTable(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -111,15 +112,15 @@ public class UtilsModule implements Module, Listener {
         p.openInventory(org.bukkit.Bukkit.createInventory(p, org.bukkit.event.inventory.InventoryType.ENCHANTING));
     }
 
-    @CommandMethod("enchanting")
+    @Command("enchanting")
     public void executeEnchanting(org.bukkit.command.CommandSender sender) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         executeEnchantTable(p); 
     }
 
-    @CommandMethod("ec [target]")
-    public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
+    @Command("ec [target]")
+    public void executeEnderChest(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
@@ -144,14 +145,14 @@ public class UtilsModule implements Module, Listener {
         }
     }
 
-    @CommandMethod("enderchest [target]")
-    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) { 
+    @Command("enderchest [target]")
+    public void executeEnderChestAlias(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") @Default("") String targetName) { 
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         executeEnderChest(p, targetName); 
     }
 
-    @CommandMethod("feed")
+    @Command("feed")
     public void executeFeed(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

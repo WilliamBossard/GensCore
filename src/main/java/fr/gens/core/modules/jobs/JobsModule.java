@@ -6,7 +6,7 @@ import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -226,14 +226,14 @@ public class JobsModule implements Module, Listener {
         player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reçu <yellow>" + amount + "x " + mat.name() + " <gray>!"));
     }
 
-    @CommandMethod("jobs")
+    @Command("jobs")
     public void executeJobs(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         gui.openGUI(p);
     }
     
-    @CommandMethod("job")
+    @Command("job")
     public void executeJob(org.bukkit.command.CommandSender sender) {
         executeJobs(sender);
     }

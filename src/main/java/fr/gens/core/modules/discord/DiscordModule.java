@@ -17,7 +17,7 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -373,7 +373,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         sendBotEmbed(message, getAvatarUrl(event.getPlayer()), Color.YELLOW);
     }
 
-    @CommandMethod("discord link")
+    @Command("discord link")
     public void executeDiscordLink(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -392,7 +392,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
         plugin.getLangManager().sendMessage(p, "discordmodule.msg_3");
     }
 
-    @CommandMethod("discord")
+    @Command("discord")
     public void executeDiscord(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

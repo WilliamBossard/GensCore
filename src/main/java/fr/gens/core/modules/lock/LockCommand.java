@@ -3,7 +3,8 @@ package fr.gens.core.modules.lock;
 import fr.gens.core.CorePlugin;
 
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Default;
+import org.incendo.cloud.annotations.Command;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
@@ -21,8 +22,8 @@ public class LockCommand {
         this.lockModule = lockModule;
     }
 
-    @CommandMethod("lock [action]")
-    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", defaultValue = "", suggestions = "lockActions", description = "L'action à effectuer") String action) {
+    @Command("lock [action]")
+    public void executeLock(org.bukkit.command.CommandSender sender, @Argument(value = "action", suggestions = "lockActions", description = "L'action à effectuer") @Default("") String action) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player player = (org.bukkit.entity.Player) sender;
         if (!lockModule.isEnabled()) {
@@ -58,7 +59,7 @@ public class LockCommand {
 
         plugin.getLangManager().sendMessage(player, "lockcommand.msg_5");
     }
-    @org.incendo.cloud.annotations.suggestions.Suggestions("lockActions")
+    @org.incendo.cloud.annotations.suggestion.Suggestions("lockActions")
     public java.util.List<String> suggestLockActions(org.incendo.cloud.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
         return java.util.Arrays.asList("private", "unlock", "guild").stream().filter(name -> name.startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }

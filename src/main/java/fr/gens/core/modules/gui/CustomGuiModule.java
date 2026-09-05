@@ -6,7 +6,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Default;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -155,8 +156,8 @@ public class CustomGuiModule implements Module, Listener {
         return item;
     }
 
-    @CommandMethod("menu [name]")
-    public void executeMenu(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "principal", suggestions = "menus", description = "Le nom du menu") String menuName) {
+    @Command("menu [name]")
+    public void executeMenu(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "menus", description = "Le nom du menu") @Default("principal") String menuName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (menuName == null || menuName.isEmpty()) menuName = "principal";
@@ -311,12 +312,12 @@ public class CustomGuiModule implements Module, Listener {
     private void registerDynamicCommand(String cmd, CustomMenu menu) {
         if (plugin.getCommandManager() != null) {
             try {
-                org.incendo.cloud.paper.PaperCommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
+                org.incendo.cloud.paper.LegacyPaperCommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
                 mgr.command(
                     mgr.commandBuilder(cmd)
                         .senderType(Player.class)
                         .handler(context -> {
-                            openMenu((Player) context.getSender(), menu);
+                            openMenu((Player) context.sender(), menu);
                         })
                 );
                 plugin.getLogger().info("[Gui] Commande dynamique enregistrée via Cloud : /" + cmd);
@@ -460,7 +461,7 @@ public class CustomGuiModule implements Module, Listener {
             }
         }
     }
-    @org.incendo.cloud.annotations.suggestions.Suggestions("menus")
+    @org.incendo.cloud.annotations.suggestion.Suggestions("menus")
     public java.util.List<String> suggestMenus(org.incendo.cloud.context.CommandContext<CommandSender> context, String input) {
         return menus.keySet().stream().filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }

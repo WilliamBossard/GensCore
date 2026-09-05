@@ -7,7 +7,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Default;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -152,8 +153,8 @@ public class TeleportHomeModule implements Module, Listener {
         return max;
     }
 
-    @CommandMethod("sethome [name]")
-    public void executeSetHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "maison", description = "Le nom de la maison") String homeName) {
+    @Command("sethome [name]")
+    public void executeSetHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", description = "Le nom de la maison") @Default("maison") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -181,17 +182,17 @@ public class TeleportHomeModule implements Module, Listener {
         );
     }
 
-    @org.incendo.cloud.annotations.suggestions.Suggestions("homeNames")
+    @org.incendo.cloud.annotations.suggestion.Suggestions("homeNames")
     public java.util.List<String> homeNames(org.incendo.cloud.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
-        if (!(context.getSender() instanceof org.bukkit.entity.Player)) return java.util.Collections.emptyList();
-        org.bukkit.entity.Player p = (org.bukkit.entity.Player) context.getSender();
+        if (!(context.sender() instanceof org.bukkit.entity.Player)) return java.util.Collections.emptyList();
+        org.bukkit.entity.Player p = (org.bukkit.entity.Player) context.sender();
         Map<String, Location> playerHomes = homes.get(p.getUniqueId());
         if (playerHomes == null) return java.util.Collections.emptyList();
         return new java.util.ArrayList<>(playerHomes.keySet());
     }
 
-    @CommandMethod("home [name]")
-    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", defaultValue = "", suggestions = "homeNames", description = "Le nom de la maison") String homeName) {
+    @Command("home [name]")
+    public void executeHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "homeNames", description = "Le nom de la maison") @Default("") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) {
@@ -217,7 +218,7 @@ public class TeleportHomeModule implements Module, Listener {
         openHomeGui(p);
     }
 
-    @CommandMethod("delhome <name>")
+    @Command("delhome <name>")
     public void executeDelHome(org.bukkit.command.CommandSender sender, @Argument(value = "name", suggestions = "homeNames", description = "Le nom de la maison") String homeName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

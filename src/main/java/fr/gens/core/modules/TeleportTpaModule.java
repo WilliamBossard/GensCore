@@ -8,7 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,7 +74,7 @@ public class TeleportTpaModule implements Module, Listener {
         tpaRequests.entrySet().removeIf(entry -> entry.getValue().equals(event.getPlayer().getUniqueId()));
     }
 
-    @CommandMethod("tpa <target>")
+    @Command("tpa <target>")
     public void executeTpa(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -121,7 +121,7 @@ public class TeleportTpaModule implements Module, Listener {
         }, 20 * 60L);
     }
 
-    @CommandMethod("tpaccept")
+    @Command("tpaccept")
     public void executeTpaccept(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -142,7 +142,7 @@ public class TeleportTpaModule implements Module, Listener {
         }
     }
 
-    @CommandMethod("tpdeny|tpadeny")
+    @Command("tpdeny|tpadeny")
     public void executeTpdeny(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -160,7 +160,7 @@ public class TeleportTpaModule implements Module, Listener {
         }
     }
 
-    @CommandMethod("tpacancel")
+    @Command("tpacancel")
     public void executeTpacancel(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

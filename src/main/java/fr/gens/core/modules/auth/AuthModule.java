@@ -29,7 +29,7 @@ import java.util.UUID;
 import org.mindrot.jbcrypt.BCrypt;
 
 import org.incendo.cloud.annotations.Argument;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 
 public class AuthModule implements Module, Listener {
 
@@ -259,7 +259,7 @@ public class AuthModule implements Module, Listener {
         });
     }
 
-    @CommandMethod("changemdp <oldPass> <newPass>")
+    @Command("changemdp <oldPass> <newPass>")
     public void executeChangeMdp(org.bukkit.command.CommandSender sender, @Argument(value = "oldPass", description = "Ancien mot de passe") String oldPass, @Argument(value = "newPass", description = "Nouveau mot de passe") String newPass) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -423,60 +423,7 @@ public class AuthModule implements Module, Listener {
             return;
         }
 
-        // 2. Force execution via Cloud (Paper 26.2+ fix)
-        org.incendo.cloud.paper.PaperCommandManager<org.bukkit.command.CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
-        if (mgr != null) {
-            try {
-                org.incendo.cloud.CommandTree<org.bukkit.command.CommandSender> tree = mgr.getCommandTree();
-                if (tree != null) {
-                    java.util.Collection<org.incendo.cloud.Command<org.bukkit.command.CommandSender>> cmds = mgr.getCommands();
-                    boolean isCloudCmd = false;
-                    for (org.incendo.cloud.Command<org.bukkit.command.CommandSender> c : cmds) {
-                        if (c.getArguments().isEmpty()) continue;
-                        org.incendo.cloud.arguments.CommandArgument<org.bukkit.command.CommandSender, ?> firstArg = c.getArguments().get(0);
-                        if (firstArg.getName().equalsIgnoreCase(cmdName)) {
-                            isCloudCmd = true;
-                            break;
-                        }
-                        if (firstArg instanceof org.incendo.cloud.arguments.StaticArgument) {
-                            org.incendo.cloud.arguments.StaticArgument<?> staticArg = (org.incendo.cloud.arguments.StaticArgument<?>) firstArg;
-                            if (staticArg.getAlternativeAliases().contains(cmdName.toLowerCase())) {
-                                isCloudCmd = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (isCloudCmd) {
-                        event.setCancelled(true); // Stop Bukkit from trying to run it
-                        mgr.executeCommand(event.getPlayer(), cmdArgs).whenComplete((res, err) -> {
-                            if (err != null) {
-                                if (err instanceof java.util.concurrent.CompletionException) {
-                                    err = err.getCause();
-                                }
-                                
-                                if (err instanceof org.incendo.cloud.exceptions.InvalidSyntaxException) {
-                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Erreur de syntaxe. Utilisation correcte : <yellow>" + ((org.incendo.cloud.exceptions.InvalidSyntaxException) err).getCorrectSyntax()));
-                                } else if (err instanceof org.incendo.cloud.exceptions.NoPermissionException) {
-                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez pas la permission d'exécuter cette commande."));
-                                } else if (err instanceof org.incendo.cloud.exceptions.ArgumentParseException) {
-                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Argument invalide : " + err.getCause().getMessage()));
-                                } else if (err instanceof org.incendo.cloud.exceptions.InvalidCommandSenderException) {
-                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous ne pouvez pas exécuter cette commande."));
-                                } else if (err instanceof org.incendo.cloud.exceptions.CommandExecutionException) {
-                                    event.getPlayer().sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Une erreur interne est survenue lors de l'exécution de la commande."));
-                                    err.getCause().printStackTrace();
-                                } else if (!(err instanceof org.incendo.cloud.exceptions.NoSuchCommandException)) {
-                                    err.printStackTrace();
-                                }
-                            }
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

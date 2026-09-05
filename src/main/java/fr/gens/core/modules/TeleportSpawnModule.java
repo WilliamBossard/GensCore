@@ -4,7 +4,7 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.TeleportUtil;
 
 import org.bukkit.Location;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 
 
 
@@ -65,7 +65,7 @@ public class TeleportSpawnModule implements Module {
         plugin.getLangManager().sendConsoleMessage("teleportspawnmodule.log_2");
     }
 
-    @CommandMethod("setspawn")
+    @Command("setspawn")
     public void executeSetSpawn(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -84,7 +84,7 @@ public class TeleportSpawnModule implements Module {
         plugin.getLangManager().sendMessage(p, "teleportspawnmodule.msg_3");
     }
 
-    @CommandMethod("spawn")
+    @Command("spawn")
     public void executeSpawn(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;

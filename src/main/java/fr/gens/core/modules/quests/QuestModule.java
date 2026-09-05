@@ -5,7 +5,7 @@ import fr.gens.core.modules.Module;
 import fr.gens.core.modules.quests.listeners.QuestListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Command;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -514,7 +514,7 @@ public class QuestModule implements Module, Listener {
         // Data is saved in real-time, no need for massive sync
     }
 
-    @CommandMethod("quests")
+    @Command("quests")
     public void executeQuestsCommand(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof Player)) return;
         Player p = (Player) sender;
@@ -525,17 +525,17 @@ public class QuestModule implements Module, Listener {
         openQuestsMenu(p);
     }
 
-    @CommandMethod("quest")
+    @Command("quest")
     public void executeQuestCommand(org.bukkit.command.CommandSender sender) {
         executeQuestsCommand(sender);
     }
 
-    @CommandMethod("quete")
+    @Command("quete")
     public void executeQueteCommand(org.bukkit.command.CommandSender sender) {
         executeQuestsCommand(sender);
     }
 
-    @CommandMethod("quests reroll")
+    @Command("quests reroll")
     public void executeQuestsReroll(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
