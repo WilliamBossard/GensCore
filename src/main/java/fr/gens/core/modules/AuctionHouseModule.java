@@ -203,7 +203,7 @@ public class AuctionHouseModule implements Module {
             Player p = (Player) event.getWhoClicked();
             int slot = event.getSlot();
 
-            AhItem ahItem = slotMap.get(slot);
+            AhItem ahItem = slotMap.remove(slot); // Remove immediately to prevent double-click exploit
             if (ahItem != null) {
                 EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
                 if (eco == null) return;
