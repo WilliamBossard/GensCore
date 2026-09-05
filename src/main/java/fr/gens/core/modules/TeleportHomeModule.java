@@ -6,8 +6,8 @@ import fr.gens.core.utils.TeleportUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -181,8 +181,8 @@ public class TeleportHomeModule implements Module, Listener {
         );
     }
 
-    @cloud.commandframework.annotations.suggestions.Suggestions("homeNames")
-    public java.util.List<String> homeNames(cloud.commandframework.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
+    @org.incendo.cloud.annotations.suggestions.Suggestions("homeNames")
+    public java.util.List<String> homeNames(org.incendo.cloud.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
         if (!(context.getSender() instanceof org.bukkit.entity.Player)) return java.util.Collections.emptyList();
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) context.getSender();
         Map<String, Location> playerHomes = homes.get(p.getUniqueId());

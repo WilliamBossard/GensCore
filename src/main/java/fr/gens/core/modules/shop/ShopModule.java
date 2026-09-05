@@ -6,7 +6,7 @@ import fr.gens.core.modules.GuiModule.GensGuiHolder;
 import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.CommandMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;

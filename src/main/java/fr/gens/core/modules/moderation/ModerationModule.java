@@ -10,9 +10,9 @@ import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.specifier.Greedy;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.specifier.Greedy;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -463,7 +463,7 @@ public class ModerationModule implements Module, Listener {
     }
 
     @CommandMethod("kick <target> [args]")
-    public void executeKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", defaultValue = "", description = "Raison du renvoi") @cloud.commandframework.annotations.specifier.Greedy String argsString) {
+    public void executeKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "args", defaultValue = "", description = "Raison du renvoi") @org.incendo.cloud.annotations.specifier.Greedy String argsString) {
         if (!enabled) return;
         if (!sender.hasPermission("genscore.kick")) {
             plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_18");

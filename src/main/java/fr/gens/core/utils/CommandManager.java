@@ -2,16 +2,17 @@ package fr.gens.core.utils;
 
 import fr.gens.core.CorePlugin;
 import org.bukkit.command.CommandSender;
-import cloud.commandframework.paper.PaperCommandManager;
-import cloud.commandframework.execution.CommandExecutionCoordinator;
-import cloud.commandframework.annotations.AnnotationParser;
-import cloud.commandframework.meta.SimpleCommandMeta;
-import cloud.commandframework.minecraft.extras.MinecraftExceptionHandler;
+import org.incendo.cloud.paper.PaperCommandManager;
+import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.annotations.AnnotationParser;
+import org.incendo.cloud.minecraft.extras.MinecraftExceptionHandler;
+import org.incendo.cloud.SenderMapper;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 public class CommandManager {
 
@@ -22,12 +23,11 @@ public class CommandManager {
         try {
             this.paperCommandManager = new PaperCommandManager<>(
                 plugin,
-                CommandExecutionCoordinator.simpleCoordinator(),
-                Function.identity(),
-                Function.identity()
+                ExecutionCoordinator.simpleCoordinator(),
+                SenderMapper.identity()
             );
             
-            // Removed registerBrigadier because it breaks on Paper 26.2+ with Cloud v1
+            // Cloud v2 gère automatiquement Brigadier sur Paper 1.20.6+ via LifecycleEventManager !
             try {
                 this.paperCommandManager.registerAsynchronousCompletions();
             } catch (Exception ignored) {}
@@ -35,31 +35,31 @@ public class CommandManager {
             this.paperCommandManager.parserRegistry().registerSuggestionProvider("onlinePlayers", 
                 (context, input) -> org.bukkit.Bukkit.getOnlinePlayers().stream()
                     .map(org.bukkit.entity.Player::getName)
-                    .collect(java.util.stream.Collectors.toList())
+                    .collect(Collectors.toList())
             );
             
             this.paperCommandManager.parserRegistry().registerSuggestionProvider("spawnerTypes", 
-                (context, input) -> java.util.Arrays.stream(org.bukkit.entity.EntityType.values())
+                (context, input) -> Arrays.stream(org.bukkit.entity.EntityType.values())
                     .filter(org.bukkit.entity.EntityType::isAlive)
                     .map(Enum::name)
-                    .collect(java.util.stream.Collectors.toList())
+                    .collect(Collectors.toList())
             );
             
-            this.annotationParser = new AnnotationParser<>(this.paperCommandManager, CommandSender.class, parameters -> SimpleCommandMeta.empty());
+            this.annotationParser = new AnnotationParser<>(this.paperCommandManager, CommandSender.class);
             
-            new MinecraftExceptionHandler<CommandSender>()
-                .withInvalidSyntaxHandler()
-                .withInvalidSenderHandler()
-                .withNoPermissionHandler()
-                .withArgumentParsingHandler()
-                .withCommandExecutionHandler()
-                .withDecorator(
+            MinecraftExceptionHandler.createNative()
+                .defaultInvalidSyntaxHandler()
+                .defaultInvalidSenderHandler()
+                .defaultNoPermissionHandler()
+                .defaultArgumentParsingHandler()
+                .defaultCommandExecutionHandler()
+                .decorator(
                     component -> Component.text("[", NamedTextColor.DARK_GRAY)
                         .append(Component.text("Système", NamedTextColor.GOLD))
                         .append(Component.text("] ", NamedTextColor.DARK_GRAY))
                         .append(component)
                 )
-                .apply(this.paperCommandManager, sender -> sender);
+                .registerTo(this.paperCommandManager);
             
         } catch (Exception e) {
             plugin.getLogger().severe("Impossible d'initialiser Cloud Command Framework");

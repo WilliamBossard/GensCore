@@ -1,8 +1,8 @@
 package fr.gens.core.commands;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.CommandPermission;
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
 import org.bukkit.command.CommandSender;
@@ -48,13 +48,13 @@ public class ModuleCommand {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Une erreur est survenue lors du changement de statut."));
         }
     }
-    @cloud.commandframework.annotations.suggestions.Suggestions("moduleNames")
-    public java.util.List<String> suggestModules(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+    @org.incendo.cloud.annotations.suggestions.Suggestions("moduleNames")
+    public java.util.List<String> suggestModules(org.incendo.cloud.context.CommandContext<CommandSender> context, String input) {
         return plugin.getModuleManager().getModules().stream().map(fr.gens.core.modules.Module::getName).filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 
-    @cloud.commandframework.annotations.suggestions.Suggestions("moduleStates")
-    public java.util.List<String> suggestStates(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+    @org.incendo.cloud.annotations.suggestions.Suggestions("moduleStates")
+    public java.util.List<String> suggestStates(org.incendo.cloud.context.CommandContext<CommandSender> context, String input) {
         return java.util.Arrays.asList("on", "off").stream().filter(name -> name.startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 }

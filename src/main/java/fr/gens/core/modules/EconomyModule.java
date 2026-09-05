@@ -1,8 +1,8 @@
 package fr.gens.core.modules;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
-import cloud.commandframework.annotations.CommandPermission;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
+import org.incendo.cloud.annotations.CommandPermission;
 import fr.gens.core.CorePlugin;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -222,13 +222,13 @@ public class EconomyModule implements Module, Listener {
         GIVE, TAKE, SET
     }
 
-    @cloud.commandframework.annotations.suggestions.Suggestions("onlinePlayers")
-    public java.util.List<String> suggestOnlinePlayers(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+    @org.incendo.cloud.annotations.suggestions.Suggestions("onlinePlayers")
+    public java.util.List<String> suggestOnlinePlayers(org.incendo.cloud.context.CommandContext<CommandSender> context, String input) {
         return org.bukkit.Bukkit.getOnlinePlayers().stream().map(org.bukkit.entity.Player::getName).filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 
     @CommandMethod("money [target]")
-    @cloud.commandframework.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
+    @org.incendo.cloud.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
     public void executeMoney(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!enabled) {
             sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Ce module est actuellement d\u00e9sactiv\u00e9.</red>"));
@@ -250,7 +250,7 @@ public class EconomyModule implements Module, Listener {
     }
 
     @CommandMethod("balance [target]")
-    @cloud.commandframework.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
+    @org.incendo.cloud.annotations.CommandDescription("Affiche votre solde ou celui d'un joueur")
     public void executeBalance(CommandSender sender, @Argument(value = "target", defaultValue = "", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         executeMoney(sender, targetName);
     }
@@ -279,7 +279,7 @@ public class EconomyModule implements Module, Listener {
     }
 
     @CommandMethod("pay <target> <amount>")
-    @cloud.commandframework.annotations.CommandDescription("Envoyer de l'argent a un joueur")
+    @org.incendo.cloud.annotations.CommandDescription("Envoyer de l'argent a un joueur")
     public void executePay(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "amount", description = "Montant d'argent") double amount) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -319,7 +319,7 @@ public class EconomyModule implements Module, Listener {
 
     @CommandMethod("eco <action> <target> <amount>")
     @CommandPermission("genscore.admin")
-    @cloud.commandframework.annotations.CommandDescription("Gerer l'economie d'un joueur")
+    @org.incendo.cloud.annotations.CommandDescription("Gerer l'economie d'un joueur")
     public void executeEco(CommandSender sender, @Argument(value = "action", description = "L'action à effectuer") EcoAction actionEnum, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "amount", description = "Le montant") double amount) {
         if (!enabled) return;
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {

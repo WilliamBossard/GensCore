@@ -3,8 +3,8 @@ package fr.gens.core.modules.teams;
 import fr.gens.core.CorePlugin;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

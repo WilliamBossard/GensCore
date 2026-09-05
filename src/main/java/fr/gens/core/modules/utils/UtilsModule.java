@@ -5,8 +5,8 @@ import fr.gens.core.modules.Module;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
 
 
 public class UtilsModule implements Module, Listener {

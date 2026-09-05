@@ -5,8 +5,8 @@ import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -311,7 +311,7 @@ public class CustomGuiModule implements Module, Listener {
     private void registerDynamicCommand(String cmd, CustomMenu menu) {
         if (plugin.getCommandManager() != null) {
             try {
-                cloud.commandframework.paper.PaperCommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
+                org.incendo.cloud.paper.PaperCommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
                 mgr.command(
                     mgr.commandBuilder(cmd)
                         .senderType(Player.class)
@@ -460,8 +460,8 @@ public class CustomGuiModule implements Module, Listener {
             }
         }
     }
-    @cloud.commandframework.annotations.suggestions.Suggestions("menus")
-    public java.util.List<String> suggestMenus(cloud.commandframework.context.CommandContext<CommandSender> context, String input) {
+    @org.incendo.cloud.annotations.suggestions.Suggestions("menus")
+    public java.util.List<String> suggestMenus(org.incendo.cloud.context.CommandContext<CommandSender> context, String input) {
         return menus.keySet().stream().filter(name -> name.toLowerCase().startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 }

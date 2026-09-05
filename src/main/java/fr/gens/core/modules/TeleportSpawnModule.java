@@ -4,7 +4,7 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.TeleportUtil;
 
 import org.bukkit.Location;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.CommandMethod;
 
 
 

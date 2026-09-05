@@ -1,6 +1,6 @@
 package fr.gens.core.commands;
 
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.CommandMethod;
 import fr.gens.core.CorePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

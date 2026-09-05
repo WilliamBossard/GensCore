@@ -5,7 +5,7 @@ import fr.gens.core.modules.Module;
 import fr.gens.core.modules.quests.listeners.QuestListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.CommandMethod;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;

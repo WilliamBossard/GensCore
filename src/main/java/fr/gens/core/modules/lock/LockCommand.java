@@ -2,8 +2,8 @@ package fr.gens.core.modules.lock;
 
 import fr.gens.core.CorePlugin;
 
-import cloud.commandframework.annotations.Argument;
-import cloud.commandframework.annotations.CommandMethod;
+import org.incendo.cloud.annotations.Argument;
+import org.incendo.cloud.annotations.CommandMethod;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
@@ -58,8 +58,8 @@ public class LockCommand {
 
         plugin.getLangManager().sendMessage(player, "lockcommand.msg_5");
     }
-    @cloud.commandframework.annotations.suggestions.Suggestions("lockActions")
-    public java.util.List<String> suggestLockActions(cloud.commandframework.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
+    @org.incendo.cloud.annotations.suggestions.Suggestions("lockActions")
+    public java.util.List<String> suggestLockActions(org.incendo.cloud.context.CommandContext<org.bukkit.command.CommandSender> context, String input) {
         return java.util.Arrays.asList("private", "unlock", "guild").stream().filter(name -> name.startsWith(input.toLowerCase())).collect(java.util.stream.Collectors.toList());
     }
 }
