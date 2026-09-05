@@ -89,15 +89,40 @@ public class BedrockSkinModule implements Module, Listener {
                         if (conn.getResponseCode() == 200) {
                             try (InputStreamReader reader = new InputStreamReader(conn.getInputStream())) {
                                 JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
-                                if (json.has("value") && json.has("signature") && json.has("hash")) {
+                                if (json.has("value") && json.has("signature")) {
                                     String value = json.get("value").getAsString();
                                     String signature = json.get("signature").getAsString();
-                                    String hash = json.get("hash").getAsString();
+                                    String hash = "";
                                     
-                                    // Save hash to database for Web/Discord use
-                                    plugin.getDatabaseManager().executeStatement(
-                                        "REPLACE INTO player_skins (uuid, hash) VALUES ('" + uuid.toString() + "', '" + hash + "');"
-                                    );
+                                    try {
+                                        String decoded = new String(java.util.Base64.getDecoder().decode(value), java.nio.charset.StandardCharsets.UTF_8);
+                                        JsonObject decodedJson = new JsonParser().parse(decoded).getAsJsonObject();
+                                        if (decodedJson.has("textures")) {
+                                            JsonObject textures = decodedJson.getAsJsonObject("textures");
+                                            if (textures.has("SKIN")) {
+                                                JsonObject skin = textures.getAsJsonObject("SKIN");
+                                                if (skin.has("url")) {
+                                                    String skinUrl = skin.get("url").getAsString();
+                                                    hash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
+                                                }
+                                            }
+                                        }
+                                    } catch (Exception ex) {
+                                        plugin.getLogger().warning("Erreur lors du decodage de la texture Bedrock: " + ex.getMessage());
+                                    }
+                                    
+                                    if (json.has("hash") && hash.isEmpty()) {
+                                        hash = json.get("hash").getAsString();
+                                    } else if (json.has("texture_id") && hash.isEmpty()) {
+                                        hash = json.get("texture_id").getAsString();
+                                    }
+                                    
+                                    if (!hash.isEmpty()) {
+                                        // Save hash to database for Web/Discord use
+                                        plugin.getDatabaseManager().executeStatement(
+                                            "REPLACE INTO player_skins (uuid, hash) VALUES ('" + uuid.toString() + "', '" + hash + "');"
+                                        );
+                                    }
                                     
                                     // Apply skin to player in game
                                     plugin.getFoliaLib().getScheduler().runAtEntity(player, (t) -> {
@@ -120,11 +145,11 @@ public class BedrockSkinModule implements Module, Listener {
      * Helper pour obtenir l'URL de l'avatar du joueur (pour Discord, Web, etc)
      */
     public String getHeadUrl(UUID uuid, String name) {
-        if (FloodgateUtil.isBedrockPlayer(uuid)) {
+        if (uuid != null) {
             // Chercher le hash en BDD
             try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection();
                  java.sql.Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery("SELECT hash FROM player_skins WHERE uuid = '" + uuid.toString() + "';")) {
+                 java.sql.ResultSet rs = stmt.executeQuery("SELECT hash FROM player_skins WHERE uuid = '" + uuid.toString() + "';")) {
                 
                 if (rs != null && rs.next()) {
                     String hash = rs.getString("hash");
@@ -136,7 +161,7 @@ public class BedrockSkinModule implements Module, Listener {
                 e.printStackTrace();
             }
         }
-        // Fallback standard pour les joueurs Java
+        // Fallback standard pour les joueurs Java ou Bedrock sans hash en cache
         if (uuid != null) {
             return "https://crafthead.net/helm/" + uuid.toString() + ".png";
         } else {
