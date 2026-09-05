@@ -190,7 +190,7 @@ public class LootManager {
             // Dans LootrPlugin, ils sauvegardent des tableaux remplis de null
         }
 
-        config.set(key + ".items", items);
+        config.set(key + ".items", java.util.Arrays.asList(items));
 
         try {
             config.save(file);

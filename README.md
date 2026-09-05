@@ -189,7 +189,7 @@ On startup and when a player with the `genscore.admin` permission (or operator s
 
 ## Lootr Integration
 
-GensCore integrates configuration options for the [Lootr](https://www.curseforge.com/minecraft/mc-mods/lootr) mod/plugin (per-player loot chests). If Lootr is installed, you can configure its behaviour in the main `config.yml`:
+GensCore completely integrates a custom Lootr-like system (per-player loot chests) directly into the core, meaning **you do not need to install any external mods or plugins**. You can configure its behaviour in the `modules/lootr.yml` file:
 
 ```yaml
 lootr:
