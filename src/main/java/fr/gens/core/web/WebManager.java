@@ -65,7 +65,7 @@ public class WebManager {
         if (adminPassword != null && !adminPassword.startsWith("$2a$") && !adminPassword.startsWith("$2b$")) {
             String hashed = org.mindrot.jbcrypt.BCrypt.hashpw(adminPassword, org.mindrot.jbcrypt.BCrypt.gensalt());
             webConfig.set("admin-password", hashed);
-            plugin.getConfigManager().saveConfig("modules/web.yml");
+            plugin.getConfigManager().saveConfigAsync("modules/web.yml");
             plugin.getLogger().info("The default web admin password was in plain text. It has been hashed for security.");
         }
 
@@ -99,7 +99,7 @@ public class WebManager {
                         plugin.getLogger().info("Web files extracted in " + webDir.getPath());
                         if (autoUpdate) {
                             webConfig.set("web.auto_update_panel", false);
-                            plugin.getConfigManager().saveConfig("modules/web.yml");
+                            plugin.getConfigManager().saveConfigAsync("modules/web.yml");
                             plugin.getLogger().info("auto_update_panel has been set to false to prevent overwriting custom changes on next restart.");
                         }
                     }
@@ -147,22 +147,9 @@ public class WebManager {
                         }
                         String token = authHeader.substring(7);
                         if (!activeSessions.containsKey(token) || activeSessions.get(token) < System.currentTimeMillis()) {
-                            // Compatibilité frontend: Le frontend utilise parfois le mot de passe en clair comme token.
-                            String storedHash = plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "");
-                            boolean isPassword = false;
-                            try {
-                                if (org.mindrot.jbcrypt.BCrypt.checkpw(token, storedHash)) {
-                                    isPassword = true;
-                                    // Ajouter le mot de passe comme session valide pour ne pas recalculer bcrypt a chaque requete
-                                    activeSessions.put(token, System.currentTimeMillis() + (24L * 60 * 60 * 1000L));
-                                }
-                            } catch (Exception ignored) {}
-                            
-                            if (!isPassword) {
-                                activeSessions.remove(token);
-                                ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.session_expired"));
-                                return;
-                            }
+                            activeSessions.remove(token);
+                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.session_expired"));
+                            return;
                         }
                     });
 
@@ -429,14 +416,14 @@ public class WebManager {
                 if (req.tombExpirationAction != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.expiration_action", req.tombExpirationAction);
                 if (req.tombDefaultAccess != null) plugin.getConfigManager().getConfig("modules/tomb.yml").set("modules.tomb.default_access", req.tombDefaultAccess);
                 
-                plugin.getConfigManager().saveConfig("modules/economy.yml");
-                plugin.getConfigManager().saveConfig("modules/headdrop.yml");
-                plugin.getConfigManager().saveConfig("modules/quests.yml");
-                plugin.getConfigManager().saveConfig("modules/lootr.yml");
-                plugin.getConfigManager().saveConfig("modules/motd.yml");
-                plugin.getConfigManager().saveConfig("modules/bluemap.yml");
-                plugin.getConfigManager().saveConfig("modules/tomb.yml");
-                plugin.saveConfig();
+                plugin.getConfigManager().saveConfigAsync("modules/economy.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/headdrop.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/quests.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/lootr.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/motd.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/bluemap.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/tomb.yml");
+                plugin.getConfigManager().saveMainConfigAsync();
                 
                 plugin.getConfigManager().getConfig("modules/web.yml").set("admin-password", req.adminPassword);
                 plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.wheel.enabled", req.minigameWheelEnabled);
@@ -444,8 +431,8 @@ public class WebManager {
                 if (req.publicFeaturesText != null) {
                     plugin.getConfigManager().getConfig("modules/web.yml").set("web.public_features_text", req.publicFeaturesText);
                 }
-                plugin.getConfigManager().saveConfig("modules/web.yml");
-                plugin.getConfigManager().saveConfig("modules/minigames.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/web.yml");
+                plugin.getConfigManager().saveConfigAsync("modules/minigames.yml");
                 
                 plugin.getLangManager().sendConsoleMessage("webmanager.log_3");
                 

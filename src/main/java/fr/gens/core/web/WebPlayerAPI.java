@@ -70,7 +70,7 @@ public class WebPlayerAPI implements Listener {
             minigamesConfig.set("minigames.wheel.rewards.5.chance", 1);
             minigamesConfig.set("minigames.wheel.rewards.5.color", "#ef4444");
             
-            plugin.getConfigManager().saveConfig("modules/minigames.yml");
+            plugin.getConfigManager().saveConfigAsync("modules/minigames.yml");
             wheelSec = minigamesConfig.getConfigurationSection("minigames.wheel.rewards");
         }
 

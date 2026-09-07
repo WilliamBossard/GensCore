@@ -83,7 +83,7 @@ public class ConfigManager {
     }
 
     /**
-     * Save a configuration to disk.
+     * Save a configuration to disk (Synchronous).
      */
     public void saveConfig(String fileName) {
         if (configs.containsKey(fileName) && files.containsKey(fileName)) {
@@ -93,6 +93,44 @@ public class ConfigManager {
                 plugin.getLogger().severe("Impossible de sauvegarder la configuration: " + fileName);
             }
         }
+    }
+
+    /**
+     * Save a configuration to disk asynchronously to prevent blocking the main thread.
+     */
+    public void saveConfigAsync(String fileName) {
+        if (configs.containsKey(fileName) && files.containsKey(fileName)) {
+            // Sérialisation synchrone en mémoire
+            String data = configs.get(fileName).saveToString();
+            File file = files.get(fileName);
+            
+            // Écriture asynchrone sur le disque
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                try {
+                    java.nio.file.Files.writeString(file.toPath(), data, StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    plugin.getLogger().severe("Impossible de sauvegarder asynchrone la configuration: " + fileName);
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    /**
+     * Save the main plugin configuration (config.yml) asynchronously.
+     */
+    public void saveMainConfigAsync() {
+        String data = plugin.getConfig().saveToString();
+        File file = new File(plugin.getDataFolder(), "config.yml");
+        
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            try {
+                java.nio.file.Files.writeString(file.toPath(), data, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                plugin.getLogger().severe("Impossible de sauvegarder asynchrone la configuration principale (config.yml)");
+                e.printStackTrace();
+            }
+        });
     }
 
     /**

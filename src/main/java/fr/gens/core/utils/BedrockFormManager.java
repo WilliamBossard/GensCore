@@ -106,17 +106,17 @@ public class BedrockFormManager {
         if (material == Material.ENCHANTED_BOOK) name = "book"; // Fallback sur livre normal
         if (material == Material.TNT) name = "tnt_side";
         if (name.equals("chest")) {
-            return "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/block/barrel_side.png"; // Fallback car le coffre est une entité 3D
+            return "https://assets.mcasset.cloud/1.21.1/assets/minecraft/textures/block/barrel_side.png"; // Fallback car le coffre est une entité 3D
         }
         if (name.contains("wind_charge")) {
-            return "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/item/fire_charge.png";
+            return "https://assets.mcasset.cloud/1.21.1/assets/minecraft/textures/item/fire_charge.png";
         }
 
         // Some items are blocks, which have a different texture path
         if (material.isBlock()) {
-            return "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/block/" + name + ".png";
+            return "https://assets.mcasset.cloud/1.21.1/assets/minecraft/textures/block/" + name + ".png";
         }
         
-        return "https://assets.mcasset.cloud/1.20.4/assets/minecraft/textures/item/" + name + ".png";
+        return "https://assets.mcasset.cloud/1.21.1/assets/minecraft/textures/item/" + name + ".png";
     }
 }

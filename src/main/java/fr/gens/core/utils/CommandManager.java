@@ -23,7 +23,7 @@ public class CommandManager {
         try {
             this.paperCommandManager = new LegacyPaperCommandManager<>(
                 plugin,
-                ExecutionCoordinator.simpleCoordinator(),
+                ExecutionCoordinator.asyncCoordinator(),
                 SenderMapper.identity()
             );
             

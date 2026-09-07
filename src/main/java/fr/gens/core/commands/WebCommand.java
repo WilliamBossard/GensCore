@@ -98,11 +98,11 @@ public class WebCommand implements Listener {
                     int slot = 0;
                     for (WebRewardItem wItem : items) {
                         if (slot >= 54) break;
-                        ItemStack stack = plugin.getStorageManager().itemStackFromBase64(wItem.base64);
+                        ItemStack stack = plugin.getStorageManager().itemStackFromBase64(wItem.base64());
                         if (stack != null) {
                             ItemMeta meta = stack.getItemMeta();
                             if (meta != null) {
-                                meta.getPersistentDataContainer().set(rewardKey, PersistentDataType.INTEGER, wItem.id);
+                                meta.getPersistentDataContainer().set(rewardKey, PersistentDataType.INTEGER, wItem.id());
                                 stack.setItemMeta(meta);
                             }
                             inv.setItem(slot, stack);
@@ -166,15 +166,7 @@ public class WebCommand implements Listener {
         }
     }
 
-    public static class WebRewardItem {
-        public final int id;
-        public final String base64;
-
-        public WebRewardItem(int id, String base64) {
-            this.id = id;
-            this.base64 = base64;
-        }
-    }
+    public record WebRewardItem(int id, String base64) {}
 }
 
 

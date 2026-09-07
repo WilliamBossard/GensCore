@@ -28,10 +28,10 @@ public class EconomyModule implements Module, Listener {
     private final Map<UUID, Double> balances = new java.util.concurrent.ConcurrentHashMap<>();
     
     // Cache LRU pour les joueurs hors-ligne (thread-safe)
-    private final Map<UUID, Double> offlineCache = java.util.Collections.synchronizedMap(new java.util.LinkedHashMap<UUID, Double>(100, 0.75f, true) {
+    private final Map<UUID, Double> offlineCache = java.util.Collections.synchronizedMap(new java.util.LinkedHashMap<UUID, Double>(1000, 0.75f, true) {
         @Override
         protected boolean removeEldestEntry(Map.Entry<UUID, Double> eldest) {
-            return size() > 100;
+            return size() > 1000;
         }
     });
     

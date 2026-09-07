@@ -70,11 +70,14 @@ function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_URL}/admin/config`, {
-        headers: { 'Authorization': `Bearer ${password}` }
+      const res = await fetch(`${API_URL}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+        body: JSON.stringify({ password })
       });
       if (res.ok) {
-        onLogin(password);
+        const data = await res.json();
+        onLogin(data.token);
       } else {
         setError(t("web.auth.invalid_password") || "Invalid password");
       }

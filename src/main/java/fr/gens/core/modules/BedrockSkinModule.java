@@ -77,69 +77,94 @@ public class BedrockSkinModule implements Module, Listener {
                 if (!player.isOnline()) return;
                 
                 plugin.getFoliaLib().getScheduler().runAsync((asyncTask) -> {
-                    try {
-                        String xuid = org.geysermc.floodgate.api.FloodgateApi.getInstance().getPlayer(uuid).getXuid();
-                        URL url = java.net.URI.create("https://api.geysermc.org/v2/skin/" + xuid).toURL();
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                        conn.setRequestMethod("GET");
-                        conn.setConnectTimeout(5000);
-                        conn.setReadTimeout(5000);
-                        
-                        if (conn.getResponseCode() == 200) {
-                            try (InputStreamReader reader = new InputStreamReader(conn.getInputStream())) {
-                                JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
-                                if (json.has("value") && json.has("signature")) {
-                                    String value = json.get("value").getAsString();
-                                    String signature = json.get("signature").getAsString();
-                                    String hash = "";
-                                    
-                                    try {
-                                        String decoded = new String(java.util.Base64.getDecoder().decode(value), java.nio.charset.StandardCharsets.UTF_8);
-                                        JsonObject decodedJson = new JsonParser().parse(decoded).getAsJsonObject();
-                                        if (decodedJson.has("textures")) {
-                                            JsonObject textures = decodedJson.getAsJsonObject("textures");
-                                            if (textures.has("SKIN")) {
-                                                JsonObject skin = textures.getAsJsonObject("SKIN");
-                                                if (skin.has("url")) {
-                                                    String skinUrl = skin.get("url").getAsString();
-                                                    hash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
+                    int maxTries = 3;
+                    int currentTry = 0;
+                    boolean success = false;
+                    
+                    while (currentTry < maxTries && !success) {
+                        currentTry++;
+                        try {
+                            String xuid = org.geysermc.floodgate.api.FloodgateApi.getInstance().getPlayer(uuid).getXuid();
+                            URL url = java.net.URI.create("https://api.geysermc.org/v2/skin/" + xuid).toURL();
+                            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                            conn.setRequestMethod("GET");
+                            conn.setConnectTimeout(5000);
+                            conn.setReadTimeout(5000);
+                            
+                            int responseCode = conn.getResponseCode();
+                            if (responseCode == 200) {
+                                success = true;
+                                try (InputStreamReader reader = new InputStreamReader(conn.getInputStream())) {
+                                    JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
+                                    if (json.has("value") && json.has("signature")) {
+                                        String value = json.get("value").getAsString();
+                                        String signature = json.get("signature").getAsString();
+                                        String hash = "";
+                                        
+                                        try {
+                                            String decoded = new String(java.util.Base64.getDecoder().decode(value), java.nio.charset.StandardCharsets.UTF_8);
+                                            JsonObject decodedJson = new JsonParser().parse(decoded).getAsJsonObject();
+                                            if (decodedJson.has("textures")) {
+                                                JsonObject textures = decodedJson.getAsJsonObject("textures");
+                                                if (textures.has("SKIN")) {
+                                                    JsonObject skin = textures.getAsJsonObject("SKIN");
+                                                    if (skin.has("url")) {
+                                                        String skinUrl = skin.get("url").getAsString();
+                                                        hash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
+                                                    }
                                                 }
                                             }
+                                        } catch (Exception ex) {
+                                            plugin.getLogger().warning("Erreur lors du decodage de la texture Bedrock: " + ex.getMessage());
                                         }
-                                    } catch (Exception ex) {
-                                        plugin.getLogger().warning("Erreur lors du decodage de la texture Bedrock: " + ex.getMessage());
-                                    }
-                                    
-                                    if (json.has("hash") && hash.isEmpty()) {
-                                        hash = json.get("hash").getAsString();
-                                    } else if (json.has("texture_id") && hash.isEmpty()) {
-                                        hash = json.get("texture_id").getAsString();
-                                    }
-                                    
-                                    if (!hash.isEmpty()) {
-                                        plugin.getLogger().info("[BedrockSkinModule] Hash trouve pour " + player.getName() + " : " + hash);
-                                        // Save hash to database for Web/Discord use
-                                        plugin.getDatabaseManager().executeStatement(
-                                            "REPLACE INTO player_skins (uuid, hash) VALUES ('" + uuid.toString() + "', '" + hash + "');"
-                                        );
+                                        
+                                        if (json.has("hash") && hash.isEmpty()) {
+                                            hash = json.get("hash").getAsString();
+                                        } else if (json.has("texture_id") && hash.isEmpty()) {
+                                            hash = json.get("texture_id").getAsString();
+                                        }
+                                        
+                                        if (!hash.isEmpty()) {
+                                            plugin.getLogger().info("[BedrockSkinModule] Hash trouve pour " + player.getName() + " : " + hash);
+                                            // Save hash to database for Web/Discord use
+                                            try (java.sql.Connection dbConn = plugin.getDatabaseManager().getConnection();
+                                                 java.sql.PreparedStatement pstmt = dbConn.prepareStatement("REPLACE INTO player_skins (uuid, hash) VALUES (?, ?)")) {
+                                                pstmt.setString(1, uuid.toString());
+                                                pstmt.setString(2, hash);
+                                                pstmt.executeUpdate();
+                                            } catch (Exception e) {
+                                                plugin.getLogger().warning("Erreur lors de la sauvegarde du skin en base de donnees: " + e.getMessage());
+                                            }
+                                        } else {
+                                            plugin.getLogger().warning("[BedrockSkinModule] Impossible de trouver le hash/texture_id dans la reponse de Geyser pour " + player.getName());
+                                        }
+                                        
+                                        // Apply skin to player in game
+                                        plugin.getFoliaLib().getScheduler().runAtEntity(player, (t) -> {
+                                            PlayerProfile profile = player.getPlayerProfile();
+                                            profile.setProperty(new ProfileProperty("textures", value, signature));
+                                            player.setPlayerProfile(profile);
+                                            plugin.getLogger().info("[BedrockSkinModule] Profil applique a " + player.getName() + " en jeu !");
+                                        });
                                     } else {
-                                        plugin.getLogger().warning("[BedrockSkinModule] Impossible de trouver le hash/texture_id dans la reponse de Geyser pour " + player.getName());
+                                        plugin.getLogger().warning("[BedrockSkinModule] Le JSON de Geyser ne contient pas value ou signature pour " + player.getName());
                                     }
-                                    
-                                    // Apply skin to player in game
-                                    plugin.getFoliaLib().getScheduler().runAtEntity(player, (t) -> {
-                                        PlayerProfile profile = player.getPlayerProfile();
-                                        profile.setProperty(new ProfileProperty("textures", value, signature));
-                                        player.setPlayerProfile(profile);
-                                        plugin.getLogger().info("[BedrockSkinModule] Profil applique a " + player.getName() + " en jeu !");
-                                    });
-                                } else {
-                                    plugin.getLogger().warning("[BedrockSkinModule] Le JSON de Geyser ne contient pas value ou signature pour " + player.getName());
                                 }
+                            } else if (responseCode == 429) {
+                                plugin.getLogger().warning("[BedrockSkinModule] Rate limite par Geyser (Essai " + currentTry + "/" + maxTries + ")");
+                                if (currentTry < maxTries) {
+                                    Thread.sleep(2000L * currentTry); // Backoff lineaire
+                                }
+                            } else {
+                                plugin.getLogger().warning("[BedrockSkinModule] Code de reponse inattendu : " + responseCode);
+                                success = true; // Pas la peine de reessayer si c'est une autre erreur 
+                            }
+                        } catch (Exception e) {
+                            plugin.getLogger().warning("Impossible de recuperer le skin Bedrock pour " + player.getName() + " (Essai " + currentTry + ") : " + e.getMessage());
+                            if (currentTry < maxTries) {
+                                try { Thread.sleep(2000L * currentTry); } catch(InterruptedException ignored){}
                             }
                         }
-                    } catch (Exception e) {
-                        plugin.getLogger().warning("Impossible de recuperer le skin Bedrock pour " + player.getName() + ": " + e.getMessage());
                     }
                 });
             }, 20L);
@@ -158,13 +183,15 @@ public class BedrockSkinModule implements Module, Listener {
         if (uuid != null && isBedrock) {
             // Chercher le hash en BDD seulement pour les joueurs Bedrock
             try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection();
-                 java.sql.Statement stmt = conn.createStatement();
-                 java.sql.ResultSet rs = stmt.executeQuery("SELECT hash FROM player_skins WHERE uuid = '" + uuid.toString() + "';")) {
+                 java.sql.PreparedStatement pstmt = conn.prepareStatement("SELECT hash FROM player_skins WHERE uuid = ?")) {
                 
-                if (rs != null && rs.next()) {
-                    String hash = rs.getString("hash");
-                    if (hash != null && !hash.isEmpty()) {
-                        return "https://mc-heads.net/avatar/" + hash + ".png";
+                pstmt.setString(1, uuid.toString());
+                try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                    if (rs != null && rs.next()) {
+                        String hash = rs.getString("hash");
+                        if (hash != null && !hash.isEmpty()) {
+                            return "https://mc-heads.net/avatar/" + hash + ".png";
+                        }
                     }
                 }
             } catch (Exception e) {
