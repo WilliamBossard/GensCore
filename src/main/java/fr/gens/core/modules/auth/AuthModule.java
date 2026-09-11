@@ -45,7 +45,7 @@ public class AuthModule implements Module, Listener {
     private static final int  MAX_LOGIN_ATTEMPTS = 5;
     private static final long LOGIN_LOCKOUT_MS   = 5L * 60 * 1000; // 5 minutes
 
-    // TÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches planifiées gérées par ce module
+    // Tâches planifiées gérées par ce module
     private final java.util.List<com.tcoded.folialib.wrapper.task.WrappedTask> taskIds = new ArrayList<>();
 
     public AuthModule(CorePlugin plugin) {
@@ -92,7 +92,7 @@ public class AuthModule implements Module, Listener {
         authenticated.clear();
         loginAttempts.clear();
         loginLockout.clear();
-        // Annuler uniquement les tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches de ce module (et non toutes les tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ches du plugin)
+        // Annuler uniquement les tâches de ce module (et non toutes les tâches du plugin)
         taskIds.forEach(com.tcoded.folialib.wrapper.task.WrappedTask::cancel);
         taskIds.clear();
         plugin.getLangManager().sendConsoleMessage("authmodule.log_2");
@@ -483,7 +483,7 @@ public class AuthModule implements Module, Listener {
     }
 
     public static String hashPassword(String password, String salt) {
-        // N'est plus appelé qu'historiquement, BCrypt gÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨re le hash maintenant.
+        // N'est plus appelé qu'historiquement, BCrypt gère le hash maintenant.
         // On retourne la version BCrypt par défaut.
         return BCrypt.hashpw(password, BCrypt.gensalt());
     }

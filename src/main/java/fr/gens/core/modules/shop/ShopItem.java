@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ShopItem {
     private Material material;
-    private double buyPrice; // Prix pour qu'un joueur ACHÃƒÆ’Ã†â€™Ãƒâ€¹Ã¢â‚¬Â TE l'item
+    private double buyPrice; // Prix pour qu'un joueur ACHÈTE l'item
     private double sellPrice; // Prix pour qu'un joueur VENDE l'item
     private int stock; // Nombre d'items vendus par les joueurs au serveur
     private int targetStock; // Stock d'équilibre pour l'inflation

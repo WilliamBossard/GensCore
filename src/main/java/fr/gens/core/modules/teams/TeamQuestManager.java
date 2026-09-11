@@ -32,7 +32,7 @@ public class TeamQuestManager {
     private final java.util.List<QuestDef> questPool = java.util.Arrays.asList(
         new QuestDef("weekly_1", QuestType.BREAK, "STONE", 25000, 1000, "Mine 25 000 blocs de roche en équipe !"),
         new QuestDef("weekly_2", QuestType.KILL, "ZOMBIE", 2500, 1000, "Tuez 2 500 zombies en équipe !"),
-        new QuestDef("weekly_3", QuestType.BREAK, "OAK_LOG", 5000, 1000, "Coupez 5 000 bÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â»ches de chêne en équipe !"),
+        new QuestDef("weekly_3", QuestType.BREAK, "OAK_LOG", 5000, 1000, "Coupez 5 000 bûches de chêne en équipe !"),
         new QuestDef("weekly_4", QuestType.BREAK, "WHEAT", 10000, 1000, "Récoltez 10 000 blés en équipe !"),
         new QuestDef("weekly_5", QuestType.KILL, "SKELETON", 2500, 1000, "Éliminez 2 500 squelettes en équipe !"),
         new QuestDef("weekly_6", QuestType.BREAK, "NETHERRACK", 50000, 1000, "Mine 50 000 blocs de netherrack en équipe !")

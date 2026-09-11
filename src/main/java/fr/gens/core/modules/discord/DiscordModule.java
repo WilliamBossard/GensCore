@@ -442,7 +442,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                     plugin.getLogger().warning("Error linking Discord: " + e.getMessage());
                 }
 
-                // Essayer de donner le rÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â´le sur Discord (Asynchrone)
+                // Essayer de donner le rôle sur Discord (Asynchrone)
                 if (finalTargetGuild != null) {
                     String roleId = plugin.getConfigManager().getConfig("modules/discord.yml").getString("discord.linked_role_id", "Linked");
                     if (roleId != null && !roleId.isEmpty() && !roleId.equals("ID_DU_ROLE_JOUEUR")) {

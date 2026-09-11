@@ -54,7 +54,7 @@ public class JobsModule implements Module, Listener {
 
     @Override
     public String getDescription() {
-        return "SystÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¨me de métiers (Mineur, BÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢»cheron, Chasseur, Fermier).";
+        return "Système de métiers (Mineur, Bûcheron, Chasseur, Fermier).";
     }
 
     @Override
@@ -205,7 +205,7 @@ public class JobsModule implements Module, Listener {
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null && eco.isEnabled()) {
                 eco.addMoney(uuid, reward);
-                player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢§u <green>" + reward + "$ <gray>!"));
+                player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<gold>Métiers<dark_gray>] <gray>Vous avez reçu <green>" + reward + "$ <gray>!"));
             }
             
             // Récompenses Objets selon le palier

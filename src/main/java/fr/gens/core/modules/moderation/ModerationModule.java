@@ -513,7 +513,7 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
-    // --- EVÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢âÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â°NEMENTS POUR LE FREEZE ET MUTE ---
+    // --- ÉVÉNEMENTS POUR LE FREEZE ET MUTE ---
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onAsyncPlayerChat(AsyncChatEvent event) {
