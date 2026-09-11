@@ -83,7 +83,7 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           cd web-panel
-          npm ci
+          npm ci --legacy-peer-deps
           npx vite build
 
       # Mettre à jour la version dans pom.xml pour que le JAR porte le bon numéro
