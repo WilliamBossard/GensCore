@@ -146,30 +146,19 @@ public class FastLeafDecayModule implements Module, Listener {
     }
 
     private boolean isCloseToLog(Block block) {
-        // Optimisation : vérifier d'abord les blocs adjacents avant d'étendre la recherche
-        for (int d = 1; d <= 3; d++) {
-            for (int x = -d; x <= d; x++) {
-                for (int y = -d; y <= d; y++) {
-                    for (int z = -d; z <= d; z++) {
-                        // Ne vérifier que la "couche" extérieure (distance d)
-                        if (Math.abs(x) == d || Math.abs(y) == d || Math.abs(z) == d) {
-                            if (isLog(block.getRelative(x, y, z).getType())) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
+        if (block.getBlockData() instanceof org.bukkit.block.data.type.Leaves leaves) {
+            if (leaves.isPersistent()) return true; // Placé par un joueur
+            return leaves.getDistance() <= 6; // Calcul natif du moteur Minecraft (1 à 7)
         }
         return false;
     }
 
     private boolean isLeaf(Material material) {
-        return material.name().endsWith("_LEAVES");
+        return org.bukkit.Tag.LEAVES.isTagged(material);
     }
 
     private boolean isLog(Material material) {
-        return material.name().endsWith("_LOG") || material.name().endsWith("_WOOD");
+        return org.bukkit.Tag.LOGS.isTagged(material);
     }
 }
 

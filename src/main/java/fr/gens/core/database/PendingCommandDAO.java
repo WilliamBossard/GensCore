@@ -59,7 +59,7 @@ public class PendingCommandDAO {
                         String cmd = rs.getString("command");
                         String msg = rs.getString("message");
                         
-                        plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
+                        plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
                             if (cmd != null && !cmd.isEmpty()) {
                                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("%player%", p.getName()));
                             }

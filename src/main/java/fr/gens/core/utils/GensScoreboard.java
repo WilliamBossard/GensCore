@@ -18,6 +18,8 @@ public class GensScoreboard {
     private final Scoreboard scoreboard;
     private final Objective objective;
     private final Player player;
+    private final String[] lastLines = new String[15];
+    private String lastTitle = null;
 
     public GensScoreboard(Player player, String title) {
         this.player = player;
@@ -38,6 +40,10 @@ public class GensScoreboard {
         if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             title = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, title);
         }
+        if (title != null && title.equals(lastTitle)) {
+            return;
+        }
+        lastTitle = title;
         Component titleComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(title);
         objective.displayName(titleComp);
     }
@@ -56,6 +62,7 @@ public class GensScoreboard {
                     scoreboard.resetScores(getEntry(i));
                     team.unregister();
                 }
+                lastLines[i] = null;
                 continue;
             }
             
@@ -66,11 +73,17 @@ public class GensScoreboard {
                 objective.getScore(getEntry(i)).setScore(15 - i);
             }
             
-            
             String text = lines.get(i);
             if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
                 text = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, text);
             }
+
+            // Éviter l'envoi de paquets réseau si la ligne n'a pas changé
+            if (text != null && text.equals(lastLines[i])) {
+                continue;
+            }
+            lastLines[i] = text;
+
             Component finalComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(text);
             team.prefix(finalComp);
             team.suffix(Component.empty());

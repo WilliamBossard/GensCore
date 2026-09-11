@@ -42,11 +42,14 @@ public class TeamQuestManager {
 
     // teamId -> progress
     private final Map<Integer, Integer> teamProgress = new ConcurrentHashMap<>();
+    private final java.util.Set<Integer> dirtyTeams = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private com.tcoded.folialib.wrapper.task.WrappedTask autoSaveTask = null;
 
     public TeamQuestManager(CorePlugin plugin) {
         this.plugin = plugin;
         checkRotation();
         loadProgress();
+        this.autoSaveTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> flushProgress(), 1200L, 1200L);
     }
 
     private void checkRotation() {
@@ -67,6 +70,7 @@ public class TeamQuestManager {
             
             fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
             if (module != null) module.getTeamDAO().clearTeamQuests();
+            dirtyTeams.clear();
             teamProgress.clear();
         } else {
             activeQuest = questPool.stream().filter(q -> q.id.equals(savedId)).findFirst().orElse(questPool.get(0));
@@ -83,6 +87,26 @@ public class TeamQuestManager {
             fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
             if (module != null) module.getTeamDAO().saveTeamQuestProgress(teamId, activeQuest.id, progress);
         });
+    }
+
+    public void flushProgress() {
+        if (dirtyTeams.isEmpty()) return;
+        java.util.Set<Integer> copy = new java.util.HashSet<>(dirtyTeams);
+        dirtyTeams.clear();
+        for (Integer teamId : copy) {
+            Integer progress = teamProgress.get(teamId);
+            if (progress != null) {
+                saveProgress(teamId, progress);
+            }
+        }
+    }
+
+    public void stop() {
+        if (autoSaveTask != null) {
+            autoSaveTask.cancel();
+            autoSaveTask = null;
+        }
+        flushProgress();
     }
 
     public void addProgress(TeamData team, QuestType type, String target, int amount) {
@@ -129,7 +153,12 @@ public class TeamQuestManager {
         }
         
         teamProgress.put(team.getTeamId(), current);
-        saveProgress(team.getTeamId(), current);
+        if (current >= activeQuest.amount) {
+            dirtyTeams.remove(team.getTeamId());
+            saveProgress(team.getTeamId(), current);
+        } else {
+            dirtyTeams.add(team.getTeamId());
+        }
     }
 
     public int getProgress(int teamId) {

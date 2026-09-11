@@ -150,36 +150,53 @@ public class ShopDAO {
         }
     }
 
+    public void updateItemStockAsync(ShopItem item) {
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement("UPDATE shop_items SET stock = ? WHERE material = ?")) {
+                ps.setInt(1, item.getStock());
+                ps.setString(2, item.getMaterial().name());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public void logTransaction(ShopItem item) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO shop_history (material, timestamp, buyPrice, sellPrice, stock) VALUES (?, ?, ?, ?, ?)")) {
-            ps.setString(1, item.getMaterial().name());
-            ps.setLong(2, System.currentTimeMillis());
-            ps.setDouble(3, item.getCurrentBuyPrice());
-            ps.setDouble(4, item.getCurrentSellPrice());
-            ps.setInt(5, item.getStock());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "INSERT INTO shop_history (material, timestamp, buyPrice, sellPrice, stock) VALUES (?, ?, ?, ?, ?)")) {
+                ps.setString(1, item.getMaterial().name());
+                ps.setLong(2, System.currentTimeMillis());
+                ps.setDouble(3, item.getCurrentBuyPrice());
+                ps.setDouble(4, item.getCurrentSellPrice());
+                ps.setInt(5, item.getStock());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void logPlayerTransaction(UUID uuid, String type, String material, int amount, double price) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO player_transactions_history (uuid, type, material, amount, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)"
-             )) {
-            ps.setString(1, uuid.toString());
-            ps.setString(2, type);
-            ps.setString(3, material);
-            ps.setInt(4, amount);
-            ps.setDouble(5, price);
-            ps.setLong(6, System.currentTimeMillis());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "INSERT INTO player_transactions_history (uuid, type, material, amount, price, timestamp) VALUES (?, ?, ?, ?, ?, ?)"
+                 )) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, type);
+                ps.setString(3, material);
+                ps.setInt(4, amount);
+                ps.setDouble(5, price);
+                ps.setLong(6, System.currentTimeMillis());
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public List<Map<String, Object>> getHistory(String material) {

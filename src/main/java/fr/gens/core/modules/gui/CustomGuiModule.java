@@ -429,7 +429,7 @@ public class CustomGuiModule implements Module, Listener {
                         return;
                     }
                     final String finalCmdToRun = cmdToRun;
-                    plugin.getFoliaLib().getScheduler().runNextTick((t) -> {
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
                         if (finalCmdToRun.startsWith("player: ")) {
                             String cmd = finalCmdToRun.substring(8).replace("%player_name%", p.getName());
                             if (cmd.equals("profil") || cmd.equals("tuto")) {

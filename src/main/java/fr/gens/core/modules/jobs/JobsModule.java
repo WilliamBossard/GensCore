@@ -38,6 +38,8 @@ public class JobsModule implements Module, Listener {
     private final Map<UUID, Map<JobType, Double>> playerXp = new ConcurrentHashMap<>();
     private final Map<UUID, Map<JobType, Integer>> playerLevel = new ConcurrentHashMap<>();
     private final Map<UUID, Map<JobType, Boolean>> activeJobs = new ConcurrentHashMap<>();
+    private final java.util.Set<UUID> dirtyPlayers = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private com.tcoded.folialib.wrapper.task.WrappedTask autoSaveTask = null;
     
     private fr.gens.core.database.JobsDAO jobsDAO;
 
@@ -86,13 +88,15 @@ public class JobsModule implements Module, Listener {
             loadPlayer(p.getUniqueId());
         }
         
-        // Auto-Save Task pour le WebPanel (Toutes les 10 secondes)
-        plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
-            for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-                savePlayer(p.getUniqueId());
+        // Auto-Save Task pour le WebPanel (Toutes les 60 secondes pour les joueurs modifiés)
+        autoSaveTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> {
+            if (dirtyPlayers.isEmpty()) return;
+            java.util.Set<UUID> toSave = new java.util.HashSet<>(dirtyPlayers);
+            dirtyPlayers.clear();
+            for (UUID uuid : toSave) {
+                savePlayer(uuid);
             }
-        }, 200L, 200L); // 10 secondes
+        }, 1200L, 1200L); // 60 secondes
         
         plugin.getLangManager().sendConsoleMessage("jobsmodule.log_1");
     }
@@ -101,10 +105,15 @@ public class JobsModule implements Module, Listener {
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
         this.enabled = false;
+        if (autoSaveTask != null) {
+            autoSaveTask.cancel();
+            autoSaveTask = null;
+        }
         // Sauvegarder tout
         for (UUID uuid : playerXp.keySet()) {
             savePlayer(uuid);
         }
+        dirtyPlayers.clear();
         playerXp.clear();
         playerLevel.clear();
         activeJobs.clear();
@@ -151,6 +160,7 @@ public class JobsModule implements Module, Listener {
     public void leaveJob(UUID uuid, JobType type) {
         if (activeJobs.containsKey(uuid)) {
             activeJobs.get(uuid).put(type, false);
+            dirtyPlayers.remove(uuid);
             // On le supprime de la base de données
             plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 this.jobsDAO.removePlayerJob(uuid, type);
@@ -203,6 +213,7 @@ public class JobsModule implements Module, Listener {
         }
         
         playerXp.get(uuid).put(type, currentXp);
+        dirtyPlayers.add(uuid);
         
         // Action Bar Manager
         String formattedXp = String.format("%.1f", currentXp);
@@ -305,6 +316,17 @@ public class JobsModule implements Module, Listener {
             Player p = e.getEntity().getKiller();
             addXp(p, JobType.CHASSEUR, 5.0, 2.0);
         }
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        if (dirtyPlayers.remove(uuid)) {
+            savePlayer(uuid);
+        }
+        playerXp.remove(uuid);
+        playerLevel.remove(uuid);
+        activeJobs.remove(uuid);
     }
 }
 

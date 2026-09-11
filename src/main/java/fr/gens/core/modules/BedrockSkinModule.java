@@ -23,6 +23,7 @@ public class BedrockSkinModule implements Module, Listener {
 
     private final CorePlugin plugin;
     private boolean enabled = false;
+    private final java.util.Map<UUID, String> skinHashCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public BedrockSkinModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -62,6 +63,7 @@ public class BedrockSkinModule implements Module, Listener {
     @Override
     public void disable() {
         enabled = false;
+        skinHashCache.clear();
         HandlerList.unregisterAll(this);
     }
 
@@ -127,6 +129,7 @@ public class BedrockSkinModule implements Module, Listener {
                                         if (!hash.isEmpty()) {
                                             plugin.getLogger().info("[BedrockSkinModule] Hash trouve pour " + player.getName() + " : " + hash);
                                             // Save hash to database for Web/Discord use
+                                            skinHashCache.put(uuid, hash);
                                             try (java.sql.Connection dbConn = plugin.getDatabaseManager().getConnection();
                                                  java.sql.PreparedStatement pstmt = dbConn.prepareStatement("REPLACE INTO player_skins (uuid, hash) VALUES (?, ?)")) {
                                                 pstmt.setString(1, uuid.toString());
@@ -181,21 +184,30 @@ public class BedrockSkinModule implements Module, Listener {
         }
 
         if (uuid != null && isBedrock) {
-            // Chercher le hash en BDD seulement pour les joueurs Bedrock
-            try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection();
-                 java.sql.PreparedStatement pstmt = conn.prepareStatement("SELECT hash FROM player_skins WHERE uuid = ?")) {
-                
-                pstmt.setString(1, uuid.toString());
-                try (java.sql.ResultSet rs = pstmt.executeQuery()) {
-                    if (rs != null && rs.next()) {
-                        String hash = rs.getString("hash");
-                        if (hash != null && !hash.isEmpty()) {
-                            return "https://mc-heads.net/avatar/" + hash + ".png";
+            String cachedHash = skinHashCache.get(uuid);
+            if (cachedHash != null) {
+                if (!cachedHash.isEmpty()) {
+                    return "https://mc-heads.net/avatar/" + cachedHash + ".png";
+                }
+            } else {
+                // Chercher le hash en BDD seulement pour les joueurs Bedrock
+                try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection();
+                     java.sql.PreparedStatement pstmt = conn.prepareStatement("SELECT hash FROM player_skins WHERE uuid = ?")) {
+                    
+                    pstmt.setString(1, uuid.toString());
+                    try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                        if (rs != null && rs.next()) {
+                            String hash = rs.getString("hash");
+                            if (hash != null && !hash.isEmpty()) {
+                                skinHashCache.put(uuid, hash);
+                                return "https://mc-heads.net/avatar/" + hash + ".png";
+                            }
                         }
                     }
+                    skinHashCache.put(uuid, ""); // Marquer comme absent pour éviter de répéter la requête
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
         

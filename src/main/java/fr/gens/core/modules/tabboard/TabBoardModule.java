@@ -291,8 +291,14 @@ public class TabBoardModule implements Module, Listener {
 
             String suffixStr = target.hasPermission("genscore.discord.linked") ? " <aqua><bold>" : "";
 
-            team.prefix(fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr));
-            team.suffix(fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr));
+            Component pfx = fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr);
+            Component sfx = fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr);
+            if (!pfx.equals(team.prefix())) {
+                team.prefix(pfx);
+            }
+            if (!sfx.equals(team.suffix())) {
+                team.suffix(sfx);
+            }
         }
     }
 

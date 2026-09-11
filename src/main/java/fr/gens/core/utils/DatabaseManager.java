@@ -43,11 +43,12 @@ public class DatabaseManager {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
         config.setPoolName("GensCore-Pool");
-        config.setMaximumPoolSize(1);
-        config.setMinimumIdle(1);
-        config.setConnectionTimeout(30000);
+        config.setMaximumPoolSize(8);
+        config.setMinimumIdle(2);
+        config.setConnectionTimeout(10000);
         
         // SQLite properties for WAL and concurrency
+        config.setConnectionInitSql("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=5000; PRAGMA cache_size=-20000; PRAGMA temp_store=MEMORY;");
         config.addDataSourceProperty("journal_mode", "WAL");
         config.addDataSourceProperty("synchronous", "NORMAL");
         config.addDataSourceProperty("busy_timeout", "5000");

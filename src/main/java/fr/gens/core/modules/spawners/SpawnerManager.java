@@ -83,10 +83,15 @@ public class SpawnerManager {
             
             data.setLastGenerateMillis(now); // Reset timer
             
+            Location loc = data.getLocation();
+            if (loc == null || loc.getWorld() == null || !loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
+                continue; // Do not schedule tasks on Folia if chunk is not loaded
+            }
+
             // Dispatch generation to the Region Thread
-            module.getPlugin().getFoliaLib().getScheduler().runAtLocation(data.getLocation(), (t) -> {
-                Location loc = data.getLocation();
+            module.getPlugin().getFoliaLib().getScheduler().runAtLocation(loc, (t) -> {
                 boolean isLoaded = loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+                if (!isLoaded) return;
                 
                 EntityType type;
                 try {

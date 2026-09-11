@@ -367,7 +367,7 @@ public class ShopModule implements Module {
                 p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
             }
             
-            saveShop();
+            this.shopDAO.updateItemStockAsync(shopItem);
             logTransaction(shopItem);
             logPlayerTransaction(p.getUniqueId(), "ACHAT", shopItem.getMaterial().name(), amount, totalCost);
         } else {
@@ -407,7 +407,7 @@ public class ShopModule implements Module {
             eco.giveMoney(p.getUniqueId(), totalEarn);
             shopItem.setStock(shopItem.getStock() + amount);
             p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $"));
-            saveShop();
+            this.shopDAO.updateItemStockAsync(shopItem);
             logTransaction(shopItem);
             logPlayerTransaction(p.getUniqueId(), "VENTE", shopItem.getMaterial().name(), amount, totalEarn);
         } else {

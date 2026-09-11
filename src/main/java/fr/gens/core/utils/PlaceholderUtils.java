@@ -70,169 +70,195 @@ public class PlaceholderUtils {
         List<TagResolver> resolvers = new ArrayList<>();
 
         // Base Player
-        resolvers.add(Placeholder.parsed("player", p.getName()));
-        resolvers.add(Placeholder.parsed("player_name", p.getName()));
+        if (text.contains("player")) {
+            resolvers.add(Placeholder.parsed("player", p.getName()));
+            resolvers.add(Placeholder.parsed("player_name", p.getName()));
+        }
 
         // Quests
-        fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin.getModuleManager().getModule("quests");
-        int completedQuests = 0;
-        if (questModule != null) {
-            fr.gens.core.modules.quests.PlayerQuestData qData = questModule.getPlayerData(p.getUniqueId());
-            if (qData != null) {
-                completedQuests = qData.getCompletedTotal();
+        if (text.contains("quest")) {
+            fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin.getModuleManager().getModule("quests");
+            int completedQuests = 0;
+            if (questModule != null) {
+                fr.gens.core.modules.quests.PlayerQuestData qData = questModule.getPlayerData(p.getUniqueId());
+                if (qData != null) {
+                    completedQuests = qData.getCompletedTotal();
+                }
             }
+            resolvers.add(Placeholder.parsed("quests", String.valueOf(completedQuests)));
+            resolvers.add(Placeholder.parsed("quests_completed", String.valueOf(completedQuests)));
         }
-        resolvers.add(Placeholder.parsed("quests", String.valueOf(completedQuests)));
-        resolvers.add(Placeholder.parsed("quests_completed", String.valueOf(completedQuests)));
 
         // Economy
-        EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
-        if (eco != null && eco.isEnabled()) {
-            String balance = String.format("%.0f", eco.getBalance(p.getUniqueId()));
-            resolvers.add(Placeholder.parsed("balance", balance));
-            resolvers.add(Placeholder.parsed("money", balance));
-        } else {
-            resolvers.add(Placeholder.parsed("balance", "0"));
-            resolvers.add(Placeholder.parsed("money", "0"));
+        if (text.contains("balance") || text.contains("money")) {
+            EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
+            if (eco != null && eco.isEnabled()) {
+                String balance = String.format("%.0f", eco.getBalance(p.getUniqueId()));
+                resolvers.add(Placeholder.parsed("balance", balance));
+                resolvers.add(Placeholder.parsed("money", balance));
+            } else {
+                resolvers.add(Placeholder.parsed("balance", "0"));
+                resolvers.add(Placeholder.parsed("money", "0"));
+            }
         }
 
         // Server
-        resolvers.add(Placeholder.parsed("online", String.valueOf(Bukkit.getOnlinePlayers().size())));
-        int staffCount = 0;
-        for (Player online : Bukkit.getOnlinePlayers()) {
-            if (online == null) continue;
-            if (online.hasPermission("group.owner") || online.hasPermission("group.admin") || online.hasPermission("group.mod") || online.hasPermission("group.helper")) {
-                staffCount++;
-            }
+        if (text.contains("online")) {
+            resolvers.add(Placeholder.parsed("online", String.valueOf(Bukkit.getOnlinePlayers().size())));
         }
-        resolvers.add(Placeholder.parsed("staff", String.valueOf(staffCount)));
+
+        if (text.contains("staff")) {
+            int staffCount = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (online == null) continue;
+                if (online.hasPermission("group.owner") || online.hasPermission("group.admin") || online.hasPermission("group.mod") || online.hasPermission("group.helper")) {
+                    staffCount++;
+                }
+            }
+            resolvers.add(Placeholder.parsed("staff", String.valueOf(staffCount)));
+        }
         
-        long maxMemory = Runtime.getRuntime().maxMemory() / 1048576;
-        long usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
-        resolvers.add(Placeholder.parsed("mem_used", String.valueOf(usedMemory)));
-        resolvers.add(Placeholder.parsed("mem_max", String.valueOf(maxMemory)));
-        resolvers.add(Placeholder.parsed("ping", String.valueOf(p.getPing())));
+        if (text.contains("mem_")) {
+            long maxMemory = Runtime.getRuntime().maxMemory() / 1048576;
+            long usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
+            resolvers.add(Placeholder.parsed("mem_used", String.valueOf(usedMemory)));
+            resolvers.add(Placeholder.parsed("mem_max", String.valueOf(maxMemory)));
+        }
+
+        if (text.contains("ping")) {
+            resolvers.add(Placeholder.parsed("ping", String.valueOf(p.getPing())));
+        }
 
         // Discord
-        boolean linked = p.hasPermission("genscore.discord.linked");
-        String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold>🔗 <red>Discord non lié ! <aqua>/linktuto";
-        
-        // Wait, if it contains colors, we should use MiniMessage Component
-        resolvers.add(Placeholder.component("discord_status", parseToComponent(discordStatus)));
-        
-        String discordName = linked ? "Compte Lié" : "Non lié";
-        resolvers.add(Placeholder.parsed("discord_name", discordName));
+        if (text.contains("discord")) {
+            boolean linked = p.hasPermission("genscore.discord.linked");
+            String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold>🔗 <red>Discord non lié ! <aqua>/linktuto";
+            resolvers.add(Placeholder.component("discord_status", parseToComponent(discordStatus)));
+            String discordName = linked ? "Compte Lié" : "Non lié";
+            resolvers.add(Placeholder.parsed("discord_name", discordName));
+        }
 
         // Statistics
-        try {
-            int ticks = p.getStatistic(Statistic.PLAY_ONE_MINUTE);
-            int totalMinutes = ticks / 1200;
-            int hours = totalMinutes / 60;
-            int minutes = totalMinutes % 60;
-            resolvers.add(Placeholder.parsed("hours_played", String.valueOf(ticks / 72000)));
-            resolvers.add(Placeholder.parsed("playtime", hours + "h" + String.format("%02d", minutes) + "m"));
-            resolvers.add(Placeholder.parsed("player_kills", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS))));
-            resolvers.add(Placeholder.parsed("mob_kills", String.valueOf(p.getStatistic(Statistic.MOB_KILLS))));
-            resolvers.add(Placeholder.parsed("deaths", String.valueOf(p.getStatistic(Statistic.DEATHS))));
-        } catch (Exception ignored) {}
+        if (text.contains("hours_played") || text.contains("playtime") || text.contains("player_kills") || text.contains("mob_kills") || text.contains("deaths")) {
+            try {
+                int ticks = p.getStatistic(Statistic.PLAY_ONE_MINUTE);
+                int totalMinutes = ticks / 1200;
+                int hours = totalMinutes / 60;
+                int minutes = totalMinutes % 60;
+                resolvers.add(Placeholder.parsed("hours_played", String.valueOf(ticks / 72000)));
+                resolvers.add(Placeholder.parsed("playtime", hours + "h" + String.format("%02d", minutes) + "m"));
+                resolvers.add(Placeholder.parsed("player_kills", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS))));
+                resolvers.add(Placeholder.parsed("mob_kills", String.valueOf(p.getStatistic(Statistic.MOB_KILLS))));
+                resolvers.add(Placeholder.parsed("deaths", String.valueOf(p.getStatistic(Statistic.DEATHS))));
+            } catch (Exception ignored) {}
+        }
 
         // First join date
-        try {
-            long firstPlayed = p.getFirstPlayed();
-            if (firstPlayed > 0) {
-                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-                sdf.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
-                resolvers.add(Placeholder.parsed("first_join", sdf.format(new Date(firstPlayed))));
-            } else {
-                resolvers.add(Placeholder.parsed("first_join", "Inconnu"));
-            }
-        } catch (Exception ignored) {}
+        if (text.contains("first_join")) {
+            try {
+                long firstPlayed = p.getFirstPlayed();
+                if (firstPlayed > 0) {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    sdf.setTimeZone(TimeZone.getTimeZone("Europe/Paris"));
+                    resolvers.add(Placeholder.parsed("first_join", sdf.format(new Date(firstPlayed))));
+                } else {
+                    resolvers.add(Placeholder.parsed("first_join", "Inconnu"));
+                }
+            } catch (Exception ignored) {}
+        }
 
         // LuckPerms
-        try {
-            LuckPerms api = LuckPermsProvider.get();
-            User user = api.getUserManager().getUser(p.getUniqueId());
-            if (user != null) {
-                String groupName = user.getPrimaryGroup();
-                if (groupName != null) {
-                    String formattedGroup = groupName.substring(0, 1).toUpperCase() + groupName.substring(1);
-                    resolvers.add(Placeholder.parsed("group", formattedGroup));
+        if (text.contains("group") || text.contains("prefix")) {
+            try {
+                LuckPerms api = LuckPermsProvider.get();
+                User user = api.getUserManager().getUser(p.getUniqueId());
+                if (user != null) {
+                    String groupName = user.getPrimaryGroup();
+                    if (groupName != null) {
+                        String formattedGroup = groupName.substring(0, 1).toUpperCase() + groupName.substring(1);
+                        resolvers.add(Placeholder.parsed("group", formattedGroup));
+                    } else {
+                        resolvers.add(Placeholder.parsed("group", "Joueur"));
+                    }
+
+                    String prefix = user.getCachedData().getMetaData().getPrefix();
+                    if (prefix != null && !prefix.trim().isEmpty()) {
+                        resolvers.add(Placeholder.component("prefix", parseToComponent(prefix)));
+                    } else if (groupName != null) {
+                        resolvers.add(Placeholder.component("prefix", parseToComponent("<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1))));
+                    } else {
+                        resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
+                    }
                 } else {
                     resolvers.add(Placeholder.parsed("group", "Joueur"));
-                }
-
-                String prefix = user.getCachedData().getMetaData().getPrefix();
-                if (prefix != null && !prefix.trim().isEmpty()) {
-                    resolvers.add(Placeholder.component("prefix", parseToComponent(prefix)));
-                } else if (groupName != null) {
-                    resolvers.add(Placeholder.component("prefix", parseToComponent("<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1))));
-                } else {
                     resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
                 }
-            } else {
+            } catch (Exception ignored) {
                 resolvers.add(Placeholder.parsed("group", "Joueur"));
                 resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
             }
-        } catch (Exception ignored) {
-            resolvers.add(Placeholder.parsed("group", "Joueur"));
-            resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
         }
 
-        // Before passing to MiniMessage, let's pre-convert Legacy variables (%) to MiniMessage Tags (<>)
-        String mmText = text.replace("§", "&")
-                            .replace("%player%", "<player>")
-                            .replace("%player_name%", "<player_name>")
-                            .replace("%quests%", "<quests>")
-                            .replace("%quests_completed%", "<quests_completed>")
-                            .replace("%balance%", "<balance>")
-                            .replace("%money%", "<money>")
-                            .replace("%online%", "<online>")
-                            .replace("%staff%", "<staff>")
-                            .replace("%mem_used%", "<mem_used>")
-                            .replace("%mem_max%", "<mem_max>")
-                            .replace("%ping%", "<ping>")
-                            .replace("%discord_status%", "<discord_status>")
-                            .replace("%discord_name%", "<discord_name>")
-                            .replace("%hours_played%", "<hours_played>")
-                            .replace("%playtime%", "<playtime>")
-                            .replace("%player_kills%", "<player_kills>")
-                            .replace("%mob_kills%", "<mob_kills>")
-                            .replace("%deaths%", "<deaths>")
-                            .replace("%first_join%", "<first_join>")
-                            .replace("%group%", "<group>")
-                            .replace("%prefix%", "<prefix>");
+        // Before passing to MiniMessage, convert Legacy variables (%) to MiniMessage Tags (<>)
+        String mmText = text.replace("§", "&");
+        if (mmText.indexOf('%') != -1) {
+            mmText = mmText
+                    .replace("%player%", "<player>")
+                    .replace("%player_name%", "<player_name>")
+                    .replace("%quests%", "<quests>")
+                    .replace("%quests_completed%", "<quests_completed>")
+                    .replace("%balance%", "<balance>")
+                    .replace("%money%", "<money>")
+                    .replace("%online%", "<online>")
+                    .replace("%staff%", "<staff>")
+                    .replace("%mem_used%", "<mem_used>")
+                    .replace("%mem_max%", "<mem_max>")
+                    .replace("%ping%", "<ping>")
+                    .replace("%discord_status%", "<discord_status>")
+                    .replace("%discord_name%", "<discord_name>")
+                    .replace("%hours_played%", "<hours_played>")
+                    .replace("%playtime%", "<playtime>")
+                    .replace("%player_kills%", "<player_kills>")
+                    .replace("%mob_kills%", "<mob_kills>")
+                    .replace("%deaths%", "<deaths>")
+                    .replace("%first_join%", "<first_join>")
+                    .replace("%group%", "<group>")
+                    .replace("%prefix%", "<prefix>");
+        }
 
         if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             mmText = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, mmText);
         }
 
         // Convertir également les codes couleurs legacy introduits par PAPI en MiniMessage
-        mmText = mmText.replaceAll("&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
-        mmText = mmText.replaceAll("&#([0-9a-fA-F]{6})", "<#$1>");
-        
-        mmText = mmText
-                .replace("&0", "<black>")
-                .replace("&1", "<dark_blue>")
-                .replace("&2", "<dark_green>")
-                .replace("&3", "<dark_aqua>")
-                .replace("&4", "<dark_red>")
-                .replace("&5", "<dark_purple>")
-                .replace("&6", "<gold>")
-                .replace("&7", "<gray>")
-                .replace("&8", "<dark_gray>")
-                .replace("&9", "<blue>")
-                .replace("&a", "<green>")
-                .replace("&b", "<aqua>")
-                .replace("&c", "<red>")
-                .replace("&d", "<light_purple>")
-                .replace("&e", "<yellow>")
-                .replace("&f", "<white>")
-                .replace("&k", "<obfuscated>")
-                .replace("&l", "<bold>")
-                .replace("&m", "<strikethrough>")
-                .replace("&n", "<underlined>")
-                .replace("&o", "<italic>")
-                .replace("&r", "<reset>");
+        if (mmText.indexOf('&') != -1) {
+            mmText = mmText.replaceAll("&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
+            mmText = mmText.replaceAll("&#([0-9a-fA-F]{6})", "<#$1>");
+            
+            mmText = mmText
+                    .replace("&0", "<black>")
+                    .replace("&1", "<dark_blue>")
+                    .replace("&2", "<dark_green>")
+                    .replace("&3", "<dark_aqua>")
+                    .replace("&4", "<dark_red>")
+                    .replace("&5", "<dark_purple>")
+                    .replace("&6", "<gold>")
+                    .replace("&7", "<gray>")
+                    .replace("&8", "<dark_gray>")
+                    .replace("&9", "<blue>")
+                    .replace("&a", "<green>")
+                    .replace("&b", "<aqua>")
+                    .replace("&c", "<red>")
+                    .replace("&d", "<light_purple>")
+                    .replace("&e", "<yellow>")
+                    .replace("&f", "<white>")
+                    .replace("&k", "<obfuscated>")
+                    .replace("&l", "<bold>")
+                    .replace("&m", "<strikethrough>")
+                    .replace("&n", "<underlined>")
+                    .replace("&o", "<italic>")
+                    .replace("&r", "<reset>");
+        }
 
         return MiniMessage.miniMessage().deserialize(mmText, resolvers.toArray(new TagResolver[0]));
     }

@@ -132,6 +132,9 @@ public class CorePlugin extends JavaPlugin {
         if (this.actionBarManager != null) {
             this.actionBarManager.stop();
         }
+        if (this.teamQuestManager != null) {
+            this.teamQuestManager.stop();
+        }
         if (this.moduleManager != null) {
             this.moduleManager.disableAllModules();
         }

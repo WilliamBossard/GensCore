@@ -24,6 +24,9 @@ public class StatsModule implements Module, Listener {
     private boolean enabled;
     private com.tcoded.folialib.wrapper.task.WrappedTask task;
     private fr.gens.core.database.StatsDAO statsDAO;
+    private static final Material[] BLOCK_MATERIALS = java.util.Arrays.stream(Material.values())
+            .filter(Material::isBlock)
+            .toArray(Material[]::new);
 
     // Cache pour éviter de spammer la BDD
     private final Map<UUID, PlayerStats> statsCache = new ConcurrentHashMap<>();
@@ -155,12 +158,10 @@ public class StatsModule implements Module, Listener {
                 int vanillaPlaytime = p.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20 / 60;
                 
                 int vanillaBlocks = 0;
-                for (Material m : Material.values()) {
-                    if (m.isBlock()) {
-                        try {
-                            vanillaBlocks += p.getStatistic(Statistic.MINE_BLOCK, m);
-                        } catch (IllegalArgumentException ignored) {} 
-                    }
+                for (Material m : BLOCK_MATERIALS) {
+                    try {
+                        vanillaBlocks += p.getStatistic(Statistic.MINE_BLOCK, m);
+                    } catch (IllegalArgumentException ignored) {} 
                 }
         
                 int vanillaDeaths = p.getStatistic(Statistic.DEATHS);

@@ -61,7 +61,8 @@ public class LootManager {
                 String lootTable = section.getString("lootTable");
                 long seed = section.getLong("seed", 0);
                 int size = section.getInt("size", 27);
-                chestsCache.put(key, new LootChestData(lootTable, seed, size));
+                Location loc = stringToLoc(key);
+                chestsCache.put(key, new LootChestData(lootTable, seed, size, loc));
             }
         }
         plugin.getLogger().info("[Lootr] " + chestsCache.size() + " chests loaded.");
@@ -73,11 +74,13 @@ public class LootManager {
             chestsConfig.set(entry.getKey() + ".seed", entry.getValue().getSeed());
             chestsConfig.set(entry.getKey() + ".size", entry.getValue().getSize());
         }
-        try {
-            chestsConfig.save(chestsFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            try {
+                chestsConfig.save(chestsFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public String locToString(Location loc) {
@@ -105,15 +108,17 @@ public class LootManager {
 
     public void addLootChest(Location loc, String lootTable, long seed, int size) {
         String key = locToString(loc);
-        chestsCache.put(key, new LootChestData(lootTable, seed, size));
+        chestsCache.put(key, new LootChestData(lootTable, seed, size, loc));
         chestsConfig.set(key + ".lootTable", lootTable);
         chestsConfig.set(key + ".seed", seed);
         chestsConfig.set(key + ".size", size);
-        try {
-            chestsConfig.save(chestsFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            try {
+                chestsConfig.save(chestsFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public void removeLootChest(Location loc) {
@@ -208,11 +213,25 @@ public class LootManager {
         private final String lootTable;
         private final long seed;
         private final int size;
+        private Location location;
 
         public LootChestData(String lootTable, long seed, int size) {
+            this(lootTable, seed, size, null);
+        }
+
+        public LootChestData(String lootTable, long seed, int size, Location location) {
             this.lootTable = lootTable;
             this.seed = seed;
             this.size = size;
+            this.location = location;
+        }
+
+        public Location getLocation() {
+            return location;
+        }
+
+        public void setLocation(Location location) {
+            this.location = location;
         }
 
         public String getLootTable() {

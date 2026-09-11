@@ -131,12 +131,20 @@ public class EconomyModule implements Module, Listener {
         }
     }
     
+    @EventHandler(priority = org.bukkit.event.EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPreLogin(org.bukkit.event.player.AsyncPlayerPreLoginEvent e) {
+        if (enabled) {
+            double bal = this.economyDAO.getBalance(e.getUniqueId());
+            balances.put(e.getUniqueId(), bal);
+        }
+    }
+
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        if (enabled) {
+        if (enabled && !balances.containsKey(e.getPlayer().getUniqueId())) {
             plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
                 double bal = this.economyDAO.getBalance(e.getPlayer().getUniqueId());
-                plugin.getFoliaLib().getScheduler().runNextTick((t2) -> balances.put(e.getPlayer().getUniqueId(), bal));
+                balances.put(e.getPlayer().getUniqueId(), bal);
             });
         }
     }

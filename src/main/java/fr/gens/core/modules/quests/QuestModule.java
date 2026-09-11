@@ -44,6 +44,7 @@ public class QuestModule implements Module, Listener {
     private final Map<UUID, PlayerQuestData> playerData = new ConcurrentHashMap<>();
     
     private fr.gens.core.database.QuestDAO questDAO;
+    private com.tcoded.folialib.wrapper.task.WrappedTask autoSaveTask = null;
 
     // How many quests per category? Default to 3
     private final int QUESTS_PER_CATEGORY = 3;
@@ -109,6 +110,9 @@ public class QuestModule implements Module, Listener {
         // Check Weekly Rewards
         plugin.getFoliaLib().getScheduler().runLaterAsync((wrappedTask) -> this.checkWeeklyRewards(), 100L);
 
+        // Auto-save player active quests every 60s
+        autoSaveTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> saveAllData(), 1200L, 1200L);
+
         plugin.getLogger().info("[Quests] Module activé, " + getTotalQuests() + " quests loaded.");
     }
 
@@ -116,6 +120,10 @@ public class QuestModule implements Module, Listener {
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
+        if (autoSaveTask != null) {
+            autoSaveTask.cancel();
+            autoSaveTask = null;
+        }
         saveAllData();
         questsPool.clear();
         playerData.clear();
@@ -227,7 +235,10 @@ public class QuestModule implements Module, Listener {
     }
 
     public void unloadPlayerData(UUID uuid) {
-        playerData.remove(uuid);
+        PlayerQuestData data = playerData.remove(uuid);
+        if (data != null) {
+            savePlayerActiveQuests(uuid, data);
+        }
     }
 
     private void migrateFromODailyQuests() {
@@ -437,22 +448,22 @@ public class QuestModule implements Module, Listener {
                             .append(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" <dark_gray>» " + color + newProgress + " <gray>/ " + quest.getRequiredAmount()));
                     plugin.getActionBarManager().sendMessage(p, "quests", msg, 40);
                     
-                    // Async save
-                    final int finalProgress = newProgress;
-                    final boolean finalCompleted = newProgress >= quest.getRequiredAmount();
-                    plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
-                        try (Connection conn = plugin.getDatabaseManager().getConnection();
-                             PreparedStatement ps = conn.prepareStatement("UPDATE player_active_quests SET progress = ?, completed = ? WHERE uuid = ? AND category = ? AND quest_id = ?")) {
-                            ps.setInt(1, finalProgress);
-                            ps.setBoolean(2, finalCompleted);
-                            ps.setString(3, p.getUniqueId().toString());
-                            ps.setString(4, category);
-                            ps.setString(5, questId);
-                            ps.executeUpdate();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                    });
+                    // Async save immediately only if completed
+                    if (isDone) {
+                        final int finalProgress = newProgress;
+                        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                                 PreparedStatement ps = conn.prepareStatement("UPDATE player_active_quests SET progress = ?, completed = 1 WHERE uuid = ? AND category = ? AND quest_id = ?")) {
+                                ps.setInt(1, finalProgress);
+                                ps.setString(2, p.getUniqueId().toString());
+                                ps.setString(3, category);
+                                ps.setString(4, questId);
+                                ps.executeUpdate();
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -524,7 +535,39 @@ public class QuestModule implements Module, Listener {
     }
 
     public void saveAllData() {
-        // Data is saved in real-time, no need for massive sync
+        for (Map.Entry<UUID, PlayerQuestData> entry : playerData.entrySet()) {
+            savePlayerActiveQuests(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public void savePlayerActiveQuests(UUID uuid, PlayerQuestData data) {
+        if (data == null) return;
+        Map<String, Map<String, Integer>> active = data.getActiveQuests();
+        if (active == null || active.isEmpty()) return;
+
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "UPDATE player_active_quests SET progress = ?, completed = ? WHERE uuid = ? AND category = ? AND quest_id = ?")) {
+                for (Map.Entry<String, Map<String, Integer>> catEntry : active.entrySet()) {
+                    String category = catEntry.getKey();
+                    for (Map.Entry<String, Integer> qEntry : catEntry.getValue().entrySet()) {
+                        String questId = qEntry.getKey();
+                        int progress = qEntry.getValue();
+                        boolean completed = data.isCompleted(category, questId);
+                        ps.setInt(1, progress);
+                        ps.setBoolean(2, completed);
+                        ps.setString(3, uuid.toString());
+                        ps.setString(4, category);
+                        ps.setString(5, questId);
+                        ps.addBatch();
+                    }
+                }
+                ps.executeBatch();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     @Command("quests [subcommand]")

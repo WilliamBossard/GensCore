@@ -176,6 +176,11 @@ public class LockListener implements Listener {
             }
         }
     }
+
+    @EventHandler
+    public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+        LockCommand.pendingActions.remove(event.getPlayer().getUniqueId());
+    }
 }
 
 

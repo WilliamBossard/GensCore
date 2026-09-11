@@ -30,9 +30,9 @@ public class TeleportUtil {
                     return;
                 }
 
-                // Vérifier si le joueur a bougé (plus d'un demi-bloc de tolérance)
+                // Vérifier si le joueur a bougé (plus d'un demi-bloc de tolérance ou changement de monde)
                 Location pLoc = player.getLocation();
-                if (pLoc != null && pLoc.distanceSquared(startLoc) > 0.5) {
+                if (pLoc == null || startLoc.getWorld() == null || !startLoc.getWorld().equals(pLoc.getWorld()) || pLoc.distanceSquared(startLoc) > 0.5) {
                     player.sendActionBar(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Téléportation annulée (mouvement détecté).</red>"));
                     player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Téléportation annulée, vous avez bougé !</red>"));
                     wrappedTask.cancel();

@@ -145,15 +145,25 @@ public class LootModule implements Module, Listener {
     private void startParticleTask() {
         particleTask = plugin.getFoliaLib().getScheduler().runTimer(() -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-                Location pLoc = p != null ? p.getLocation() : null;
-            if (pLoc == null) return;
+                if (p == null) continue;
+                Location pLoc = p.getLocation();
+                if (pLoc == null || pLoc.getWorld() == null) continue;
+
                 for (Map.Entry<String, LootManager.LootChestData> entry : lootManager.getChestsCache().entrySet()) {
-                    Location chestLoc = lootManager.stringToLoc(entry.getKey());
+                    LootManager.LootChestData data = entry.getValue();
+                    Location chestLoc = data.getLocation();
+                    if (chestLoc == null) {
+                        chestLoc = lootManager.stringToLoc(entry.getKey());
+                        data.setLocation(chestLoc);
+                    }
                     if (chestLoc != null && chestLoc.getWorld().equals(pLoc.getWorld())) {
-                        if (chestLoc.distanceSquared(pLoc) < 400) { // 20 blocks radius
-                            if (!lootManager.hasPlayerLooted(p.getUniqueId(), chestLoc)) {
-                                p.spawnParticle(Particle.HAPPY_VILLAGER, chestLoc.clone().add(0.5, 0.5, 0.5), 2, 0.4, 0.4, 0.4, 0);
+                        if (Math.abs(chestLoc.getBlockX() - pLoc.getBlockX()) <= 20 &&
+                            Math.abs(chestLoc.getBlockZ() - pLoc.getBlockZ()) <= 20 &&
+                            Math.abs(chestLoc.getBlockY() - pLoc.getBlockY()) <= 20) {
+                            if (chestLoc.distanceSquared(pLoc) < 400) { // 20 blocks radius
+                                if (!lootManager.hasPlayerLooted(p.getUniqueId(), chestLoc)) {
+                                    p.spawnParticle(Particle.HAPPY_VILLAGER, chestLoc.clone().add(0.5, 0.5, 0.5), 2, 0.4, 0.4, 0.4, 0);
+                                }
                             }
                         }
                     }
