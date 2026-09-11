@@ -47,9 +47,23 @@ public class TombData {
         return expirationTime;
     }
 
+    private String ownerName;
+
     public boolean isExpired() {
         if (expirationTime == -1) return false;
         return System.currentTimeMillis() > expirationTime;
+    }
+
+    public String getOwnerName() {
+        if (ownerName == null) {
+            String name = org.bukkit.Bukkit.getOfflinePlayer(ownerId).getName();
+            ownerName = name != null ? name : "Inconnu";
+        }
+        return ownerName;
+    }
+
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
     }
 }
 

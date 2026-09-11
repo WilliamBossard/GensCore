@@ -52,12 +52,15 @@ public class TombManager {
         activeTombs.put(id, tomb);
         tombsByLocation.put(location.getBlock().getLocation(), id);
 
+        String initialOwnerName = Bukkit.getOfflinePlayer(ownerId).getName();
+        if (initialOwnerName == null) initialOwnerName = "Inconnu";
+        tomb.setOwnerName(initialOwnerName);
+        final String cachedName = initialOwnerName;
+
         plugin.getFoliaLib().getScheduler().runAtLocation(location, (t2) -> {
             Location holoLoc = location.clone().add(0.5, 1.2, 0.5);
             TextDisplay display = (TextDisplay) location.getWorld().spawnEntity(holoLoc, EntityType.TEXT_DISPLAY);
-            String ownerName = Bukkit.getOfflinePlayer(ownerId).getName();
-            if (ownerName == null) ownerName = "Inconnu";
-            display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée"));
+            display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + cachedName + "<br><red>Protégée"));
             display.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
             display.getPersistentDataContainer().set(new NamespacedKey(plugin, "tomb_id"), PersistentDataType.STRING, id.toString());
         });
@@ -137,16 +140,19 @@ public class TombManager {
                     continue;
                 }
             }
+            Location tLoc = tomb.getLocation();
+            if (tLoc == null || tLoc.getWorld() == null || !tLoc.getWorld().isChunkLoaded(tLoc.getBlockX() >> 4, tLoc.getBlockZ() >> 4)) {
+                continue;
+            }
 
             // Update Hologram
-            plugin.getFoliaLib().getScheduler().runAtLocation(tomb.getLocation(), (t2) -> {
-                for (Entity entity : tomb.getLocation().getWorld().getNearbyEntities(tomb.getLocation().clone().add(0.5, 0.5, 0.5), 2, 2, 2)) {
+            plugin.getFoliaLib().getScheduler().runAtLocation(tLoc, (t2) -> {
+                for (Entity entity : tLoc.getWorld().getNearbyEntities(tLoc.clone().add(0.5, 0.5, 0.5), 2, 2, 2)) {
                     if (entity.getType() == EntityType.TEXT_DISPLAY && entity.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
                         String storedId = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
                         if (tomb.getId().toString().equals(storedId)) {
                             TextDisplay display = (TextDisplay) entity;
-                            String ownerName = Bukkit.getOfflinePlayer(tomb.getOwnerId()).getName();
-                            if (ownerName == null) ownerName = "Inconnu";
+                            String ownerName = tomb.getOwnerName();
 
                             if (isExpired && action.equals("UNLOCK")) {
                                 display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><green>Ouverte à tous"));
@@ -154,9 +160,9 @@ public class TombManager {
                                 String timeStr = "";
                                 if (hasExpiration) {
                                     if (remainingSecs >= 60) {
-                                        timeStr = "<br><gray>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â± <white>" + (remainingSecs / 60) + "m " + (remainingSecs % 60) + "s";
+                                        timeStr = "<br><gray>Temps: <white>" + (remainingSecs / 60) + "m " + (remainingSecs % 60) + "s";
                                     } else {
-                                        timeStr = "<br><gray>ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â± <white>" + remainingSecs + "s";
+                                        timeStr = "<br><gray>Temps: <white>" + remainingSecs + "s";
                                     }
                                 }
                                 display.text(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Tombe de <yellow>" + ownerName + "<br><red>Protégée" + timeStr));
@@ -168,7 +174,4 @@ public class TombManager {
         }
     }
 }
-
-
-
 

@@ -4,6 +4,7 @@ import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.Module;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
@@ -179,28 +180,35 @@ public class LootModule implements Module, Listener {
         Block block = event.getClickedBlock();
         if (block == null) return;
         
-        BlockState state = block.getState();
+        Material mat = block.getType();
+        if (mat != Material.CHEST && mat != Material.TRAPPED_CHEST && mat != Material.BARREL && !mat.name().endsWith("SHULKER_BOX")) {
+            return;
+        }
+
         Location loc = block.getLocation();
         Player p = event.getPlayer();
 
         boolean isLootrChest = lootManager.isLootChest(loc);
         
         // Convert naturally generated chest to Lootr chest
-        if (!isLootrChest && state instanceof Lootable && state instanceof Container) {
-            Lootable lootable = (Lootable) state;
-            if (lootable.getLootTable() != null) {
-                LootTable table = lootable.getLootTable();
-                String tableName = table.getKey().toString();
-                long seed = lootable.getSeed();
-                int size = ((Container) state).getInventory().getSize();
-                
-                lootManager.addLootChest(loc, tableName, seed, size);
-                
-                // Remove vanilla loot table so it doesn't generate normally
-                lootable.setLootTable(null);
-                state.update();
-                
-                isLootrChest = true;
+        if (!isLootrChest) {
+            BlockState state = block.getState();
+            if (state instanceof Lootable && state instanceof Container) {
+                Lootable lootable = (Lootable) state;
+                if (lootable.getLootTable() != null) {
+                    LootTable table = lootable.getLootTable();
+                    String tableName = table.getKey().toString();
+                    long seed = lootable.getSeed();
+                    int size = ((Container) state).getInventory().getSize();
+                    
+                    lootManager.addLootChest(loc, tableName, seed, size);
+                    
+                    // Remove vanilla loot table so it doesn't generate normally
+                    lootable.setLootTable(null);
+                    state.update();
+                    
+                    isLootrChest = true;
+                }
             }
         }
 
