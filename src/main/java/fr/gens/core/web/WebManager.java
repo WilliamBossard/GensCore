@@ -36,13 +36,14 @@ public class WebManager {
     public final java.util.Map<String, Integer> playerLoginRateLimit = new java.util.concurrent.ConcurrentHashMap<>();
     public final java.util.Map<String, Long> playerRateLimitReset = new java.util.concurrent.ConcurrentHashMap<>();
     public final java.util.Map<String, Long> playerSessionExpiry = new java.util.concurrent.ConcurrentHashMap<>();
+    private final fr.gens.core.database.WebDAO webDAO;
 
     public WebManager(CorePlugin plugin, int port) {
         this.plugin = plugin;
         this.port = port;
         
-        fr.gens.core.database.WebDAO webDAO = new fr.gens.core.database.WebDAO(plugin);
-        webDAO.initDatabase();
+        this.webDAO = new fr.gens.core.database.WebDAO(plugin);
+        this.webDAO.initDatabase();
     }
 
     private java.util.Map<String, Object> convertToMap(org.bukkit.configuration.ConfigurationSection section) {
@@ -166,6 +167,7 @@ public class WebManager {
                         if (!activePlayerSessions.containsKey(token) || (playerSessionExpiry.containsKey(token) && playerSessionExpiry.get(token) < System.currentTimeMillis())) {
                             activePlayerSessions.remove(token);
                             playerSessionExpiry.remove(token);
+                            webDAO.removePlayerSession(token);
                             ctx.status(401).json(Map.of("error", "Session expired"));
                             return;
                         }
@@ -198,6 +200,13 @@ public class WebManager {
                         }
                     });
                     
+                    // Charger les sessions persistantes
+                    Map<String, Map.Entry<String, Long>> persisted = webDAO.loadValidSessions();
+                    for (Map.Entry<String, Map.Entry<String, Long>> entry : persisted.entrySet()) {
+                        activePlayerSessions.put(entry.getKey(), entry.getValue().getKey());
+                        playerSessionExpiry.put(entry.getKey(), entry.getValue().getValue());
+                    }
+
                     WebPlayerAPI playerAPI = new WebPlayerAPI(plugin, this);
                     playerAPI.registerRoutes();
 

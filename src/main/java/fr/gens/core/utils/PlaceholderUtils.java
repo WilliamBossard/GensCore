@@ -75,7 +75,13 @@ public class PlaceholderUtils {
 
         // Quests
         fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin.getModuleManager().getModule("quests");
-        int completedQuests = questModule != null ? questModule.getQuestDAO().getQuestsCompletedTotal(p.getUniqueId()) : 0;
+        int completedQuests = 0;
+        if (questModule != null) {
+            fr.gens.core.modules.quests.PlayerQuestData qData = questModule.getPlayerData(p.getUniqueId());
+            if (qData != null) {
+                completedQuests = qData.getCompletedTotal();
+            }
+        }
         resolvers.add(Placeholder.parsed("quests", String.valueOf(completedQuests)));
         resolvers.add(Placeholder.parsed("quests_completed", String.valueOf(completedQuests)));
 

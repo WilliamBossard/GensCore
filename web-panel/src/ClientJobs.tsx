@@ -259,8 +259,8 @@ export function ClientJobs() {
                         <div style={{fontWeight: 700, fontSize: '1.2rem', color: isTop ? medals[idx] : 'var(--text)'}}>{p.playerName}</div>
                       </div>
                       <div style={{textAlign: 'right'}}>
-                        <div style={{fontSize: '1.5rem', fontWeight: 800, color: 'var(--text)'}}>{p.count}</div>
-                        <div style={{fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px'}}>Quêtes Fines</div>
+                        <div style={{fontSize: '1.5rem', fontWeight: 800, color: 'var(--text)'}}>{p.count ?? p.questsCompleted ?? 0}</div>
+                        <div style={{fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px'}}>Quêtes Terminées</div>
                       </div>
                     </div>
                   );

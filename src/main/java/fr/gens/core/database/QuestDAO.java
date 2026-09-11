@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,14 +133,13 @@ public class QuestDAO {
     public Map<String, Object> getQuestsLeaderboardData() {
         Map<String, Object> result = new HashMap<>();
         try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-            // Current Reward
-            Calendar cal = Calendar.getInstance();
-            cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-            cal.set(Calendar.HOUR_OF_DAY, 0);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
-            String currentWeek = String.valueOf(cal.getTimeInMillis());
+            java.time.ZoneId zone = java.time.ZoneId.systemDefault();
+            java.time.LocalDate today = java.time.LocalDate.now(zone);
+            
+            // Current week start (Monday 00:00:00)
+            long weekStart = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+                    .atStartOfDay(zone).toInstant().toEpochMilli();
+            String currentWeek = String.valueOf(weekStart);
             String reward = "Aucune";
             
             try (PreparedStatement ps = conn.prepareStatement("SELECT reward_description FROM weekly_rewards WHERE week_id = ?")) {
@@ -153,13 +151,12 @@ public class QuestDAO {
             result.put("reward", reward);
             
             long now = System.currentTimeMillis();
-            long dayStart = now - (24L * 60L * 60L * 1000L);
-            long weekStart = cal.getTimeInMillis();
-            long monthStart = now - (30L * 24L * 60L * 60L * 1000L);
+            long dayStart = today.atStartOfDay(zone).toInstant().toEpochMilli();
+            long monthStart = today.with(java.time.temporal.TemporalAdjusters.firstDayOfMonth())
+                    .atStartOfDay(zone).toInstant().toEpochMilli();
             
             long endOfWeek = weekStart + (7L * 24L * 60L * 60L * 1000L);
-            long timeRemainingMs = endOfWeek - now;
-            if (timeRemainingMs < 0) timeRemainingMs = 0;
+            long timeRemainingMs = Math.max(0, endOfWeek - now);
             long days = timeRemainingMs / (1000 * 60 * 60 * 24);
             long hours = (timeRemainingMs / (1000 * 60 * 60)) % 24;
             long minutes = (timeRemainingMs / (1000 * 60)) % 60;
@@ -174,8 +171,10 @@ public class QuestDAO {
                     try (ResultSet rs = ps.executeQuery()) {
                         while (rs.next()) {
                             Map<String, Object> map = new HashMap<>();
+                            int count = rs.getInt("count");
                             map.put("playerName", rs.getString("player_name"));
-                            map.put("questsCompleted", rs.getInt("count"));
+                            map.put("count", count);
+                            map.put("questsCompleted", count);
                             list.add(map);
                         }
                     }
@@ -188,6 +187,24 @@ public class QuestDAO {
             result.put("daily", getLeaderboard.apply(dayStart, now));
             result.put("weekly", getLeaderboard.apply(weekStart, now));
             result.put("monthly", getLeaderboard.apply(monthStart, now));
+            
+            // Total Global: all-time stats from player_quests_stats
+            List<Map<String, Object>> totalList = new ArrayList<>();
+            String totalSql = "SELECT player_name, quests_completed as count FROM player_quests_stats WHERE quests_completed > 0 ORDER BY quests_completed DESC LIMIT 10";
+            try (PreparedStatement ps = conn.prepareStatement(totalSql);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    int count = rs.getInt("count");
+                    map.put("playerName", rs.getString("player_name"));
+                    map.put("count", count);
+                    map.put("questsCompleted", count);
+                    totalList.add(map);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            result.put("total", totalList);
             
         } catch (SQLException e) {
             e.printStackTrace();

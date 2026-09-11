@@ -331,7 +331,8 @@ public class AuthModule implements Module, Listener {
                 String currentIp = (addr2 != null && addr2.getAddress() != null) ? addr2.getAddress().getHostAddress() : "0.0.0.0";
                 long timeSinceLastLogin = System.currentTimeMillis() - data.lastLogin;
                 
-                if (currentIp.equals(data.lastIp) && timeSinceLastLogin < SESSION_TIMEOUT) {
+                boolean isLocalOrProxyIp = "127.0.0.1".equals(currentIp) || "0.0.0.0".equals(currentIp) || "localhost".equalsIgnoreCase(currentIp);
+                if (!isLocalOrProxyIp && currentIp.equals(data.lastIp) && timeSinceLastLogin < SESSION_TIMEOUT) {
                     authenticated.add(uuid);
                     authDAO.updateLogin(uuid, currentIp);
                     
@@ -356,10 +357,12 @@ public class AuthModule implements Module, Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
+        Player p = event.getPlayer();
+        UUID uuid = p.getUniqueId();
         authenticated.remove(uuid);
         loginAttempts.remove(uuid);
         loginLockout.remove(uuid);
+        removeAuthEffects(p);
     }
 
     // Blocking events

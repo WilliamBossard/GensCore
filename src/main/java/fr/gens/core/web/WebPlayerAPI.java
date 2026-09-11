@@ -85,7 +85,8 @@ public class WebPlayerAPI implements Listener {
 
     public void registerRoutes() {
         post("/api/player/login", ctx -> {
-            String ip = ctx.ip();
+            String forwarded = ctx.header("X-Forwarded-For");
+            String ip = (forwarded != null && !forwarded.isEmpty()) ? forwarded.split(",")[0].trim() : ctx.ip();
             long nowTime = System.currentTimeMillis();
             if (webManager.playerRateLimitReset.getOrDefault(ip, 0L) < nowTime) {
                 webManager.playerLoginRateLimit.remove(ip);
@@ -102,12 +103,8 @@ public class WebPlayerAPI implements Listener {
             UUID playerUUID = null;
             boolean isOp = false;
 
-            // Trouver le joueur
-            java.util.concurrent.CompletableFuture<Player> futurePlayer = new java.util.concurrent.CompletableFuture<>();
-            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
-                futurePlayer.complete(Bukkit.getPlayer(req.username));
-            });
-            Player targetOnline = futurePlayer.join();
+            // Trouver le joueur de maniere non-bloquante
+            Player targetOnline = Bukkit.getPlayerExact(req.username);
             if (targetOnline != null) {
                 playerUUID = targetOnline.getUniqueId();
                 isOp = targetOnline.isOp();
@@ -117,7 +114,10 @@ public class WebPlayerAPI implements Listener {
                     org.bukkit.OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(playerUUID);
                     isOp = offlineTarget.isOp();
                 } else {
-                    isOp = false;
+                    // Fallback offline UUID si compte hors ligne
+                    playerUUID = UUID.nameUUIDFromBytes(("OfflinePlayer:" + req.username).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    org.bukkit.OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(playerUUID);
+                    isOp = (offlineTarget != null && offlineTarget.isOp());
                 }
             }
 
@@ -153,10 +153,14 @@ public class WebPlayerAPI implements Listener {
 
             // Generer le VRAI token securise
             String token = UUID.randomUUID().toString() + "-" + System.currentTimeMillis();
+            long expiry = System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000L); // 7 jours
             
-            // On sauvegarde le token en session RAM
+            // Sauvegarde RAM + Persistance SQLite
             webManager.activePlayerSessions.put(token, playerUUID.toString());
-            webManager.playerSessionExpiry.put(token, System.currentTimeMillis() + (24L * 60 * 60 * 1000L)); // Expire dans 24h
+            webManager.playerSessionExpiry.put(token, expiry);
+            final String finalToken = token;
+            final String finalUuid = playerUUID.toString();
+            plugin.getFoliaLib().getScheduler().runAsync((t) -> webDAO.savePlayerSession(finalToken, finalUuid, expiry));
             
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
@@ -270,12 +274,8 @@ public class WebPlayerAPI implements Listener {
                 ctx.status(400).json("UUID manquant");
                 return;
             }
-            java.util.concurrent.CompletableFuture<Boolean> futureOp = new java.util.concurrent.CompletableFuture<>();
-            plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
-                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(uuidStr));
-                futureOp.complete(op != null && op.isOp());
-            });
-            boolean isOp = futureOp.join();
+            org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(uuidStr));
+            boolean isOp = (op != null && op.isOp());
             ctx.json(Map.of("isOp", isOp));
         });
 

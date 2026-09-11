@@ -104,7 +104,7 @@ public class SpawnerModule implements Module {
             plugin.getFoliaLib().getScheduler().runTimer((wrappedTask) -> {
             generationTask = wrappedTask;
             spawnerManager.generateTick();
-        }, 5L, 5L);
+        }, 20L, 20L);
         }
         
         if (saveTask == null) {

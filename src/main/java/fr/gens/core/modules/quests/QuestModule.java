@@ -66,6 +66,10 @@ public class QuestModule implements Module, Listener {
         return questDAO;
     }
 
+    public PlayerQuestData getPlayerData(UUID uuid) {
+        return playerData.get(uuid);
+    }
+
     @Override
     public boolean isEnabled() {
         return enabled;
@@ -87,6 +91,7 @@ public class QuestModule implements Module, Listener {
         
         this.questDAO = new fr.gens.core.database.QuestDAO(plugin);
         this.questDAO.initDatabase();
+        new fr.gens.core.database.PendingCommandDAO(plugin).initDatabase();
 
         migrateFromODailyQuests();
         loadQuests();
@@ -157,6 +162,7 @@ public class QuestModule implements Module, Listener {
             }
             
             // Distribute old rewards
+            List<Map.Entry<UUID, String>> pendingList = new ArrayList<>();
             try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM weekly_rewards WHERE is_distributed = 0 AND week_id < ?")) {
                 ps.setString(1, currentWeek);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -191,10 +197,8 @@ public class QuestModule implements Module, Listener {
                             else if (rewardDesc.contains("Emeraude")) giveCmd = "give %player% emerald 10";
                             else if (rewardDesc.contains("$")) giveCmd = "eco give %player% 1000";
                             
-                            fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
-                            pcd.initDatabase(); // just to ensure table exists
-                            pcd.addPendingCommand(UUID.fromString(winnerUuid), giveCmd, "<green>Vous avez gagné le classement de quêtes de la semaine ! Voici votre lot : " + rewardDesc);
-                            plugin.getLogger().info("[Quests] Récompense de la semaine distribuée au joueur " + winnerUuid);
+                            pendingList.add(new AbstractMap.SimpleEntry<>(UUID.fromString(winnerUuid), giveCmd));
+                            plugin.getLogger().info("[Quests] Récompense de la semaine marquée pour le joueur " + winnerUuid);
                         } else {
                             try (PreparedStatement update = conn.prepareStatement("UPDATE weekly_rewards SET is_distributed = 1 WHERE week_id = ?")) {
                                 update.setString(1, weekId);
@@ -204,6 +208,14 @@ public class QuestModule implements Module, Listener {
                     }
                 }
             }
+            
+            // Add pending commands outside the weekly_rewards connection block to avoid connection starvation
+            if (!pendingList.isEmpty()) {
+                fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
+                for (Map.Entry<UUID, String> entry : pendingList) {
+                    pcd.addPendingCommand(entry.getKey(), entry.getValue(), "<green>Vous avez gagné le classement de quêtes de la semaine !");
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -211,7 +223,6 @@ public class QuestModule implements Module, Listener {
 
     public void checkPendingRewards(Player p) {
         fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
-        pcd.initDatabase(); // just to ensure table exists
         pcd.processPendingCommands(p);
     }
 
@@ -447,10 +458,12 @@ public class QuestModule implements Module, Listener {
         }
 
         if (updated) {
-            // Update GUI if open
-            if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(p.getOpenInventory().title()).equals("Quêtes Journalières")) {
-                openQuestsMenu(p);
-            }
+            // Update GUI if open on player's Folia entity thread
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(p.getOpenInventory().title()).equals("Quêtes Journalières")) {
+                    openQuestsMenu(p);
+                }
+            });
         }
     }
 
@@ -619,8 +632,9 @@ public class QuestModule implements Module, Listener {
                         if (!completed) {
                             detailBtns.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cRelancer la quête\n§r§8(Reroll)", org.bukkit.Material.ENDER_PEARL, p2 -> {
                                 int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
-                                if (data.getRerollsDone() < limit) {
-                                    rerollQuest(p2, category, questId, data);
+                                PlayerQuestData p2Data = playerData.get(p2.getUniqueId());
+                                if (p2Data != null && p2Data.getRerollsDone() < limit) {
+                                    rerollQuest(p2, category, questId, p2Data);
                                     p2.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>La quête a été remplacée !"));
                                     openQuestsMenu(p2);
                                 } else {
@@ -638,13 +652,21 @@ public class QuestModule implements Module, Listener {
             return;
         }
 
-        QuestGuiHolder holder = new QuestGuiHolder();
+        QuestGuiHolder holder = new QuestGuiHolder(p.getUniqueId());
         Inventory inv = Bukkit.createInventory(holder, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quêtes Journalières"));
         holder.setInventory(inv);
         PlayerQuestData data = playerData.get(p.getUniqueId());
         
         if (data == null) {
             plugin.getLangManager().sendMessage(p, "questmodule.msg_3");
+            return;
+        }
+
+        // Auto-refresh if day has changed while player was online
+        String today = getTodayString();
+        if (!today.equals(data.getDateAssigned())) {
+            loadPlayerData(p.getUniqueId(), p.getName());
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Vos quêtes du jour ont été actualisées !"));
             return;
         }
 
@@ -755,15 +777,37 @@ public class QuestModule implements Module, Listener {
     }
 
     public static class QuestGuiHolder implements org.bukkit.inventory.InventoryHolder {
+        private final UUID ownerUuid;
         private Inventory inventory;
-        public void setInventory(Inventory inv) { this.inventory = inv; }
-        @Override public Inventory getInventory() { return inventory; }
+
+        public QuestGuiHolder(UUID ownerUuid) {
+            this.ownerUuid = ownerUuid;
+        }
+
+        public UUID getOwnerUuid() {
+            return ownerUuid;
+        }
+
+        public void setInventory(Inventory inv) {
+            this.inventory = inv;
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!enabled) return;
-        if (event.getInventory().getHolder() instanceof QuestGuiHolder) {
+        if (event.getInventory().getHolder() instanceof QuestGuiHolder holder) {
+            Player p = (Player) event.getWhoClicked();
+            if (!p.getUniqueId().equals(holder.getOwnerUuid())) {
+                event.setCancelled(true);
+                p.closeInventory();
+                return;
+            }
             if (event.getClickedInventory() == null) return;
             if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
                 if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
@@ -775,7 +819,6 @@ public class QuestModule implements Module, Listener {
             event.setCancelled(true);
             
             if (event.getClick() == ClickType.RIGHT) {
-                Player p = (Player) event.getWhoClicked();
                 if (!p.hasPermission("genscore.quests.reroll")) return;
                 
                 ItemStack item = event.getCurrentItem();

@@ -41,12 +41,57 @@ public class WebDAO {
                     "base64_data TEXT" +
                     ");");
             
+            stmt.execute("CREATE TABLE IF NOT EXISTS web_player_sessions (" +
+                    "token VARCHAR(100) PRIMARY KEY, " +
+                    "uuid VARCHAR(36) NOT NULL, " +
+                    "expiry BIGINT NOT NULL" +
+                    ");");
+            
             // Index for optimization
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_profiles_username ON player_profiles(username);");
                     
         } catch (SQLException e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la cr\u00e9ation des tables web", e);
         }
+    }
+
+    public void savePlayerSession(String token, String uuid, long expiry) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("INSERT OR REPLACE INTO web_player_sessions (token, uuid, expiry) VALUES (?, ?, ?)")) {
+            ps.setString(1, token);
+            ps.setString(2, uuid);
+            ps.setLong(3, expiry);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void removePlayerSession(String token) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM web_player_sessions WHERE token = ?")) {
+            ps.setString(1, token);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Map<String, Map.Entry<String, Long>> loadValidSessions() {
+        Map<String, Map.Entry<String, Long>> sessions = new HashMap<>();
+        long now = System.currentTimeMillis();
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement("SELECT token, uuid, expiry FROM web_player_sessions WHERE expiry > ?")) {
+            ps.setLong(1, now);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    sessions.put(rs.getString("token"), new java.util.AbstractMap.SimpleEntry<>(rs.getString("uuid"), rs.getLong("expiry")));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return sessions;
     }
 
     public UUID getPlayerUuidByUsername(String username) {
