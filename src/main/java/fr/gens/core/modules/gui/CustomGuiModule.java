@@ -93,13 +93,27 @@ public class CustomGuiModule implements Module, Listener {
 
                 String title = settings.getString("name", "Menu");
                 int rows = settings.getInt("rows", 3);
-                String customCommand = settings.getString("command");
                 
                 CustomMenu menu = new CustomMenu(title, rows * 9);
 
-                // Register dynamically for autocompletion
-                if (customCommand != null && !customCommand.isEmpty()) {
-                    registerDynamicCommand(customCommand, menu);
+                // Register dynamically for autocompletion (supports string or list, e.g. [addondownloader, addondl])
+                List<String> commands = new java.util.ArrayList<>();
+                if (settings.isList("command")) {
+                    commands.addAll(settings.getStringList("command"));
+                } else if (settings.contains("command")) {
+                    String cmdStr = settings.getString("command");
+                    if (cmdStr != null && !cmdStr.isEmpty()) {
+                        cmdStr = cmdStr.replace("[", "").replace("]", "").replace("\"", "").replace("'", "");
+                        for (String part : cmdStr.split("[,;]")) {
+                            if (!part.trim().isEmpty()) {
+                                commands.add(part.trim());
+                            }
+                        }
+                    }
+                }
+
+                for (String cmd : commands) {
+                    registerDynamicCommand(cmd, menu);
                 }
 
                 for (String key : config.getKeys(false)) {
@@ -344,19 +358,25 @@ public class CustomGuiModule implements Module, Listener {
     }
 
     private void registerDynamicCommand(String cmd, CustomMenu menu) {
+        if (cmd == null) return;
+        cmd = cmd.trim();
+        if (cmd.startsWith("/")) cmd = cmd.substring(1).trim();
+        if (cmd.isEmpty()) return;
+
+        final String finalCmd = cmd;
         if (plugin.getCommandManager() != null) {
             try {
                 org.incendo.cloud.paper.LegacyPaperCommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
                 mgr.command(
-                    mgr.commandBuilder(cmd)
+                    mgr.commandBuilder(finalCmd)
                         .senderType(Player.class)
                         .handler(context -> {
                             openMenu((Player) context.sender(), menu);
                         })
                 );
-                plugin.getLogger().info("[Gui] Commande dynamique enregistrée via Cloud : /" + cmd);
+                plugin.getLogger().info("[Gui] Commande dynamique enregistrée via Cloud : /" + finalCmd);
             } catch (Exception e) {
-                plugin.getLogger().warning("Failed to register dynamic command /" + cmd + " via Cloud");
+                plugin.getLogger().warning("Failed to register dynamic command /" + finalCmd + " via Cloud");
             }
         } else {
             try {
@@ -364,7 +384,7 @@ public class CustomGuiModule implements Module, Listener {
                 bukkitCommandMap.setAccessible(true);
                 CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
 
-                org.bukkit.command.Command command = new org.bukkit.command.Command(cmd) {
+                org.bukkit.command.Command command = new org.bukkit.command.Command(finalCmd) {
                     @Override
                     public boolean execute(CommandSender sender, String label, String[] args) {
                         if (sender instanceof Player) {
@@ -374,9 +394,9 @@ public class CustomGuiModule implements Module, Listener {
                     }
                 };
                 commandMap.register("genscore", command);
-                plugin.getLogger().info("[Gui] Commande dynamique enregistrée : /" + cmd);
+                plugin.getLogger().info("[Gui] Commande dynamique enregistrée : /" + finalCmd);
             } catch (Exception e) {
-                plugin.getLogger().warning("Failed to register dynamic command /" + cmd);
+                plugin.getLogger().warning("Failed to register dynamic command /" + finalCmd);
             }
         }
     }
