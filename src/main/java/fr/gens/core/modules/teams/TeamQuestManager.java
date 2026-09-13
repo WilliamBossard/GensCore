@@ -83,10 +83,15 @@ public class TeamQuestManager {
     }
 
     public void saveProgress(int teamId, int progress) {
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+        Runnable saveTask = () -> {
             fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
             if (module != null) module.getTeamDAO().saveTeamQuestProgress(teamId, activeQuest.id, progress);
-        });
+        };
+        if (plugin.isEnabled()) {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> saveTask.run());
+        } else {
+            saveTask.run();
+        }
     }
 
     public void flushProgress() {

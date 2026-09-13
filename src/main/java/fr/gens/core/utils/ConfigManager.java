@@ -104,15 +104,20 @@ public class ConfigManager {
             String data = configs.get(fileName).saveToString();
             File file = files.get(fileName);
             
-            // Écriture asynchrone sur le disque
-            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            Runnable writeTask = () -> {
                 try {
                     java.nio.file.Files.writeString(file.toPath(), data, StandardCharsets.UTF_8);
                 } catch (IOException e) {
-                    plugin.getLogger().severe("Impossible de sauvegarder asynchrone la configuration: " + fileName);
+                    plugin.getLogger().severe("Impossible de sauvegarder la configuration: " + fileName);
                     e.printStackTrace();
                 }
-            });
+            };
+
+            if (plugin.isEnabled()) {
+                plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> writeTask.run());
+            } else {
+                writeTask.run();
+            }
         }
     }
 
@@ -123,14 +128,20 @@ public class ConfigManager {
         String data = plugin.getConfig().saveToString();
         File file = new File(plugin.getDataFolder(), "config.yml");
         
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+        Runnable writeTask = () -> {
             try {
                 java.nio.file.Files.writeString(file.toPath(), data, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                plugin.getLogger().severe("Impossible de sauvegarder asynchrone la configuration principale (config.yml)");
+                plugin.getLogger().severe("Impossible de sauvegarder la configuration principale (config.yml)");
                 e.printStackTrace();
             }
-        });
+        };
+
+        if (plugin.isEnabled()) {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> writeTask.run());
+        } else {
+            writeTask.run();
+        }
     }
 
     /**

@@ -129,13 +129,23 @@ public class LootModule implements Module, Listener {
             particleTask = null;
         }
         
-        // Force close all virtual inventories to save them
+        // Force close and save all virtual inventories
+        for (java.util.Map.Entry<Inventory, Location> entry : new java.util.HashMap<>(openVirtualInventories).entrySet()) {
+            Inventory inv = entry.getKey();
+            Location loc = entry.getValue();
+            UUID uuid = openVirtualInventoriesUUID.get(inv);
+            if (uuid != null && loc != null && lootManager != null) {
+                lootManager.savePlayerLoot(uuid, loc, inv.getContents());
+            }
+        }
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
             if (openVirtualInventories.containsKey(p.getOpenInventory().getTopInventory())) {
                 p.closeInventory();
             }
         }
+        openVirtualInventories.clear();
+        openVirtualInventoriesUUID.clear();
         
         if (lootManager != null) {
             lootManager.saveChests();

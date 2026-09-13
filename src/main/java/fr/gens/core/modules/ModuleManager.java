@@ -74,7 +74,11 @@ public class ModuleManager {
         java.util.Collections.reverse(reversedModules);
         for (Module module : reversedModules) {
             if (module.isEnabled()) {
-                module.disable();
+                try {
+                    module.disable();
+                } catch (Throwable t) {
+                    plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la désactivation du module " + module.getName(), t);
+                }
             }
         }
     }

@@ -74,13 +74,11 @@ public class LootManager {
             chestsConfig.set(entry.getKey() + ".seed", entry.getValue().getSeed());
             chestsConfig.set(entry.getKey() + ".size", entry.getValue().getSize());
         }
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
-            try {
-                chestsConfig.save(chestsFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+        try {
+            chestsConfig.save(chestsFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public String locToString(Location loc) {
@@ -112,13 +110,21 @@ public class LootManager {
         chestsConfig.set(key + ".lootTable", lootTable);
         chestsConfig.set(key + ".seed", seed);
         chestsConfig.set(key + ".size", size);
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+        if (plugin.isEnabled()) {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                try {
+                    chestsConfig.save(chestsFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } else {
             try {
                 chestsConfig.save(chestsFile);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        });
+        }
     }
 
     public void removeLootChest(Location loc) {

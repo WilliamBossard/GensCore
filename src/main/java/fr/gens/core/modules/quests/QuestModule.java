@@ -545,7 +545,7 @@ public class QuestModule implements Module, Listener {
         Map<String, Map<String, Integer>> active = data.getActiveQuests();
         if (active == null || active.isEmpty()) return;
 
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+        Runnable saveTask = () -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement ps = conn.prepareStatement(
                          "UPDATE player_active_quests SET progress = ?, completed = ? WHERE uuid = ? AND category = ? AND quest_id = ?")) {
@@ -567,7 +567,13 @@ public class QuestModule implements Module, Listener {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        });
+        };
+
+        if (plugin.isEnabled()) {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> saveTask.run());
+        } else {
+            saveTask.run();
+        }
     }
 
     @Command("quests [subcommand]")
