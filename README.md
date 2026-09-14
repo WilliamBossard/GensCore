@@ -4,6 +4,9 @@
 
 **GensCore** is a comprehensive core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all the essential server mechanics into a single, optimized plugin, offering excellent performance while avoiding the need to manage dozens of separate small plugins. It is fully compatible with **Paper** and **Folia**!
 
+> **Looking for full commands, permissions, admin guides, and web panel docs?**
+> Check out the complete [**Comprehensive Documentation (DOCUMENTATION.md)**](DOCUMENTATION.md).
+
 ## Included Features
 
 This plugin is modular and manages the following server aspects:
@@ -20,19 +23,26 @@ This plugin is modular and manages the following server aspects:
 
 ---
 
-## Required Dependencies
+## Dependencies & Integrations
 
-GensCore relies on the following plugins to function correctly:
-* **[LuckPerms](https://luckperms.net/):** Used to manage player ranks, prefixes in chat, and the Scoreboard. Without LuckPerms, GensCore cannot resolve player display names and permissions correctly.
-* **[Vault](https://dev.bukkit.org/projects/vault):** The standard economy and permissions API for Bukkit. GensCore hooks into Vault to allow compatibility with other plugins that might need to read or modify player balances.
+GensCore is designed to be fully **autonomous**. It can run standalone without requiring any mandatory external plugins, but seamlessly integrates with the standard server ecosystem:
+
+### Recommended Integrations (Soft Dependencies)
+* **[Vault](https://dev.bukkit.org/projects/vault):** 
+  - **If Vault is installed:** GensCore automatically registers its internal economy engine into Vault's `Economy` service provider (`GensVaultEconomy`). This enables any other 3rd-party plugins on your server (like chest shops, claim plugins, or auction addons) to seamlessly access and modify GensCore player balances.
+  - **If Vault is NOT installed:** GensCore's economy continues to work 100% autonomously! All internal economy features (`/money`, `/balance`, `/baltop`, `/pay`, `/eco`, Dynamic Shop, and Auction House) persist to the local SQLite database without interruption.
+* **[LuckPerms](https://luckperms.net/):** 
+  - **If LuckPerms is installed:** GensCore integrates with the LuckPerms API to fetch player ranks, primary groups, weights, and prefixes for the custom Chat and Scoreboard/Nametags.
+  - **If LuckPerms is NOT installed:** GensCore gracefully falls back to default Bukkit permission checks (e.g. `genscore.admin`) and standard display names.
 
 ### Optional Integrations
-* **[GeyserMC & Floodgate](https://geysermc.org/):** Highly recommended if you allow Bedrock players. GensCore automatically detects Floodgate to assign specific prefixes and properly format Bedrock UUIDs.
-* **[BlueMap](https://bluemap.bluecolored.de/):** If installed, the web panel integrates a live map view for moderators.
+* **[GeyserMC & Floodgate](https://geysermc.org/):** Highly recommended if you allow Bedrock cross-play. GensCore automatically detects Floodgate to open native Bedrock Forms (Cumulus API), assign platform prefixes (`[Bedrock]`), resolve Bedrock UUIDs/skins, and optimize inventory interactions.
+* **[BlueMap](https://bluemap.bluecolored.de/):** If installed, the web panel integrates a live map view for administrators.
+* **[PlaceholderAPI](https://placeholderapi.com/):** For custom placeholder expansion resolution.
 
 ### Compatibility: Paper & Folia Only
-**GensCore is STRICTLY compatible with PaperMC and Folia.** 
-It will **not** start on a standard Spigot server. The plugin relies on modern Paper-exclusive APIs such as *Kyori Adventure (MiniMessage)* for text components, asynchronous Folia events, and the *Cloud Command Framework* for Paper.
+**GensCore is STRICTLY compatible with PaperMC and Folia (Minecraft 26.2+, Java 25+).** 
+It will **not** start on a standard legacy Spigot server. The plugin relies on modern Paper APIs such as *Kyori Adventure (MiniMessage)* for text components, regional multi-threaded Folia schedulers (*FoliaLib*), and the *Cloud Command Framework* for Paper.
 
 ---
 
@@ -184,6 +194,8 @@ On startup and when a player with the `genscore.admin` permission (or operator s
 | `/genscore reload` | `genscore.admin` | Reload plugin config |
 
 > **Note:** Players with operator status (`/op`) automatically inherit the `genscore.admin` permission.
+> 
+> **For the complete list of all 28 modules, advanced subcommands, bypass permissions, and ready-to-use LuckPerms templates, see [DOCUMENTATION.md](DOCUMENTATION.md).**
 
 ---
 

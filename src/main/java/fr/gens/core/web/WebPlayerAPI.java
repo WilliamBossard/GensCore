@@ -104,18 +104,33 @@ public class WebPlayerAPI implements Listener {
             UUID playerUUID = null;
             boolean isOp = false;
 
-            // Trouver le joueur de maniere non-bloquante
+            // Trouver le joueur de manière non-bloquante (support des préfixes Bedrock Floodgate '.' ou '*')
             Player targetOnline = Bukkit.getPlayerExact(req.username);
+            if (targetOnline == null && !req.username.startsWith(".")) {
+                targetOnline = Bukkit.getPlayerExact("." + req.username);
+            }
+
             if (targetOnline != null) {
                 playerUUID = targetOnline.getUniqueId();
                 isOp = targetOnline.isOp();
             } else {
+                // NOTE ARCHITECTURALE (Support Bedrock hors-ligne) :
+                // Les joueurs Bedrock via Floodgate possèdent un UUID dérivé de leur XUID et ont souvent un préfixe '.'
+                // On recherche d'abord dans player_profiles avec le pseudo tel quel, puis avec/sans le préfixe Bedrock.
                 playerUUID = webDAO.getPlayerUuidByUsername(req.username);
+                if (playerUUID == null) {
+                    if (req.username.startsWith(".")) {
+                        playerUUID = webDAO.getPlayerUuidByUsername(req.username.substring(1));
+                    } else {
+                        playerUUID = webDAO.getPlayerUuidByUsername("." + req.username);
+                    }
+                }
+
                 if (playerUUID != null) {
                     org.bukkit.OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(playerUUID);
                     isOp = offlineTarget.isOp();
                 } else {
-                    // Fallback offline UUID si compte hors ligne
+                    // Fallback offline UUID standard pour les comptes Java hors-ligne
                     playerUUID = UUID.nameUUIDFromBytes(("OfflinePlayer:" + req.username).getBytes(java.nio.charset.StandardCharsets.UTF_8));
                     org.bukkit.OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(playerUUID);
                     isOp = (offlineTarget != null && offlineTarget.isOp());
@@ -393,9 +408,15 @@ public class WebPlayerAPI implements Listener {
             // Si le joueur est en ligne, on ex\u00e9cute, sinon on met en attente
             Player target = Bukkit.getPlayer(playerUUID);
             if (target != null && target.isOnline()) {
+                String finalCmd = rewardCommand.replace("%player%", target.getName());
+                // Sur Folia, dispatchCommand avec la console doit s'exécuter sur le GlobalRegionScheduler
+                plugin.getFoliaLib().getScheduler().runNextTick((gt) -> {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
+                });
                 plugin.getFoliaLib().getScheduler().runAtEntity(target, (t2) -> {
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), rewardCommand.replace("%player%", target.getName()));
-                    target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Web] " + rewardMessage));
+                    if (target.isOnline()) {
+                        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Web] " + rewardMessage));
+                    }
                 });
             } else {
                 fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);

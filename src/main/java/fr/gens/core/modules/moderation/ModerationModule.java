@@ -294,6 +294,17 @@ public class ModerationModule implements Module, Listener {
         }
     }
 
+    /**
+     * NOTE ARCHITECTURALE (Protection Invsee) :
+     * Empêche l'insertion ou la modification d'objets via drag-click dans la vue invsee clonée.
+     */
+    @EventHandler
+    public void onModerationInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof ModerationInvseeHolder) {
+            event.setCancelled(true);
+        }
+    }
+
 
     @Command("resetmdp <target>")
     public void executeResetMdp(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {

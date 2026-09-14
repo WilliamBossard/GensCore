@@ -65,36 +65,49 @@ public class BedrockFormManager {
 
     public static void openSimpleForm(Player player, String title, String content, List<BedrockButton> buttons) {
         if (!FloodgateUtil.isFloodgateInstalled()) return;
+        BedrockFormInternal.send(player, title, content, buttons);
+    }
 
-        SimpleForm.Builder builder = SimpleForm.builder()
-                .title(clean(title))
-                .content(clean(content));
+    /**
+     * NOTE ARCHITECTURALE (Soft-Dependency & Isolation Bytecode JVM) :
+     * Cette classe interne n'est chargée par le ClassLoader JVM que si isFloodgateInstalled() est vrai.
+     * Si Floodgate est absent du serveur, BedrockFormInternal ne sera jamais liée, évitant ainsi tout
+     * risque de 'NoClassDefFoundError' lié aux bibliothèques Cumulus / FloodgateApi.
+     */
+    private static class BedrockFormInternal {
+        static void send(Player player, String title, String content, List<BedrockButton> buttons) {
+            SimpleForm.Builder builder = SimpleForm.builder()
+                    .title(clean(title))
+                    .content(clean(content));
 
-        for (BedrockButton btn : buttons) {
-            String url = btn.getIconUrl() != null ? btn.getIconUrl() : getIconUrl(btn.getIcon());
-            if (url != null) {
-                builder.button(clean(btn.getText()), FormImage.Type.URL, url);
-            } else {
-                builder.button(clean(btn.getText()));
-            }
-        }
-
-        builder.validResultHandler((form, response) -> {
-            int clickedButtonId = response.clickedButtonId();
-            if (clickedButtonId >= 0 && clickedButtonId < buttons.size()) {
-                BedrockButton btn = buttons.get(clickedButtonId);
-                if (btn.getAction() != null) {
-                    fr.gens.core.CorePlugin plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(fr.gens.core.CorePlugin.class);
-                    if (plugin != null && plugin.getFoliaLib() != null) {
-                        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> btn.getAction().onClick(player));
-                    } else {
-                        btn.getAction().onClick(player);
-                    }
+            for (BedrockButton btn : buttons) {
+                String url = btn.getIconUrl() != null ? btn.getIconUrl() : getIconUrl(btn.getIcon());
+                if (url != null) {
+                    builder.button(clean(btn.getText()), FormImage.Type.URL, url);
+                } else {
+                    builder.button(clean(btn.getText()));
                 }
             }
-        });
 
-        FloodgateApi.getInstance().sendForm(player.getUniqueId(), builder.build());
+            builder.validResultHandler((form, response) -> {
+                int clickedButtonId = response.clickedButtonId();
+                if (clickedButtonId >= 0 && clickedButtonId < buttons.size()) {
+                    BedrockButton btn = buttons.get(clickedButtonId);
+                    if (btn.getAction() != null) {
+                        fr.gens.core.CorePlugin plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(fr.gens.core.CorePlugin.class);
+                        if (plugin != null && plugin.getFoliaLib() != null) {
+                            // Sur Folia, le callback de clic Bedrock (reçu sur le thread réseau Floodgate/Netty)
+                            // doit impérativement être replanifié sur le RegionScheduler du joueur.
+                            plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> btn.getAction().onClick(player));
+                        } else {
+                            btn.getAction().onClick(player);
+                        }
+                    }
+                }
+            });
+
+            FloodgateApi.getInstance().sendForm(player.getUniqueId(), builder.build());
+        }
     }
 
     private static String getIconUrl(Material material) {

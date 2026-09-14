@@ -152,11 +152,43 @@ public class EconomyModule implements Module, Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
         if (enabled) {
-            balances.remove(e.getPlayer().getUniqueId());
+            UUID uuid = e.getPlayer().getUniqueId();
+            Double bal = balances.remove(uuid);
+            // NOTE ARCHITECTURALE (Cohérence des données lors de la déconnexion) :
+            // Sauvegarde immédiate du solde du joueur qui quitte afin de garantir que la dernière
+            // valeur en mémoire est synchronisée sur disque avant toute autre transaction externe.
+            if (bal != null) {
+                savePlayerBalance(uuid, bal);
+            }
         }
     }
 
-    private void saveBalances() {}
+    /**
+     * NOTE ARCHITECTURALE (Persistance critique lors de l'arrêt du serveur) :
+     * Lors du disable() du plugin (arrêt ou reload du serveur), les schedulers et threads
+     * asynchrones sont brusquement terminés. Un flush SYNCHRONE obligatoire de tous les
+     * soldes en mémoire (joueurs en ligne + cache) est indispensable pour éviter les pertes de données.
+     */
+    private void saveBalances() {
+        if (this.economyDAO == null) return;
+        plugin.getLogger().info("[EconomyModule] Sauvegarde synchrone des soldes en mémoire...");
+        int count = 0;
+        for (Map.Entry<UUID, Double> entry : balances.entrySet()) {
+            if (entry.getKey() != null && entry.getValue() != null) {
+                this.economyDAO.savePlayerBalance(entry.getKey(), entry.getValue());
+                count++;
+            }
+        }
+        synchronized (offlineCache) {
+            for (Map.Entry<UUID, Double> entry : offlineCache.entrySet()) {
+                if (entry.getKey() != null && entry.getValue() != null) {
+                    this.economyDAO.savePlayerBalance(entry.getKey(), entry.getValue());
+                    count++;
+                }
+            }
+        }
+        plugin.getLogger().info("[EconomyModule] " + count + " soldes enregistrés avec succès.");
+    }
 
     private void savePlayerBalance(UUID uuid, double balance) {
         this.economyDAO.savePlayerBalance(uuid, balance);

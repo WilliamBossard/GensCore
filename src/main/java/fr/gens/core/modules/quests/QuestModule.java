@@ -914,6 +914,14 @@ public class QuestModule implements Module, Listener {
         }
     }
 
+    @EventHandler
+    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!enabled) return;
+        if (event.getInventory().getHolder() instanceof QuestGuiHolder) {
+            event.setCancelled(true);
+        }
+    }
+
     private void rerollQuest(Player p, String category, String oldQuestId, PlayerQuestData data) {
         List<Quest> available = questsPool.get(category);
         if (available == null || available.size() <= 1) {

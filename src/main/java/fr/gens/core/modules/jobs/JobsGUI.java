@@ -178,6 +178,13 @@ public class JobsGUI implements Listener {
             }
         }
     }
+
+    @EventHandler
+    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent e) {
+        if (e.getInventory().getHolder() instanceof JobsGuiHolder) {
+            e.setCancelled(true);
+        }
+    }
 }
 
 

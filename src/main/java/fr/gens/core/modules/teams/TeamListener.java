@@ -23,7 +23,8 @@ public class TeamListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Guilde : ")) {
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamGuiHolder ||
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Guilde : ")) {
             if (event.getClickedInventory() == null) return;
             if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
                 if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
@@ -84,7 +85,8 @@ public class TeamListener implements Listener {
 
     @EventHandler
     public void onQuestGuiClick(InventoryClickEvent event) {
-        if (net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde")) {
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamQuestGuiHolder ||
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde")) {
             if (event.getClickedInventory() == null) return;
             if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
                 if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
@@ -93,6 +95,16 @@ public class TeamListener implements Listener {
                 return;
             }
             
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamGuiHolder ||
+            event.getInventory().getHolder() instanceof TeamGui.TeamQuestGuiHolder ||
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Guilde : ") ||
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde")) {
             event.setCancelled(true);
         }
     }

@@ -157,10 +157,22 @@ public class BedrockSkinModule implements Module, Listener {
                                         
                                         // Apply skin to player in game
                                         plugin.getFoliaLib().getScheduler().runAtEntity(player, (t) -> {
+                                            if (!player.isOnline()) return;
                                             PlayerProfile profile = player.getPlayerProfile();
                                             profile.setProperty(new ProfileProperty("textures", value, signature));
                                             player.setPlayerProfile(profile);
-                                            plugin.getLogger().info("[BedrockSkinModule] Profil applique a " + player.getName() + " en jeu !");
+                                            plugin.getLogger().info("[BedrockSkinModule] Profil appliqué à " + player.getName() + " en jeu !");
+
+                                            // NOTE ARCHITECTURALE (Rafraîchissement visuel du Skin) :
+                                            // Paper applique le PlayerProfile en mémoire, mais les paquets de spawn
+                                            // du joueur ont déjà été reçus par les autres clients. Pour forcer le re-rendu
+                                            // de la texture sans nécessiter une téléportation de monde, on alterne hidePlayer / showPlayer.
+                                            for (Player other : Bukkit.getOnlinePlayers()) {
+                                                if (other != null && other.isOnline() && !other.equals(player) && other.canSee(player)) {
+                                                    other.hidePlayer(plugin, player);
+                                                    other.showPlayer(plugin, player);
+                                                }
+                                            }
                                         });
                                     } else {
                                         plugin.getLogger().warning("[BedrockSkinModule] Le JSON de Geyser ne contient pas value ou signature pour " + player.getName());

@@ -516,6 +516,45 @@ public class AuthModule implements Module, Listener {
         if (!isAuth(event.getPlayer())) event.setCancelled(true);
     }
 
+    /**
+     * NOTE ARCHITECTURALE (Sécurité Alimentation & Potions) :
+     * Empêche de consommer des aliments, potions ou pommes dorées avant login.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onConsume(org.bukkit.event.player.PlayerItemConsumeEvent event) {
+        if (!enabled) return;
+        if (!isAuth(event.getPlayer())) event.setCancelled(true);
+    }
+
+    /**
+     * NOTE ARCHITECTURALE (Sécurité Inventaire / Glisser-déposer) :
+     * Empêche de déplacer des items via drag-click dans l'inventaire avant login.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!enabled) return;
+        if (event.getWhoClicked() instanceof Player p && !isAuth(p)) {
+            event.setCancelled(true);
+        }
+    }
+
+    /**
+     * NOTE ARCHITECTURALE (Anti-Bypass Mouvement Auth) :
+     * Les effets de potions slowness bloquent la marche normale mais pas les impulsions
+     * physiques externes (eau, pistons, explosion) ni les clients modifiés (NoSlow / PacketFly).
+     * On vérifie hasChangedBlock() (optimisé Paper) pour figer la position sans surcoût CPU.
+     */
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onMove(org.bukkit.event.player.PlayerMoveEvent event) {
+        if (!enabled) return;
+        Player p = event.getPlayer();
+        if (!isAuth(p)) {
+            if (event.hasChangedBlock()) {
+                event.setTo(event.getFrom());
+            }
+        }
+    }
+
     // Security Utilities
 
     public static String generateSalt() {

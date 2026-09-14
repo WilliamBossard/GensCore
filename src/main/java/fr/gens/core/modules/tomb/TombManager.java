@@ -75,7 +75,9 @@ public class TombManager {
     public TombData removeTombAndGet(UUID id) {
         TombData tomb = activeTombs.remove(id);
         if (tomb != null) {
-            tombsByLocation.remove(tomb.getLocation().getBlock().getLocation());
+            Location tLoc = tomb.getLocation();
+            Location blockLoc = new Location(tLoc.getWorld(), tLoc.getBlockX(), tLoc.getBlockY(), tLoc.getBlockZ());
+            tombsByLocation.remove(blockLoc);
             
             // Remove block and hologram
             plugin.getFoliaLib().getScheduler().runAtLocation(tomb.getLocation(), (t2) -> {
@@ -105,7 +107,8 @@ public class TombManager {
     }
 
     public TombData getTombAt(Location location) {
-        UUID id = tombsByLocation.get(location.getBlock().getLocation());
+        Location blockLoc = new Location(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        UUID id = tombsByLocation.get(blockLoc);
         if (id != null) {
             return activeTombs.get(id);
         }
@@ -141,12 +144,17 @@ public class TombManager {
                 }
             }
             Location tLoc = tomb.getLocation();
-            if (tLoc == null || tLoc.getWorld() == null || !tLoc.getWorld().isChunkLoaded(tLoc.getBlockX() >> 4, tLoc.getBlockZ() >> 4)) {
+            if (tLoc == null || tLoc.getWorld() == null) {
                 continue;
             }
 
-            // Update Hologram
+            // NOTE ARCHITECTURALE (Folia Multi-threading) :
+            // Sur Folia, l'appel world.isChunkLoaded(...) ne doit pas être exécuté depuis le GlobalRegionScheduler.
+            // On encapsule la vérification et la mise à jour de l'hologramme sur le RegionScheduler de la tombe.
             plugin.getFoliaLib().getScheduler().runAtLocation(tLoc, (t2) -> {
+                if (!tLoc.getWorld().isChunkLoaded(tLoc.getBlockX() >> 4, tLoc.getBlockZ() >> 4)) {
+                    return;
+                }
                 for (Entity entity : tLoc.getWorld().getNearbyEntities(tLoc.clone().add(0.5, 0.5, 0.5), 2, 2, 2)) {
                     if (entity.getType() == EntityType.TEXT_DISPLAY && entity.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
                         String storedId = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);

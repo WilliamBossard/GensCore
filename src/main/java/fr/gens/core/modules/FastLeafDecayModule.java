@@ -95,6 +95,16 @@ public class FastLeafDecayModule implements Module, Listener {
                             int nz = sz + z;
                             Location loc = new Location(world, nx, ny, nz);
                             if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(loc)) {
+                                // NOTE ARCHITECTURALE (Folia Cross-Region) :
+                                // Si le bloc voisin se trouve dans une autre région de threads, on planifie
+                                // la décomposition sur le scheduler de cette région cible plutôt que de l'ignorer.
+                                plugin.getFoliaLib().getScheduler().runAtLocation(loc, (t) -> {
+                                    if (!enabled) return;
+                                    Block otherBlock = loc.getBlock();
+                                    if (isLeaf(otherBlock.getType())) {
+                                        triggerDecay(otherBlock);
+                                    }
+                                });
                                 continue;
                             }
                             Block neighbor = world.getBlockAt(nx, ny, nz);
@@ -121,8 +131,16 @@ public class FastLeafDecayModule implements Module, Listener {
                     Block current = queue.poll();
                     checksThisTick++;
                     
-                    // Si le bloc actuel n'est pas possédé par la région locale, on ignore
+                    // Si le bloc actuel n'est pas possédé par la région locale, on délègue à sa région
                     if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(current.getLocation())) {
+                        Location cLoc = current.getLocation();
+                        plugin.getFoliaLib().getScheduler().runAtLocation(cLoc, (t) -> {
+                            if (!enabled) return;
+                            Block otherBlock = cLoc.getBlock();
+                            if (isLeaf(otherBlock.getType())) {
+                                triggerDecay(otherBlock);
+                            }
+                        });
                         continue;
                     }
 
@@ -154,6 +172,14 @@ public class FastLeafDecayModule implements Module, Listener {
                                 int nz = cz + z;
                                 Location loc = new Location(world, nx, ny, nz);
                                 if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(loc)) {
+                                    // Propagation cross-region via runAtLocation pour ne pas abandonner les demi-arbres
+                                    plugin.getFoliaLib().getScheduler().runAtLocation(loc, (t) -> {
+                                        if (!enabled) return;
+                                        Block otherBlock = loc.getBlock();
+                                        if (isLeaf(otherBlock.getType())) {
+                                            triggerDecay(otherBlock);
+                                        }
+                                    });
                                     continue;
                                 }
                                 Block neighbor = world.getBlockAt(nx, ny, nz);

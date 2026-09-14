@@ -84,11 +84,15 @@ public class SpawnerManager {
             data.setLastGenerateMillis(now); // Reset timer
             
             Location loc = data.getLocation();
-            if (loc == null || loc.getWorld() == null || !loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) {
-                continue; // Do not schedule tasks on Folia if chunk is not loaded
+            if (loc == null || loc.getWorld() == null) {
+                continue;
             }
 
-            // Dispatch generation to the Region Thread
+            // NOTE ARCHITECTURALE (Folia Multi-threading) :
+            // Sur Folia, interroger world.isChunkLoaded(...) depuis le GlobalRegionScheduler (qui exécute generateTick)
+            // est illégal et lève une 'IllegalStateException: Asynchronous chunk access'.
+            // On délègue immédiatement l'exécution au RegionScheduler du spawner via runAtLocation.
+            // C'est seulement À L'INTÉRIEUR de ce thread régional que l'état du chunk peut être vérifié en toute sécurité.
             module.getPlugin().getFoliaLib().getScheduler().runAtLocation(loc, (t) -> {
                 boolean isLoaded = loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
                 if (!isLoaded) return;

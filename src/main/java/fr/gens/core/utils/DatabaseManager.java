@@ -43,8 +43,14 @@ public class DatabaseManager {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
         config.setPoolName("GensCore-Pool");
-        config.setMaximumPoolSize(1);
-        config.setMinimumIdle(1);
+
+        // NOTE ARCHITECTURALE (Performance Pool & SQLite WAL) :
+        // Grâce au mode WAL ('PRAGMA journal_mode=WAL'), SQLite supporte sans blocage de multiples
+        // lecteurs simultanés. Augmenter le pool à 10 connexions permet aux requêtes HTTP du serveur
+        // web Javalin (classements, profils, casino) et aux lectures asynchrones en jeu de s'exécuter
+        // en parallèle sans jamais bloquer le thread principal ni les transactions économiques.
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
         config.setConnectionTimeout(30000);
         
         // SQLite properties for WAL and concurrency

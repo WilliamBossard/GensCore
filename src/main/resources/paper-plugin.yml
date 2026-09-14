@@ -8,12 +8,17 @@ description: Le coeur du réseau Gens (GensBien / GensMauvais).
 
 dependencies:
   server:
+    # NOTE ARCHITECTURALE (Dépendances optionnelles) :
+    # GensCore possède son propre moteur économique complet (SQLite/MySQL). Vault n'est nécessaire
+    # que si des plugins tiers souhaitent interagir avec l'économie via l'API Vault.
     Vault:
       load: BEFORE
-      required: true
+      required: false
+    # LuckPerms est optionnel : GensCore utilise l'API LuckPerms pour les préfixes/grades,
+    # mais possède un système de repli basé sur les permissions Bukkit standards si LuckPerms est absent.
     LuckPerms:
       load: BEFORE
-      required: true
+      required: false
     floodgate:
       load: BEFORE
       required: false

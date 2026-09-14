@@ -83,7 +83,9 @@ public class TeamGui {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Guilde : " + team.getName()));
+        TeamGuiHolder holder = new TeamGuiHolder();
+        Inventory inv = Bukkit.createInventory(holder, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Guilde : " + team.getName()));
+        holder.setInventory(inv);
 
         // Ligne de décor
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
@@ -182,7 +184,9 @@ public class TeamGui {
             return;
         }
 
-        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(null, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quête de Guilde"));
+        TeamQuestGuiHolder holder = new TeamQuestGuiHolder();
+        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(holder, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quête de Guilde"));
+        holder.setInventory(inv);
         
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
@@ -221,6 +225,18 @@ public class TeamGui {
         }
         
         player.openInventory(inv);
+    }
+
+    public static class TeamGuiHolder implements org.bukkit.inventory.InventoryHolder {
+        private org.bukkit.inventory.Inventory inventory;
+        public void setInventory(org.bukkit.inventory.Inventory inv) { this.inventory = inv; }
+        @Override public org.bukkit.inventory.Inventory getInventory() { return inventory; }
+    }
+
+    public static class TeamQuestGuiHolder implements org.bukkit.inventory.InventoryHolder {
+        private org.bukkit.inventory.Inventory inventory;
+        public void setInventory(org.bukkit.inventory.Inventory inv) { this.inventory = inv; }
+        @Override public org.bukkit.inventory.Inventory getInventory() { return inventory; }
     }
 }
 

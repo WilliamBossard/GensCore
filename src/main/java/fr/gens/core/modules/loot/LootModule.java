@@ -76,8 +76,7 @@ public class LootModule implements Module, Listener {
 
     @Override
     public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
-        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_pending_rewards (id INTEGER PRIMARY KEY AUTOINCREMENT, uuid VARCHAR(36) NOT NULL, amount DOUBLE, command TEXT, message TEXT, item_data TEXT);");
-        dbManager.executeStatement("CREATE INDEX IF NOT EXISTS idx_pending_rewards_uuid ON genscore_pending_rewards(uuid);");
+        // Les coffres et récompenses Lootr sont gérés au format YAML via LootManager
     }
 
     @Override
@@ -138,11 +137,16 @@ public class LootModule implements Module, Listener {
                 lootManager.savePlayerLoot(uuid, loc, inv.getContents());
             }
         }
+        // NOTE ARCHITECTURALE (Folia Entity Thread Safety) :
+        // Sur Folia, inspecter ou fermer l'inventaire d'un joueur doit obligatoirement être exécuté
+        // sur le thread de région propre à cette entité via runAtEntity.
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-            if (openVirtualInventories.containsKey(p.getOpenInventory().getTopInventory())) {
-                p.closeInventory();
-            }
+            if (p == null || !p.isOnline()) continue;
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, (task) -> {
+                if (p.isOnline() && openVirtualInventories.containsKey(p.getOpenInventory().getTopInventory())) {
+                    p.closeInventory();
+                }
+            });
         }
         openVirtualInventories.clear();
         openVirtualInventoriesUUID.clear();

@@ -245,33 +245,53 @@ public class AuctionHouseModule implements Module {
                             // Ensuite on supprime asynchroniquement de la BDD
                             plugin.getFoliaLib().getScheduler().runAsync((t2) -> {
                                 if (deleteFromDb(ahItem.id)) { // Achat confirmé
-                                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t3) -> {
-                                        double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
-                                        double taxAmount = ahItem.price * taxRate;
-                                        double sellerProfit = ahItem.price - taxAmount;
-                                        eco.giveMoney(UUID.fromString(ahItem.sellerUuid), sellerProfit);
-                                        
-                                        ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
-                                        giveOrDropItem(p, originalItem);
-                                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez acheté un objet à <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + ahItem.price + " $ <green>!"));
-                                        
-                                        Player seller = Bukkit.getPlayer(UUID.fromString(ahItem.sellerUuid));
-                                        if (seller != null && seller.isOnline()) {
+                                    double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
+                                    double taxAmount = ahItem.price * taxRate;
+                                    double sellerProfit = ahItem.price - taxAmount;
+                                    eco.giveMoney(UUID.fromString(ahItem.sellerUuid), sellerProfit);
+                                    
+                                    // Notifier le vendeur sur son thread d'entité s'il est en ligne
+                                    Player seller = Bukkit.getPlayer(UUID.fromString(ahItem.sellerUuid));
+                                    if (seller != null && seller.isOnline()) {
+                                        plugin.getFoliaLib().getScheduler().runAtEntity(seller, (ts) -> {
                                             if (taxAmount > 0) {
                                                 seller.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes ! Vous gagnez <yellow>" + String.format("%.2f", sellerProfit) + " $ <dark_gray>(Taxe: -" + String.format("%.2f", taxAmount) + " $)"));
                                             } else {
                                                 seller.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Un joueur a acheté votre objet sur l'Hôtel de Ventes pour <yellow>" + ahItem.price + " $ <green>!"));
                                             }
+                                        });
+                                    }
+
+                                    // NOTE ARCHITECTURALE (Sécurité Déconnexion Acheteur sur Folia) :
+                                    // Si l'acheteur p s'est déconnecté pendant la validation SQL asynchrone,
+                                    // runAtEntity(p) ne sera jamais exécuté par FoliaLib. Pour éviter toute
+                                    // perte d'objet, on enregistre l'item dans PendingCommandDAO pour remise différée lors de sa reconnexion.
+                                    if (!p.isOnline()) {
+                                        fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
+                                        pcd.addPendingReward(p.getUniqueId(), null, "<green>Votre achat sur l'Hôtel de Ventes (<yellow>" + ahItem.sellerName + "<green>) vous a été remis !", ahItem.itemData);
+                                        return;
+                                    }
+
+                                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t3) -> {
+                                        if (!p.isOnline()) {
+                                            fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
+                                            pcd.addPendingReward(p.getUniqueId(), null, "<green>Votre achat sur l'Hôtel de Ventes (<yellow>" + ahItem.sellerName + "<green>) vous a été remis !", ahItem.itemData);
+                                            return;
                                         }
+                                        ItemStack originalItem = ItemSerializer.fromBase64(ahItem.itemData);
+                                        giveOrDropItem(p, originalItem);
+                                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez acheté un objet à <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + ahItem.price + " $ <green>!"));
                                         openAhGui(p, page); // Refresh
                                     });
                                 } else {
-                                    // Quelqu'un d'autre l'a acheté juste avant ! On rembourse
-                                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t4) -> {
-                                        eco.giveMoney(p.getUniqueId(), ahItem.price);
-                                        plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_7");
-                                        openAhGui(p, page);
-                                    });
+                                    // Quelqu'un d'autre l'a acheté juste avant ou vente annulée ! Remboursement immédiat.
+                                    eco.giveMoney(p.getUniqueId(), ahItem.price);
+                                    if (p.isOnline()) {
+                                        plugin.getFoliaLib().getScheduler().runAtEntity(p, (t4) -> {
+                                            plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_7");
+                                            openAhGui(p, page);
+                                        });
+                                    }
                                 }
                             });
                         } else {

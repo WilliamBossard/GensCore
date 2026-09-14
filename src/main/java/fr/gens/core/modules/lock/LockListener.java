@@ -240,6 +240,28 @@ public class LockListener implements Listener {
         event.blockList().removeIf(b -> isLockable(b.getType()) && getEffectiveLock(b) != null);
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onPistonExtend(org.bukkit.event.block.BlockPistonExtendEvent event) {
+        // Empêcher les pistons de déplacer des conteneurs verrouillés ou de briser des Shulker Boxes verrouillées
+        for (Block block : event.getBlocks()) {
+            if (isLockable(block.getType()) && getEffectiveLock(block) != null) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPistonRetract(org.bukkit.event.block.BlockPistonRetractEvent event) {
+        // Empêcher les pistons collants de tirer des conteneurs verrouillés
+        for (Block block : event.getBlocks()) {
+            if (isLockable(block.getType()) && getEffectiveLock(block) != null) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
     @EventHandler
     public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
         LockCommand.pendingActions.remove(event.getPlayer().getUniqueId());

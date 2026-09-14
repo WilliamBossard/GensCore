@@ -447,23 +447,43 @@ public class CustomGuiModule implements Module, Listener {
                         return;
                     }
                     final String finalCmdToRun = cmdToRun;
-                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
-                        if (finalCmdToRun.startsWith("player: ")) {
-                            String cmd = finalCmdToRun.substring(8).replace("%player_name%", p.getName());
-                            if (cmd.equals("profil") || cmd.equals("tuto")) {
-                                openMenu(p, menus.get(cmd));
-                            } else {
-                                p.performCommand(cmd);
-                            }
-                        } else if (finalCmdToRun.startsWith("console: ")) {
-                            String cmd = finalCmdToRun.substring(9).replace("%player_name%", p.getName());
+                    if (finalCmdToRun.startsWith("console: ")) {
+                        String cmd = finalCmdToRun.substring(9).replace("%player_name%", p.getName());
+                        // NOTE ARCHITECTURALE (Commandes console sur Folia) :
+                        // Les commandes consoles exécutées par le serveur doivent impérativement tourner
+                        // sur le GlobalRegionScheduler (runNextTick) afin de ne pas violer les accès multi-mondes de Folia.
+                        plugin.getFoliaLib().getScheduler().runNextTick((gt) -> {
                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-                        } else {
-                            p.performCommand(finalCmdToRun);
-                        }
-                    });
+                        });
+                    } else {
+                        plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                            if (finalCmdToRun.startsWith("player: ")) {
+                                String cmd = finalCmdToRun.substring(8).replace("%player_name%", p.getName());
+                                if (cmd.equals("profil") || cmd.equals("tuto")) {
+                                    openMenu(p, menus.get(cmd));
+                                } else {
+                                    p.performCommand(cmd);
+                                }
+                            } else {
+                                p.performCommand(finalCmdToRun);
+                            }
+                        });
+                    }
                 }
             }
+        }
+    }
+
+    /**
+     * NOTE ARCHITECTURALE (Sécurité GUI / Glisser-déposer) :
+     * InventoryClickEvent ne couvre pas les actions de glisser (drag-click).
+     * Cet écouteur empêche tout dépôt non autorisé d'items dans les inventaires de menus personnalisés.
+     */
+    @EventHandler
+    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!enabled) return;
+        if (event.getInventory().getHolder() instanceof CustomGuiHolder) {
+            event.setCancelled(true);
         }
     }
 

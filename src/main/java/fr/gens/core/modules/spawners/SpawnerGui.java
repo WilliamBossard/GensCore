@@ -36,7 +36,9 @@ public class SpawnerGui implements Listener {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Gestion: <gold>" + data.getType()));
+        SpawnerGuiHolder holder = new SpawnerGuiHolder();
+        Inventory inv = Bukkit.createInventory(holder, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Gestion: <gold>" + data.getType()));
+        holder.setInventory(inv);
 
         // Vitres de décoration
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -194,7 +196,8 @@ public class SpawnerGui implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
+        if (!(event.getInventory().getHolder() instanceof SpawnerGuiHolder) &&
+            !net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
         
         // SECURITE: On annule TOUS les clics quand on est dans ce menu
         event.setCancelled(true);
@@ -291,7 +294,8 @@ public class SpawnerGui implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
+        if (!(event.getInventory().getHolder() instanceof SpawnerGuiHolder) &&
+            !net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
         if (event.getWhoClicked() instanceof Player && openGuis.containsKey(((Player) event.getWhoClicked()).getUniqueId())) {
             event.setCancelled(true);
         }
@@ -299,16 +303,24 @@ public class SpawnerGui implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
+        if (!(event.getInventory().getHolder() instanceof SpawnerGuiHolder) &&
+            !net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Gestion: ")) return;
         if (event.getPlayer() instanceof Player) {
             Player p = (Player) event.getPlayer();
             // Délai d'un tick pour voir si le joueur ouvre un autre inventaire de gestion (ex: refresh)
             moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(p, (wrappedTask) -> {
-                if (!net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(p.getOpenInventory().title()).startsWith("Gestion: ")) {
+                if (!(p.getOpenInventory().getTopInventory().getHolder() instanceof SpawnerGuiHolder) &&
+                    !net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(p.getOpenInventory().title()).startsWith("Gestion: ")) {
                     openGuis.remove(p.getUniqueId());
                 }
             });
         }
+    }
+
+    public static class SpawnerGuiHolder implements org.bukkit.inventory.InventoryHolder {
+        private Inventory inventory;
+        public void setInventory(Inventory inv) { this.inventory = inv; }
+        @Override public Inventory getInventory() { return inventory; }
     }
 }
 
