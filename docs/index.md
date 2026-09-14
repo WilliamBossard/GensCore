@@ -17,23 +17,17 @@ hero:
       link: https://github.com/WilliamBossard/GensCore
 
 features:
-  - icon: ⚡
-    title: Folia Regional Threading
+  - title: Folia Regional Threading
     details: Fully decoupled schedulers (GlobalRegion, Region, Entity) for 20 TPS performance with zero lag.
-  - icon: 🛡️
-    title: Anti-Exploit & Container Locks
+  - title: Anti-Exploit & Container Locks
     details: Piston griefing immunity, anti-shulker breaking protection, and inventory drag exploit patches.
-  - icon: 🎮
-    title: Bedrock Cross-Play Ready
+  - title: Bedrock Cross-Play Ready
     details: Native Cumulus form windows for Geyser/Floodgate, custom skin support, and avatar rendering.
-  - icon: 🌐
-    title: Integrated Web Panel
+  - title: Integrated Web Panel
     details: React 18 + Javalin micro-server on port 8080 with live console, player management, and BlueMap.
-  - icon: 💰
-    title: Dynamic Economy & Jobs
+  - title: Dynamic Economy & Jobs
     details: Inflation/deflation shop engine, player-to-player Auction House, and 6 rewarding professions.
-  - icon: 💾
-    title: Autonomous SQLite Engine
+  - title: Autonomous SQLite Engine
     details: Embedded SQLite in WAL mode (Write-Ahead Logging). Runs 100% standalone without external SQL servers.
 ---
 

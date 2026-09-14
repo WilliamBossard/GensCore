@@ -4,7 +4,7 @@ GensCore uses modern Bukkit permission nodes that seamlessly integrate with **Lu
 
 ---
 
-## 📋 Full Permissions Matrix
+## Full Permissions Matrix
 
 | Permission Node | Description | Default | Recommended Group |
 |---|---|---|---|
@@ -32,7 +32,7 @@ GensCore uses modern Bukkit permission nodes that seamlessly integrate with **Lu
 
 ---
 
-## ⏱️ Cooldown Bypass Permissions
+## Cooldown Bypass Permissions
 
 | Permission Node | Description |
 |---|---|
@@ -44,7 +44,7 @@ GensCore uses modern Bukkit permission nodes that seamlessly integrate with **Lu
 
 ---
 
-## ⚡ LuckPerms Setup Templates
+## LuckPerms Setup Templates
 
 Copy and paste these command blocks into your server console to configure your ranks instantly:
 

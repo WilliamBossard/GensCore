@@ -4,7 +4,7 @@ GensCore includes an integrated **React 18 + Javalin** web server running on por
 
 ---
 
-## 🔒 Security & Architecture
+## Security & Architecture
 
 1. **Embedded Micro-Server:** Javalin runs inside the Minecraft server process with zero external web server configuration required.
 2. **BCrypt Password Protection:** The default admin password (`gens` in `modules/web.yml`) is automatically converted to a secure BCrypt hash on first startup.
@@ -15,7 +15,7 @@ GensCore includes an integrated **React 18 + Javalin** web server running on por
 
 ---
 
-## 🛠️ Admin Control Dashboard
+## Admin Control Dashboard
 
 Access at: `http://<your-server-ip>:8080/admin`
 
@@ -29,7 +29,7 @@ Access at: `http://<your-server-ip>:8080/admin`
 
 ---
 
-## 👤 Player Web Portal
+## Player Web Portal
 
 Access at: `http://<your-server-ip>:8080`
 
@@ -41,7 +41,7 @@ Access at: `http://<your-server-ip>:8080`
 
 ---
 
-## 🎰 Web Minigames
+## Web Minigames
 
 ### 1. Wheel of Fortune (Roue de la Fortune)
 - Daily spin available once every 24 hours.

@@ -4,7 +4,7 @@ GensCore creates a clean and organized configuration structure in `plugins/GensC
 
 ---
 
-## 📁 File Structure
+## File Structure
 
 ```
 plugins/GensCore/
@@ -28,7 +28,7 @@ plugins/GensCore/
 
 ---
 
-## 🌐 Network Ports & Port Forwarding
+## Network Ports & Port Forwarding
 
 If running on a VPS or dedicated host:
 
@@ -43,7 +43,7 @@ If running on a VPS or dedicated host:
 
 ---
 
-## 🤖 Discord Bot Setup
+## Discord Bot Setup
 
 1. Create an application on the [Discord Developer Portal](https://discord.com/developers/applications).
 2. Under the **Bot** tab, generate a token.

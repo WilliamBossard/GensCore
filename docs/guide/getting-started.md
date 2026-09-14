@@ -4,7 +4,7 @@
 
 ---
 
-## 🚀 Key Highlights
+## Key Highlights
 
 - **Server Loaders Supported:** **PaperMC**, **Folia**, and **Purpur** (Minecraft 26.2+).
 - **Runtime Requirement:** **Java 25+** (uses modern JVM features, pattern matching, and ASM 9.10.1).
@@ -13,7 +13,7 @@
 
 ---
 
-## 📦 Installation Steps
+## Installation Steps
 
 1. **Check your Java version:**
    Make sure your Minecraft server is running on **Java 25 or higher**:
@@ -33,7 +33,7 @@
 
 ---
 
-## 🔌 Ecosystem & Integrations
+## Ecosystem & Integrations
 
 GensCore operates 100% autonomously, but automatically enhances its capabilities if these plugins are detected:
 
@@ -47,7 +47,7 @@ GensCore operates 100% autonomously, but automatically enhances its capabilities
 
 ---
 
-## 🧭 Next Steps
+## Next Steps
 
 - Explore the complete [Commands Reference](/guide/commands).
 - Set up player and staff ranks with [Permissions & LuckPerms](/guide/permissions).

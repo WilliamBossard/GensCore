@@ -4,7 +4,7 @@ GensCore is built around a modular architecture managed by `ModuleManager`. Ever
 
 ---
 
-## 🪦 1. Death Graves (Tomb Module)
+## 1. Death Graves (Tomb Module)
 When a player dies, their items are preserved inside a physical grave block at the exact death coordinate.
 - **Hologram Protection:** A floating display shows the owner name and protection countdown (e.g. 10 minutes).
 - **Owner-Exclusive:** Only the victim can right-click the grave to reclaim all inventory and experience.
@@ -13,7 +13,7 @@ When a player dies, their items are preserved inside a physical grave block at t
 
 ---
 
-## 📦 2. Lootr Instanced Chests
+## 2. Lootr Instanced Chests
 Every natural dungeon, fortress, and structure chest is instanced per-player:
 - Each player sees their own fresh loot upon first opening.
 - Prevents players from racing to empty dungeons on a newly opened world.
@@ -22,7 +22,7 @@ Every natural dungeon, fortress, and structure chest is instanced per-player:
 
 ---
 
-## 📈 3. Dynamic Shop Algorithm
+## 3. Dynamic Shop Algorithm
 The `/shop` module dynamically calculates buying and selling prices based on market volume:
 
 $$\text{Current Price} = \text{Base Price} \times \left(1 + \frac{\text{Purchases} - \text{Sales}}{\text{Threshold}}\right)^{\text{exponent}}$$
@@ -32,7 +32,7 @@ $$\text{Current Price} = \text{Base Price} \times \left(1 + \frac{\text{Purchase
 
 ---
 
-## ⚡ 4. Custom Spawners & Stacking
+## 4. Custom Spawners & Stacking
 To eliminate entity lag on high-population servers:
 - **Stacking:** Spawners merge into single blocks (e.g., `x15 Skeleton Spawner`).
 - **Internal Storage:** Mob drops can be accumulated directly inside the spawner block; players open the GUI to collect loot in bulk.
@@ -40,14 +40,14 @@ To eliminate entity lag on high-population servers:
 
 ---
 
-## 🛡️ 5. Container Locks & Piston Griefing Shield
+## 5. Container Locks & Piston Griefing Shield
 - Locks protect **Chests, Trapped Chests, Barrels, and Shulker Boxes**.
 - **Anti-Piston Shield:** Pistons cannot move, retract, or crush locked containers.
 - **Anti-Shulker Break:** Cancels piston shulker breaking contraptions, eliminating duplication exploits.
 
 ---
 
-## 🎮 6. Bedrock & Floodgate Cross-Play
+## 6. Bedrock & Floodgate Cross-Play
 - Automatic detection of Bedrock players joining through Floodgate/Geyser.
 - **Cumulus Forms:** In-game GUIs open as native Bedrock dialogs for mobile and console players, avoiding touch-screen desyncs.
 - **Skin & Head API:** Renders authentic Bedrock player heads via the web API (`/api/head/{name}/{size}`).
@@ -55,7 +55,7 @@ To eliminate entity lag on high-population servers:
 
 ---
 
-## 🔨 7. Jobs & Professions
+## 7. Jobs & Professions
 6 diverse professions:
 1. **Miner:** Mining ores, stone, deepslate.
 2. **Lumberjack:** Chopping trees and logs.
@@ -68,22 +68,22 @@ Progress is saved asynchronously to SQLite every 60 seconds with 0 main-thread l
 
 ---
 
-## 🍃 8. Fast Leaf Decay
+## 8. Fast Leaf Decay
 Automatically detects broken tree trunks and triggers rapid, cascading decay of leaves without leaving floating treetops.
 
 ---
 
-## 💀 9. Head Drops
+## 9. Head Drops
 Configurable chance for mobs and defeated players to drop their heads with authentic skin textures upon death.
 
 ---
 
-## 💬 10. Modern Chat & MiniMessage
+## 10. Modern Chat & MiniMessage
 - Pure **Kyori Adventure / MiniMessage** formatting (no legacy `§` codes).
 - Automatic LuckPerms prefix and suffix resolution.
 - Discord synchronization and channel separation.
 
 ---
 
-## 📋 Complete Module List (28)
+## Complete Module List (28)
 `UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.

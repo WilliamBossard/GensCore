@@ -4,7 +4,7 @@ All commands in GensCore are parsed asynchronously through the **Cloud Command F
 
 ---
 
-## 🔐 Authentication & Accounts
+## Authentication & Accounts
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -15,7 +15,7 @@ All commands in GensCore are parsed asynchronously through the **Cloud Command F
 
 ---
 
-## 💰 Economy & Dynamic Shop
+## Economy & Dynamic Shop
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -31,7 +31,7 @@ All commands in GensCore are parsed asynchronously through the **Cloud Command F
 
 ---
 
-## 🏷️ Auction House
+## Auction House
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -40,7 +40,7 @@ All commands in GensCore are parsed asynchronously through the **Cloud Command F
 
 ---
 
-## 🛡️ Guilds & Teams
+## Guilds & Teams
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -52,7 +52,7 @@ All commands in GensCore are parsed asynchronously through the **Cloud Command F
 
 ---
 
-## ⛏️ Jobs & Professions
+## Jobs & Professions
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -62,7 +62,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## 📜 Daily Quests
+## Daily Quests
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -73,7 +73,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## 📍 Teleportation & Navigation
+## Teleportation & Navigation
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -90,7 +90,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## 🔒 Container Security & Locks
+## Container Security & Locks
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -100,7 +100,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## 🥚 Custom Spawners
+## Custom Spawners
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -108,7 +108,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## 🛠️ Survival Utilities
+## Survival Utilities
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -120,7 +120,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## 👮 Staff & Moderation
+## Staff & Moderation
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -134,7 +134,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## 🎰 Web Casino Bridge
+## Web Casino Bridge
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
@@ -144,7 +144,7 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
-## ⚙️ Core Management
+## Core Management
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
