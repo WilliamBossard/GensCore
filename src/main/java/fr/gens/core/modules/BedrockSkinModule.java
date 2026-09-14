@@ -24,6 +24,7 @@ public class BedrockSkinModule implements Module, Listener {
     private final CorePlugin plugin;
     private boolean enabled = false;
     private final java.util.Map<UUID, String> skinHashCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<UUID, String[]> skinPropertyCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public BedrockSkinModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -46,7 +47,13 @@ public class BedrockSkinModule implements Module, Listener {
 
     @Override
     public void initDatabase(DatabaseManager dbManager) {
-        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_skins (uuid VARCHAR(36) PRIMARY KEY, hash VARCHAR(64));");
+        dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_skins (uuid VARCHAR(36) PRIMARY KEY, hash VARCHAR(64), texture_value TEXT, texture_signature TEXT);");
+        try {
+            dbManager.executeStatement("ALTER TABLE player_skins ADD COLUMN texture_value TEXT;");
+        } catch (Exception ignored) {}
+        try {
+            dbManager.executeStatement("ALTER TABLE player_skins ADD COLUMN texture_signature TEXT;");
+        } catch (Exception ignored) {}
     }
 
     @Override
@@ -64,6 +71,7 @@ public class BedrockSkinModule implements Module, Listener {
     public void disable() {
         enabled = false;
         skinHashCache.clear();
+        skinPropertyCache.clear();
         HandlerList.unregisterAll(this);
     }
 
@@ -86,7 +94,9 @@ public class BedrockSkinModule implements Module, Listener {
                     while (currentTry < maxTries && !success) {
                         currentTry++;
                         try {
-                            String xuid = org.geysermc.floodgate.api.FloodgateApi.getInstance().getPlayer(uuid).getXuid();
+                            org.geysermc.floodgate.api.player.FloodgatePlayer fgPlayer = org.geysermc.floodgate.api.FloodgateApi.getInstance().getPlayer(uuid);
+                            if (fgPlayer == null) return;
+                            String xuid = fgPlayer.getXuid();
                             URL url = java.net.URI.create("https://api.geysermc.org/v2/skin/" + xuid).toURL();
                             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                             conn.setRequestMethod("GET");
@@ -128,12 +138,15 @@ public class BedrockSkinModule implements Module, Listener {
                                         
                                         if (!hash.isEmpty()) {
                                             plugin.getLogger().info("[BedrockSkinModule] Hash trouve pour " + player.getName() + " : " + hash);
-                                            // Save hash to database for Web/Discord use
+                                            // Save hash and textures to database for Web/Discord/Head use
                                             skinHashCache.put(uuid, hash);
+                                            skinPropertyCache.put(uuid, new String[]{value, signature});
                                             try (java.sql.Connection dbConn = plugin.getDatabaseManager().getConnection();
-                                                 java.sql.PreparedStatement pstmt = dbConn.prepareStatement("REPLACE INTO player_skins (uuid, hash) VALUES (?, ?)")) {
+                                                 java.sql.PreparedStatement pstmt = dbConn.prepareStatement("REPLACE INTO player_skins (uuid, hash, texture_value, texture_signature) VALUES (?, ?, ?, ?)")) {
                                                 pstmt.setString(1, uuid.toString());
                                                 pstmt.setString(2, hash);
+                                                pstmt.setString(3, value);
+                                                pstmt.setString(4, signature);
                                                 pstmt.executeUpdate();
                                             } catch (Exception e) {
                                                 plugin.getLogger().warning("Erreur lors de la sauvegarde du skin en base de donnees: " + e.getMessage());
@@ -222,5 +235,31 @@ public class BedrockSkinModule implements Module, Listener {
             return "https://crafthead.net/helm/" + uuid.toString() + ".png";
         }
         return "https://crafthead.net/helm/Steve.png";
+    }
+
+    /**
+     * Récupère la texture et signature en cache (RAM ou DB) pour utilisation sur les têtes de joueurs
+     */
+    public String[] getCachedSkinProperty(UUID uuid) {
+        if (uuid == null) return null;
+        String[] cached = skinPropertyCache.get(uuid);
+        if (cached != null) return cached;
+
+        try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement("SELECT texture_value, texture_signature FROM player_skins WHERE uuid = ?")) {
+            pstmt.setString(1, uuid.toString());
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                if (rs != null && rs.next()) {
+                    String val = rs.getString("texture_value");
+                    String sig = rs.getString("texture_signature");
+                    if (val != null && !val.isEmpty()) {
+                        String[] loaded = new String[]{val, sig != null ? sig : ""};
+                        skinPropertyCache.put(uuid, loaded);
+                        return loaded;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 }

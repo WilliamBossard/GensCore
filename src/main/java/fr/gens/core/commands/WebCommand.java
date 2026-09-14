@@ -48,28 +48,39 @@ public class WebCommand implements Listener {
             return;
         }
 
-        String base64 = plugin.getStorageManager().itemStackToBase64(item);
+        ItemStack toDeposit = item.clone();
+        String base64 = plugin.getStorageManager().itemStackToBase64(toDeposit);
         if (base64 == null) {
             plugin.getLangManager().sendMessage(player, "webcommand.msg_3");
             return;
         }
 
+        // Retrait immédiat sur le thread du joueur pour empêcher toute duplication par drop/coffre
+        player.getInventory().setItemInMainHand(null);
+
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection();
                  PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_bets (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
                 pstmt.setString(1, player.getUniqueId().toString());
-                pstmt.setString(2, item.getType().name());
-                pstmt.setInt(3, item.getAmount());
+                pstmt.setString(2, toDeposit.getType().name());
+                pstmt.setInt(3, toDeposit.getAmount());
                 pstmt.setString(4, base64);
                 pstmt.executeUpdate();
 
                 plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
-                    player.getInventory().setItemInMainHand(null);
                     plugin.getLangManager().sendMessage(player, "webcommand.msg_4");
                 });
             } catch (Exception e) {
                 e.printStackTrace();
-                plugin.getLangManager().sendMessage(player, "webcommand.msg_5");
+                // Rollback défensif : restituer l'objet au joueur s'il est encore connecté
+                plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
+                    if (player.isOnline()) {
+                        player.getInventory().addItem(toDeposit).values().forEach(rem -> 
+                            player.getWorld().dropItemNaturally(player.getLocation(), rem)
+                        );
+                    }
+                    plugin.getLangManager().sendMessage(player, "webcommand.msg_5");
+                });
             }
         });
     }

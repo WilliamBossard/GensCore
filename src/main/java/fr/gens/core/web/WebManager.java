@@ -144,12 +144,14 @@ public class WebManager {
                         String authHeader = ctx.header("Authorization");
                         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                             ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.unauthorized"));
+                            ctx.skipRemainingHandlers();
                             return;
                         }
                         String token = authHeader.substring(7);
                         if (!activeSessions.containsKey(token) || activeSessions.get(token) < System.currentTimeMillis()) {
                             activeSessions.remove(token);
                             ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.session_expired"));
+                            ctx.skipRemainingHandlers();
                             return;
                         }
                     });
@@ -161,6 +163,7 @@ public class WebManager {
                         String authHeader = ctx.header("Authorization");
                         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                             ctx.status(401).json(Map.of("error", "Unauthorized"));
+                            ctx.skipRemainingHandlers();
                             return;
                         }
                         String token = authHeader.substring(7);
@@ -169,6 +172,7 @@ public class WebManager {
                             playerSessionExpiry.remove(token);
                             webDAO.removePlayerSession(token);
                             ctx.status(401).json(Map.of("error", "Session expired"));
+                            ctx.skipRemainingHandlers();
                             return;
                         }
                         ctx.attribute("playerUuid", activePlayerSessions.get(token));
@@ -780,11 +784,11 @@ public class WebManager {
         post("/api/admin/wipe-server", ctx -> {
             plugin.setWiping(true);
             
-            plugin.getFoliaLib().getScheduler().runNextTick((task) -> {
-                for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+            for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (task) -> {
                     p.kick(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>Wipe du serveur en cours... Relancez manuellement après suppression de la carte."));
-                }
-            });
+                });
+            }
 
             plugin.getFoliaLib().getScheduler().runAsync((task) -> {
                 plugin.getDatabaseManager().wipeServerData();

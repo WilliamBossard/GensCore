@@ -1,7 +1,24 @@
 package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
-// Les anciens imports manuels des modules ont été supprimés car l'Auto-Discovery (org.reflections) s'en charge.
+import fr.gens.core.modules.auth.AuthModule;
+import fr.gens.core.modules.discord.DiscordModule;
+import fr.gens.core.modules.gui.CustomGuiModule;
+import fr.gens.core.modules.headdrop.HeadDropModule;
+import fr.gens.core.modules.jobs.JobsModule;
+import fr.gens.core.modules.lock.LockModule;
+import fr.gens.core.modules.loot.LootModule;
+import fr.gens.core.modules.moderation.ModerationModule;
+import fr.gens.core.modules.motd.MotdModule;
+import fr.gens.core.modules.quests.QuestModule;
+import fr.gens.core.modules.shop.ShopModule;
+import fr.gens.core.modules.spawners.SpawnerModule;
+import fr.gens.core.modules.stats.StatsModule;
+import fr.gens.core.modules.tabboard.TabBoardModule;
+import fr.gens.core.modules.teams.TeamModule;
+import fr.gens.core.modules.tomb.TombModule;
+import fr.gens.core.modules.utils.UtilsModule;
+
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,34 +38,34 @@ public class ModuleManager {
         // NOTE AUX FUTURS DEVELOPPEURS : L'Auto-Discovery (org.reflections) a ete retire 
         // pour drastiquement ameliorer le temps de demarrage du plugin (Startup Time).
         // Vous devez ajouter manuellement chaque nouveau module ici !
-        addModule(new fr.gens.core.modules.utils.UtilsModule(plugin));
-        addModule(new fr.gens.core.modules.tomb.TombModule(plugin));
-        addModule(new fr.gens.core.modules.TeleportTpaModule(plugin));
-        addModule(new fr.gens.core.modules.TeleportSpawnModule(plugin));
-        addModule(new fr.gens.core.modules.TeleportHomeModule(plugin));
-        addModule(new fr.gens.core.modules.TeleportBackModule(plugin));
-        addModule(new fr.gens.core.modules.teams.TeamModule(plugin));
-        addModule(new fr.gens.core.modules.tabboard.TabBoardModule(plugin));
-        addModule(new fr.gens.core.modules.stats.StatsModule(plugin));
-        addModule(new fr.gens.core.modules.spawners.SpawnerModule(plugin));
-        addModule(new fr.gens.core.modules.shop.ShopModule(plugin));
-        addModule(new fr.gens.core.modules.quests.QuestModule(plugin));
-        addModule(new fr.gens.core.modules.motd.MotdModule(plugin));
-        addModule(new fr.gens.core.modules.moderation.ModerationModule(plugin));
-        addModule(new fr.gens.core.modules.loot.LootModule(plugin));
-        addModule(new fr.gens.core.modules.lock.LockModule(plugin));
-        addModule(new fr.gens.core.modules.headdrop.HeadDropModule(plugin));
-        addModule(new fr.gens.core.modules.gui.CustomGuiModule(plugin));
-        addModule(new fr.gens.core.modules.GuiModule(plugin));
-        addModule(new fr.gens.core.modules.jobs.JobsModule(plugin));
-        addModule(new fr.gens.core.modules.FastLeafDecayModule(plugin));
-        addModule(new fr.gens.core.modules.EconomyModule(plugin));
-        addModule(new fr.gens.core.modules.ChatModule(plugin));
-        addModule(new fr.gens.core.modules.BlueMapModule(plugin));
-        addModule(new fr.gens.core.modules.discord.DiscordModule(plugin));
-        addModule(new fr.gens.core.modules.AuctionHouseModule(plugin));
-        addModule(new fr.gens.core.modules.auth.AuthModule(plugin));
-        addModule(new fr.gens.core.modules.BedrockSkinModule(plugin));
+        addModule(new UtilsModule(plugin));
+        addModule(new TombModule(plugin));
+        addModule(new TeleportTpaModule(plugin));
+        addModule(new TeleportSpawnModule(plugin));
+        addModule(new TeleportHomeModule(plugin));
+        addModule(new TeleportBackModule(plugin));
+        addModule(new TeamModule(plugin));
+        addModule(new TabBoardModule(plugin));
+        addModule(new StatsModule(plugin));
+        addModule(new SpawnerModule(plugin));
+        addModule(new ShopModule(plugin));
+        addModule(new QuestModule(plugin));
+        addModule(new MotdModule(plugin));
+        addModule(new ModerationModule(plugin));
+        addModule(new LootModule(plugin));
+        addModule(new LockModule(plugin));
+        addModule(new HeadDropModule(plugin));
+        addModule(new CustomGuiModule(plugin));
+        addModule(new GuiModule(plugin));
+        addModule(new JobsModule(plugin));
+        addModule(new FastLeafDecayModule(plugin));
+        addModule(new EconomyModule(plugin));
+        addModule(new ChatModule(plugin));
+        addModule(new BlueMapModule(plugin));
+        addModule(new DiscordModule(plugin));
+        addModule(new AuctionHouseModule(plugin));
+        addModule(new AuthModule(plugin));
+        addModule(new BedrockSkinModule(plugin));
 
         plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 

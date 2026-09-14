@@ -20,7 +20,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import fr.gens.core.utils.PlaceholderUtils;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import org.bukkit.command.CommandMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
@@ -381,9 +380,7 @@ public class CustomGuiModule implements Module, Listener {
             }
         } else {
             try {
-                Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-                bukkitCommandMap.setAccessible(true);
-                CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+                CommandMap commandMap = Bukkit.getServer().getCommandMap();
 
                 org.bukkit.command.Command command = new org.bukkit.command.Command(finalCmd) {
                     @Override

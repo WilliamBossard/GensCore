@@ -2,8 +2,13 @@ package fr.gens.core;
 
 import fr.gens.core.modules.ModuleManager;
 import fr.gens.core.modules.teams.TeamManager;
-import fr.gens.core.utils.DatabaseManager;
+import fr.gens.core.modules.teams.TeamQuestManager;
 import fr.gens.core.utils.ActionBarManager;
+import fr.gens.core.utils.CommandManager;
+import fr.gens.core.utils.ConfigManager;
+import fr.gens.core.utils.DatabaseManager;
+import fr.gens.core.utils.LangManager;
+import fr.gens.core.utils.UpdateChecker;
 import fr.gens.core.web.WebManager;
 import com.tcoded.folialib.FoliaLib;
 
@@ -18,12 +23,12 @@ public class CorePlugin extends JavaPlugin {
     private WebManager webManager;
     private StorageManager storageManager;
     private DatabaseManager databaseManager;
-    private fr.gens.core.utils.ConfigManager configManager;
-    private fr.gens.core.utils.LangManager langManager;
+    private ConfigManager configManager;
+    private LangManager langManager;
     private ActionBarManager actionBarManager;
     private TeamManager teamManager;
-    private fr.gens.core.modules.teams.TeamQuestManager teamQuestManager;
-    private fr.gens.core.utils.CommandManager commandManager;
+    private TeamQuestManager teamQuestManager;
+    private CommandManager commandManager;
     private FoliaLib foliaLib;
     private boolean isWiping = false;
     private static CorePlugin instance;
@@ -52,8 +57,8 @@ public class CorePlugin extends JavaPlugin {
         this.foliaLib = new FoliaLib(this);
         
         // 1. Initialiser le LangManager EN PREMIER car les autres en ont besoin pour logger
-        this.langManager = new fr.gens.core.utils.LangManager(this);
-        this.configManager = new fr.gens.core.utils.ConfigManager(this);
+        this.langManager = new LangManager(this);
+        this.configManager = new ConfigManager(this);
         
         getLangManager().sendConsoleMessage("core.startup_header");
 
@@ -63,10 +68,10 @@ public class CorePlugin extends JavaPlugin {
         this.actionBarManager.start();
         
         // 1.5 Initialiser le gestionnaire de commandes Cloud
-        this.commandManager = new fr.gens.core.utils.CommandManager(this);
+        this.commandManager = new CommandManager(this);
         
         // 1.6 Vérification des mises à jour
-        new fr.gens.core.utils.UpdateChecker(this).checkForUpdates();
+        new UpdateChecker(this).checkForUpdates();
         
         // 2. Initialiser le gestionnaire de modules
         this.moduleManager = new ModuleManager(this);
@@ -76,7 +81,7 @@ public class CorePlugin extends JavaPlugin {
 
         // 3. Initialiser les managers dependants des modules (comme TeamManager)
         this.teamManager = new TeamManager(this);
-        this.teamQuestManager = new fr.gens.core.modules.teams.TeamQuestManager(this);
+        this.teamQuestManager = new TeamQuestManager(this);
         
         // Demande à chaque module d'enregistrer ses commandes
         for (fr.gens.core.modules.Module module : this.moduleManager.getModules()) {
@@ -175,7 +180,7 @@ public class CorePlugin extends JavaPlugin {
         return actionBarManager;
     }
 
-    public fr.gens.core.utils.LangManager getLangManager() {
+    public LangManager getLangManager() {
         return langManager;
     }
 
@@ -183,15 +188,15 @@ public class CorePlugin extends JavaPlugin {
         return teamManager;
     }
 
-    public fr.gens.core.modules.teams.TeamQuestManager getTeamQuestManager() {
+    public TeamQuestManager getTeamQuestManager() {
         return teamQuestManager;
     }
 
-    public fr.gens.core.utils.ConfigManager getConfigManager() {
+    public ConfigManager getConfigManager() {
         return configManager;
     }
 
-    public fr.gens.core.utils.CommandManager getCommandManager() {
+    public CommandManager getCommandManager() {
         return commandManager;
     }
     

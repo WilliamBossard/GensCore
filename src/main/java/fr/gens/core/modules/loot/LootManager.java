@@ -203,11 +203,13 @@ public class LootManager {
 
         config.set(key + ".items", java.util.Arrays.asList(items));
 
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        plugin.getFoliaLib().getScheduler().runAsync(task -> {
+            try {
+                config.save(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public boolean hasPlayerLooted(UUID uuid, Location loc) {

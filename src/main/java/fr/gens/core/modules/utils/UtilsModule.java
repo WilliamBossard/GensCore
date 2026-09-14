@@ -14,6 +14,7 @@ public class UtilsModule implements Module, Listener {
 
     private CorePlugin plugin;
     private boolean enabled;
+    private final java.util.Map<java.util.UUID, java.util.UUID> inspectingEnderChests = new java.util.concurrent.ConcurrentHashMap<>();
 
     public UtilsModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -45,6 +46,7 @@ public class UtilsModule implements Module, Listener {
     @Override
     public void enable() {
         this.enabled = true;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getLangManager().sendConsoleMessage("utilsmodule.log_1");
     }
 
@@ -58,6 +60,7 @@ public class UtilsModule implements Module, Listener {
     @Override
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
+        inspectingEnderChests.clear();
         this.enabled = false;
         plugin.getLangManager().sendConsoleMessage("utilsmodule.log_2");
     }
@@ -141,16 +144,48 @@ public class UtilsModule implements Module, Listener {
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_6");
                 return;
             }
+            if (target.equals(p)) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openInventory(p.getEnderChest()));
+                return;
+            }
             plugin.getFoliaLib().getScheduler().runAtEntity(target, tTarget -> {
-                org.bukkit.inventory.Inventory targetEc = target.getEnderChest();
+                org.bukkit.inventory.ItemStack[] contents = target.getEnderChest().getContents();
+                org.bukkit.inventory.ItemStack[] snapshot = new org.bukkit.inventory.ItemStack[contents.length];
+                for (int i = 0; i < contents.length; i++) {
+                    snapshot[i] = contents[i] != null ? contents[i].clone() : null;
+                }
                 plugin.getFoliaLib().getScheduler().runAtEntity(p, tP -> {
-                    p.openInventory(targetEc);
+                    org.bukkit.inventory.Inventory mirror = org.bukkit.Bukkit.createInventory(p, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>EnderChest: <yellow>" + target.getName()));
+                    mirror.setContents(snapshot);
+                    inspectingEnderChests.put(p.getUniqueId(), target.getUniqueId());
+                    p.openInventory(mirror);
                     p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous regardez l'enderchest de <yellow>" + target.getName() + "<green>."));
                 });
             });
         } else {
             plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openInventory(p.getEnderChest()));
         }
+    }
+
+    @org.bukkit.event.EventHandler
+    public void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player p)) return;
+        java.util.UUID targetUuid = inspectingEnderChests.remove(p.getUniqueId());
+        if (targetUuid == null) return;
+
+        Player target = org.bukkit.Bukkit.getPlayer(targetUuid);
+        if (target == null || !target.isOnline()) return;
+
+        org.bukkit.inventory.ItemStack[] updated = event.getInventory().getContents();
+        org.bukkit.inventory.ItemStack[] copy = new org.bukkit.inventory.ItemStack[updated.length];
+        for (int i = 0; i < updated.length; i++) {
+            copy[i] = updated[i] != null ? updated[i].clone() : null;
+        }
+        plugin.getFoliaLib().getScheduler().runAtEntity(target, t -> {
+            if (target.isOnline()) {
+                target.getEnderChest().setContents(copy);
+            }
+        });
     }
 
     @Command("enderchest [target]")

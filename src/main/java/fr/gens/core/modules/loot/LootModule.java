@@ -156,29 +156,32 @@ public class LootModule implements Module, Listener {
     private void startParticleTask() {
         particleTask = plugin.getFoliaLib().getScheduler().runTimer(() -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (p == null) continue;
-                Location pLoc = p.getLocation();
-                if (pLoc == null || pLoc.getWorld() == null) continue;
+                if (p == null || !p.isOnline()) continue;
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+                    if (!p.isOnline()) return;
+                    Location pLoc = p.getLocation();
+                    if (pLoc == null || pLoc.getWorld() == null) return;
 
-                for (Map.Entry<String, LootManager.LootChestData> entry : lootManager.getChestsCache().entrySet()) {
-                    LootManager.LootChestData data = entry.getValue();
-                    Location chestLoc = data.getLocation();
-                    if (chestLoc == null) {
-                        chestLoc = lootManager.stringToLoc(entry.getKey());
-                        data.setLocation(chestLoc);
-                    }
-                    if (chestLoc != null && chestLoc.getWorld().equals(pLoc.getWorld())) {
-                        if (Math.abs(chestLoc.getBlockX() - pLoc.getBlockX()) <= 20 &&
-                            Math.abs(chestLoc.getBlockZ() - pLoc.getBlockZ()) <= 20 &&
-                            Math.abs(chestLoc.getBlockY() - pLoc.getBlockY()) <= 20) {
-                            if (chestLoc.distanceSquared(pLoc) < 400) { // 20 blocks radius
-                                if (!lootManager.hasPlayerLooted(p.getUniqueId(), chestLoc)) {
-                                    p.spawnParticle(Particle.HAPPY_VILLAGER, chestLoc.clone().add(0.5, 0.5, 0.5), 2, 0.4, 0.4, 0.4, 0);
+                    for (Map.Entry<String, LootManager.LootChestData> entry : lootManager.getChestsCache().entrySet()) {
+                        LootManager.LootChestData data = entry.getValue();
+                        Location chestLoc = data.getLocation();
+                        if (chestLoc == null) {
+                            chestLoc = lootManager.stringToLoc(entry.getKey());
+                            data.setLocation(chestLoc);
+                        }
+                        if (chestLoc != null && chestLoc.getWorld().equals(pLoc.getWorld())) {
+                            if (Math.abs(chestLoc.getBlockX() - pLoc.getBlockX()) <= 20 &&
+                                Math.abs(chestLoc.getBlockZ() - pLoc.getBlockZ()) <= 20 &&
+                                Math.abs(chestLoc.getBlockY() - pLoc.getBlockY()) <= 20) {
+                                if (chestLoc.distanceSquared(pLoc) < 400) { // 20 blocks radius
+                                    if (!lootManager.hasPlayerLooted(p.getUniqueId(), chestLoc)) {
+                                        p.spawnParticle(Particle.HAPPY_VILLAGER, chestLoc.clone().add(0.5, 0.5, 0.5), 2, 0.4, 0.4, 0.4, 0);
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                });
             }
         }, 20L, 20L); // Every second
     }

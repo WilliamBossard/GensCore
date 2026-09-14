@@ -2,6 +2,7 @@ package fr.gens.core.modules;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 
 import java.util.Collections;
@@ -93,7 +94,8 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public double getBalance(String playerName) {
-        return 0; // Deprecated, use OfflinePlayer
+        OfflinePlayer p = Bukkit.getOfflinePlayer(playerName);
+        return p != null ? getBalance(p) : 0;
     }
 
     @Override
@@ -103,7 +105,7 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public double getBalance(String playerName, String world) {
-        return 0;
+        return getBalance(playerName);
     }
 
     @Override
@@ -113,7 +115,8 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public boolean has(String playerName, double amount) {
-        return false;
+        OfflinePlayer p = Bukkit.getOfflinePlayer(playerName);
+        return p != null && has(p, amount);
     }
 
     @Override
@@ -123,7 +126,7 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public boolean has(String playerName, String worldName, double amount) {
-        return false;
+        return has(playerName, amount);
     }
 
     @Override
@@ -133,7 +136,11 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(String playerName, double amount) {
-        return new EconomyResponse(0, 0, EconomyResponse.ResponseType.NOT_IMPLEMENTED, "Use OfflinePlayer");
+        OfflinePlayer p = Bukkit.getOfflinePlayer(playerName);
+        if (p != null) {
+            return withdrawPlayer(p, amount);
+        }
+        return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Joueur introuvable");
     }
 
     @Override
@@ -147,7 +154,7 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public EconomyResponse withdrawPlayer(String playerName, String worldName, double amount) {
-        return new EconomyResponse(0, 0, EconomyResponse.ResponseType.NOT_IMPLEMENTED, "");
+        return withdrawPlayer(playerName, amount);
     }
 
     @Override
@@ -157,7 +164,11 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(String playerName, double amount) {
-        return new EconomyResponse(0, 0, EconomyResponse.ResponseType.NOT_IMPLEMENTED, "Use OfflinePlayer");
+        OfflinePlayer p = Bukkit.getOfflinePlayer(playerName);
+        if (p != null) {
+            return depositPlayer(p, amount);
+        }
+        return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Joueur introuvable");
     }
 
     @Override
@@ -168,7 +179,7 @@ public class GensVaultEconomy implements Economy {
 
     @Override
     public EconomyResponse depositPlayer(String playerName, String worldName, double amount) {
-        return new EconomyResponse(0, 0, EconomyResponse.ResponseType.NOT_IMPLEMENTED, "");
+        return depositPlayer(playerName, amount);
     }
 
     @Override

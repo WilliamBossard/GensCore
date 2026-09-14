@@ -128,26 +128,34 @@ public class WebPlayerAPI implements Listener {
                 return;
             }
 
-            fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
+            AuthModule authModule = (AuthModule) plugin.getModuleManager().getModule("auth");
             AuthDAO.AuthData data = authModule != null ? authModule.getAuthDAO().getAuthData(playerUUID) : null;
             if (data == null) {
                 webManager.playerLoginRateLimit.put(ip, attempts + 1);
-                ctx.status(401).json(Map.of("error", "Aucun compte enregistr\u00e9 (/register en jeu)."));
+                ctx.status(401).json(Map.of("error", "Aucun compte enregistré (/register en jeu)."));
                 return;
             }
 
             boolean isPasswordCorrect = false;
+            boolean isLegacy = false;
             if (data.hash.startsWith("$2a$") || data.hash.startsWith("$2b$") || data.hash.startsWith("$2y$")) {
                 isPasswordCorrect = org.mindrot.jbcrypt.BCrypt.checkpw(req.password, data.hash);
             } else {
-                String hashedInput = AuthModule.hashPassword(req.password, data.salt);
+                String hashedInput = AuthModule.oldHashPassword(req.password, data.salt);
                 isPasswordCorrect = hashedInput.equals(data.hash);
+                isLegacy = true;
             }
 
             if (!isPasswordCorrect) {
                 webManager.playerLoginRateLimit.put(ip, attempts + 1);
                 ctx.status(401).json(Map.of("error", "Mot de passe incorrect."));
                 return;
+            }
+
+            // Migration transparente du mot de passe legacy vers BCrypt
+            if (isLegacy && authModule != null) {
+                String newBcryptHash = org.mindrot.jbcrypt.BCrypt.hashpw(req.password, org.mindrot.jbcrypt.BCrypt.gensalt());
+                authModule.getAuthDAO().updatePassword(playerUUID, newBcryptHash, "");
             }
 
             webManager.playerLoginRateLimit.remove(ip);
@@ -385,7 +393,7 @@ public class WebPlayerAPI implements Listener {
             // Si le joueur est en ligne, on ex\u00e9cute, sinon on met en attente
             Player target = Bukkit.getPlayer(playerUUID);
             if (target != null && target.isOnline()) {
-                plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
+                plugin.getFoliaLib().getScheduler().runAtEntity(target, (t2) -> {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), rewardCommand.replace("%player%", target.getName()));
                     target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Web] " + rewardMessage));
                 });

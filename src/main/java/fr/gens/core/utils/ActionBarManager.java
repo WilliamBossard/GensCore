@@ -24,15 +24,17 @@ public class ActionBarManager {
     }
 
     public void start() {
-        plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
-            task = wrappedTask;
-            tick();
-        }, 0L, 10L); // every 0.5 sec
+        if (task == null) {
+            task = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> {
+                tick();
+            }, 0L, 10L); // every 0.5 sec
+        }
     }
 
     public void stop() {
         if (task != null) {
             task.cancel();
+            task = null;
         }
         messages.clear();
     }

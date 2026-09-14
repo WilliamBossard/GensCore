@@ -516,8 +516,8 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                 return;
             }
             
-            if (newPassword.length() < 4) {
-                event.reply("Le mot de passe doit faire au moins 4 caractères.").setEphemeral(true).queue();
+            if (newPassword.length() < 8) {
+                event.reply("Le mot de passe doit faire au moins 8 caractères.").setEphemeral(true).queue();
                 return;
             }
 

@@ -14,6 +14,8 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -121,11 +123,22 @@ public class TombListener implements Listener {
         
         if (material == Material.PLAYER_HEAD) {
             org.bukkit.block.BlockState state = targetBlock.getState();
-            if (state instanceof org.bukkit.block.Skull) {
-                org.bukkit.block.Skull skull = (org.bukkit.block.Skull) state;
-                // Use setPlayerProfile for better compatibility since Paper deprecated all Bukkit methods
-                // and it preserves Bedrock skins from SkinsRestorer
-                skull.setPlayerProfile(player.getPlayerProfile());
+            if (state instanceof org.bukkit.block.Skull skull) {
+                PlayerProfile profile = player.getPlayerProfile();
+                
+                // Si le profil n'a pas encore de textures (ex: joueur Bedrock mort avant la fin du fetch Geyser)
+                boolean hasTextures = profile.getProperties().stream().anyMatch(p -> "textures".equalsIgnoreCase(p.getName()));
+                if (!hasTextures) {
+                    fr.gens.core.modules.BedrockSkinModule bsm = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+                    if (bsm != null) {
+                        String[] cachedSkin = bsm.getCachedSkinProperty(player.getUniqueId());
+                        if (cachedSkin != null && cachedSkin[0] != null) {
+                            profile.setProperty(new ProfileProperty("textures", cachedSkin[0], cachedSkin[1]));
+                        }
+                    }
+                }
+
+                skull.setPlayerProfile(profile);
                 skull.update();
             }
         }

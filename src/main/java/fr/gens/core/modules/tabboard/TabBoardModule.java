@@ -131,14 +131,16 @@ public class TabBoardModule implements Module, Listener {
         if (invalidatePrefix) prefixCache.clear();
 
         final boolean doUpdateNametag = updateNametag;
+        final List<PlayerNametagSnapshot> snapshots = doUpdateNametag ? buildNametagSnapshots() : null;
+
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null || !p.isOnline()) continue;
             final GensScoreboard board = boards.get(p.getUniqueId());
             if (board != null) {
                 plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
                     if (!p.isOnline()) return;
-                    if (doUpdateNametag) {
-                        updateNametags(board.getScoreboard());
+                    if (snapshots != null) {
+                        updateNametags(board.getScoreboard(), snapshots);
                     }
                     updateScoreboard(p, board);
                     updateTabList(p);
@@ -266,17 +268,14 @@ public class TabBoardModule implements Module, Listener {
         p.sendPlayerListHeaderAndFooter(headerComp, footerComp);
     }
 
-    // updateNametags ne boucle plus pour chaque joueur (plus O(n²)) :
-    // on met à jour le scoreboard global une seule fois pour TOUS les joueurs.
-    private void updateNametags(Scoreboard scoreboard) {
+    public record PlayerNametagSnapshot(String teamName, String playerName, Component prefix, Component suffix) {}
+
+    private List<PlayerNametagSnapshot> buildNametagSnapshots() {
+        List<PlayerNametagSnapshot> list = new ArrayList<>();
         for (Player target : Bukkit.getOnlinePlayers()) {
-            if (target == null) continue;
+            if (target == null || !target.isOnline()) continue;
             String teamName = getTeamWeight(target) + "_" + target.getName();
             if (teamName.length() > 16) teamName = teamName.substring(0, 16);
-
-            Team team = scoreboard.getTeam(teamName);
-            if (team == null) team = scoreboard.registerNewTeam(teamName);
-            if (!team.hasEntry(target.getName())) team.addEntry(target.getName());
 
             // Utilise le cache de préfixe LuckPerms
             String prefixStr = prefixCache.computeIfAbsent(target.getUniqueId(), uuid -> getLuckPermsPrefix(target));
@@ -293,11 +292,23 @@ public class TabBoardModule implements Module, Listener {
 
             Component pfx = fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr);
             Component sfx = fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr);
-            if (!pfx.equals(team.prefix())) {
-                team.prefix(pfx);
+            list.add(new PlayerNametagSnapshot(teamName, target.getName(), pfx, sfx));
+        }
+        return list;
+    }
+
+    private void updateNametags(Scoreboard scoreboard, List<PlayerNametagSnapshot> snapshots) {
+        if (snapshots == null) return;
+        for (PlayerNametagSnapshot snap : snapshots) {
+            Team team = scoreboard.getTeam(snap.teamName());
+            if (team == null) team = scoreboard.registerNewTeam(snap.teamName());
+            if (!team.hasEntry(snap.playerName())) team.addEntry(snap.playerName());
+
+            if (!snap.prefix().equals(team.prefix())) {
+                team.prefix(snap.prefix());
             }
-            if (!sfx.equals(team.suffix())) {
-                team.suffix(sfx);
+            if (!snap.suffix().equals(team.suffix())) {
+                team.suffix(snap.suffix());
             }
         }
     }

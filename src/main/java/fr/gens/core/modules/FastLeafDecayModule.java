@@ -2,6 +2,7 @@ package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -73,6 +74,11 @@ public class FastLeafDecayModule implements Module, Listener {
     }
 
     private void triggerDecay(Block startBlock) {
+        org.bukkit.World world = startBlock.getWorld();
+        int sx = startBlock.getX();
+        int sy = startBlock.getY();
+        int sz = startBlock.getZ();
+
         java.util.function.Consumer<com.tcoded.folialib.wrapper.task.WrappedTask> decayTask = new java.util.function.Consumer<com.tcoded.folialib.wrapper.task.WrappedTask>() {
             private final Set<Block> visited = new HashSet<>();
             private final Queue<Block> queue = new LinkedList<>();
@@ -80,11 +86,18 @@ public class FastLeafDecayModule implements Module, Listener {
             private int count = 0;
             
             {
-                // Init queue
+                // Init queue avec vérification préalable de la région Folia
                 for (int x = -1; x <= 1; x++) {
                     for (int y = -1; y <= 1; y++) {
                         for (int z = -1; z <= 1; z++) {
-                            Block neighbor = startBlock.getRelative(x, y, z);
+                            int nx = sx + x;
+                            int ny = sy + y;
+                            int nz = sz + z;
+                            Location loc = new Location(world, nx, ny, nz);
+                            if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(loc)) {
+                                continue;
+                            }
+                            Block neighbor = world.getBlockAt(nx, ny, nz);
                             if (isLeaf(neighbor.getType())) {
                                 queue.add(neighbor);
                                 visited.add(neighbor);
@@ -129,14 +142,21 @@ public class FastLeafDecayModule implements Module, Listener {
                         current.setType(Material.AIR);
                     }
 
-                    // Propager
+                    // Propager aux voisins en vérifiant la région AVANT d'accéder au bloc
+                    int cx = current.getX();
+                    int cy = current.getY();
+                    int cz = current.getZ();
                     for (int x = -1; x <= 1; x++) {
                         for (int y = -1; y <= 1; y++) {
                             for (int z = -1; z <= 1; z++) {
-                                Block neighbor = current.getRelative(x, y, z);
-                                if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(neighbor.getLocation())) {
+                                int nx = cx + x;
+                                int ny = cy + y;
+                                int nz = cz + z;
+                                Location loc = new Location(world, nx, ny, nz);
+                                if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(loc)) {
                                     continue;
                                 }
+                                Block neighbor = world.getBlockAt(nx, ny, nz);
                                 if (isLeaf(neighbor.getType()) && !visited.contains(neighbor)) {
                                     queue.add(neighbor);
                                     visited.add(neighbor);

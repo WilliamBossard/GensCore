@@ -101,17 +101,15 @@ public class SpawnerModule implements Module {
         }
         
         if (generationTask == null) {
-            plugin.getFoliaLib().getScheduler().runTimer((wrappedTask) -> {
-            generationTask = wrappedTask;
-            spawnerManager.generateTick();
-        }, 20L, 20L);
+            generationTask = plugin.getFoliaLib().getScheduler().runTimer(() -> {
+                spawnerManager.generateTick();
+            }, 20L, 20L);
         }
         
         if (saveTask == null) {
-            plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
-            saveTask = wrappedTask;
-            saveAllSpawnersToDB();
-        }, 6000L, 6000L);
+            saveTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> {
+                saveAllSpawnersToDB();
+            }, 6000L, 6000L);
         }
         
         // Update holograms if re-enabled

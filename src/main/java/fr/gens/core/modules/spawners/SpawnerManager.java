@@ -270,6 +270,14 @@ public class SpawnerManager {
         if (!module.getPlugin().getConfig().getBoolean("spawners.holograms", true)) return;
         
         Location loc = data.getLocation();
+        if (loc == null || loc.getWorld() == null) return;
+
+        // Sécurité Folia : s'assurer d'exécuter sur le thread de la région du spawner
+        if (module.getPlugin().getFoliaLib().isFolia() && !org.bukkit.Bukkit.isOwnedByCurrentRegion(loc)) {
+            module.getPlugin().getFoliaLib().getScheduler().runAtLocation(loc, task -> updateHologram(data));
+            return;
+        }
+
         if (!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4)) return;
         
         TextDisplay display = holograms.get(loc);

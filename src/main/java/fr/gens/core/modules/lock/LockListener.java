@@ -33,6 +33,32 @@ public class LockListener implements Listener {
                mat == Material.DISPENSER || mat == Material.BREWING_STAND;
     }
 
+    public static Block getOtherChestHalf(Block block) {
+        if (block == null) return null;
+        if (block.getState() instanceof org.bukkit.block.Chest chest) {
+            org.bukkit.inventory.InventoryHolder holder = chest.getInventory().getHolder();
+            if (holder instanceof org.bukkit.block.DoubleChest doubleChest) {
+                if (doubleChest.getLeftSide() instanceof org.bukkit.block.Chest left && doubleChest.getRightSide() instanceof org.bukkit.block.Chest right) {
+                    if (block.getLocation().equals(left.getLocation())) return right.getBlock();
+                    if (block.getLocation().equals(right.getLocation())) return left.getBlock();
+                }
+            }
+        }
+        return null;
+    }
+
+    private LockData getEffectiveLock(Block block) {
+        if (block == null) return null;
+        LockData lock = lockModule.getLock(block.getLocation());
+        if (lock != null) return lock;
+
+        Block other = getOtherChestHalf(block);
+        if (other != null) {
+            return lockModule.getLock(other.getLocation());
+        }
+        return null;
+    }
+
     private boolean canAccess(Player player, LockData lock) {
         if (player.hasPermission("genscore.lock.bypass")) return true;
 
@@ -70,13 +96,32 @@ public class LockListener implements Listener {
         if (!isLockable(block.getType())) return;
 
         Player player = event.getPlayer();
+
+        // Empêcher d'attacher un coffre à un conteneur verrouillé par un tiers
+        Block other = getOtherChestHalf(block);
+        if (other != null) {
+            LockData otherLock = lockModule.getLock(other.getLocation());
+            if (otherLock != null) {
+                if (!canAccess(player, otherLock)) {
+                    event.setCancelled(true);
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Impossible de connecter ce coffre à un conteneur verrouillé."));
+                    return;
+                }
+                lockModule.createLock(block.getLocation(), otherLock.getOwnerUuid(), otherLock.getTeamId());
+                player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le verrou du double-coffre a été synchronisé."));
+                return;
+            }
+        }
+
         TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
 
         if (team != null && team.isAutoLock()) {
             lockModule.createLock(block.getLocation(), null, team.getTeamId());
+            if (other != null) lockModule.createLock(other.getLocation(), null, team.getTeamId());
             player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>[Verrous] <green>Conteneur verrouillé pour l'équipe <yellow>" + team.getName() + "<green>."));
         } else {
             lockModule.createLock(block.getLocation(), player.getUniqueId(), -1);
+            if (other != null) lockModule.createLock(other.getLocation(), player.getUniqueId(), -1);
             plugin.getLangManager().sendMessage(player, "locklistener.msg_1");
         }
     }
@@ -94,7 +139,8 @@ public class LockListener implements Listener {
         if (event.getAction() == Action.LEFT_CLICK_BLOCK && LockCommand.pendingActions.containsKey(uuid)) {
             String action = LockCommand.pendingActions.remove(uuid);
             event.setCancelled(true);
-            LockData currentLock = lockModule.getLock(block.getLocation());
+            LockData currentLock = getEffectiveLock(block);
+            Block other = getOtherChestHalf(block);
             
             if (action.equals("guild")) {
                 if (currentLock != null) {
@@ -103,6 +149,7 @@ public class LockListener implements Listener {
                     TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
                     if (team != null) {
                         lockModule.createLock(block.getLocation(), null, team.getTeamId());
+                        if (other != null) lockModule.createLock(other.getLocation(), null, team.getTeamId());
                         player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Verrouillé pour la guilde " + team.getName() + "."));
                     } else {
                         plugin.getLangManager().sendMessage(player, "locklistener.msg_3");
@@ -113,6 +160,7 @@ public class LockListener implements Listener {
                     plugin.getLangManager().sendMessage(player, "locklistener.msg_4");
                 } else {
                     lockModule.createLock(block.getLocation(), uuid, -1);
+                    if (other != null) lockModule.createLock(other.getLocation(), uuid, -1);
                     plugin.getLangManager().sendMessage(player, "locklistener.msg_5");
                 }
             } else if (action.equals("unlock")) {
@@ -120,6 +168,7 @@ public class LockListener implements Listener {
                     plugin.getLangManager().sendMessage(player, "locklistener.msg_6");
                 } else if (canAccess(player, currentLock)) {
                     lockModule.removeLock(block.getLocation());
+                    if (other != null) lockModule.removeLock(other.getLocation());
                     plugin.getLangManager().sendMessage(player, "locklistener.msg_7");
                 } else {
                     plugin.getLangManager().sendMessage(player, "locklistener.msg_8");
@@ -130,7 +179,7 @@ public class LockListener implements Listener {
 
         // Empêcher l'ouverture si verrouillé (Clic droit)
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            LockData lock = lockModule.getLock(block.getLocation());
+            LockData lock = getEffectiveLock(block);
             if (lock != null) {
                 if (!canAccess(player, lock)) {
                     event.setCancelled(true);
@@ -145,7 +194,7 @@ public class LockListener implements Listener {
         Block block = event.getBlock();
         if (!isLockable(block.getType())) return;
 
-        LockData lock = lockModule.getLock(block.getLocation());
+        LockData lock = getEffectiveLock(block);
         if (lock != null) {
             Player player = event.getPlayer();
             if (!canAccess(player, lock)) {
@@ -153,6 +202,8 @@ public class LockListener implements Listener {
                 plugin.getLangManager().sendMessage(player, "locklistener.msg_10");
             } else {
                 lockModule.removeLock(block.getLocation());
+                Block other = getOtherChestHalf(block);
+                if (other != null) lockModule.removeLock(other.getLocation());
                 plugin.getLangManager().sendMessage(player, "locklistener.msg_11");
             }
         }
@@ -162,7 +213,7 @@ public class LockListener implements Listener {
     public void onInventoryMove(InventoryMoveItemEvent event) {
         // Empêcher les Hoppers/Minecart-Hoppers d'aspirer depuis un bloc verrouillé
         if (event.getSource().getLocation() != null) {
-            LockData lock = lockModule.getLock(event.getSource().getLocation());
+            LockData lock = getEffectiveLock(event.getSource().getLocation().getBlock());
             if (lock != null) {
                 event.setCancelled(true); // Bloquer l'aspiration !
             }
@@ -170,11 +221,23 @@ public class LockListener implements Listener {
         
         // Empêcher les Hoppers de pousser dans un bloc verrouillé (optionnel mais recommandé)
         if (event.getDestination().getLocation() != null) {
-            LockData lock = lockModule.getLock(event.getDestination().getLocation());
+            LockData lock = getEffectiveLock(event.getDestination().getLocation().getBlock());
             if (lock != null) {
                 event.setCancelled(true); // Bloquer l'insertion !
             }
         }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockExplode(org.bukkit.event.block.BlockExplodeEvent event) {
+        // Empêcher la destruction de conteneurs verrouillés lors d'une explosion de bloc
+        event.blockList().removeIf(b -> isLockable(b.getType()) && getEffectiveLock(b) != null);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
+        // Empêcher la destruction de conteneurs verrouillés lors d'une explosion d'entité (Creeper, TNT, etc.)
+        event.blockList().removeIf(b -> isLockable(b.getType()) && getEffectiveLock(b) != null);
     }
 
     @EventHandler

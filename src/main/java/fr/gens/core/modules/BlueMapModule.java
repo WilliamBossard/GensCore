@@ -46,13 +46,10 @@ public class BlueMapModule implements Module, Listener {
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
         enabled = false;
-        if (!plugin.isEnabled()) return;
         
         if (Bukkit.getPluginManager().isPluginEnabled("BlueMap")) {
-            plugin.getFoliaLib().getScheduler().runLater((t2) -> {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap stop");
-                plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_2");
-            }, 20L);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap stop");
+            plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_2");
         }
     }
 }

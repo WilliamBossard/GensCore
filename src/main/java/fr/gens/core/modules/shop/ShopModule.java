@@ -15,7 +15,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import org.bukkit.inventory.meta.Damageable;
 
 
 public class ShopModule implements Module {
@@ -285,7 +287,7 @@ public class ShopModule implements Module {
     private void sellAll(Player p, ShopItem item) {
         int count = 0;
         for (ItemStack invItem : p.getInventory().getContents()) {
-            if (invItem != null && invItem.getType() == item.getMaterial()) {
+            if (isSellableItem(invItem, item.getMaterial())) {
                 count += invItem.getAmount();
             }
         }
@@ -363,7 +365,13 @@ public class ShopModule implements Module {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
                 p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat validé ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
             } else {
-                p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
+                Map<Integer, ItemStack> leftover = p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
+                if (!leftover.isEmpty()) {
+                    for (ItemStack drop : leftover.values()) {
+                        p.getWorld().dropItemNaturally(p.getLocation(), drop);
+                    }
+                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Attention : Votre inventaire était plein, des items ont été déposés au sol."));
+                }
                 p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
             }
             
@@ -375,13 +383,30 @@ public class ShopModule implements Module {
         }
     }
 
+    @SuppressWarnings("deprecation")
+    private boolean isSellableItem(ItemStack item, Material requiredMaterial) {
+        if (item == null || item.getType() != requiredMaterial) {
+            return false;
+        }
+        if (item.hasItemMeta()) {
+            ItemMeta meta = item.getItemMeta();
+            if (meta.hasDisplayName() || meta.hasEnchants() || meta.hasLore() || meta.hasCustomModelData()) {
+                return false;
+            }
+            if (meta instanceof Damageable dmg && dmg.hasDamage()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public void sellItem(Player p, ShopItem shopItem, int amount) {
         EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
         if (eco == null) return;
         
         int playerHas = 0;
         for (ItemStack i : p.getInventory().getContents()) {
-            if (i != null && i.getType() == shopItem.getMaterial()) {
+            if (isSellableItem(i, shopItem.getMaterial())) {
                 playerHas += i.getAmount();
             }
         }
@@ -392,7 +417,7 @@ public class ShopModule implements Module {
             // Retirer l'item de l'inventaire
             int toRemove = amount;
             for (ItemStack i : p.getInventory().getContents()) {
-                if (i != null && i.getType() == shopItem.getMaterial()) {
+                if (isSellableItem(i, shopItem.getMaterial())) {
                     if (i.getAmount() <= toRemove) {
                         toRemove -= i.getAmount();
                         i.setAmount(0);
