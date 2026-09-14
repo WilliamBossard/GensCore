@@ -4,8 +4,10 @@ import fr.gens.core.CorePlugin;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -99,8 +101,22 @@ public class DatabaseManager {
              Statement statement = conn.createStatement()) {
             statement.execute(sql);
         } catch (SQLException e) {
-            plugin.getLangManager().sendConsoleError("Erreur SQL: " + sql);
-            e.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, "Erreur SQL lors de l'exécution: " + sql, e);
+        }
+    }
+
+    public void addColumnIfNotExists(String table, String column, String definition) {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("PRAGMA table_info(" + table + ")")) {
+            while (rs.next()) {
+                if (column.equalsIgnoreCase(rs.getString("name"))) {
+                    return; // La colonne existe déjà
+                }
+            }
+            stmt.execute("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Impossible d'ajouter la colonne " + column + " à la table " + table, e);
         }
     }
 
