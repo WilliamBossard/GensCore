@@ -84,8 +84,12 @@ public class BedrockFormManager {
             if (clickedButtonId >= 0 && clickedButtonId < buttons.size()) {
                 BedrockButton btn = buttons.get(clickedButtonId);
                 if (btn.getAction() != null) {
-                    // Cumulus callbacks execute on the main server thread — direct call is safe
-                    btn.getAction().onClick(player);
+                    fr.gens.core.CorePlugin plugin = org.bukkit.plugin.java.JavaPlugin.getPlugin(fr.gens.core.CorePlugin.class);
+                    if (plugin != null && plugin.getFoliaLib() != null) {
+                        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> btn.getAction().onClick(player));
+                    } else {
+                        btn.getAction().onClick(player);
+                    }
                 }
             }
         });

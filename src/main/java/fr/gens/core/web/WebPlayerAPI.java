@@ -34,6 +34,7 @@ public class WebPlayerAPI implements Listener {
         this.webManager = webManager;
         this.webDAO = new WebDAO(plugin);
         this.wheelRewards = new ArrayList<>();
+        new fr.gens.core.database.PendingCommandDAO(plugin).initDatabase();
         Bukkit.getPluginManager().registerEvents(this, plugin);
         
         loadWheelConfig();
@@ -446,7 +447,6 @@ public class WebPlayerAPI implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         fr.gens.core.database.PendingCommandDAO pcd = new fr.gens.core.database.PendingCommandDAO(plugin);
-        pcd.initDatabase(); // just to ensure table exists
         pcd.processPendingCommands(player);
         
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {

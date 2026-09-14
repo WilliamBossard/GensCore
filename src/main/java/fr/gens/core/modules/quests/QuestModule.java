@@ -45,6 +45,7 @@ public class QuestModule implements Module, Listener {
     
     private fr.gens.core.database.QuestDAO questDAO;
     private com.tcoded.folialib.wrapper.task.WrappedTask autoSaveTask = null;
+    private QuestListener questListener = null;
 
     // How many quests per category? Default to 3
     private final int QUESTS_PER_CATEGORY = 3;
@@ -98,7 +99,8 @@ public class QuestModule implements Module, Listener {
         loadQuests();
 
 
-        plugin.getServer().getPluginManager().registerEvents(new QuestListener(this), plugin);
+        this.questListener = new QuestListener(this);
+        plugin.getServer().getPluginManager().registerEvents(this.questListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin); // For GUI clicks
 
         // Load data for currently online players (if reload)
@@ -119,6 +121,10 @@ public class QuestModule implements Module, Listener {
     @Override
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
+        if (this.questListener != null) {
+            org.bukkit.event.HandlerList.unregisterAll(this.questListener);
+            this.questListener = null;
+        }
         enabled = false;
         if (autoSaveTask != null) {
             autoSaveTask.cancel();

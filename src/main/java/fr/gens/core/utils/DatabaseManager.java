@@ -43,9 +43,9 @@ public class DatabaseManager {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(url);
         config.setPoolName("GensCore-Pool");
-        config.setMaximumPoolSize(8);
-        config.setMinimumIdle(2);
-        config.setConnectionTimeout(10000);
+        config.setMaximumPoolSize(1);
+        config.setMinimumIdle(1);
+        config.setConnectionTimeout(30000);
         
         // SQLite properties for WAL and concurrency
         config.setConnectionInitSql("PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL; PRAGMA busy_timeout=5000; PRAGMA cache_size=-20000; PRAGMA temp_store=MEMORY;");
@@ -99,24 +99,32 @@ public class DatabaseManager {
     }
 
     public void wipeServerData() {
-        try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement();
-             java.sql.ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
-            
-            java.util.List<String> tables = new java.util.ArrayList<>();
-            while (rs.next()) {
-                String tableName = rs.getString(1);
-                if (!tableName.equals("sqlite_sequence") && 
-                    !tableName.equals("shop_categories") && 
-                    !tableName.equals("shop_items")) {
-                    tables.add(tableName);
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+            try (Statement stmt = conn.createStatement();
+                 java.sql.ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table'")) {
+                
+                java.util.List<String> tables = new java.util.ArrayList<>();
+                while (rs.next()) {
+                    String tableName = rs.getString(1);
+                    if (!tableName.equals("sqlite_sequence") && 
+                        !tableName.equals("shop_categories") && 
+                        !tableName.equals("shop_items")) {
+                        tables.add(tableName);
+                    }
                 }
+                
+                for (String table : tables) {
+                    stmt.executeUpdate("DELETE FROM " + table);
+                }
+                conn.commit();
+                plugin.getLogger().info("Wipe success: all player tables have been cleared.");
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(true);
             }
-            
-            for (String table : tables) {
-                stmt.execute("DELETE FROM " + table);
-            }
-            plugin.getLogger().info("Wipe success: all player tables have been cleared.");
         } catch (SQLException e) {
             plugin.getLogger().severe("Failed to wipe database: " + e.getMessage());
             e.printStackTrace();

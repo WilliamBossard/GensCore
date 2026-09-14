@@ -89,10 +89,18 @@ public class SpawnerCommand {
             return;
         }
 
-        ItemStack spawner = createSpawnerItem(plugin, type, stack);
-        target.getInventory().addItem(spawner);
+        final String finalType = type;
+        ItemStack spawner = createSpawnerItem(plugin, finalType, stack);
+        plugin.getFoliaLib().getScheduler().runAtEntity(target, task -> {
+            java.util.Map<Integer, ItemStack> leftover = target.getInventory().addItem(spawner);
+            if (!leftover.isEmpty()) {
+                for (ItemStack drop : leftover.values()) {
+                    target.getWorld().dropItemNaturally(target.getLocation(), drop);
+                }
+            }
+            target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez reçu un spawner " + finalType + " (x" + stack + ")."));
+        });
         sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez donné un spawner " + type + " (x" + stack + ") à " + target.getName() + "."));
-        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous avez reçu un spawner " + type + " (x" + stack + ")."));
     }
 }
 

@@ -401,8 +401,15 @@ public class AuthModule implements Module, Listener {
     public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
         String message = event.getMessage();
         if (message.length() <= 1) return;
-        String cmdArgs = message.substring(1);
-        String cmdName = cmdArgs.split(" ")[0].toLowerCase();
+        String cmdArgs = message.substring(1).trim();
+        String rawCmdName = cmdArgs.split(" ")[0].toLowerCase();
+        
+        // Normaliser le nom de commande pour neutraliser les contournements par namespace (ex: /minecraft:me, /genscore:login)
+        String cmdName = rawCmdName;
+        int colonIdx = cmdName.indexOf(':');
+        if (colonIdx != -1) {
+            cmdName = cmdName.substring(colonIdx + 1);
+        }
 
         // 1. Auth check
         if (cmdName.equals("login") || cmdName.equals("l") || cmdName.equals("register") || cmdName.equals("reg")) {
@@ -425,8 +432,6 @@ public class AuthModule implements Module, Listener {
             requireAuth(event.getPlayer());
             return;
         }
-
-
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -450,13 +455,63 @@ public class AuthModule implements Module, Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClick(InventoryClickEvent event) {
         if (!enabled) return;
-        if (event.getWhoClicked() instanceof Player) {
-            if (!isAuth((Player) event.getWhoClicked())) event.setCancelled(true);
+        if (event.getWhoClicked() instanceof Player p) {
+            if (!isAuth(p)) event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDrop(PlayerDropItemEvent event) {
+        if (!enabled) return;
+        if (!isAuth(event.getPlayer())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onEntityDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (!enabled) return;
+        if (event.getEntity() instanceof Player p && !isAuth(p)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onEntityDamageByEntity(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!enabled) return;
+        if (event.getDamager() instanceof Player damager && !isAuth(damager)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onVehicleEnter(org.bukkit.event.vehicle.VehicleEnterEvent event) {
+        if (!enabled) return;
+        if (event.getEntered() instanceof Player p && !isAuth(p)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPickupItem(org.bukkit.event.entity.EntityPickupItemEvent event) {
+        if (!enabled) return;
+        if (event.getEntity() instanceof Player p && !isAuth(p)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onSwapHandItems(PlayerSwapHandItemsEvent event) {
+        if (!enabled) return;
+        if (!isAuth(event.getPlayer())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onInteractEntity(PlayerInteractEntityEvent event) {
+        if (!enabled) return;
+        if (!isAuth(event.getPlayer())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onInteractAtEntity(PlayerInteractAtEntityEvent event) {
         if (!enabled) return;
         if (!isAuth(event.getPlayer())) event.setCancelled(true);
     }

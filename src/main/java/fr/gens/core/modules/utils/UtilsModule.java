@@ -72,7 +72,7 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_1");
             return;
         }
-        p.openAnvil(p.getLocation(), true);
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openAnvil(p.getLocation(), true));
     }
 
     @Command("craftingtable")
@@ -85,7 +85,7 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
             return;
         }
-        p.openWorkbench(p.getLocation(), true);
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openWorkbench(p.getLocation(), true));
     }
 
     @Command("craft")
@@ -112,7 +112,7 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_3");
             return;
         }
-        p.openEnchanting(p.getLocation(), true);
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openEnchanting(p.getLocation(), true));
     }
 
     @Command("enchanting")
@@ -141,10 +141,15 @@ public class UtilsModule implements Module, Listener {
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_6");
                 return;
             }
-            p.openInventory(target.getEnderChest());
-            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous regardez l'enderchest de <yellow>" + target.getName() + "<green>."));
+            plugin.getFoliaLib().getScheduler().runAtEntity(target, tTarget -> {
+                org.bukkit.inventory.Inventory targetEc = target.getEnderChest();
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, tP -> {
+                    p.openInventory(targetEc);
+                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vous regardez l'enderchest de <yellow>" + target.getName() + "<green>."));
+                });
+            });
         } else {
-            p.openInventory(p.getEnderChest());
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openInventory(p.getEnderChest()));
         }
     }
 
@@ -163,9 +168,11 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_7");
             return;
         }
-        p.setFoodLevel(20);
-        p.setSaturation(20.0f);
-        plugin.getLangManager().sendMessage(p, "utilsmodule.msg_8");
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+            p.setFoodLevel(20);
+            p.setSaturation(20.0f);
+            plugin.getLangManager().sendMessage(p, "utilsmodule.msg_8");
+        });
     }
 }
 

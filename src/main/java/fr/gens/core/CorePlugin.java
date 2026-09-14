@@ -26,6 +26,12 @@ public class CorePlugin extends JavaPlugin {
     private fr.gens.core.utils.CommandManager commandManager;
     private FoliaLib foliaLib;
     private boolean isWiping = false;
+    private static CorePlugin instance;
+    private com.tcoded.folialib.wrapper.task.WrappedTask reminderTask;
+
+    public static CorePlugin getInstance() {
+        return instance;
+    }
 
     public boolean isWiping() {
         return isWiping;
@@ -42,6 +48,7 @@ public class CorePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        instance = this;
         this.foliaLib = new FoliaLib(this);
         
         // 1. Initialiser le LangManager EN PREMIER car les autres en ont besoin pour logger
@@ -92,8 +99,7 @@ public class CorePlugin extends JavaPlugin {
         }
 
         // 4. Lancer les rappels automatiques (Discord et Guilde)
-        // 4. Lancer les rappels automatiques (Discord et Guilde)
-        this.foliaLib.getScheduler().runTimerAsync((wrappedTask) -> {
+        this.reminderTask = this.foliaLib.getScheduler().runTimerAsync(() -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (p == null) continue;
                 this.foliaLib.getScheduler().runAtEntity(p, (t) -> {
@@ -117,6 +123,11 @@ public class CorePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (this.reminderTask != null) {
+            this.reminderTask.cancel();
+            this.reminderTask = null;
+        }
+
         if (webManager != null) {
             webManager.stop();
         }

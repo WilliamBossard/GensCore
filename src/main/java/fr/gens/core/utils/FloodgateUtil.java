@@ -5,24 +5,12 @@ import java.util.UUID;
 
 public class FloodgateUtil {
     
-    private static boolean isFloodgateEnabled = false;
-    private static boolean initialized = false;
-
-    private static void init() {
-        if (!initialized) {
-            isFloodgateEnabled = Bukkit.getPluginManager().isPluginEnabled("floodgate");
-            initialized = true;
-        }
-    }
-
     public static boolean isFloodgateInstalled() {
-        init();
-        return isFloodgateEnabled;
+        return Bukkit.getPluginManager().isPluginEnabled("floodgate");
     }
 
     public static boolean isBedrockPlayer(UUID uuid) {
-        init();
-        if (isFloodgateEnabled) {
+        if (isFloodgateInstalled()) {
             return isBedrockPlayerInternal(uuid);
         }
         return false;

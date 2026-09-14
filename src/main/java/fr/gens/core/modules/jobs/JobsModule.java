@@ -104,6 +104,9 @@ public class JobsModule implements Module, Listener {
     @Override
     public void disable() {
         org.bukkit.event.HandlerList.unregisterAll(this);
+        if (this.gui != null) {
+            org.bukkit.event.HandlerList.unregisterAll(this.gui);
+        }
         this.enabled = false;
         if (autoSaveTask != null) {
             autoSaveTask.cancel();

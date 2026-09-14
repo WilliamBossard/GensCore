@@ -134,9 +134,12 @@ public class TeleportTpaModule implements Module, Listener {
         UUID requesterId = tpaRequests.remove(p.getUniqueId());
         Player requester = Bukkit.getPlayer(requesterId);
         if (requester != null && requester.isOnline()) {
-            plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_7");
-            requester.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Demande acceptée par <yellow>" + p.getName() + "<green>. Téléportation..."));
-            TeleportUtil.teleportWithCooldown(plugin, requester, p.getLocation(), p.getName(), "genscore.bypass.cooldown.tpa");
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+                org.bukkit.Location targetLoc = p.getLocation().clone();
+                plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_7");
+                requester.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Demande acceptée par <yellow>" + p.getName() + "<green>. Téléportation..."));
+                TeleportUtil.teleportWithCooldown(plugin, requester, targetLoc, p.getName(), "genscore.bypass.cooldown.tpa");
+            });
         } else {
             plugin.getLangManager().sendMessage(p, "teleporttpamodule.msg_8");
         }

@@ -9,10 +9,21 @@ import org.bukkit.entity.Player;
 
 public class TeleportUtil {
 
+    private static final java.util.Map<java.util.UUID, com.tcoded.folialib.wrapper.task.WrappedTask> activeTeleports = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static void cancelPendingTeleport(java.util.UUID uuid) {
+        com.tcoded.folialib.wrapper.task.WrappedTask task = activeTeleports.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
+    }
+
     public static void teleportWithCooldown(CorePlugin plugin, Player player, Location target, String destinationName, String bypassPermission) {
         int cooldownSeconds = plugin.getStorageManager().getConfig().getInt("teleport-cooldown", 3);
 
         plugin.getFoliaLib().getScheduler().runAtEntity(player, (t) -> {
+            cancelPendingTeleport(player.getUniqueId());
+
             if (cooldownSeconds <= 0 || player.hasPermission(bypassPermission) || player.hasPermission("genscore.bypass.cooldown.all")) {
                 player.teleportAsync(target);
                 player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Téléportation à " + destinationName + " réussie !</green>"));
@@ -25,8 +36,10 @@ public class TeleportUtil {
             java.util.concurrent.atomic.AtomicInteger timeLeft = new java.util.concurrent.atomic.AtomicInteger(cooldownSeconds);
 
             plugin.getFoliaLib().getScheduler().runAtEntityTimer(player, (wrappedTask) -> {
+                activeTeleports.put(player.getUniqueId(), wrappedTask);
                 if (!player.isOnline()) {
                     wrappedTask.cancel();
+                    activeTeleports.remove(player.getUniqueId());
                     return;
                 }
 
@@ -36,6 +49,7 @@ public class TeleportUtil {
                     player.sendActionBar(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Téléportation annulée (mouvement détecté).</red>"));
                     player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Téléportation annulée, vous avez bougé !</red>"));
                     wrappedTask.cancel();
+                    activeTeleports.remove(player.getUniqueId());
                     return;
                 }
 
@@ -43,6 +57,7 @@ public class TeleportUtil {
                     player.teleportAsync(target);
                     player.sendActionBar(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Téléportation réussie !</green>"));
                     wrappedTask.cancel();
+                    activeTeleports.remove(player.getUniqueId());
                     return;
                 }
 

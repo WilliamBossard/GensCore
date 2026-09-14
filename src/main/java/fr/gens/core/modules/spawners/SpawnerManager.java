@@ -304,15 +304,42 @@ public class SpawnerManager {
     public void removeHologram(Location loc) {
         TextDisplay display = holograms.remove(loc);
         if (display != null && display.isValid()) {
-            display.remove();
+            module.getPlugin().getFoliaLib().getScheduler().runAtLocation(loc, t -> {
+                if (display.isValid()) display.remove();
+            });
         }
     }
     
     public void clearAllHolograms() {
-        for (TextDisplay display : holograms.values()) {
-            if (display.isValid()) display.remove();
+        for (Map.Entry<Location, TextDisplay> entry : holograms.entrySet()) {
+            TextDisplay display = entry.getValue();
+            if (display != null && display.isValid()) {
+                module.getPlugin().getFoliaLib().getScheduler().runAtLocation(entry.getKey(), t -> {
+                    if (display.isValid()) display.remove();
+                });
+            }
         }
         holograms.clear();
+    }
+
+    public void cleanupChunkHolograms(org.bukkit.Chunk chunk) {
+        int cx = chunk.getX();
+        int cz = chunk.getZ();
+        String worldName = chunk.getWorld().getName();
+        
+        holograms.entrySet().removeIf(entry -> {
+            Location loc = entry.getKey();
+            if (loc.getWorld() != null && loc.getWorld().getName().equals(worldName)) {
+                if ((loc.getBlockX() >> 4) == cx && (loc.getBlockZ() >> 4) == cz) {
+                    TextDisplay td = entry.getValue();
+                    if (td != null && td.isValid()) {
+                        td.remove();
+                    }
+                    return true;
+                }
+            }
+            return false;
+        });
     }
 }
 

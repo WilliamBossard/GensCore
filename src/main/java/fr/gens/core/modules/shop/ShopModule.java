@@ -138,7 +138,7 @@ public class ShopModule implements Module {
             plugin.getLangManager().sendMessage(p, "shopmodule.msg_1");
             return;
         }
-        openCategoryGui(p);
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> openCategoryGui(p));
     }
 
     public void openCategoryGui(Player player) {

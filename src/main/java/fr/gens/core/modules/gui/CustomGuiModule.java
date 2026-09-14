@@ -182,7 +182,7 @@ public class CustomGuiModule implements Module, Listener {
         }
         CustomMenu menu = menus.get(menuName);
         if (menu != null) {
-            openMenu(p, menu);
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> openMenu(p, menu));
         } else {
             p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Menu introuvable : " + menuName));
         }
@@ -371,7 +371,8 @@ public class CustomGuiModule implements Module, Listener {
                     mgr.commandBuilder(finalCmd)
                         .senderType(Player.class)
                         .handler(context -> {
-                            openMenu((Player) context.sender(), menu);
+                            Player p = (Player) context.sender();
+                            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> openMenu(p, menu));
                         })
                 );
                 plugin.getLogger().info("[Gui] Commande dynamique enregistrée via Cloud : /" + finalCmd);
@@ -387,8 +388,8 @@ public class CustomGuiModule implements Module, Listener {
                 org.bukkit.command.Command command = new org.bukkit.command.Command(finalCmd) {
                     @Override
                     public boolean execute(CommandSender sender, String label, String[] args) {
-                        if (sender instanceof Player) {
-                            openMenu((Player) sender, menu);
+                        if (sender instanceof Player p) {
+                            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> openMenu(p, menu));
                         }
                         return true;
                     }

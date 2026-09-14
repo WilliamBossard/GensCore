@@ -79,7 +79,9 @@ public class ChatModule implements Module, Listener {
         
         // Ajout du tag de guilde si le joueur en a une
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
-        final String guildTagStr = (team != null) ? "<yellow>[" + team.getName() + "] " : "";
+        final net.kyori.adventure.text.Component guildTagComp = (team != null) 
+                ? net.kyori.adventure.text.Component.text("[" + team.getName() + "] ", net.kyori.adventure.text.format.NamedTextColor.YELLOW)
+                : net.kyori.adventure.text.Component.empty();
         
         final String platformPrefixStr = !fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled() ? "" : 
                 (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(event.getPlayer().getUniqueId()) 
@@ -88,13 +90,18 @@ public class ChatModule implements Module, Listener {
         // Variables effectively final pour le lambda
         final net.kyori.adventure.text.Component finalPrefixComp = resolvedPrefixComp;
         final net.kyori.adventure.text.Component platformPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(platformPrefixStr);
-        final net.kyori.adventure.text.Component guildTagComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(guildTagStr);
         final String messageText = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.message());
 
-        // AsyncChatEvent utilise un ChatRenderer pour formater le message
+        // AsyncChatEvent utilise un ChatRenderer pour formater le message de façon sécurisée (anti-injection MiniMessage)
         event.renderer((source, sourceDisplayName, message, viewer) -> {
-            net.kyori.adventure.text.Component nameComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<white>" + source.getName() + " <dark_gray>» <gray>" + messageText);
-            return net.kyori.adventure.text.Component.empty().append(platformPrefixComp).append(finalPrefixComp).append(guildTagComp).append(nameComp);
+            net.kyori.adventure.text.Component nameAndSep = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<white>" + source.getName() + " <dark_gray>» ");
+            net.kyori.adventure.text.Component textComp = net.kyori.adventure.text.Component.text(messageText, net.kyori.adventure.text.format.NamedTextColor.GRAY);
+            return net.kyori.adventure.text.Component.empty()
+                    .append(platformPrefixComp)
+                    .append(finalPrefixComp)
+                    .append(guildTagComp)
+                    .append(nameAndSep)
+                    .append(textComp);
         });
     }
 

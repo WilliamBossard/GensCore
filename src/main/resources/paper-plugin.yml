@@ -2,6 +2,7 @@ name: GensCore
 version: '${project.version}'
 main: fr.gens.core.CorePlugin
 api-version: '26.2'
+folia-supported: true
 authors: [William Bossard]
 description: Le coeur du réseau Gens (GensBien / GensMauvais).
 
@@ -13,6 +14,15 @@ dependencies:
     LuckPerms:
       load: BEFORE
       required: true
+    floodgate:
+      load: BEFORE
+      required: false
+    BlueMap:
+      load: BEFORE
+      required: false
+    PlaceholderAPI:
+      load: BEFORE
+      required: false
 
 # Commandes et Permissions (Facultatif dans Paper avec Cloud, mais inclus pour cohérence)
 commands:

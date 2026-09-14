@@ -283,6 +283,11 @@ public class SpawnerListener implements Listener {
     }
 
     @EventHandler
+    public void onChunkUnload(org.bukkit.event.world.ChunkUnloadEvent event) {
+        module.getSpawnerManager().cleanupChunkHolograms(event.getChunk());
+    }
+
+    @EventHandler
     public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
         vanillaBreakConfirm.remove(event.getPlayer().getUniqueId());
     }

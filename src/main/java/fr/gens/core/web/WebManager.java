@@ -382,7 +382,7 @@ public class WebManager {
             ctx.json(new ConfigResponse(
                 plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("shop.inflation_exponent", 0.5),
                 plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0),
-                plugin.getConfigManager().getConfig("modules/web.yml").getString("admin-password", "gens"),
+                "", // Masqué par sécurité pour ne pas exposer le hash BCrypt
                 plugin.getConfigManager().getConfig("modules/headdrop.yml").getDouble("headdrop.chance", 10.0),
                 plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3),
                 plugin.getConfigManager().getConfig("modules/lootr.yml").getBoolean("lootr.prevent-break", false),
@@ -434,7 +434,15 @@ public class WebManager {
                 plugin.getConfigManager().saveConfigAsync("modules/tomb.yml");
                 plugin.getConfigManager().saveMainConfigAsync();
                 
-                plugin.getConfigManager().getConfig("modules/web.yml").set("admin-password", req.adminPassword);
+                if (req.adminPassword != null && !req.adminPassword.trim().isEmpty() && !req.adminPassword.equals("********")) {
+                    String hashedPass;
+                    if (req.adminPassword.startsWith("$2a$") || req.adminPassword.startsWith("$2b$") || req.adminPassword.startsWith("$2y$")) {
+                        hashedPass = req.adminPassword;
+                    } else {
+                        hashedPass = org.mindrot.jbcrypt.BCrypt.hashpw(req.adminPassword, org.mindrot.jbcrypt.BCrypt.gensalt());
+                    }
+                    plugin.getConfigManager().getConfig("modules/web.yml").set("admin-password", hashedPass);
+                }
                 plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.wheel.enabled", req.minigameWheelEnabled);
                 plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.casino.enabled", req.minigameCasinoEnabled);
                 if (req.publicFeaturesText != null) {
@@ -487,8 +495,14 @@ public class WebManager {
                     if (p != null && p.isOnline()) {
                         map.put("online", true);
                         map.put("ping", p.getPing());
-                        map.put("health", p.getHealth());
-                        map.put("maxHealth", p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue());
+                        try {
+                            map.put("health", p.getHealth());
+                            org.bukkit.attribute.AttributeInstance attr = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+                            map.put("maxHealth", attr != null ? attr.getValue() : 20.0);
+                        } catch (Throwable ignored) {
+                            map.put("health", 20.0);
+                            map.put("maxHealth", 20.0);
+                        }
                     } else {
                         map.put("online", false);
                         map.put("ping", 0);
@@ -521,7 +535,9 @@ public class WebManager {
 
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
+                        plugin.getFoliaLib().getScheduler().runAtEntity(target, tEntity -> {
+                            target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
+                        });
                         plugin.getLogger().info("Web panel kicked " + req.playerName);
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, java.awt.Color.ORANGE);
                     }
@@ -537,7 +553,9 @@ public class WebManager {
                     org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                     banList.addBan(profile, "<red>" + reason, expires, "WebAdmin");
                     if (target != null) {
-                        target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été banni.<br><gray>Raison : " + reason));
+                        plugin.getFoliaLib().getScheduler().runAtEntity(target, tEntity -> {
+                            target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été banni.<br><gray>Raison : " + reason));
+                        });
                     }
                     plugin.getLogger().info("Web panel banned " + req.playerName);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);

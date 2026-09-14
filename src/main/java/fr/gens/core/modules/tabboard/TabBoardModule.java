@@ -67,7 +67,7 @@ public class TabBoardModule implements Module, Listener {
         // Initialisation pour les joueurs déjà en ligne (ex: reload)
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
-            setupBoard(p);
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> setupBoard(p));
         }
 
         // Tâche de mise à jour toutes les secondes (20 ticks)
@@ -86,7 +86,9 @@ public class TabBoardModule implements Module, Listener {
         }
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
-            p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+                p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            });
         }
         boards.clear();
         cachedScoreboardLines = null;
@@ -128,21 +130,19 @@ public class TabBoardModule implements Module, Listener {
 
         if (invalidatePrefix) prefixCache.clear();
 
-        // Mise à jour des nametags une seule fois pour tous les joueurs (pas O(n²))
-        if (updateNametag) {
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                if (p == null) continue;
-                GensScoreboard board = boards.get(p.getUniqueId());
-                if (board != null) updateNametags(board.getScoreboard());
-            }
-        }
-
+        final boolean doUpdateNametag = updateNametag;
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p == null) continue;
-            GensScoreboard board = boards.get(p.getUniqueId());
+            if (p == null || !p.isOnline()) continue;
+            final GensScoreboard board = boards.get(p.getUniqueId());
             if (board != null) {
-                updateScoreboard(p, board);
-                updateTabList(p);
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+                    if (!p.isOnline()) return;
+                    if (doUpdateNametag) {
+                        updateNametags(board.getScoreboard());
+                    }
+                    updateScoreboard(p, board);
+                    updateTabList(p);
+                });
             }
         }
     }

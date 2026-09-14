@@ -1,6 +1,7 @@
 package fr.gens.core.modules;
 
 import fr.gens.core.CorePlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -107,6 +108,11 @@ public class FastLeafDecayModule implements Module, Listener {
                     Block current = queue.poll();
                     checksThisTick++;
                     
+                    // Si le bloc actuel n'est pas possédé par la région locale, on ignore
+                    if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(current.getLocation())) {
+                        continue;
+                    }
+
                     // Si cette feuille est encore proche d'une bûche, on arrête de détruire ce côté
                     if (isCloseToLog(current)) {
                         continue;
@@ -128,6 +134,9 @@ public class FastLeafDecayModule implements Module, Listener {
                         for (int y = -1; y <= 1; y++) {
                             for (int z = -1; z <= 1; z++) {
                                 Block neighbor = current.getRelative(x, y, z);
+                                if (plugin.getFoliaLib().isFolia() && !Bukkit.isOwnedByCurrentRegion(neighbor.getLocation())) {
+                                    continue;
+                                }
                                 if (isLeaf(neighbor.getType()) && !visited.contains(neighbor)) {
                                     queue.add(neighbor);
                                     visited.add(neighbor);

@@ -127,7 +127,7 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                    .addOption(OptionType.STRING, "nouveau_mdp", "Votre nouveau mot de passe", true)
                    .queue();
                 
-                plugin.getServer().getPluginManager().registerEvents(this, plugin);
+                plugin.getFoliaLib().getScheduler().runNextTick(task -> plugin.getServer().getPluginManager().registerEvents(this, plugin));
 
                 sendBotMessage("🟢 **Le serveur a démarré !**");
                 
@@ -495,8 +495,10 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                     prefix = platformPrefix + prefix;
                 }
                 
-                String finalMessage = "<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>» <gray>" + event.getMessage().getContentDisplay();
-                Bukkit.getServer().broadcast(fr.gens.core.utils.PlaceholderUtils.parseToComponent(finalMessage.replace("§", "").replace("&", "")));
+                String discordContent = event.getMessage().getContentDisplay();
+                net.kyori.adventure.text.Component prefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue>[Discord] " + prefix + guild + "<white>" + playerName + " <dark_gray>» ");
+                net.kyori.adventure.text.Component contentComp = net.kyori.adventure.text.Component.text(discordContent, net.kyori.adventure.text.format.NamedTextColor.GRAY);
+                Bukkit.getServer().broadcast(prefixComp.append(contentComp));
             });
         }
     }
