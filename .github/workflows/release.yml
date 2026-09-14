@@ -123,22 +123,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to Modrinth
-        if: steps.meta.outputs.is_draft == 'false' && env.MODRINTH_TOKEN != ''
-        uses: Kirigami/minotaur@v2
-        with:
-          token: ${{ secrets.MODRINTH_TOKEN }}
-          project_id: "genscore"
-          version_number: ${{ steps.meta.outputs.version }}
-          version_name: ${{ steps.meta.outputs.release_name }}
-          version_type: ${{ steps.meta.outputs.is_prerelease == 'true' && 'beta' || 'release' }}
-          loaders: |
-            paper
-            folia
-            purpur
-          game_versions: |
-            26.2
-          files: ${{ steps.jar.outputs.path }}
-        env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
