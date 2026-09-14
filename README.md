@@ -4,8 +4,8 @@
 
 **GensCore** is a comprehensive core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all the essential server mechanics into a single, optimized plugin, offering excellent performance while avoiding the need to manage dozens of separate small plugins. It is fully compatible with **Paper** and **Folia**!
 
-> **Looking for full commands, permissions, admin guides, and web panel docs?**
-> Check out the complete [**Comprehensive Documentation (DOCUMENTATION.md)**](DOCUMENTATION.md).
+> 🌐 **Official Documentation Website:** [**williambossard.github.io/GensCore**](https://williambossard.github.io/GensCore/)  
+> 📖 **Full offline reference:** [**Comprehensive Documentation (DOCUMENTATION.md)**](DOCUMENTATION.md).
 
 ## Included Features
 

@@ -36,6 +36,8 @@ ServeurTest/
 
 # Dependency directories
 node_modules/
+docs/.vitepress/dist/
+docs/.vitepress/cache/
 
 # Mac / Linux
 .DS_Store
