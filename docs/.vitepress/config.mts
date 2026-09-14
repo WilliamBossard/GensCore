@@ -7,11 +7,11 @@ export default defineConfig({
   cleanUrls: true,
 
   head: [
-    ['link', { rel: 'icon', href: 'https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg' }]
+    ['link', { rel: 'icon', href: '/GensCore/icon.png' }]
   ],
 
   themeConfig: {
-    logo: 'https://raw.githubusercontent.com/WilliamBossard/GensCore/dev/src/main/resources/icon.png',
+    logo: '/icon.png',
     siteTitle: 'GensCore',
 
     nav: [
