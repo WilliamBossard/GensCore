@@ -84,7 +84,11 @@ public class SpawnerLootGui implements Listener {
         openGuis.put(player.getUniqueId(), data);
         playerPages.put(player.getUniqueId(), page);
         
-        player.openInventory(inv);
+        if (moduleInstance != null && moduleInstance.getPlugin() != null) {
+            moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
+        } else {
+            player.openInventory(inv);
+        }
     }
     
     private static ItemStack createGuiItem(Material material, String name) {

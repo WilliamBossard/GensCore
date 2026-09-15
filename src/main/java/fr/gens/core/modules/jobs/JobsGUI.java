@@ -122,7 +122,7 @@ public class JobsGUI implements Listener {
             inv.setItem(slots[i], item);
         }
 
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
 
     private String createProgressBar(int percent) {
