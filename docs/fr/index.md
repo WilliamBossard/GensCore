@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "GensCore"
   text: "Core Paper & Folia Haute Performance"
-  tagline: "Moteur Survie & Faction autonome conçu pour Minecraft 26.2+ sur Java 25 (LTS)"
+  tagline: "Moteur Survie & Faction autonome conçu pour Minecraft 26.3+ sur Java 25 (LTS)"
   image:
     src: /icon.png
     alt: GensCore

@@ -1,6 +1,6 @@
 # GensCore
 
-![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.2+-red.svg)
+![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.3+-red.svg)
 
 **GensCore** is a comprehensive core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all the essential server mechanics into a single, optimized plugin, offering excellent performance while avoiding the need to manage dozens of separate small plugins. It is fully compatible with **Paper** and **Folia**!
 
@@ -41,7 +41,7 @@ GensCore is designed to be fully **autonomous**. It can run standalone without r
 * **[PlaceholderAPI](https://placeholderapi.com/):** For custom placeholder expansion resolution.
 
 ### Compatibility: Paper & Folia Only
-**GensCore is STRICTLY compatible with PaperMC and Folia (Minecraft 26.2+, Java 25+).** 
+**GensCore is STRICTLY compatible with PaperMC and Folia (Minecraft 26.3+, Java 25+).** 
 It will **not** start on a standard legacy Spigot server. The plugin relies on modern Paper APIs such as *Kyori Adventure (MiniMessage)* for text components, regional multi-threaded Folia schedulers (*FoliaLib*), and the *Cloud Command Framework* for Paper.
 
 ---

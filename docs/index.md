@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "GensCore"
   text: "High-Performance Paper & Folia Core"
-  tagline: "Autonomous Survival & Faction engine built for Minecraft 26.2+ on Java 25 (LTS)"
+  tagline: "Autonomous Survival & Faction engine built for Minecraft 26.3+ on Java 25 (LTS)"
   image:
     src: /icon.png
     alt: GensCore

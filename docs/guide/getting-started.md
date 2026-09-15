@@ -3,16 +3,16 @@
 <div style="display: flex; gap: 8px; margin: 1rem 0; flex-wrap: wrap;">
   <img src="https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg" alt="Paper and Folia" />
   <img src="https://img.shields.io/badge/Java-25+-blue.svg" alt="Java 25" />
-  <img src="https://img.shields.io/badge/Minecraft-26.2+-red.svg" alt="Minecraft 26.2" />
+  <img src="https://img.shields.io/badge/Minecraft-26.3+-red.svg" alt="Minecraft 26.3" />
 </div>
 
-**GensCore** is an all-in-one survival and faction core plugin developed for **PaperMC & Folia (Minecraft 26.2+)** running on **Java 25 (LTS)**.
+**GensCore** is an all-in-one survival and faction core plugin developed for **PaperMC & Folia (Minecraft 26.3+)** running on **Java 25 (LTS)**.
 
 ---
 
 ## Key Highlights
 
-- **Server Loaders Supported:** **PaperMC**, **Folia**, and **Purpur** (Minecraft 26.2+).
+- **Server Loaders Supported:** **PaperMC**, **Folia**, and **Purpur** (Minecraft 26.3+).
 - **Runtime Requirement:** **Java 25+** (uses modern JVM features, pattern matching, and ASM 9.10.1).
 - **Zero Mandatory Dependencies:** GensCore includes its own economy engine, SQLite database, container locking, and permission fallback.
 - **Cross-Play Out of the Box:** Native Bedrock support when Geyser & Floodgate are installed.

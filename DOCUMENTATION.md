@@ -1,6 +1,6 @@
 # GensCore - Comprehensive Feature, Command & Web Documentation
 
-Welcome to the official documentation for **GensCore**, the all-in-one survival/faction core plugin engineered for **PaperMC & Folia (Minecraft 26.2+)** running on **Java 25 (LTS)**.
+Welcome to the official documentation for **GensCore**, the all-in-one survival/faction core plugin engineered for **PaperMC & Folia (Minecraft 26.3+)** running on **Java 25 (LTS)**.
 
 ---
 
@@ -46,7 +46,7 @@ Welcome to the official documentation for **GensCore**, the all-in-one survival/
 
 GensCore is designed as an autonomous, self-contained server core replacing dozens of fragmented plugins.
 
-- **Engine Target:** **PaperMC** and **Folia** (Minecraft 26.2+).
+- **Engine Target:** **PaperMC** and **Folia** (Minecraft 26.3+).
 - **Runtime:** **Java 25 (LTS)** with Classfile 69 compatibility and ASM 9.10.1 shading.
 - **Concurrency & Folia Threading:** Utilizes *FoliaLib* for regional multi-threading. Global actions run on `GlobalRegionScheduler`, chunk tasks on `RegionScheduler`, and player actions on `EntityScheduler`. Console commands and inventory manipulations are isolated to prevent cross-thread synchronization crashes.
 - **Autonomous Database:** Embedded **SQLite** engine operating in **WAL (Write-Ahead Logging)** mode (`PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;`). No external SQL server is required, though transactions are thread-safe and isolated.
