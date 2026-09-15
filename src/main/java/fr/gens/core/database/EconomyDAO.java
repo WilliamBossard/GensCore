@@ -77,6 +77,33 @@ public class EconomyDAO {
         }
     }
 
+    public void saveBalancesBatch(Map<UUID, Double> balancesToSave) {
+        if (balancesToSave == null || balancesToSave.isEmpty()) return;
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO players_economy (uuid, balance) VALUES (?, ?) " +
+                    "ON CONFLICT(uuid) DO UPDATE SET balance=excluded.balance")) {
+                for (Map.Entry<UUID, Double> entry : balancesToSave.entrySet()) {
+                    if (entry.getKey() != null && entry.getValue() != null) {
+                        ps.setString(1, entry.getKey().toString());
+                        ps.setDouble(2, entry.getValue());
+                        ps.addBatch();
+                    }
+                }
+                ps.executeBatch();
+                conn.commit();
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public Map<UUID, Double> getTopBalances(int limit) {
         Map<UUID, Double> top = new LinkedHashMap<>();
         try (Connection conn = plugin.getDatabaseManager().getConnection();

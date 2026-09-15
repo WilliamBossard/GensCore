@@ -314,29 +314,34 @@ public class ModerationModule implements Module, Listener {
             return;
         }
         
-        Player targetOnline = Bukkit.getPlayer(targetName);
-        UUID targetUUID = null;
-        
-        if (targetOnline != null) {
-            targetUUID = targetOnline.getUniqueId();
-        } else {
-            for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-        if (op == null) continue;
-                String name = op.getName();
-                if (name != null && name.equalsIgnoreCase(targetName)) {
-                    targetUUID = op.getUniqueId();
-                    break;
+        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            Player targetOnline = Bukkit.getPlayer(targetName);
+            UUID targetUUID = null;
+
+            if (targetOnline != null) {
+                targetUUID = targetOnline.getUniqueId();
+            } else {
+                fr.gens.core.database.WebDAO webDAO = new fr.gens.core.database.WebDAO(plugin);
+                targetUUID = webDAO.getPlayerUuidByUsername(targetName);
+                if (targetUUID == null) {
+                    OfflinePlayer cached = Bukkit.getOfflinePlayerIfCached(targetName);
+                    if (cached != null) {
+                        targetUUID = cached.getUniqueId();
+                    } else {
+                        OfflinePlayer fallback = Bukkit.getOfflinePlayer(targetName);
+                        if (fallback != null && fallback.hasPlayedBefore()) {
+                            targetUUID = fallback.getUniqueId();
+                        }
+                    }
                 }
             }
-        }
-        
-        if (targetUUID == null) {
-            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_12");
-            return;
-        }
-        
-        final UUID finalUUID = targetUUID;
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+
+            if (targetUUID == null) {
+                plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_12");
+                return;
+            }
+
+            final UUID finalUUID = targetUUID;
             fr.gens.core.modules.auth.AuthModule authModule = (fr.gens.core.modules.auth.AuthModule) plugin.getModuleManager().getModule("auth");
             if (authModule == null || authModule.getAuthDAO().getAuthData(finalUUID) == null) {
                 plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_41");

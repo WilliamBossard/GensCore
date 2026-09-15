@@ -142,8 +142,15 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
 
   useEffect(() => {
     fetch(`${API_URL}/admin/config`, { headers: { 'Authorization': `Bearer ${password}` } })
-      .then(res => res.json())
-      .then(data => setConfig(data))
+      .then(res => {
+        if (res.status === 401) {
+          localStorage.removeItem('gens_admin_pwd');
+          onLogout();
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
+      .then(data => { if (data) setConfig(data); })
       .catch(console.error);
   }, [password]);
 
@@ -430,8 +437,15 @@ function AdminPlayers({ password }: { password: string }) {
 
   const fetchPlayers = () => {
     fetch(`${API_URL}/admin/players`, { headers: { 'Authorization': `Bearer ${password}` } })
-      .then(res => res.json())
-      .then(data => { setPlayers(data); setLoading(false); })
+      .then(res => {
+        if (res.status === 401) {
+          localStorage.removeItem('gens_admin_pwd');
+          window.location.reload();
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
+      .then(data => { if (data) setPlayers(data); setLoading(false); })
       .catch(() => setLoading(false));
   };
 
@@ -865,59 +879,110 @@ function AdminShop({ password }: { password: string }) {
     fetchShop();
   }, []);
 
+  const handleAuthError = () => {
+    alert('Votre session administrateur a expiré ou est invalide. Veuillez vous reconnecter.');
+    localStorage.removeItem('gens_admin_pwd');
+    window.location.reload();
+  };
+
   const deleteItem = async (categoryId: string, material: string) => {
     if (!confirm('Supprimer cet objet ?')) return;
     try {
-      await fetch(`${API_URL}/admin/shop/item/${categoryId}/${material}`, {
+      const res = await fetch(`${API_URL}/admin/shop/item/${categoryId}/${material}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${password}` }
       });
+      if (!res.ok) {
+        if (res.status === 401) return handleAuthError();
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Erreur lors de la suppression');
+        return;
+      }
       fetchShop();
-    } catch (err) {}
+    } catch (err) {
+      alert('Erreur de communication avec le serveur');
+    }
   };
 
   const deleteCategory = async (categoryId: string) => {
     if (!confirm('Supprimer cette catégorie et tous ses objets ?')) return;
     try {
-      await fetch(`${API_URL}/admin/shop/category/${categoryId}`, {
+      const res = await fetch(`${API_URL}/admin/shop/category/${categoryId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${password}` }
       });
+      if (!res.ok) {
+        if (res.status === 401) return handleAuthError();
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || 'Erreur lors de la suppression');
+        return;
+      }
+      fetchShop();
+    } catch (err) {
+      alert('Erreur de communication avec le serveur');
+    }
+  };
+
+  const toggleItemEnabled = async (categoryId: string, item: any) => {
+    try {
+      const res = await fetch(`${API_URL}/admin/shop/item`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
+        body: JSON.stringify({ categoryId, ...item, isEnabled: !item.isEnabled })
+      });
+      if (!res.ok && res.status === 401) {
+        handleAuthError();
+        return;
+      }
       fetchShop();
     } catch (err) {}
   };
 
-  const toggleItemEnabled = (categoryId: string, item: any) => {
-    fetch(`${API_URL}/admin/shop/item`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-      body: JSON.stringify({ categoryId, ...item, isEnabled: !item.isEnabled })
-    }).then(() => fetchShop());
-  };
-
   const submitCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`${API_URL}/admin/shop/category`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-      body: JSON.stringify({ id: catId, displayName: catName, icon: catIcon, items: [] })
-    });
-    setShowCatModal(false);
-    fetchShop();
+    try {
+      const res = await fetch(`${API_URL}/admin/shop/category`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
+        body: JSON.stringify({ id: catId, displayName: catName, icon: catIcon, items: [] })
+      });
+      if (!res.ok) {
+        if (res.status === 401) return handleAuthError();
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Erreur lors de l'ajout de la catégorie");
+        return;
+      }
+      setShowCatModal(false);
+      setCatId('');
+      setCatName('');
+      fetchShop();
+    } catch (err) {
+      alert("Erreur de connexion avec le serveur.");
+    }
   };
 
   const submitItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch(`${API_URL}/admin/shop/item`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-      body: JSON.stringify({
-        categoryId: editingCategoryId,
-        material: itemMat, baseBuyPrice: buyP, baseSellPrice: sellP, targetStock: targetS, isCommand: isCmd, commandToExecute: cmdExec, isEnabled: isEnabled
-      })
-    });
-    setShowItemModal(false);
-    fetchShop();
+    try {
+      const res = await fetch(`${API_URL}/admin/shop/item`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
+        body: JSON.stringify({
+          categoryId: editingCategoryId,
+          material: itemMat, baseBuyPrice: buyP, baseSellPrice: sellP, targetStock: targetS, isCommand: isCmd, commandToExecute: cmdExec, isEnabled: isEnabled
+        })
+      });
+      if (!res.ok) {
+        if (res.status === 401) return handleAuthError();
+        const err = await res.json().catch(() => ({}));
+        alert(err.error || "Erreur lors de l'enregistrement de l'objet");
+        return;
+      }
+      setShowItemModal(false);
+      fetchShop();
+    } catch (err) {
+      alert("Erreur de connexion avec le serveur.");
+    }
   };
 
   if (loading) return <div className="loading">Chargement...</div>;

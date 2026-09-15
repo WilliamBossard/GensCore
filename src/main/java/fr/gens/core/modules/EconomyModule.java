@@ -18,6 +18,7 @@ import org.bukkit.plugin.ServicePriority;
 
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 
@@ -171,23 +172,13 @@ public class EconomyModule implements Module, Listener {
      */
     private void saveBalances() {
         if (this.economyDAO == null) return;
-        plugin.getLogger().info("[EconomyModule] Sauvegarde synchrone des soldes en mémoire...");
-        int count = 0;
-        for (Map.Entry<UUID, Double> entry : balances.entrySet()) {
-            if (entry.getKey() != null && entry.getValue() != null) {
-                this.economyDAO.savePlayerBalance(entry.getKey(), entry.getValue());
-                count++;
-            }
-        }
+        plugin.getLogger().info("[EconomyModule] Sauvegarde synchrone (batch) des soldes en mémoire...");
+        Map<UUID, Double> allToSave = new HashMap<>(balances);
         synchronized (offlineCache) {
-            for (Map.Entry<UUID, Double> entry : offlineCache.entrySet()) {
-                if (entry.getKey() != null && entry.getValue() != null) {
-                    this.economyDAO.savePlayerBalance(entry.getKey(), entry.getValue());
-                    count++;
-                }
-            }
+            allToSave.putAll(offlineCache);
         }
-        plugin.getLogger().info("[EconomyModule] " + count + " soldes enregistrés avec succès.");
+        this.economyDAO.saveBalancesBatch(allToSave);
+        plugin.getLogger().info("[EconomyModule] " + allToSave.size() + " soldes enregistrés avec succès.");
     }
 
     private void savePlayerBalance(UUID uuid, double balance) {
