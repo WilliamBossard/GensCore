@@ -45,17 +45,19 @@ public class UpdateChecker implements Listener {
                         updateUrl = json.get("html_url").getAsString();
 
                         String currentVersion = plugin.getPluginMeta().getVersion();
+                        String normalizedCurrent = currentVersion != null && (currentVersion.startsWith("v") || currentVersion.startsWith("V")) ? currentVersion.substring(1) : currentVersion;
+                        String normalizedLatest = latestVersion != null && (latestVersion.startsWith("v") || latestVersion.startsWith("V")) ? latestVersion.substring(1) : latestVersion;
 
-                    if (!currentVersion.equalsIgnoreCase(latestVersion)) {
-                        updateAvailable = true;
-                        
-                        plugin.getLangManager().sendConsoleMessage("core.update_available_console_1");
-                        plugin.getLogger().warning("========================================");
-                        plugin.getLogger().warning("GensCore Update Available!");
-                        plugin.getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
-                        plugin.getLogger().warning("Download: " + updateUrl);
-                        plugin.getLogger().warning("========================================");
-                    }
+                        if (normalizedCurrent != null && normalizedLatest != null && !normalizedCurrent.equalsIgnoreCase(normalizedLatest)) {
+                            updateAvailable = true;
+                            
+                            plugin.getLangManager().sendConsoleMessage("core.update_available_console_1");
+                            plugin.getLogger().warning("========================================");
+                            plugin.getLogger().warning("GensCore Update Available!");
+                            plugin.getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
+                            plugin.getLogger().warning("Download: " + updateUrl);
+                            plugin.getLogger().warning("========================================");
+                        }
                 }
             } catch (Exception e) {
                 plugin.getLogger().warning("Failed to check for updates: " + e.getMessage());

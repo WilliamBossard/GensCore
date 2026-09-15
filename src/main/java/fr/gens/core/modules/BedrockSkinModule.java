@@ -48,12 +48,8 @@ public class BedrockSkinModule implements Module, Listener {
     @Override
     public void initDatabase(DatabaseManager dbManager) {
         dbManager.executeStatement("CREATE TABLE IF NOT EXISTS player_skins (uuid VARCHAR(36) PRIMARY KEY, hash VARCHAR(64), texture_value TEXT, texture_signature TEXT);");
-        try {
-            dbManager.executeStatement("ALTER TABLE player_skins ADD COLUMN texture_value TEXT;");
-        } catch (Exception ignored) {}
-        try {
-            dbManager.executeStatement("ALTER TABLE player_skins ADD COLUMN texture_signature TEXT;");
-        } catch (Exception ignored) {}
+        dbManager.addColumnIfNotExists("player_skins", "texture_value", "TEXT");
+        dbManager.addColumnIfNotExists("player_skins", "texture_signature", "TEXT");
     }
 
     @Override
