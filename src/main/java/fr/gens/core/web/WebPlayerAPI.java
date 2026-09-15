@@ -86,8 +86,10 @@ public class WebPlayerAPI implements Listener {
 
     public void registerRoutes() {
         post("/api/player/login", ctx -> {
+            String remoteIp = ctx.ip();
+            boolean isLocalProxy = "127.0.0.1".equals(remoteIp) || "0:0:0:0:0:0:0:1".equals(remoteIp) || "::1".equals(remoteIp);
             String forwarded = ctx.header("X-Forwarded-For");
-            String ip = (forwarded != null && !forwarded.isEmpty()) ? forwarded.split(",")[0].trim() : ctx.ip();
+            String ip = (isLocalProxy && forwarded != null && !forwarded.isEmpty()) ? forwarded.split(",")[0].trim() : remoteIp;
             long nowTime = System.currentTimeMillis();
             if (webManager.playerRateLimitReset.getOrDefault(ip, 0L) < nowTime) {
                 webManager.playerLoginRateLimit.remove(ip);

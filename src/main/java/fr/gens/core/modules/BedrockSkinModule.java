@@ -164,9 +164,13 @@ public class BedrockSkinModule implements Module, Listener {
                                             // du joueur ont déjà été reçus par les autres clients. Pour forcer le re-rendu
                                             // de la texture sans nécessiter une téléportation de monde, on alterne hidePlayer / showPlayer.
                                             for (Player other : Bukkit.getOnlinePlayers()) {
-                                                if (other != null && other.isOnline() && !other.equals(player) && other.canSee(player)) {
-                                                    other.hidePlayer(plugin, player);
-                                                    other.showPlayer(plugin, player);
+                                                if (other != null && other.isOnline() && !other.equals(player)) {
+                                                    plugin.getFoliaLib().getScheduler().runAtEntity(other, (otherTask) -> {
+                                                        if (other.isOnline() && other.canSee(player)) {
+                                                            other.hidePlayer(plugin, player);
+                                                            other.showPlayer(plugin, player);
+                                                        }
+                                                    });
                                                 }
                                             }
                                         });

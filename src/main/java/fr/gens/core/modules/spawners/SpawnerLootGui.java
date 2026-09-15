@@ -181,10 +181,12 @@ public class SpawnerLootGui implements Listener {
                             // Check if empty
                             int totalItems = data.getStoredItems().values().stream().mapToInt(Integer::intValue).sum();
                             if (totalItems == 0 && data.getStoredExp() == 0) {
-                                // Delete the chest
-                                data.getLocation().getBlock().setType(Material.AIR);
-                                moduleInstance.removeSpawner(data.getLocation());
-                                moduleInstance.getPlugin().getLangManager().sendMessage(player, "spawnerlootgui.msg_1");
+                                // Sur Folia, manipuler un bloc doit impérativement s'exécuter sur le RegionScheduler de sa position
+                                moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtLocation(data.getLocation(), (tLoc) -> {
+                                    data.getLocation().getBlock().setType(Material.AIR);
+                                    moduleInstance.removeSpawner(data.getLocation());
+                                    moduleInstance.getPlugin().getLangManager().sendMessage(player, "spawnerlootgui.msg_1");
+                                });
                             }
                         } else {
                             SpawnerGui.openGui(player, data);

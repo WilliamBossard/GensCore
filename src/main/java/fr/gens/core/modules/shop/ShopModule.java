@@ -362,7 +362,10 @@ public class ShopModule implements Module {
             
             if (shopItem.isCommand()) {
                 String cmd = shopItem.getCommandToExecute().replace("%player%", p.getName());
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                // Sur Folia, dispatchCommand avec la console doit s'exécuter sur le GlobalRegionScheduler
+                plugin.getFoliaLib().getScheduler().runNextTick((gt) -> {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                });
                 p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat validé ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
             } else {
                 Map<Integer, ItemStack> leftover = p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));

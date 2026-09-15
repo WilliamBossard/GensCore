@@ -36,6 +36,7 @@ public class WebManager {
     public final java.util.Map<String, Integer> playerLoginRateLimit = new java.util.concurrent.ConcurrentHashMap<>();
     public final java.util.Map<String, Long> playerRateLimitReset = new java.util.concurrent.ConcurrentHashMap<>();
     public final java.util.Map<String, Long> playerSessionExpiry = new java.util.concurrent.ConcurrentHashMap<>();
+    private com.tcoded.folialib.wrapper.task.WrappedTask sessionCleanupTask;
     private final fr.gens.core.database.WebDAO webDAO;
 
     public WebManager(CorePlugin plugin, int port) {
@@ -143,14 +144,15 @@ public class WebManager {
                         
                         String authHeader = ctx.header("Authorization");
                         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.unauthorized"));
+                            ctx.status(401).json(Map.of("error", "Unauthorized", "message", "En-tête d'autorisation manquant ou invalide"));
                             ctx.skipRemainingHandlers();
                             return;
                         }
                         String token = authHeader.substring(7);
                         if (!activeSessions.containsKey(token) || activeSessions.get(token) < System.currentTimeMillis()) {
                             activeSessions.remove(token);
-                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.session_expired"));
+                            webDAO.removeAdminSession(token);
+                            ctx.status(401).json(Map.of("error", "Unauthorized", "message", "Session expirée, veuillez vous reconnecter"));
                             ctx.skipRemainingHandlers();
                             return;
                         }
@@ -196,15 +198,20 @@ public class WebManager {
                         if (org.mindrot.jbcrypt.BCrypt.checkpw(req.password, storedHash)) {
                             loginRateLimit.remove(ip); // reset on success
                             String token = java.util.UUID.randomUUID().toString();
-                            activeSessions.put(token, System.currentTimeMillis() + (24L * 60 * 60 * 1000L)); // 24 hours
+                            long expiry = System.currentTimeMillis() + (24L * 60 * 60 * 1000L); // 24 hours
+                            activeSessions.put(token, expiry);
+                            webDAO.saveAdminSession(token, expiry);
                             ctx.json(new LoginResponse(token));
                         } else {
                             loginRateLimit.put(ip, attempts + 1);
-                            ctx.status(401).json(plugin.getLangManager().getRaw("webmanager.unauthorized"));
+                            ctx.status(401).json(Map.of("error", "Unauthorized", "message", "Mot de passe administrateur incorrect"));
                         }
                     });
                     
                     // Charger les sessions persistantes
+                    Map<String, Long> persistedAdmin = webDAO.loadValidAdminSessions();
+                    activeSessions.putAll(persistedAdmin);
+
                     Map<String, Map.Entry<String, Long>> persisted = webDAO.loadValidSessions();
                     for (Map.Entry<String, Map.Entry<String, Long>> entry : persisted.entrySet()) {
                         activePlayerSessions.put(entry.getKey(), entry.getValue().getKey());
@@ -220,9 +227,15 @@ public class WebManager {
             }).start(port);
             
             // Nettoyage périodique des sessions web expirées (Toutes les heures = 72000 ticks)
-            plugin.getFoliaLib().getScheduler().runTimerAsync((wrappedTask) -> {
+            this.sessionCleanupTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> {
                 long now = System.currentTimeMillis();
-                activeSessions.entrySet().removeIf(entry -> entry.getValue() < now);
+                activeSessions.entrySet().removeIf(entry -> {
+                    if (entry.getValue() < now) {
+                        webDAO.removeAdminSession(entry.getKey());
+                        return true;
+                    }
+                    return false;
+                });
             }, 72000L, 72000L);
             
             
@@ -309,6 +322,10 @@ public class WebManager {
     }
 
     public void stop() {
+        if (sessionCleanupTask != null) {
+            sessionCleanupTask.cancel();
+            sessionCleanupTask = null;
+        }
         if (app != null) {
             app.stop();
             plugin.getLangManager().sendConsoleMessage("webmanager.log_2");
@@ -692,60 +709,86 @@ public class WebManager {
 
         post("/api/admin/shop/category", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
+            if (shop == null) { ctx.status(404).json(Map.of("error", "Shop module disabled")); return; }
             
-            ShopCategory request = ctx.bodyAsClass(ShopCategory.class);
-            ShopCategory existing = shop.getCategory(request.getId());
+            CategoryRequest request = ctx.bodyAsClass(CategoryRequest.class);
+            if (request.id == null || request.id.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "ID de catégorie manquant"));
+                return;
+            }
+            String catId = request.id.trim().toLowerCase();
+            String displayName = (request.displayName != null && !request.displayName.trim().isEmpty()) ? request.displayName.trim() : catId;
+            Material icon = Material.CHEST;
+            if (request.icon != null && !request.icon.trim().isEmpty()) {
+                try {
+                    icon = Material.valueOf(request.icon.trim().toUpperCase());
+                } catch (IllegalArgumentException ignored) {}
+            }
+            
+            ShopCategory existing = shop.getCategory(catId);
             if (existing != null) {
-                existing.setDisplayName(request.getDisplayName());
-                existing.setIcon(request.getIcon());
+                existing.setDisplayName(displayName);
+                existing.setIcon(icon);
             } else {
-                shop.getCategories().add(request);
+                shop.getCategories().add(new ShopCategory(catId, displayName, icon));
             }
             shop.saveShop();
-            ctx.status(200).result("OK");
+            ctx.status(200).json(Map.of("success", true));
         });
 
         post("/api/admin/shop/item", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
+            if (shop == null) { ctx.status(404).json(Map.of("error", "Shop module disabled")); return; }
             
             ItemRequest req = ctx.bodyAsClass(ItemRequest.class);
-            ShopCategory cat = shop.getCategory(req.categoryId);
-            if (cat != null) {
-                ShopItem item = cat.getItem(Material.valueOf(req.material));
-                if (item != null) {
-                    item.setBaseBuyPrice(req.baseBuyPrice);
-                    item.setBaseSellPrice(req.baseSellPrice);
-                    item.setTargetStock(req.targetStock);
-                    item.setCommand(req.isCommand);
-                    if (req.isCommand && req.commandToExecute != null) {
-                        item.setCommandToExecute(req.commandToExecute);
-                    }
-                    item.setEnabled(req.isEnabled);
-                } else {
-                    item = new ShopItem(Material.valueOf(req.material), req.baseBuyPrice, req.baseSellPrice);
-                    item.setTargetStock(req.targetStock);
-                    item.setCommand(req.isCommand);
-                    if (req.isCommand && req.commandToExecute != null) {
-                        item.setCommandToExecute(req.commandToExecute);
-                    }
-                    item.setEnabled(req.isEnabled);
-                    cat.addItem(item);
-                }
-                shop.saveShop();
-                ctx.status(200).result("OK");
-            } else {
-                ctx.status(404).json("Categorie introuvable");
+            if (req.categoryId == null || req.material == null) {
+                ctx.status(400).json(Map.of("error", "Catégorie ou matériau manquant"));
+                return;
             }
+            ShopCategory cat = shop.getCategory(req.categoryId.trim().toLowerCase());
+            if (cat == null) {
+                ctx.status(404).json(Map.of("error", "Catégorie introuvable : " + req.categoryId));
+                return;
+            }
+            
+            Material mat;
+            try {
+                mat = Material.valueOf(req.material.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                ctx.status(400).json(Map.of("error", "Matériau Minecraft invalide : " + req.material));
+                return;
+            }
+            
+            ShopItem item = cat.getItem(mat);
+            if (item != null) {
+                item.setBaseBuyPrice(req.baseBuyPrice);
+                item.setBaseSellPrice(req.baseSellPrice);
+                item.setTargetStock(req.targetStock);
+                item.setCommand(req.isCommand);
+                if (req.isCommand && req.commandToExecute != null) {
+                    item.setCommandToExecute(req.commandToExecute);
+                }
+                item.setEnabled(req.isEnabled);
+            } else {
+                item = new ShopItem(mat, req.baseBuyPrice, req.baseSellPrice);
+                item.setTargetStock(req.targetStock);
+                item.setCommand(req.isCommand);
+                if (req.isCommand && req.commandToExecute != null) {
+                    item.setCommandToExecute(req.commandToExecute);
+                }
+                item.setEnabled(req.isEnabled);
+                cat.addItem(item);
+            }
+            shop.saveShop();
+            ctx.status(200).json(Map.of("success", true));
         });
 
         delete("/api/admin/shop/item/{category}/{material}", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
+            if (shop == null) { ctx.status(404).json(Map.of("error", "Shop module disabled")); return; }
             
             String catId = ctx.pathParam("category");
-            String matName = ctx.pathParam("material").toUpperCase();
+            String matName = ctx.pathParam("material").trim().toUpperCase();
             
             ShopCategory cat = shop.getCategory(catId);
             if (cat != null) {
@@ -755,18 +798,18 @@ public class WebManager {
                     // Suppression SQL
                     shop.deleteItem(catId, mat.name());
                     shop.saveShop();
-                    ctx.status(200).result("OK");
+                    ctx.status(200).json(Map.of("success", true));
                 } catch (IllegalArgumentException e) {
-                    ctx.status(400).json("Materiel invalide");
+                    ctx.status(400).json(Map.of("error", "Matériel invalide : " + matName));
                 }
             } else {
-                ctx.status(404).json("Categorie introuvable");
+                ctx.status(404).json(Map.of("error", "Catégorie introuvable : " + catId));
             }
         });
 
         delete("/api/admin/shop/category/{id}", ctx -> {
             ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
-            if (shop == null) { ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled")); return; }
+            if (shop == null) { ctx.status(404).json(Map.of("error", "Shop module disabled")); return; }
             
             String catId = ctx.pathParam("id");
             ShopCategory cat = shop.getCategory(catId);
@@ -775,9 +818,9 @@ public class WebManager {
                 shop.getCategories().remove(cat);
                 shop.deleteCategory(catId);
                 shop.saveShop();
-                ctx.status(200).result("OK");
+                ctx.status(200).json(Map.of("success", true));
             } else {
-                ctx.status(404).json("Categorie introuvable");
+                ctx.status(404).json(Map.of("error", "Catégorie introuvable : " + catId));
             }
         });
 
@@ -909,6 +952,13 @@ public class WebManager {
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class ToggleRequest {
         public boolean state;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CategoryRequest {
+        public String id;
+        public String displayName;
+        public String icon;
     }
 
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)

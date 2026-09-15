@@ -81,6 +81,11 @@ public class AuthModule implements Module, Listener {
         this.enabled = true;
         this.authDAO = new AuthDAO(plugin);
         this.authDAO.initDatabase();
+        if (!plugin.getConfigManager().getConfig("modules/auth.yml").contains("auth.auto_login_bedrock")) {
+            plugin.getConfigManager().getConfig("modules/auth.yml").set("auth.auto_login_bedrock", true);
+            plugin.getConfigManager().saveConfig("modules/auth.yml");
+        }
+
         Bukkit.getPluginManager().registerEvents(this, plugin);
         plugin.getLangManager().sendConsoleMessage("authmodule.log_1");
     }
@@ -325,6 +330,19 @@ public class AuthModule implements Module, Listener {
         UUID uuid = p.getUniqueId();
         
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            boolean autoAuthBedrock = plugin.getConfigManager().getConfig("modules/auth.yml").getBoolean("auth.auto_login_bedrock", true);
+            if (autoAuthBedrock && fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(uuid)) {
+                authenticated.add(uuid);
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t) -> {
+                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Auth] Authentifié automatiquement via votre compte Xbox Live / Bedrock."));
+                });
+                fr.gens.core.modules.discord.DiscordModule discord = (fr.gens.core.modules.discord.DiscordModule) plugin.getModuleManager().getModule("discord");
+                if (discord != null && discord.isEnabled()) {
+                    discord.logAuthEvent(p.getName(), "Connexion Bedrock (Xbox)", java.awt.Color.CYAN);
+                }
+                return;
+            }
+
             AuthDAO.AuthData data = authDAO.getAuthData(uuid);
             if (data != null) {
                 java.net.InetSocketAddress addr2 = p.getAddress();

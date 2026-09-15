@@ -168,7 +168,7 @@ public class TabBoardModule implements Module, Listener {
             configLines.add("");
             configLines.add("<white>En ligne: <aqua>%online%");
             configLines.add("<gray><strikethrough>--------------------");
-            configLines.add("<yellow>IP: <white>82.64.129.187");
+            configLines.add("<yellow>IP: <white>play.gens.fr");
             // Persist defaults and update cache
             plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.scoreboard.lines", configLines);
             plugin.getConfigManager().getConfig("modules/tabboard.yml").set("tabboard.scoreboard.title", "<gold><bold>Serveur");
