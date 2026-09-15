@@ -29,6 +29,7 @@ public class ShopModule implements Module {
     private fr.gens.core.database.ShopDAO shopDAO;
 
     public static double GLOBAL_INFLATION_EXPONENT = 0.5;
+    private final java.util.Map<UUID, Long> clickDebounce = new java.util.concurrent.ConcurrentHashMap<>();
 
     public ShopModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -305,6 +306,11 @@ public class ShopModule implements Module {
         public void onClick(InventoryClickEvent event) {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
+            long now = System.currentTimeMillis();
+            Long last = clickDebounce.get(p.getUniqueId());
+            if (last != null && now - last < 250) return;
+            clickDebounce.put(p.getUniqueId(), now);
+
             int slot = event.getSlot();
             if (slot >= 0 && slot < categories.size()) {
                 openItemsGui(p, categories.get(slot));
@@ -327,6 +333,11 @@ public class ShopModule implements Module {
         public void onClick(InventoryClickEvent event) {
             event.setCancelled(true);
             Player p = (Player) event.getWhoClicked();
+            long now = System.currentTimeMillis();
+            Long last = clickDebounce.get(p.getUniqueId());
+            if (last != null && now - last < 250) return;
+            clickDebounce.put(p.getUniqueId(), now);
+
             ItemStack clicked = event.getCurrentItem();
             if (clicked == null || clicked.getType() == Material.AIR) return;
 

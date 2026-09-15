@@ -30,6 +30,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
+import org.incendo.cloud.annotations.Default;
 
 public class AuthModule implements Module, Listener {
 
@@ -264,6 +265,52 @@ public class AuthModule implements Module, Listener {
         });
     }
 
+    @Command("login [password]")
+    public void onLoginCommand(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") @Default("") String password) {
+        if (password.trim().isEmpty()) {
+            plugin.getLangManager().sendMessage(sender, "error.invalid_syntax");
+            return;
+        }
+        executeLogin(sender, password.trim());
+    }
+
+    @Command("l [password]")
+    public void onLoginAliasCommand(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") @Default("") String password) {
+        onLoginCommand(sender, password);
+    }
+
+    @Command("register [password] [confirm]")
+    public void onRegisterCommand(
+            org.bukkit.command.CommandSender sender,
+            @Argument(value = "password", description = "Mot de passe") @Default("") String password,
+            @Argument(value = "confirm", description = "Confirmation du mot de passe") @Default("") String confirm
+    ) {
+        if (password.trim().isEmpty()) {
+            plugin.getLangManager().sendMessage(sender, "error.invalid_syntax");
+            return;
+        }
+        String finalConfirm = confirm.trim().isEmpty() ? password.trim() : confirm.trim();
+        executeRegister(sender, password.trim(), finalConfirm);
+    }
+
+    @Command("reg [password] [confirm]")
+    public void onRegisterAliasCommand(
+            org.bukkit.command.CommandSender sender,
+            @Argument(value = "password", description = "Mot de passe") @Default("") String password,
+            @Argument(value = "confirm", description = "Confirmation du mot de passe") @Default("") String confirm
+    ) {
+        onRegisterCommand(sender, password, confirm);
+    }
+
+    @Command("changepassword <oldPass> <newPass>")
+    public void executeChangePassword(
+            org.bukkit.command.CommandSender sender,
+            @Argument(value = "oldPass", description = "Ancien mot de passe") String oldPass,
+            @Argument(value = "newPass", description = "Nouveau mot de passe") String newPass
+    ) {
+        executeChangeMdp(sender, oldPass, newPass);
+    }
+
     @Command("changemdp <oldPass> <newPass>")
     public void executeChangeMdp(org.bukkit.command.CommandSender sender, @Argument(value = "oldPass", description = "Ancien mot de passe") String oldPass, @Argument(value = "newPass", description = "Nouveau mot de passe") String newPass) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
@@ -429,19 +476,9 @@ public class AuthModule implements Module, Listener {
             cmdName = cmdName.substring(colonIdx + 1);
         }
 
-        // 1. Auth check
-        if (cmdName.equals("login") || cmdName.equals("l") || cmdName.equals("register") || cmdName.equals("reg")) {
-            event.setCancelled(true);
-            String[] args = cmdArgs.split(" ");
-            if (args.length < 2) {
-                plugin.getLangManager().sendMessage(event.getPlayer(), "error.invalid_syntax");
-                return;
-            }
-            if (cmdName.equals("login") || cmdName.equals("l")) {
-                executeLogin(event.getPlayer(), args[1]);
-            } else {
-                executeRegister(event.getPlayer(), args[1], args.length > 2 ? args[2] : args[1]);
-            }
+        // 1. Auth check : laisser passer les commandes d'authentification pour exécution par Cloud
+        if (cmdName.equals("login") || cmdName.equals("l") || cmdName.equals("register") || cmdName.equals("reg")
+                || cmdName.equals("changemdp") || cmdName.equals("changepassword")) {
             return;
         }
 

@@ -424,19 +424,6 @@ public class TeleportHomeModule implements Module, Listener {
             }
         }
     }
-
-    @EventHandler
-    public void onInventoryClick(InventoryClickEvent event) {
-        if (!enabled) return;
-        if (event.getView().getTopInventory().getHolder() instanceof GensGuiHolder) {
-            GensGuiHolder holder = (GensGuiHolder) event.getView().getTopInventory().getHolder();
-            if (event.getClickedInventory() != null && event.getClickedInventory().equals(event.getView().getTopInventory())) {
-                holder.onClick(event);
-            } else if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY || event.getAction() == org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP) {
-                event.setCancelled(true);
-            }
-        }
-    }
 }
 
 

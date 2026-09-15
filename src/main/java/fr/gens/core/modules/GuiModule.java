@@ -58,7 +58,7 @@ public class GuiModule implements Module, Listener {
             if (clickedInv == null) return;
 
             if (!clickedInv.equals(topInv)) {
-                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY || event.getAction() == org.bukkit.event.inventory.InventoryAction.HOTBAR_SWAP) {
                     event.setCancelled(true);
                 }
                 return;

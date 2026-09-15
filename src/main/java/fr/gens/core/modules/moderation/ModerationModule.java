@@ -306,6 +306,11 @@ public class ModerationModule implements Module, Listener {
     }
 
 
+    @Command("resetpassword <target>")
+    public void executeResetPassword(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
+        executeResetMdp(sender, targetName);
+    }
+
     @Command("resetmdp <target>")
     public void executeResetMdp(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
         if (!enabled) return;
