@@ -828,7 +828,7 @@ public class QuestModule implements Module, Listener {
             }
         }
         
-        p.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openInventory(inv));
     }
 
     public static class QuestGuiHolder implements org.bukkit.inventory.InventoryHolder {

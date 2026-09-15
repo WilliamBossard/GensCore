@@ -102,7 +102,11 @@ public class SpawnerGui implements Listener {
         inv.setItem(42, createUpgradeItem("Capacité Stockage", Material.DIAMOND, data.getStorageLevel(), ecoEnabled));
 
         openGuis.put(player.getUniqueId(), data);
-        player.openInventory(inv);
+        if (moduleInstance != null && moduleInstance.getPlugin() != null) {
+            moduleInstance.getPlugin().getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
+        } else {
+            player.openInventory(inv);
+        }
     }
     
     private static void openBedrockGui(Player player, SpawnerData data) {

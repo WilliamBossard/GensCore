@@ -325,7 +325,7 @@ public class CustomGuiModule implements Module, Listener {
             }
             inv.setItem(entry.getKey(), item);
         }
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
     
     private void openDetailForm(Player p, CustomMenu menu, String fullText, String iconUrl, Material mat) {

@@ -158,7 +158,7 @@ public class TeamGui {
         leave.setItemMeta(lmeta);
         inv.setItem(44, leave);
 
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
 
     public void openTeamQuestGui(Player player, TeamData team) {
@@ -224,7 +224,7 @@ public class TeamGui {
             inv.setItem(22, pointsItem);
         }
         
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
 
     public static class TeamGuiHolder implements org.bukkit.inventory.InventoryHolder {

@@ -177,7 +177,7 @@ public class ShopModule implements Module {
             inv.setItem(i, item);
         }
 
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
 
     public void openItemsGui(Player player, ShopCategory category) {
@@ -247,7 +247,7 @@ public class ShopModule implements Module {
         back.setItemMeta(backMeta);
         inv.setItem(49, back);
 
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
 
     public void openBedrockItemAction(Player player, ShopCategory category, ShopItem item) {

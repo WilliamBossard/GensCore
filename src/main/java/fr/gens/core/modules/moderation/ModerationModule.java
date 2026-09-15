@@ -262,7 +262,7 @@ public class ModerationModule implements Module, Listener {
         }
         
         if (!plugin.getFoliaLib().isFolia()) {
-            p.openInventory(target.getInventory());
+            plugin.getFoliaLib().getScheduler().runAtEntity(p, t -> p.openInventory(target.getInventory()));
             return;
         }
 

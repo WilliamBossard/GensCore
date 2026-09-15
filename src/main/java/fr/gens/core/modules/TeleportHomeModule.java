@@ -283,7 +283,7 @@ public class TeleportHomeModule implements Module, Listener {
             inv.setItem(slot++, item);
         }
 
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
 
     private class HomeGuiHolder implements GensGuiHolder {
@@ -375,7 +375,7 @@ public class TeleportHomeModule implements Module, Listener {
         backItem.setItemMeta(backMeta);
         inv.setItem(8, backItem);
 
-        player.openInventory(inv);
+        plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
 
     private class ConfirmHomeGuiHolder implements GensGuiHolder {
