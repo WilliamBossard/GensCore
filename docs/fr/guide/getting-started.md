@@ -53,6 +53,10 @@ GensCore fonctionne de façon 100% autonome, mais étend automatiquement ses cap
 
 ---
 
+::: tip Lanceur Client Recommandé : Gens Launcher
+Pour offrir la meilleure expérience à vos joueurs (ressource packs, mods, synchronisation transparente), recommandez **[Gens Launcher](https://williambossard.github.io/Gens-Launcher/)**. Il intègre la configuration Java automatique, la synchronisation cloud (Horizon Delta Sync) et le support complet de Fabric, NeoForge et Forge.
+:::
+
 ## Prochaines Étapes
 
 - Consultez la [Liste complète des Commandes](/fr/guide/commands).

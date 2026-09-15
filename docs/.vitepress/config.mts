@@ -51,7 +51,8 @@ export default defineConfig({
           { text: 'Permissions', link: '/guide/permissions' },
           { text: 'Modules', link: '/guide/modules' },
           { text: 'Web Panel', link: '/guide/web-panel' },
-          { text: 'Config', link: '/guide/configuration' }
+          { text: 'Config', link: '/guide/configuration' },
+          { text: 'Gens Launcher', link: 'https://williambossard.github.io/Gens-Launcher/' }
         ],
         sidebar: [
           {
@@ -95,7 +96,8 @@ export default defineConfig({
           { text: 'Permissions', link: '/fr/guide/permissions' },
           { text: 'Modules', link: '/fr/guide/modules' },
           { text: 'Panel Web', link: '/fr/guide/web-panel' },
-          { text: 'Configuration', link: '/fr/guide/configuration' }
+          { text: 'Configuration', link: '/fr/guide/configuration' },
+          { text: 'Gens Launcher', link: 'https://williambossard.github.io/Gens-Launcher/' }
         ],
         sidebar: [
           {

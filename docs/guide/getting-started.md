@@ -53,6 +53,10 @@ GensCore operates 100% autonomously, but automatically enhances its capabilities
 
 ---
 
+::: tip Recommended Client: Gens Launcher
+For the best player experience when connecting to a GensCore server (automatic mod and resource pack sync, zero friction), recommend **[Gens Launcher](https://williambossard.github.io/Gens-Launcher/)**. It features automated Java setup, instant cloud sync (Horizon Delta Sync), and native support for Fabric, NeoForge, and Forge.
+:::
+
 ## Next Steps
 
 - Explore the complete [Commands Reference](/guide/commands).
