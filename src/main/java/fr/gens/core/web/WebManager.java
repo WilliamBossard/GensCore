@@ -502,11 +502,13 @@ public class WebManager {
                 
                 org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
                 
+                java.util.Set<java.util.UUID> addedUuids = new java.util.HashSet<>();
                 for (Map<String, Object> known : knownPlayers) {
                     String uuidStr = (String) known.get("uuid");
                     String name = (String) known.get("name");
                     if (uuidStr == null || name == null) continue;
                     java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
+                    addedUuids.add(uuid);
                     
                     Map<String, Object> map = new HashMap<>();
                     map.put("name", name);
@@ -538,6 +540,40 @@ public class WebManager {
                     
                     players.add(map);
                 }
+
+                // Récupération des joueurs bannis dans banned-players.json de Minecraft
+                // afin qu'ils apparaissent toujours dans le panel même après un reset de la BDD SQLite
+                try {
+                    for (org.bukkit.BanEntry<?> entry : banList.getEntries()) {
+                        Object targetObj = entry.getBanTarget();
+                        com.destroystokyo.paper.profile.PlayerProfile profile = (targetObj instanceof com.destroystokyo.paper.profile.PlayerProfile pp) ? pp : null;
+                        if (profile != null) {
+                            java.util.UUID bUuid = profile.getId();
+                            String bName = profile.getName();
+                            if (bUuid == null && bName != null) {
+                                org.bukkit.OfflinePlayer offP = plugin.getServer().getOfflinePlayer(bName);
+                                if (offP != null) bUuid = offP.getUniqueId();
+                            }
+                            if (bUuid != null && !addedUuids.contains(bUuid)) {
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("name", bName != null ? bName : "Inconnu");
+                                map.put("uuid", bUuid.toString());
+                                map.put("online", false);
+                                map.put("ping", 0);
+                                map.put("health", 0);
+                                map.put("maxHealth", 20.0);
+                                map.put("isBanned", true);
+                                map.put("isMuted", mod != null && mod.isMuted(bUuid));
+                                map.put("playtime", 0L);
+                                players.add(map);
+                                addedUuids.add(bUuid);
+                            }
+                        }
+                    }
+                } catch (Throwable t) {
+                    plugin.getLogger().warning("Erreur lors de la récupération des entrées de bannissement: " + t.getMessage());
+                }
+
                 future.complete(players);
             });
             ctx.json(future.join());
