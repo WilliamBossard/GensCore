@@ -5,6 +5,9 @@ hero:
   name: "GensCore"
   text: "High-Performance Paper & Folia Core"
   tagline: "Autonomous Survival & Faction engine built for Minecraft 26.2+ on Java 25 (LTS)"
+  image:
+    src: /icon.png
+    alt: GensCore
   actions:
     - theme: brand
       text: Get Started
@@ -30,9 +33,3 @@ features:
   - title: Autonomous SQLite Engine
     details: Embedded SQLite in WAL mode (Write-Ahead Logging). Runs 100% standalone without external SQL servers.
 ---
-
-<div style="text-align: center; margin-top: 2rem; padding: 1rem 0;">
-  <img src="https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg" alt="Paper and Folia" />
-  <img src="https://img.shields.io/badge/Java-25+-blue.svg" alt="Java 25" />
-  <img src="https://img.shields.io/badge/Minecraft-26.2+-red.svg" alt="Minecraft 26.2" />
-</div>
