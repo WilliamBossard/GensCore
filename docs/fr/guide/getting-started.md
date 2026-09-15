@@ -1,5 +1,11 @@
 # Démarrer avec GensCore
 
+<div style="display: flex; gap: 8px; margin: 1rem 0; flex-wrap: wrap;">
+  <img src="https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg" alt="Paper et Folia" />
+  <img src="https://img.shields.io/badge/Java-25+-blue.svg" alt="Java 25" />
+  <img src="https://img.shields.io/badge/Minecraft-26.2+-red.svg" alt="Minecraft 26.2" />
+</div>
+
 **GensCore** est un plugin core tout-en-un pour serveurs Survie et Faction, développé spécifiquement pour **PaperMC & Folia (Minecraft 26.2+)** sous **Java 25 (LTS)**.
 
 ---

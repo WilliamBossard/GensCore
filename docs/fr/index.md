@@ -5,6 +5,9 @@ hero:
   name: "GensCore"
   text: "Core Paper & Folia Haute Performance"
   tagline: "Moteur Survie & Faction autonome conçu pour Minecraft 26.2+ sur Java 25 (LTS)"
+  image:
+    src: /icon.png
+    alt: GensCore
   actions:
     - theme: brand
       text: Démarrage Rapide
@@ -30,9 +33,3 @@ features:
   - title: Moteur SQLite Autonome
     details: Base de données embarquée en mode WAL (Write-Ahead Logging). Fonctionne à 100% sans serveur SQL externe.
 ---
-
-<div style="text-align: center; margin-top: 2rem; padding: 1rem 0;">
-  <img src="https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg" alt="Paper et Folia" />
-  <img src="https://img.shields.io/badge/Java-25+-blue.svg" alt="Java 25" />
-  <img src="https://img.shields.io/badge/Minecraft-26.2+-red.svg" alt="Minecraft 26.2" />
-</div>
