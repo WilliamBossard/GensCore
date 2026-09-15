@@ -86,9 +86,17 @@ public class TabBoardModule implements Module, Listener {
         }
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null) continue;
-            plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
-                p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-            });
+            if (plugin.isEnabled()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+                    try {
+                        p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+                    } catch (Exception ignored) {}
+                });
+            } else {
+                try {
+                    p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+                } catch (Exception ignored) {}
+            }
         }
         boards.clear();
         cachedScoreboardLines = null;

@@ -139,14 +139,23 @@ public class LootModule implements Module, Listener {
         }
         // NOTE ARCHITECTURALE (Folia Entity Thread Safety) :
         // Sur Folia, inspecter ou fermer l'inventaire d'un joueur doit obligatoirement être exécuté
-        // sur le thread de région propre à cette entité via runAtEntity.
+        // sur le thread de région propre à cette entité via runAtEntity SI le plugin est actif.
+        // Lors d'un arrêt serveur (!plugin.isEnabled()), les tâches du scheduler sont interdites.
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p == null || !p.isOnline()) continue;
-            plugin.getFoliaLib().getScheduler().runAtEntity(p, (task) -> {
-                if (p.isOnline() && openVirtualInventories.containsKey(p.getOpenInventory().getTopInventory())) {
-                    p.closeInventory();
-                }
-            });
+            if (plugin.isEnabled()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, (task) -> {
+                    if (p.isOnline() && openVirtualInventories.containsKey(p.getOpenInventory().getTopInventory())) {
+                        p.closeInventory();
+                    }
+                });
+            } else {
+                try {
+                    if (openVirtualInventories.containsKey(p.getOpenInventory().getTopInventory())) {
+                        p.closeInventory();
+                    }
+                } catch (Exception ignored) {}
+            }
         }
         openVirtualInventories.clear();
         openVirtualInventoriesUUID.clear();
