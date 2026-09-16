@@ -119,27 +119,21 @@ public class ModuleManager {
         Module module = getModule(name);
         if (module == null) return false;
 
-        boolean changed = false;
         if (state && !module.isEnabled()) {
             module.enable();
-            changed = true;
         } else if (!state && module.isEnabled()) {
             module.disable();
-            changed = true;
         }
 
-        if (changed) {
-            org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
-            String modKey = module.getName().toLowerCase();
-            modulesConfig.set("modules." + modKey, state);
-            modulesConfig.set("modules." + modKey + ".enabled", state);
-            if ("minigames".equals(modKey)) {
-                modulesConfig.set("modules.minigame", state);
-            }
-            plugin.getConfigManager().saveConfig("modules.yml");
-            return true;
+        org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
+        String modKey = module.getName().toLowerCase();
+        modulesConfig.set("modules." + modKey, state);
+        modulesConfig.set("modules." + modKey + ".enabled", state);
+        if ("minigames".equals(modKey)) {
+            modulesConfig.set("modules.minigame", state);
         }
-        return false;
+        plugin.getConfigManager().saveConfig("modules.yml");
+        return true;
     }
 }
 

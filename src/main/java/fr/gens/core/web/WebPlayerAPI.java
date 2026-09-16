@@ -307,10 +307,20 @@ public class WebPlayerAPI implements Listener {
 
         get("/api/games/config", ctx -> {
             fr.gens.core.modules.Module minigamesModule = plugin.getModuleManager().getModule("minigames");
-            boolean moduleEnabled = minigamesModule == null || minigamesModule.isEnabled();
-            boolean wheelEnabled = moduleEnabled && plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
-            boolean casinoEnabled = moduleEnabled && plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
-            ctx.json(Map.of("wheelEnabled", wheelEnabled, "casinoEnabled", casinoEnabled, "enabled", moduleEnabled));
+            boolean moduleEnabled = minigamesModule != null 
+                    ? minigamesModule.isEnabled() 
+                    : plugin.getConfigManager().getConfig("modules.yml").getBoolean("modules.minigame", true);
+            boolean wheelConfig = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
+            boolean casinoConfig = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
+            boolean wheelEnabled = moduleEnabled && wheelConfig;
+            boolean casinoEnabled = moduleEnabled && casinoConfig;
+            boolean totalEnabled = moduleEnabled && (wheelConfig || casinoConfig);
+
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("wheelEnabled", wheelEnabled);
+            resp.put("casinoEnabled", casinoEnabled);
+            resp.put("enabled", totalEnabled);
+            ctx.json(resp);
         });
 
         get("/api/games/casino/inventory", ctx -> {

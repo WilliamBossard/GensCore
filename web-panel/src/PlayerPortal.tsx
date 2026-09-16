@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package, Gem, Crown, Coins, XCircle, Gift } from 'lucide-react';
-import { Route, Routes, Link, useLocation } from 'react-router-dom';
+import { Route, Routes, Link, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
 import { ClientJobs } from './ClientJobs';
@@ -210,7 +210,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
 
 function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, isEnabled?: boolean }) {
   const { t } = useTranslation();
-  const [config, setConfig] = useState({ wheelEnabled: true, casinoEnabled: true });
+  const [config, setConfig] = useState<{ wheelEnabled?: boolean, casinoEnabled?: boolean, enabled?: boolean }>({ wheelEnabled: true, casinoEnabled: true, enabled: true });
   
   // Wheel State
   const [spinResult, setSpinResult] = useState<string | null>(null);
@@ -218,16 +218,6 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
   const [error, setError] = useState<string | null>(null);
   const [rewards, setRewards] = useState<any[]>([]);
   const [rotation, setRotation] = useState(0);
-
-  if (isEnabled === false) {
-    return (
-      <div className="dashboard-content" style={{textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)'}}>
-        <Gamepad2 size={48} style={{opacity: 0.5, marginBottom: '1rem'}}/>
-        <h2>{t('web.public.games.disabled_title') || 'Mini-Jeux Désactivés'}</h2>
-        <p>{t('web.public.games.disabled_desc') || 'Ce module est actuellement désactivé par les administrateurs.'}</p>
-      </div>
-    );
-  }
 
   // Casino State
   const [casinoInventory, setCasinoInventory] = useState<any[]>([]);
@@ -249,6 +239,16 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
 
     fetchCasinoInventory();
   }, [uuid]);
+
+  if (isEnabled === false || config.enabled === false || (config.wheelEnabled === false && config.casinoEnabled === false)) {
+    return (
+      <div className="dashboard-content" style={{textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)'}}>
+        <Gamepad2 size={48} style={{opacity: 0.5, marginBottom: '1rem'}}/>
+        <h2>{t('web.public.games.disabled_title') || 'Mini-Jeux Désactivés'}</h2>
+        <p>{t('web.public.games.disabled_desc') || 'Ce module est actuellement désactivé par les administrateurs.'}</p>
+      </div>
+    );
+  }
 
   const fetchCasinoInventory = () => {
     fetch(`${API_URL}/games/casino/inventory?uuid=${uuid}`)
@@ -503,11 +503,17 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [modules, setModules] = useState<any[]>([]);
+  const [gamesConfig, setGamesConfig] = useState<{ wheelEnabled?: boolean, casinoEnabled?: boolean, enabled?: boolean } | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/modules`)
       .then(res => res.json())
       .then(data => setModules(data))
+      .catch(console.error);
+
+    fetch(`${API_URL}/games/config`)
+      .then(res => res.json())
+      .then(data => setGamesConfig(data))
       .catch(console.error);
   }, []);
 
@@ -515,6 +521,18 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
     if (modules.length === 0) return true;
     const mod = modules.find(m => m.name.toLowerCase() === name.toLowerCase());
     return mod ? mod.enabled : true;
+  };
+
+  const areGamesAvailable = () => {
+    if (modules.length > 0) {
+      const minigamesMod = modules.find(m => m.name.toLowerCase() === 'minigames' || m.name.toLowerCase() === 'minigame');
+      if (minigamesMod && !minigamesMod.enabled) return false;
+    }
+    if (gamesConfig) {
+      if (gamesConfig.enabled === false) return false;
+      if (gamesConfig.wheelEnabled === false && gamesConfig.casinoEnabled === false) return false;
+    }
+    return true;
   };
 
   return (
@@ -545,7 +563,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
           {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Map size={18}/> {t('web.nav.map')}</Link>}
           <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><BarChart2 size={18}/> {t('web.nav.stats')}</Link>
-          {(isModuleEnabled('minigames') && isModuleEnabled('minigame')) && (
+          {areGamesAvailable() && (
             <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''} onClick={() => setSidebarOpen(false)}>
               <Gamepad2 size={18}/> {t('web.nav.games')} <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>{t('web.nav.new')}</span>
             </Link>
@@ -575,7 +593,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           <Route path="jobs" element={<ClientJobs />} />
           <Route path="map" element={<ClientMap />} />
           <Route path="stats" element={<PlayerStats uuid={playerData.uuid} isEcoEnabled={isModuleEnabled('Economy')} />} />
-          <Route path="games" element={<PlayerGames uuid={playerData.uuid} token={playerData.token} isEnabled={isModuleEnabled('minigames') && isModuleEnabled('minigame')} />} />
+          <Route path="games" element={areGamesAvailable() ? <PlayerGames uuid={playerData.uuid} token={playerData.token} isEnabled={true} /> : <Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
     </div>

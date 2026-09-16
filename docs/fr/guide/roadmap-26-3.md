@@ -66,13 +66,13 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 
 ```mermaid
 flowchart LR
-    A[Build Paper 26.3 Alpha 5] --> B[Patch Cloud & Brigadier]
+    A[Build Paper 26.3 Alpha 6] --> B[Patch Cloud & Brigadier]
     B --> C[Tests & Stabilisation dev]
     C --> D[Release Candidate Paper 26.3]
     D --> E[Merge sur main & Release v1.1.0]
 ```
 
-1. **Phase 1 (Actuelle) :** Stabilisation sur la branche `dev` avec Paper 26.3 Build 5-alpha.
+1. **Phase 1 (Actuelle) :** Stabilisation sur la branche `dev` avec Paper 26.3 Build 6-alpha.
 2. **Phase 2 :** Validation des tests de stress (50+ joueurs simulés avec profilage Spark).
 3. **Phase 3 :** Sortie de la Release Candidate (RC) Paper 26.3.
 4. **Phase 4 :** Fusion sur la branche `main` et publication du package officiel GensCore v1.1.0.
@@ -80,6 +80,12 @@ flowchart LR
 ---
 
 ## Historique des patchs récents
+
+### Patch 26.3-alpha.6 (16 Septembre 2026)
+- **Paper API :** Mise à niveau vers l'API Paper `26.3.build.6-alpha`.
+- **Web Panel :** Masquage automatique de l'entrée « Mini-Jeux » dans la navigation joueur lorsque le module ou l'ensemble des jeux sont désactivés.
+- **Web Panel :** Redirection immédiate vers le tableau de bord principal en cas de tentative d'accès direct à une route de jeu désactivée.
+- **Traductions :** Ajout de la description française et anglaise du module `bedrockskin` et sécurisation des clés de traduction.
 
 ### Patch 26.3-alpha.5 (16 Septembre 2026)
 - **Fix :** Contournement résilient des erreurs de réflexion dans Cloud `ItemStackParser` sur Paper 26.3.
