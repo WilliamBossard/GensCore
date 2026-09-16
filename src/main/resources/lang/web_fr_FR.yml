@@ -18,6 +18,7 @@ web:
     modules_desc:
       auctionhouse: Hôtel des ventes entre joueurs.
       auth: Système de connexion pour serveurs offline.
+      bedrockskin: Gère les skins natifs pour les joueurs Bedrock et leurs avatars Web/Discord.
       bluemap: Intégration et marqueurs BlueMap.
       chat: Formatage du chat et gestion des préfixes/canaux.
       back: Commande de retour à la dernière position.
@@ -34,6 +35,7 @@ web:
       jobs: Système de métiers et de niveaux pour les joueurs.
       locks: Verrouillage des coffres et portes par panneaux.
       lootr: Génération de coffres de butin aléatoires dans le monde.
+      minigame: Jeux comme la roue de la fortune et le casino.
       minigames: Jeux comme la roue de la fortune et le casino.
       moderation: 'Outils pour le staff : ban, mute, kick, historique.'
       motd: Personnalisation du message de connexion du serveur.

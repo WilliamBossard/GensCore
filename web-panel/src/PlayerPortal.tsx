@@ -208,7 +208,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
   );
 }
 
-function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
+function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, isEnabled?: boolean }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState({ wheelEnabled: true, casinoEnabled: true });
   
@@ -218,6 +218,16 @@ function PlayerGames({ uuid, token }: { uuid: string, token: string }) {
   const [error, setError] = useState<string | null>(null);
   const [rewards, setRewards] = useState<any[]>([]);
   const [rotation, setRotation] = useState(0);
+
+  if (isEnabled === false) {
+    return (
+      <div className="dashboard-content" style={{textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)'}}>
+        <Gamepad2 size={48} style={{opacity: 0.5, marginBottom: '1rem'}}/>
+        <h2>{t('web.public.games.disabled_title') || 'Mini-Jeux Désactivés'}</h2>
+        <p>{t('web.public.games.disabled_desc') || 'Ce module est actuellement désactivé par les administrateurs.'}</p>
+      </div>
+    );
+  }
 
   // Casino State
   const [casinoInventory, setCasinoInventory] = useState<any[]>([]);
@@ -535,7 +545,11 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
           {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Map size={18}/> {t('web.nav.map')}</Link>}
           <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><BarChart2 size={18}/> {t('web.nav.stats')}</Link>
-          <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Gamepad2 size={18}/> {t('web.nav.games')} <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>{t('web.nav.new')}</span></Link>
+          {(isModuleEnabled('minigames') && isModuleEnabled('minigame')) && (
+            <Link to="/dashboard/games" className={location.pathname === '/dashboard/games' ? 'active' : ''} onClick={() => setSidebarOpen(false)}>
+              <Gamepad2 size={18}/> {t('web.nav.games')} <span style={{marginLeft: 'auto', background: 'var(--accent)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 'bold'}}>{t('web.nav.new')}</span>
+            </Link>
+          )}
           <Link to="/dashboard/jobs" className={location.pathname === '/dashboard/jobs' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Target size={18}/> {t('web.nav.jobs')}</Link>
           
           {playerData.isOp && (
@@ -561,7 +575,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           <Route path="jobs" element={<ClientJobs />} />
           <Route path="map" element={<ClientMap />} />
           <Route path="stats" element={<PlayerStats uuid={playerData.uuid} isEcoEnabled={isModuleEnabled('Economy')} />} />
-          <Route path="games" element={<PlayerGames uuid={playerData.uuid} token={playerData.token} />} />
+          <Route path="games" element={<PlayerGames uuid={playerData.uuid} token={playerData.token} isEnabled={isModuleEnabled('minigames') && isModuleEnabled('minigame')} />} />
         </Routes>
       </main>
     </div>

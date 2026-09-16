@@ -306,9 +306,11 @@ public class WebPlayerAPI implements Listener {
         });
 
         get("/api/games/config", ctx -> {
-            boolean wheelEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
-            boolean casinoEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
-            ctx.json(Map.of("wheelEnabled", wheelEnabled, "casinoEnabled", casinoEnabled));
+            fr.gens.core.modules.Module minigamesModule = plugin.getModuleManager().getModule("minigames");
+            boolean moduleEnabled = minigamesModule == null || minigamesModule.isEnabled();
+            boolean wheelEnabled = moduleEnabled && plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
+            boolean casinoEnabled = moduleEnabled && plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
+            ctx.json(Map.of("wheelEnabled", wheelEnabled, "casinoEnabled", casinoEnabled, "enabled", moduleEnabled));
         });
 
         get("/api/games/casino/inventory", ctx -> {
@@ -321,8 +323,18 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/games/casino/play", ctx -> {
+            fr.gens.core.modules.Module minigamesModule = plugin.getModuleManager().getModule("minigames");
+            if (minigamesModule != null && !minigamesModule.isEnabled()) {
+                ctx.json(Map.of("error", "Les mini-jeux sont actuellement désactivés par l'administration."));
+                return;
+            }
+            boolean casinoEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
+            if (!casinoEnabled) {
+                ctx.json(Map.of("error", "La machine à sous est actuellement désactivée."));
+                return;
+            }
             CasinoPlayRequest req = ctx.bodyAsClass(CasinoPlayRequest.class);
-            // Requete scurisee via l'intercepteur de WebManager
+            // Requete securisee via l'intercepteur de WebManager
             String sessionUuid = ctx.attribute("playerUuid"); 
             
             if (sessionUuid == null || req.betId <= 0) {
@@ -346,19 +358,30 @@ public class WebPlayerAPI implements Listener {
 
             // Casino Logic with Transaction via DAO
             Map<String, Object> result = webDAO.playCasino(sessionUuid, req.betId);
-            if (result.containsKey("error")) {
-                ctx.json(result);
-            } else {
-                ctx.json(result);
-            }
+            ctx.json(result);
         });
 
         get("/api/games/wheel", ctx -> {
+            fr.gens.core.modules.Module minigamesModule = plugin.getModuleManager().getModule("minigames");
+            if (minigamesModule != null && !minigamesModule.isEnabled()) {
+                ctx.json(java.util.Collections.emptyList());
+                return;
+            }
             List<WheelReward> activeRewards = getActiveWheelRewards();
             ctx.json(activeRewards);
         });
         
         post("/api/games/play", ctx -> {
+            fr.gens.core.modules.Module minigamesModule = plugin.getModuleManager().getModule("minigames");
+            if (minigamesModule != null && !minigamesModule.isEnabled()) {
+                ctx.json(Map.of("error", "Les mini-jeux sont actuellement désactivés par l'administration."));
+                return;
+            }
+            boolean wheelEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
+            if (!wheelEnabled) {
+                ctx.json(Map.of("error", "La roue de la fortune est actuellement désactivée."));
+                return;
+            }
             PlayRequest req = ctx.bodyAsClass(PlayRequest.class);
             String sessionUuidStr = ctx.attribute("playerUuid"); // Secure
             if (sessionUuidStr == null || req.gameId == null) {

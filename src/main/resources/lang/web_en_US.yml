@@ -18,6 +18,7 @@ web:
     modules_desc:
       auctionhouse: Auction house between players.
       auth: Login system for offline servers.
+      bedrockskin: Native Bedrock player skin support and Web/Discord avatar rendering.
       bluemap: BlueMap integration and markers.
       chat: Chat formatting and prefixes/channels management.
       back: Command to return to the last position.
@@ -34,6 +35,7 @@ web:
       jobs: Jobs system and leveling for players.
       locks: Locking of chests and doors via signs.
       lootr: Random loot chests generation in the world.
+      minigame: Games like fortune wheel and slot machine.
       minigames: Games like fortune wheel and slot machine.
       moderation: 'Staff tools: ban, mute, kick, history.'
       motd: Customization of the server login message.

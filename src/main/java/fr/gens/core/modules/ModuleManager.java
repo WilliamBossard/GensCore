@@ -66,13 +66,17 @@ public class ModuleManager {
         addModule(new AuctionHouseModule(plugin));
         addModule(new AuthModule(plugin));
         addModule(new BedrockSkinModule(plugin));
+        addModule(new MinigamesModule(plugin));
 
         plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 
         // Charger les états depuis modules.yml et les activer si besoin
         org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
         for (Module module : modules.values()) {
-            boolean shouldEnable = modulesConfig.getBoolean("modules." + module.getName().toLowerCase(), true);
+            String modKey = module.getName().toLowerCase();
+            boolean shouldEnable = modulesConfig.getBoolean("modules." + modKey, 
+                modulesConfig.getBoolean("modules." + modKey + ".enabled", 
+                    "minigames".equals(modKey) ? modulesConfig.getBoolean("modules.minigame", true) : true));
             if (shouldEnable) {
                 module.initDatabase(plugin.getDatabaseManager());
                 module.enable();
@@ -101,7 +105,10 @@ public class ModuleManager {
     }
 
     public Module getModule(String name) {
-        return modules.get(name.toLowerCase());
+        if (name == null) return null;
+        String lower = name.toLowerCase();
+        if ("minigame".equals(lower)) lower = "minigames";
+        return modules.get(lower);
     }
 
     public Collection<Module> getModules() {
@@ -123,7 +130,12 @@ public class ModuleManager {
 
         if (changed) {
             org.bukkit.configuration.file.FileConfiguration modulesConfig = plugin.getConfigManager().getConfig("modules.yml");
-            modulesConfig.set("modules." + module.getName().toLowerCase() + ".enabled", state);
+            String modKey = module.getName().toLowerCase();
+            modulesConfig.set("modules." + modKey, state);
+            modulesConfig.set("modules." + modKey + ".enabled", state);
+            if ("minigames".equals(modKey)) {
+                modulesConfig.set("modules.minigame", state);
+            }
             plugin.getConfigManager().saveConfig("modules.yml");
             return true;
         }

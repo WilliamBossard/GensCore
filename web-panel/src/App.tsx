@@ -774,8 +774,8 @@ function AdminModules({ password }: { password: string }) {
   const getCategory = (name: string) => {
     const n = name.toLowerCase();
     if (['economy', 'shop', 'dynamicshop', 'auctionhouse', 'jobs'].includes(n)) return t('web.admin.modules_cat.economy') || 'Économie & Commerce';
-    if (['quests', 'stats', 'spawners', 'loot', 'headdrop', 'minigame'].includes(n)) return t('web.admin.modules_cat.gameplay') || 'Joueurs & Gameplay';
-    if (['motd', 'tabboard', 'discord', 'gui', 'web'].includes(n)) return t('web.admin.modules_cat.interface') || 'Interface & Communication';
+    if (['quests', 'stats', 'spawners', 'loot', 'headdrop', 'minigame', 'minigames'].includes(n)) return t('web.admin.modules_cat.gameplay') || 'Joueurs & Gameplay';
+    if (['motd', 'tabboard', 'discord', 'gui', 'web', 'bedrockskin'].includes(n)) return t('web.admin.modules_cat.interface') || 'Interface & Communication';
     return t('web.admin.modules_cat.admin') || 'Administration & Utilitaires';
   };
 
@@ -821,7 +821,9 @@ function AdminModules({ password }: { password: string }) {
                     {mod.enabled ? <ToggleRight size={32}/> : <ToggleLeft size={32}/>}
                   </button>
                 </div>
-                <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4'}}>{t(`web.admin.modules_desc.${mod.name.toLowerCase()}`) || mod.description}</p>
+                <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.4'}}>
+                  {t(`web.admin.modules_desc.${mod.name.toLowerCase()}`, { defaultValue: mod.description })}
+                </p>
                 <div style={{marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid var(--card-border)', fontSize: '0.8rem'}}>
                   Statut : <strong style={{color: mod.enabled ? '#10b981' : '#ef4444'}}>{mod.enabled ? t('web.admin.active') : t('web.admin.inactive')}</strong>
                 </div>

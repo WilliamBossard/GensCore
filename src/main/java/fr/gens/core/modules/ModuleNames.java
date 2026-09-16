@@ -46,6 +46,8 @@ public final class ModuleNames {
     // Interface
     public static final String GUI          = "gui";
     public static final String TAB_BOARD    = "tabboard";
+    public static final String MINIGAMES    = "minigames";
+    public static final String BEDROCK_SKIN = "bedrockskin";
 
     // Intégrations
     public static final String BLUE_MAP     = "bluemap";
