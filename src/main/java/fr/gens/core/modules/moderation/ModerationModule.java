@@ -9,6 +9,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.OfflinePlayer;
+import org.bukkit.ban.ProfileBanList;
+import io.papermc.paper.ban.BanListType;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Default;
@@ -469,7 +471,7 @@ public class ModerationModule implements Module, Listener {
             
             java.util.Date expires = durationMs > 0 ? new java.util.Date(System.currentTimeMillis() + durationMs) : null;
             com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
-            org.bukkit.ban.ProfileBanList banList = Bukkit.getBanList(io.papermc.paper.ban.BanListType.PROFILE);
+            ProfileBanList banList = Bukkit.getBanList(BanListType.PROFILE);
             banList.addBan(profile, reason, expires, sender.getName());
             
             Player online = target.getPlayer();
@@ -526,7 +528,7 @@ public class ModerationModule implements Module, Listener {
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             if (target != null && target.getName() != null) {
                 com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(target.getUniqueId(), target.getName());
-                org.bukkit.ban.ProfileBanList banList = Bukkit.getBanList(io.papermc.paper.ban.BanListType.PROFILE);
+                ProfileBanList banList = Bukkit.getBanList(BanListType.PROFILE);
                 banList.pardon(profile);
                 sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Le joueur " + target.getName() + " a été débanni."));
                 sendDiscordLog("UNBAN", target.getName(), sender.getName(), "Pardonné", 0);

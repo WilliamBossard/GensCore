@@ -12,6 +12,8 @@ import fr.gens.core.modules.shop.ShopModule;
 import fr.gens.core.modules.headdrop.HeadDropModule;
 import fr.gens.core.modules.discord.DiscordModule;
 import org.bukkit.Material;
+import org.bukkit.ban.ProfileBanList;
+import io.papermc.paper.ban.BanListType;
 import java.awt.Color;
 
 import java.util.ArrayList;
@@ -500,7 +502,7 @@ public class WebManager {
                 List<Map<String, Object>> players = new ArrayList<>();
                 fr.gens.core.modules.moderation.ModerationModule mod = (fr.gens.core.modules.moderation.ModerationModule) plugin.getModuleManager().getModule("Moderation");
                 
-                org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
+                ProfileBanList banList = plugin.getServer().getBanList(BanListType.PROFILE);
                 
                 java.util.Set<java.util.UUID> addedUuids = new java.util.HashSet<>();
                 for (Map<String, Object> known : knownPlayers) {
@@ -607,7 +609,7 @@ public class WebManager {
                     String reason = req.reason != null && !req.reason.isEmpty() ? req.reason : "Banni par un Administrateur";
                     
                     com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
-                    org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
+                    ProfileBanList banList = plugin.getServer().getBanList(BanListType.PROFILE);
                     banList.addBan(profile, "<red>" + reason, expires, "WebAdmin");
                     if (target != null) {
                         plugin.getFoliaLib().getScheduler().runAtEntity(target, tEntity -> {
@@ -618,7 +620,7 @@ public class WebManager {
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("BAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.RED);
                 } else if ("unban".equalsIgnoreCase(req.action)) {
                     com.destroystokyo.paper.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(targetOffline.getUniqueId(), targetOffline.getName());
-                    org.bukkit.ban.ProfileBanList banList = plugin.getServer().getBanList(io.papermc.paper.ban.BanListType.PROFILE);
+                    ProfileBanList banList = plugin.getServer().getBanList(BanListType.PROFILE);
                     banList.pardon(profile);
                     if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("UNBAN", "Joueur : " + req.playerName + "\nAdmin : WebAdmin", Color.GREEN);
                 } else if ("mute".equalsIgnoreCase(req.action)) {
