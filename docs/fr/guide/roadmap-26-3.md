@@ -16,13 +16,13 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | Composant | Statut | Détails |
 | :--- | :---: | :--- |
 | **Compatibilité Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Compilé avec le flag `--release 25` et tests JVM réussis |
-| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.5-alpha` |
+| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.6-alpha` |
 | **Moteur Brigadier Paper** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Migration vers `PaperCommandManager` avec Tab-completion native |
 | **Cloud Reflection Patch** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Neutralisation du crash `ItemStackParser` lors du boot |
 | **Anti Double-Clic Shop** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Debounce 500ms par joueur dans le `CustomGuiModule` |
 | **Sync Bannissements** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Synchronisation SQLite ⟷ `banned-players.json` natif |
-| **Crossplay Bedrock (Geyser/Floodgate)** | <span style="color: #eab308; font-weight: 700;">En cours</span> | Suivi des builds Geyser 2.11+ et Floodgate pour 26.3 |
-| **Validation Folia Régionale** | <span style="color: #3b82f6; font-weight: 700;">Prévu</span> | Benchmarks multithread avec FoliaLib sous charge |
+| **Crossplay Bedrock (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Blindé</span> | Capture des `Throwable` et isolation Cumulus/Floodgate face aux changements de bytecode 26.3 |
+| **Validation Folia Régionale** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Élimination de `isPrimaryThread`, callbacks de téléportation asynchrone et décomposition cross-region |
 
 ---
 
@@ -80,6 +80,13 @@ flowchart LR
 ---
 
 ## Historique des patchs récents
+
+### Patch 26.3-alpha.7 (16 Septembre 2026)
+- **Compatibilité Folia :** Résolution du crash provoqué par `Bukkit.isPrimaryThread()` dans `EconomyModule`, assurant des transactions 100% thread-safe sur les schedulers régionaux Folia.
+- **Résilience Geyser / Floodgate :** Blindage de `BedrockSkinModule` et `BedrockFormManager` avec capture de `Throwable` pour neutraliser les `LinkageError` et `NoClassDefFoundError` durant la transition vers 26.3.
+- **Initialisation BDD Dynamique :** Correction de `ModuleManager` pour garantir l'exécution de `initDatabase()` lors de l'activation à chaud d'un module en jeu ou via le panel Web.
+- **Téléportation Asynchrone :** Prise en compte du callback `CompletableFuture<Boolean>` dans `TeleportUtil` pour confirmer le déplacement effectif du joueur.
+- **Workflow CI/CD :** Spécification exacte de `Paper 26.3.build.6-alpha` et de la compatibilité de branche dans les métadonnées de release GitHub.
 
 ### Patch 26.3-alpha.6 (16 Septembre 2026)
 - **Paper API :** Mise à niveau vers l'API Paper `26.3.build.6-alpha`.

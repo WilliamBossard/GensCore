@@ -16,13 +16,13 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | Component | Status | Details |
 | :--- | :---: | :--- |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Compiled with `--release 25` flag and verified on Temurin JVM 25 |
-| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.5-alpha` |
+| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.6-alpha` |
 | **Native Paper Brigadier** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Migrated to `PaperCommandManager` with full native Tab-completion |
 | **Cloud Reflection Patch** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Fixed startup crash in `ItemStackParser` caused by NMS changes |
 | **Shop Anti-Double Click** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Implemented 500ms per-player debounce filter in `CustomGuiModule` |
 | **Banlist Synchronization** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Full bidirectional sync between SQLite and native `banned-players.json` |
-| **Bedrock Cross-Play (Geyser/Floodgate)** | <span style="color: #eab308; font-weight: 700;">In Progress</span> | Tracking Geyser 2.11+ builds and Floodgate validation for 26.3 |
-| **Folia Regional Threading** | <span style="color: #3b82f6; font-weight: 700;">Planned</span> | Multi-threaded performance benchmarks with FoliaLib under load |
+| **Bedrock Cross-Play (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Hardened</span> | Catching `Throwable` across Cumulus forms & skin API against 26.3 linkage mismatches |
+| **Folia Regional Threading** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Eliminated `isPrimaryThread` exceptions, added async teleport callbacks & cross-region decay |
 
 ---
 
@@ -80,6 +80,13 @@ flowchart LR
 ---
 
 ## Recent Patch Notes
+
+### Patch 26.3-alpha.7 (September 16, 2026)
+- **Folia Thread Safety:** Resolved Folia crash caused by `Bukkit.isPrimaryThread()` in `EconomyModule`, making economy transactions fully safe on Folia regional schedulers.
+- **Geyser / Floodgate Resilience:** Hardened `BedrockSkinModule` and `BedrockFormManager` with `Throwable` exception handlers to catch JVM `LinkageError` and `NoClassDefFoundError` during the 26.3 transition.
+- **Database & Modules:** Fixed `ModuleManager` dynamic module toggling to ensure `initDatabase()` is called when a module is activated at runtime.
+- **Teleportation:** Added `CompletableFuture<Boolean>` confirmation handling to `TeleportUtil` for asynchronous regional teleports.
+- **CI/CD Workflow:** Updated release workflow compatibility specifications to explicitly state `Paper 26.3.build.6-alpha` and backward-compatible branch support.
 
 ### Patch 26.3-alpha.6 (September 16, 2026)
 - **Paper API:** Upgraded Paper API to `26.3.build.6-alpha`.

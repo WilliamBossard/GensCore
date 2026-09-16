@@ -65,7 +65,11 @@ public class BedrockFormManager {
 
     public static void openSimpleForm(Player player, String title, String content, List<BedrockButton> buttons) {
         if (!FloodgateUtil.isFloodgateInstalled()) return;
-        BedrockFormInternal.send(player, title, content, buttons);
+        try {
+            BedrockFormInternal.send(player, title, content, buttons);
+        } catch (Throwable t) {
+            org.bukkit.Bukkit.getLogger().warning("[BedrockFormManager] Impossible d'ouvrir le formulaire Bedrock pour " + player.getName() + " (Incompatibilité potentielle Floodgate/Cumulus 26.3) : " + t.getMessage());
+        }
     }
 
     /**

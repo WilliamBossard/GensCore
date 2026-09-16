@@ -120,6 +120,7 @@ public class ModuleManager {
         if (module == null) return false;
 
         if (state && !module.isEnabled()) {
+            module.initDatabase(plugin.getDatabaseManager());
             module.enable();
         } else if (!state && module.isEnabled()) {
             module.disable();

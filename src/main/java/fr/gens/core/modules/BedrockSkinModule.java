@@ -187,7 +187,7 @@ public class BedrockSkinModule implements Module, Listener {
                                 plugin.getLogger().warning("[BedrockSkinModule] Code de reponse inattendu : " + responseCode);
                                 success = true; // Pas la peine de reessayer si c'est une autre erreur 
                             }
-                        } catch (Exception e) {
+                        } catch (Throwable e) {
                             plugin.getLogger().warning("Impossible de recuperer le skin Bedrock pour " + player.getName() + " (Essai " + currentTry + ") : " + e.getMessage());
                             if (currentTry < maxTries) {
                                 try { Thread.sleep(2000L * currentTry); } catch(InterruptedException ignored){}

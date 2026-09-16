@@ -115,7 +115,7 @@ public class EconomyModule implements Module, Listener {
             return offlineCache.get(uuid);
         }
         
-        if (Bukkit.isPrimaryThread()) {
+        if (!plugin.getFoliaLib().isFolia() && Bukkit.isPrimaryThread()) {
             plugin.getLogger().warning("[EconomyModule] Requete SQL synchrone (Vault) declenchee pour " + uuid);
         }
         

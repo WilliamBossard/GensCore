@@ -25,8 +25,13 @@ public class TeleportUtil {
             cancelPendingTeleport(player.getUniqueId());
 
             if (cooldownSeconds <= 0 || player.hasPermission(bypassPermission) || player.hasPermission("genscore.bypass.cooldown.all")) {
-                player.teleportAsync(target);
-                player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Téléportation à " + destinationName + " réussie !</green>"));
+                player.teleportAsync(target).thenAccept(success -> {
+                    if (Boolean.TRUE.equals(success)) {
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Téléportation à " + destinationName + " réussie !</green>"));
+                    } else {
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>La téléportation a échoué.</red>"));
+                    }
+                });
                 return;
             }
 
@@ -54,10 +59,15 @@ public class TeleportUtil {
                 }
 
                 if (timeLeft.get() <= 0) {
-                    player.teleportAsync(target);
-                    player.sendActionBar(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Téléportation réussie !</green>"));
                     wrappedTask.cancel();
                     activeTeleports.remove(player.getUniqueId());
+                    player.teleportAsync(target).thenAccept(success -> {
+                        if (Boolean.TRUE.equals(success)) {
+                            player.sendActionBar(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Téléportation réussie !</green>"));
+                        } else {
+                            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>La téléportation a échoué.</red>"));
+                        }
+                    });
                     return;
                 }
 
