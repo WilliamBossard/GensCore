@@ -14,24 +14,47 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import java.util.stream.Collectors;
 import java.util.Arrays;
 
+import org.incendo.cloud.paper.PaperCommandManager;
+import io.papermc.paper.command.brigadier.CommandSourceStack;
+import java.lang.reflect.Proxy;
+
 public class CommandManager {
 
-    private LegacyPaperCommandManager<CommandSender> paperCommandManager;
+    private org.incendo.cloud.CommandManager<CommandSender> paperCommandManager;
     private AnnotationParser<CommandSender> annotationParser;
 
     public CommandManager(CorePlugin plugin) {
         try {
-            this.paperCommandManager = new LegacyPaperCommandManager<>(
-                plugin,
-                ExecutionCoordinator.asyncCoordinator(),
-                SenderMapper.identity()
-            );
-            
-            // Enregistrement manuel de Brigadier (requis pour LegacyPaperCommandManager dans Cloud V2)
-            if (this.paperCommandManager.hasCapability(org.incendo.cloud.bukkit.CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
-                this.paperCommandManager.registerBrigadier();
-            } else if (this.paperCommandManager.hasCapability(org.incendo.cloud.bukkit.CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
-                this.paperCommandManager.registerAsynchronousCompletions();
+            try {
+                SenderMapper<CommandSourceStack, CommandSender> mapper = SenderMapper.create(
+                    CommandSourceStack::getSender,
+                    sender -> (CommandSourceStack) Proxy.newProxyInstance(
+                        CommandSourceStack.class.getClassLoader(),
+                        new Class<?>[]{CommandSourceStack.class},
+                        (proxy, method, args) -> {
+                            if ("getSender".equals(method.getName())) return sender;
+                            if ("getLocation".equals(method.getName()) && sender instanceof org.bukkit.entity.Entity e) return e.getLocation();
+                            return null;
+                        }
+                    )
+                );
+                this.paperCommandManager = PaperCommandManager.builder(mapper)
+                    .executionCoordinator(ExecutionCoordinator.asyncCoordinator())
+                    .buildOnEnable(plugin);
+                plugin.getLogger().info("Cloud Command Framework initialisé avec succès via PaperCommandManager moderne (Brigadier).");
+            } catch (Throwable t) {
+                plugin.getLogger().warning("Modern PaperCommandManager non disponible, tentative avec LegacyPaperCommandManager: " + t.getMessage());
+                LegacyPaperCommandManager<CommandSender> legacyMgr = new LegacyPaperCommandManager<>(
+                    plugin,
+                    ExecutionCoordinator.asyncCoordinator(),
+                    SenderMapper.identity()
+                );
+                if (legacyMgr.hasCapability(org.incendo.cloud.bukkit.CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
+                    legacyMgr.registerBrigadier();
+                } else if (legacyMgr.hasCapability(org.incendo.cloud.bukkit.CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+                    legacyMgr.registerAsynchronousCompletions();
+                }
+                this.paperCommandManager = legacyMgr;
             }
             
             this.paperCommandManager.parserRegistry().registerSuggestionProvider("onlinePlayers", 
@@ -85,7 +108,7 @@ public class CommandManager {
         return annotationParser;
     }
     
-    public LegacyPaperCommandManager<CommandSender> getPaperCommandManager() {
+    public org.incendo.cloud.CommandManager<CommandSender> getPaperCommandManager() {
         return paperCommandManager;
     }
 }

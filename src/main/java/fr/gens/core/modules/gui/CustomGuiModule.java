@@ -365,7 +365,7 @@ public class CustomGuiModule implements Module, Listener {
         final String finalCmd = cmd;
         if (plugin.getCommandManager() != null) {
             try {
-                org.incendo.cloud.paper.LegacyPaperCommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
+                org.incendo.cloud.CommandManager<CommandSender> mgr = plugin.getCommandManager().getPaperCommandManager();
                 mgr.command(
                     mgr.commandBuilder(finalCmd)
                         .senderType(Player.class)
