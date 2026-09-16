@@ -41,7 +41,6 @@ import org.bukkit.inventory.ItemStack;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.incendo.cloud.brigadier.parser.WrappedBrigadierParser;
-import org.incendo.cloud.bukkit.BukkitCommandManager;
 import org.incendo.cloud.bukkit.data.ProtoItemStack;
 import org.incendo.cloud.bukkit.internal.CommandBuildContextSupplier;
 import org.incendo.cloud.bukkit.internal.CraftBukkitReflection;
@@ -54,8 +53,6 @@ import org.incendo.cloud.parser.ArgumentParser;
 import org.incendo.cloud.parser.ParserDescriptor;
 import org.incendo.cloud.suggestion.BlockingSuggestionProvider;
 import org.incendo.cloud.suggestion.SuggestionProvider;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Custom override of ItemStackParser to support Minecraft / Paper 26.3 without
