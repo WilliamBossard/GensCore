@@ -48,7 +48,7 @@ public class UpdateChecker implements Listener {
                         String normalizedCurrent = currentVersion != null && (currentVersion.startsWith("v") || currentVersion.startsWith("V")) ? currentVersion.substring(1) : currentVersion;
                         String normalizedLatest = latestVersion != null && (latestVersion.startsWith("v") || latestVersion.startsWith("V")) ? latestVersion.substring(1) : latestVersion;
 
-                        if (normalizedCurrent != null && normalizedLatest != null && !normalizedCurrent.equalsIgnoreCase(normalizedLatest)) {
+                        if (isNewer(normalizedLatest, normalizedCurrent)) {
                             updateAvailable = true;
                             
                             plugin.getLangManager().sendConsoleMessage("core.update_available_console_1");
@@ -57,12 +57,61 @@ public class UpdateChecker implements Listener {
                             plugin.getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
                             plugin.getLogger().warning("Download: " + updateUrl);
                             plugin.getLogger().warning("========================================");
+                        } else {
+                            plugin.getLogger().info("GensCore est a jour (Version: " + currentVersion + ", Derniere release GitHub: " + latestVersion + ").");
                         }
                 }
             } catch (Exception e) {
                 plugin.getLogger().warning("Failed to check for updates: " + e.getMessage());
             }
         });
+    }
+
+    public static boolean isNewer(String latest, String current) {
+        if (latest == null || current == null) {
+            return false;
+        }
+
+        String cleanLatest = latest.replaceAll("^[vV]", "").trim();
+        String cleanCurrent = current.replaceAll("^[vV]", "").trim();
+
+        if (cleanLatest.equalsIgnoreCase(cleanCurrent)) {
+            return false;
+        }
+
+        String[] latestParts = cleanLatest.split("[-_]");
+        String[] currentParts = cleanCurrent.split("[-_]");
+
+        String[] latestNumbers = latestParts[0].split("\\.");
+        String[] currentNumbers = currentParts[0].split("\\.");
+
+        int maxLen = Math.max(latestNumbers.length, currentNumbers.length);
+        for (int i = 0; i < maxLen; i++) {
+            int lat = 0;
+            int cur = 0;
+            if (i < latestNumbers.length) {
+                try {
+                    lat = Integer.parseInt(latestNumbers[i].replaceAll("\\D+", ""));
+                } catch (NumberFormatException ignored) {}
+            }
+            if (i < currentNumbers.length) {
+                try {
+                    cur = Integer.parseInt(currentNumbers[i].replaceAll("\\D+", ""));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            if (lat > cur) {
+                return true;
+            } else if (lat < cur) {
+                return false;
+            }
+        }
+
+        if (currentParts.length > 1 && latestParts.length == 1) {
+            return true;
+        }
+
+        return false;
     }
 
     @EventHandler
