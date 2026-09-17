@@ -809,25 +809,6 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
 
       {/* Main Content */}
       <main className="admin-main">
-        {/* Topbar Persistante avec le Widget de Solde */}
-        <header className="player-topbar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'white' }}>
-              {location.pathname === '/dashboard' && (t('web.nav.shop') || 'Boutique')}
-              {location.pathname === '/dashboard/ah' && (t('web.nav.ah') || 'Hôtel des Ventes')}
-              {location.pathname === '/dashboard/games' && (t('web.nav.games') || 'Mini-Jeux')}
-              {location.pathname === '/dashboard/jobs' && (t('web.nav.jobs') || 'Métiers')}
-              {location.pathname === '/dashboard/map' && (t('web.nav.map') || 'Carte')}
-              {location.pathname === '/dashboard/stats' && (t('web.nav.stats') || 'Statistiques')}
-              {location.pathname === '/dashboard/quests' && (t('web.nav.quests') || 'Quêtes')}
-            </h3>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <PlayerBalanceWidget uuid={playerData.uuid} token={playerData.token} variant="pill" />
-          </div>
-        </header>
-
         <Routes>
           <Route index element={<ClientShop isEnabled={isModuleEnabled('DynamicShop')} />} />
           <Route path="ah" element={<ClientAh isEnabled={isModuleEnabled('AuctionHouse')} />} />

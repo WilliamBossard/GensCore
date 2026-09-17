@@ -685,29 +685,6 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 }
 
 /* === WALLET & BALANCE WIDGET === */
-.player-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.85rem 1.5rem;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--card-border);
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  margin: -2rem -4rem 1.5rem -4rem;
-}
-
-@media (max-width: 768px) {
-  .player-topbar {
-    margin: -1rem -1rem 1rem -1rem;
-    padding: 0.75rem 1rem;
-    padding-left: 55px; /* space for mobile toggle */
-  }
-}
-
 .pulse-up {
   animation: pulseGreen 1.2s ease-out 2;
 }
