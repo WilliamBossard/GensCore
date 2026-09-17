@@ -70,7 +70,7 @@ public class CorePlugin extends JavaPlugin {
         // 1.5 Initialiser le gestionnaire de commandes Cloud
         this.commandManager = new CommandManager(this);
         
-        // 1.6 Vérification des mises à jour
+        // 1.6 Vérification des mises à jour (GitHub Releases)
         new UpdateChecker(this).checkForUpdates();
         
         // 2. Initialiser le gestionnaire de modules

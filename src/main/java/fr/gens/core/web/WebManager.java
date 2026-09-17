@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.ban.ProfileBanList;
 import io.papermc.paper.ban.BanListType;
 import java.awt.Color;
+import fr.gens.core.utils.PlaceholderUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -600,7 +601,7 @@ public class WebManager {
                 if ("kick".equalsIgnoreCase(req.action)) {
                     if (target != null) {
                         plugin.getFoliaLib().getScheduler().runAtEntity(target, tEntity -> {
-                            target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
+                            target.kick(PlaceholderUtils.parseToComponent("<red>Vous avez été expulsé par un Administrateur.<br><gray>Raison : " + (req.reason != null ? req.reason : "Aucune raison")));
                         });
                         plugin.getLogger().info("Web panel kicked " + req.playerName);
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("KICK", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + req.reason, java.awt.Color.ORANGE);
@@ -618,7 +619,7 @@ public class WebManager {
                     banList.addBan(profile, "<red>" + reason, expires, "WebAdmin");
                     if (target != null) {
                         plugin.getFoliaLib().getScheduler().runAtEntity(target, tEntity -> {
-                            target.kick(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez été banni.<br><gray>Raison : " + reason));
+                            target.kick(PlaceholderUtils.parseToComponent("<red>Vous avez été banni.<br><gray>Raison : " + reason));
                         });
                     }
                     plugin.getLogger().info("Web panel banned " + req.playerName);
@@ -637,7 +638,7 @@ public class WebManager {
                         mod.mutePlayer(targetOffline.getUniqueId(), reason, durationMs);
                         
                         if (target != null) {
-                            target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red><bold>Vous avez été rendu muet par le WebAdmin ! Raison : " + reason));
+                            target.sendMessage(PlaceholderUtils.parseToComponent("<red><bold>Vous avez été rendu muet par le WebAdmin ! Raison : " + reason));
                         }
                         if (discord != null && discord.isEnabled()) discord.sendBotLogEmbed("MUTE", "Joueur : " + req.playerName + "\nAdmin : WebAdmin\nRaison : " + reason, Color.YELLOW);
                     }
@@ -651,7 +652,7 @@ public class WebManager {
                     }
                 } else if ("message".equalsIgnoreCase(req.action)) {
                     if (target != null) {
-                        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<red>WebAdmin<dark_gray>] <gray>" + req.reason));
+                        target.sendMessage(PlaceholderUtils.parseToComponent("<dark_gray>[<red>WebAdmin<dark_gray>] <gray>" + req.reason));
                     }
                 }
             });

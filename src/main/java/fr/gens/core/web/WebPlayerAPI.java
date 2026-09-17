@@ -21,6 +21,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerJoinEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import fr.gens.core.utils.PlaceholderUtils;
 
 public class WebPlayerAPI implements Listener {
 
@@ -485,7 +486,7 @@ public class WebPlayerAPI implements Listener {
                 });
                 plugin.getFoliaLib().getScheduler().runAtEntity(target, (t2) -> {
                     if (target.isOnline()) {
-                        target.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Web] " + rewardMessage));
+                        target.sendMessage(PlaceholderUtils.parseToComponent("<green>[Web] " + rewardMessage));
                     }
                 });
             } else {

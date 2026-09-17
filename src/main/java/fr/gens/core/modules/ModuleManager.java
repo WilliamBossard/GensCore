@@ -34,7 +34,7 @@ public class ModuleManager {
     }
 
     public void registerModules() {
-        // Enregistrement manuel des modules. 
+        // Enregistrement manuel des modules GensCore.
         // NOTE AUX FUTURS DEVELOPPEURS : L'Auto-Discovery (org.reflections) a ete retire 
         // pour drastiquement ameliorer le temps de demarrage du plugin (Startup Time).
         // Vous devez ajouter manuellement chaque nouveau module ici !

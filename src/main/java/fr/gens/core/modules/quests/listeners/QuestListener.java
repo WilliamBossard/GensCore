@@ -2,7 +2,6 @@ package fr.gens.core.modules.quests.listeners;
 
 import fr.gens.core.modules.quests.QuestModule;
 import fr.gens.core.modules.quests.QuestType;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

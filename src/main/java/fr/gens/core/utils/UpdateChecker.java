@@ -38,7 +38,7 @@ public class UpdateChecker implements Listener {
                     int responseCode = conn.getResponseCode();
                     if (responseCode == HttpURLConnection.HTTP_OK) {
                         InputStreamReader reader = new InputStreamReader(conn.getInputStream());
-                        JsonObject json = new JsonParser().parse(reader).getAsJsonObject();
+                        JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
                         reader.close();
 
                         latestVersion = json.get("tag_name").getAsString();

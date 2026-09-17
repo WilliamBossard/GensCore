@@ -13,6 +13,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import net.kyori.adventure.text.Component;
+import fr.gens.core.utils.BedrockFormManager;
+import fr.gens.core.utils.BedrockFormManager.BedrockButton;
+import fr.gens.core.utils.FloodgateUtil;
+import fr.gens.core.utils.PlaceholderUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -203,16 +207,16 @@ public class ShopModule implements Module {
     }
 
     public void openCategoryGui(Player player) {
-        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
-            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+        if (FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            List<BedrockButton> buttons = new ArrayList<>();
             for (ShopCategory cat : categories) {
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(
+                buttons.add(new BedrockButton(
                     cat.getDisplayName() + "\n§8" + cat.getItems().size() + " objets",
                     cat.getIcon(),
                     p -> openItemsGui(p, cat)
                 ));
             }
-            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Boutique", "Sélectionnez une catégorie :", buttons);
+            BedrockFormManager.openSimpleForm(player, "Boutique", "Sélectionnez une catégorie :", buttons);
             return;
         }
 
@@ -226,11 +230,11 @@ public class ShopModule implements Module {
             ItemStack item = new ItemStack(cat.getIcon());
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
-                meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green><bold>" + cat.getDisplayName()));
-                List<String> lore = new ArrayList<>();
-                lore.add("<gray>" + cat.getItems().size() + " objets disponibles.");
-                lore.add("<yellow>Cliquez pour ouvrir !");
-                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+                meta.displayName(PlaceholderUtils.parseToComponent("<green><bold>" + cat.getDisplayName()));
+                List<Component> componentLore = new ArrayList<>();
+                componentLore.add(PlaceholderUtils.parseToComponent("<gray>" + cat.getItems().size() + " objets disponibles."));
+                componentLore.add(PlaceholderUtils.parseToComponent("<yellow>Cliquez pour ouvrir !"));
+                meta.lore(componentLore);
                 item.setItemMeta(meta);
             }
             inv.setItem(i, item);
@@ -244,9 +248,9 @@ public class ShopModule implements Module {
     }
 
     public void openItemsGui(Player player, ShopCategory category, int page) {
-        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
-            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§c§lRetour\n§r§8Menu Principal", org.bukkit.Material.BARRIER, p -> openCategoryGui(p)));
+        if (FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            List<BedrockButton> buttons = new ArrayList<>();
+            buttons.add(new BedrockButton("§c§lRetour\n§r§8Menu Principal", org.bukkit.Material.BARRIER, p -> openCategoryGui(p)));
 
             for (ShopItem item : category.getItems()) {
                 if (!item.isEnabled()) continue;
@@ -259,11 +263,11 @@ public class ShopModule implements Module {
                         btnText += " | §cVente: " + String.format("%.2f", item.getCurrentSellPrice()) + "$";
                     }
                 }
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, item.getMaterial(), p -> {
+                buttons.add(new BedrockButton(btnText, item.getMaterial(), p -> {
                     openBedrockItemAction(p, category, item);
                 }));
             }
-            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Shop - " + category.getDisplayName(), "Sélectionnez un objet :", buttons);
+            BedrockFormManager.openSimpleForm(player, "Shop - " + category.getDisplayName(), "Sélectionnez un objet :", buttons);
             return;
         }
 
@@ -288,7 +292,7 @@ public class ShopModule implements Module {
             ItemStack is = new ItemStack(item.getMaterial());
             ItemMeta meta = is.getItemMeta();
             if (meta != null) {
-                meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<white><bold>" + item.getMaterial().name()));
+                meta.displayName(PlaceholderUtils.parseToComponent("<white><bold>" + item.getMaterial().name()));
                 List<String> lore = new ArrayList<>();
                 lore.add("<dark_gray>Prix Dynamique (Inflation)");
                 lore.add("");
@@ -311,7 +315,11 @@ public class ShopModule implements Module {
                     }
                     lore.add("<dark_gray>(Shift pour x64)");
                 }
-                meta.lore(lore.stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent(s)).collect(java.util.stream.Collectors.toList()));
+                List<Component> componentLore = new ArrayList<>();
+                for (String l : lore) {
+                    componentLore.add(PlaceholderUtils.parseToComponent(l));
+                }
+                meta.lore(componentLore);
                 is.setItemMeta(meta);
             }
             inv.setItem(slot++, is);
@@ -356,37 +364,37 @@ public class ShopModule implements Module {
     }
 
     public void openBedrockItemAction(Player player, ShopCategory category, ShopItem item) {
-        java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+        List<BedrockButton> buttons = new ArrayList<>();
         
         if (item.isCommand()) {
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAcheter (x1)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice()) + "$", org.bukkit.Material.EMERALD, p -> {
+            buttons.add(new BedrockButton("§aAcheter (x1)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice()) + "$", org.bukkit.Material.EMERALD, p -> {
                 buyItem(p, item, 1);
                 openItemsGui(p, category);
             }));
         } else {
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAcheter (x1)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice()) + "$", org.bukkit.Material.EMERALD, p -> {
+            buttons.add(new BedrockButton("§aAcheter (x1)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice()) + "$", org.bukkit.Material.EMERALD, p -> {
                 buyItem(p, item, 1);
                 openItemsGui(p, category);
             }));
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAcheter (x64)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice() * 64) + "$", org.bukkit.Material.EMERALD_BLOCK, p -> {
+            buttons.add(new BedrockButton("§aAcheter (x64)\n§r§8" + String.format("%.2f", item.getCurrentBuyPrice() * 64) + "$", org.bukkit.Material.EMERALD_BLOCK, p -> {
                 buyItem(p, item, 64);
                 openItemsGui(p, category);
             }));
             if (item.getBaseSellPrice() > 0) {
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cVendre (x1)\n§r§8" + String.format("%.2f", item.getCurrentSellPrice()) + "$", org.bukkit.Material.REDSTONE, p -> {
+                buttons.add(new BedrockButton("§cVendre (x1)\n§r§8" + String.format("%.2f", item.getCurrentSellPrice()) + "$", org.bukkit.Material.REDSTONE, p -> {
                     sellItem(p, item, 1);
                     openItemsGui(p, category);
                 }));
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cVendre Tout\n§r§8Inventaire", org.bukkit.Material.REDSTONE_BLOCK, p -> {
+                buttons.add(new BedrockButton("§cVendre Tout\n§r§8Inventaire", org.bukkit.Material.REDSTONE_BLOCK, p -> {
                     sellAll(p, item);
                     openItemsGui(p, category);
                 }));
             }
         }
         
-        buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cRetour\n§r§8Objets", org.bukkit.Material.BARRIER, p -> openItemsGui(p, category)));
+        buttons.add(new BedrockButton("§cRetour\n§r§8Objets", org.bukkit.Material.BARRIER, p -> openItemsGui(p, category)));
 
-        fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Action: " + item.getMaterial().name(), "Que voulez-vous faire ?", buttons);
+        BedrockFormManager.openSimpleForm(player, "Action: " + item.getMaterial().name(), "Que voulez-vous faire ?", buttons);
     }
 
     private void sellAll(Player p, ShopItem item) {
