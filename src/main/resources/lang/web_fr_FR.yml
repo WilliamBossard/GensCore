@@ -311,15 +311,15 @@ web:
       deposit_hint_step3: Revenez ici ou ouvrez l'onglet Mes Objets Déposés pour le vendre en ligne d'un simple clic !
       withdraw_tip: "Astuce : pour récupérer vos objets déposés non vendus directement dans votre inventaire en jeu, tapez /web withdraw."
       instant_delivery_note: Distribution directe si vous êtes en ligne, ou automatique à votre prochaine reconnexion.
-      qty_modal_title: Choisir la quantité
-      qty_confirm_sell: Confirmer la vente
-      qty_confirm_withdraw: Confirmer la récupération
-      qty_cancel: Annuler
-      qty_available: Disponible :
-      slots_used: slots utilisés
-      slots_full: Inventaire de dépôt plein
-      sell_partial: Vendre {qty} unite(s)
-      withdraw_partial: Récupérer {qty} unite(s) en jeu
+      qty_modal_title: "Choisir la quantité"
+      qty_confirm_sell: "Confirmer la vente"
+      qty_confirm_withdraw: "Confirmer la récupération"
+      qty_cancel: "Annuler"
+      qty_available: "Disponible :"
+      slots_used: "slots utilisés"
+      slots_full: "Inventaire de dépôt plein"
+      sell_partial: "Vendre {qty} unité(s)"
+      withdraw_partial: "Récupérer {qty} unité(s) en jeu"
     stats:
       balance: Solde Bancaire
       best_team: Meilleure Guilde

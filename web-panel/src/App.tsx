@@ -1453,6 +1453,15 @@ function AdminShop({ password }: { password: string }) {
   );
 }
 
+// Helper global pour recuperer les donnees du joueur connecte
+export const getStoredPlayerData = () => {
+  try {
+    const saved = localStorage.getItem('gens_player_data');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+  return null;
+};
+
 // === COMPOSANTS : VUE CLIENT (BOUTIQUE JOUEUR DYNAMIQUE) ===
 export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
   const { t } = useTranslation();
@@ -1497,13 +1506,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
     setTimeout(() => setActionNotice(null), 6000);
   };
 
-  const getPlayerData = () => {
-    try {
-      const saved = localStorage.getItem('gens_player_data');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return null;
-  };
+  const getPlayerData = getStoredPlayerData;
 
   const fetchDeposited = () => {
     const p = getPlayerData();
@@ -1845,9 +1848,9 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
           ) : (
             <div className="shop-grid">
               {depositedItems.map(item => {
-                const sellPrice = item.currentSellPrice || item.baseSellPrice || 0;
-                const totalGain = sellPrice * item.amount;
-                const canSell = sellPrice > 0;
+                const sellPrice = item.unitSellPrice ?? item.currentSellPrice ?? item.baseSellPrice ?? 0;
+                const totalGain = item.totalSellPrice ?? (sellPrice * item.amount);
+                const canSell = item.canSell !== undefined ? item.canSell : sellPrice > 0;
 
                 return (
                   <div key={item.betId || item.material} className="shop-card" style={{border: '1px solid rgba(16, 185, 129, 0.3)'}}>
@@ -2425,17 +2428,98 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [actionNotice, setActionNotice] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+
+  const showActionNotice = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setActionNotice({ text, type });
+    setTimeout(() => setActionNotice(null), 6000);
+  };
+
+  const fetchAhItems = () => {
+    fetch(`${API_URL}/ah/items`)
+      .then(res => res.json())
+      .then(data => { setItems(data || []); setLoading(false); })
+      .catch(() => setLoading(false));
+  };
 
   useEffect(() => {
     if (isEnabled === false) {
       setLoading(false);
       return;
     }
-    fetch(`${API_URL}/ah/items`)
-      .then(res => res.json())
-      .then(data => { setItems(data || []); setLoading(false); })
-      .catch(() => setLoading(false));
+    fetchAhItems();
   }, [isEnabled]);
+
+  const handleBuyAh = async (item: any) => {
+    const p = getStoredPlayerData();
+    if (!p || !p.uuid) {
+      showActionNotice('Veuillez vous connecter à votre espace joueur pour acheter un objet.', 'error');
+      return;
+    }
+    const displayName = item.displayName || (item.material ? item.material.replace(/_/g, ' ') : `Offre #${item.id}`);
+    if (!window.confirm(`Confirmer l'achat de ${displayName} (x${item.amount || 1}) pour ${item.price.toFixed(2)} $ ?`)) {
+      return;
+    }
+    const headers: Record<string, string> = { 'Content-Type': 'application/json; charset=utf-8' };
+    if (p.token) headers['Authorization'] = `Bearer ${p.token}`;
+    if (p.uuid) headers['X-Player-UUID'] = p.uuid;
+
+    setIsProcessingAction(true);
+    try {
+      const res = await fetch(`${API_URL}/ah/buy`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ id: item.id })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showActionNotice(data.message || `Achat réussi (${item.price.toFixed(2)} $) ! L'objet vous a été livré en jeu (ou stocké pour votre reconnexion).`, 'success');
+        fetchAhItems();
+      } else {
+        showActionNotice(data.error || 'Erreur lors de la transaction.', 'error');
+      }
+    } catch (err) {
+      showActionNotice('Erreur réseau lors de l\'achat.', 'error');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleCancelAh = async (item: any) => {
+    const p = getStoredPlayerData();
+    if (!p || !p.uuid) {
+      showActionNotice('Veuillez vous connecter à votre espace joueur pour récupérer votre objet.', 'error');
+      return;
+    }
+    const displayName = item.displayName || (item.material ? item.material.replace(/_/g, ' ') : `Offre #${item.id}`);
+    if (!window.confirm(`Voulez-vous vraiment retirer votre offre de ${displayName} (x${item.amount || 1}) et récupérer l'objet ?`)) {
+      return;
+    }
+    const headers: Record<string, string> = { 'Content-Type': 'application/json; charset=utf-8' };
+    if (p.token) headers['Authorization'] = `Bearer ${p.token}`;
+    if (p.uuid) headers['X-Player-UUID'] = p.uuid;
+
+    setIsProcessingAction(true);
+    try {
+      const res = await fetch(`${API_URL}/ah/cancel`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ id: item.id })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showActionNotice(data.message || 'Offre retirée ! L\'objet vous a été restitué en jeu (ou stocké pour votre reconnexion).', 'success');
+        fetchAhItems();
+      } else {
+        showActionNotice(data.error || 'Erreur lors du retrait de l\'offre.', 'error');
+      }
+    } catch (err) {
+      showActionNotice('Erreur réseau lors du retrait de l\'offre.', 'error');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
 
   if (isEnabled === false) {
     return (
@@ -2459,8 +2543,37 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
     );
   }
 
+  const currentUser = getStoredPlayerData();
+
   return (
     <div>
+      {/* NOTICE TOAST / NOTIFICATION D'ACTION */}
+      {actionNotice && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 9999,
+          padding: '14px 20px',
+          borderRadius: '10px',
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          maxWidth: '420px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+          background: actionNotice.type === 'success' ? '#065f46' : actionNotice.type === 'error' ? '#991b1b' : '#1e3a8a',
+          border: `1px solid ${actionNotice.type === 'success' ? '#10b981' : actionNotice.type === 'error' ? '#ef4444' : '#3b82f6'}`,
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span>{actionNotice.text}</span>
+          <button onClick={() => setActionNotice(null)} style={{background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', marginLeft: 'auto'}}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <div className="client-hero" style={{padding: '2rem 0'}}>
         <h2>{t('web.public.ah.title')}</h2>
         <p>{t('web.public.ah.subtitle')}</p>
@@ -2492,6 +2605,8 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
           const isEnchanted = item.isEnchanted || (item.enchantments && item.enchantments.length > 0);
           const remainingDays = Math.max(0, Math.floor(((item.expireTime || Date.now()) - Date.now()) / (1000 * 60 * 60 * 24)));
           const unitPrice = item.price / (item.amount || 1);
+          const isOwner = (currentUser?.uuid && item.sellerUuid && currentUser.uuid === item.sellerUuid) ||
+                          (currentUser?.username && item.sellerName && currentUser.username.toLowerCase() === item.sellerName.toLowerCase());
 
           return (
             <div key={item.id} className={`ah-card ${isEnchanted ? 'enchanted-foil' : ''}`}>
@@ -2504,8 +2619,8 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
                 />
                 <div>
                   <div style={{fontWeight: 700, fontSize: '0.88rem', color: 'white'}}>{item.sellerName}</div>
-                  <span style={{fontSize: '0.68rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(59,130,246,0.15)', color: 'var(--accent)'}}>
-                    VENDEUR
+                  <span style={{fontSize: '0.68rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: isOwner ? 'rgba(245,158,11,0.15)' : 'rgba(59,130,246,0.15)', color: isOwner ? '#f59e0b' : 'var(--accent)'}}>
+                    {isOwner ? 'VOTRE OFFRE' : 'VENDEUR'}
                   </span>
                 </div>
                 <div style={{marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)'}}>#{item.id}</div>
@@ -2514,7 +2629,13 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
               <div style={{display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid var(--card-border)'}}>
                 <div className="mc-slot-box" style={{width: '50px', height: '50px'}}>
                   <div className="mc-item-icon" style={{width: '36px', height: '36px'}}>
-                    <img src={getMinecraftItemUrl(item.material || 'STONE')} alt={item.material} loading="lazy" decoding="async" />
+                    <img 
+                      src={getMinecraftItemUrl(item.material || 'STONE')} 
+                      alt={item.material} 
+                      loading="lazy" 
+                      decoding="async" 
+                      onError={handleMinecraftImageError}
+                    />
                   </div>
                 </div>
                 <div style={{flex: 1, minWidth: 0}}>
@@ -2541,13 +2662,52 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
                 </div>
               )}
 
-              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--card-border)', paddingTop: '12px', marginTop: 'auto'}}>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--card-border)', paddingTop: '12px', marginTop: 'auto', gap: '10px', flexWrap: 'wrap'}}>
                 <div>
                   <div style={{fontSize: '1.2rem', fontWeight: 800, color: '#10b981'}}>{item.price.toFixed(2)} $</div>
                   <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>{unitPrice.toFixed(2)} $ / unite</div>
+                  <div style={{fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px'}}>Expire dans {remainingDays}j</div>
                 </div>
-                <div style={{fontSize: '0.78rem', color: 'var(--text-muted)'}}>
-                  Expire dans {remainingDays}j
+                <div>
+                  {isOwner ? (
+                    <button
+                      className="login-button"
+                      style={{
+                        padding: '8px 14px',
+                        background: 'rgba(245, 158, 11, 0.15)',
+                        borderColor: 'rgba(245, 158, 11, 0.5)',
+                        color: '#fcd34d',
+                        cursor: isProcessingAction ? 'not-allowed' : 'pointer',
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
+                        borderRadius: '8px',
+                        opacity: isProcessingAction ? 0.6 : 1
+                      }}
+                      disabled={isProcessingAction}
+                      onClick={() => handleCancelAh(item)}
+                    >
+                      Récupérer mon objet
+                    </button>
+                  ) : (
+                    <button
+                      className="login-button"
+                      style={{
+                        padding: '8px 14px',
+                        background: '#10b981',
+                        borderColor: '#10b981',
+                        color: 'white',
+                        cursor: isProcessingAction ? 'not-allowed' : 'pointer',
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
+                        borderRadius: '8px',
+                        opacity: isProcessingAction ? 0.6 : 1
+                      }}
+                      disabled={isProcessingAction}
+                      onClick={() => handleBuyAh(item)}
+                    >
+                      Acheter ({item.price.toFixed(2)} $)
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

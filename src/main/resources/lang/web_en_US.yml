@@ -341,13 +341,13 @@ web:
       deposit_hint_step3: Come back here or open the My Deposited Items tab to sell it online with one click!
       withdraw_tip: "Tip: you can also retrieve unsold deposited items directly in-game with /web withdraw."
       instant_delivery_note: Direct delivery if you are online, or queued automatically for your next login.
-      qty_modal_title: Choose quantity
-      qty_confirm_sell: Confirm sale
-      qty_confirm_withdraw: Confirm retrieval
-      qty_cancel: Cancel
+      qty_modal_title: "Choose quantity"
+      qty_confirm_sell: "Confirm sale"
+      qty_confirm_withdraw: "Confirm retrieval"
+      qty_cancel: "Cancel"
       qty_available: "Available:"
-      slots_used: slots used
-      slots_full: Deposit inventory full
+      slots_used: "slots used"
+      slots_full: "Deposit inventory full"
       sell_partial: "Sell {qty} unit(s)"
       withdraw_partial: "Retrieve {qty} unit(s) in-game"
     stats:

@@ -308,6 +308,10 @@ public class AuctionHouseModule implements Module {
     }
 
     // --- WEB EXTENSION ---
+    public fr.gens.core.database.AuctionHouseDAO getAhDAO() {
+        return ahDAO;
+    }
+
     public java.util.List<java.util.Map<String, Object>> getAuctionItemsForWeb() {
         return ahDAO.getAuctionItemsForWeb();
     }

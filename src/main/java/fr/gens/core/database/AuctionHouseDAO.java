@@ -92,15 +92,39 @@ public class AuctionHouseDAO {
         }
     }
 
+    public AhItem getAuction(int id) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT id, seller_uuid, seller_name, price, item_data, expire_time FROM auction_house WHERE id = ?")) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new AhItem(
+                            rs.getInt("id"),
+                            rs.getString("seller_uuid"),
+                            rs.getString("seller_name"),
+                            rs.getDouble("price"),
+                            rs.getString("item_data"),
+                            rs.getLong("expire_time")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public List<Map<String, Object>> getAuctionItemsForWeb() {
         List<Map<String, Object>> ahItems = new ArrayList<>();
         try (Connection conn = plugin.getDatabaseManager().getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT id, seller_name, price, expire_time, item_data FROM auction_house ORDER BY id DESC LIMIT 100")) {
+                     "SELECT id, seller_uuid, seller_name, price, expire_time, item_data FROM auction_house ORDER BY id DESC LIMIT 100")) {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> ahItem = new HashMap<>();
                     ahItem.put("id", rs.getInt("id"));
+                    ahItem.put("sellerUuid", rs.getString("seller_uuid"));
                     ahItem.put("sellerName", rs.getString("seller_name"));
                     ahItem.put("price", rs.getDouble("price"));
                     ahItem.put("expireTime", rs.getLong("expire_time"));

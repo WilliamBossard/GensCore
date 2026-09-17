@@ -305,6 +305,16 @@ export const MINECRAFT_TEXTURE_MAP: Record<string, string> = {
   "totem_of_undying": "item/totem_of_undying",
   "trapped_chest": "item/chest_minecart",
   "trident": "item/trident",
+  "spear": "item/trident",
+  "lance": "item/trident",
+  "wooden_spear": "item/wooden_sword",
+  "stone_spear": "item/stone_sword",
+  "iron_spear": "item/iron_sword",
+  "golden_spear": "item/golden_sword",
+  "diamond_spear": "item/diamond_sword",
+  "netherite_spear": "item/netherite_sword",
+  "mace": "item/mace",
+  "pointed_dripstone": "item/pointed_dripstone",
   "tropical_fish": "item/tropical_fish",
   "tuff": "block/tuff",
   "tuff_bricks": "block/tuff_bricks",
@@ -327,6 +337,11 @@ export function getMinecraftItemUrl(material: string): string {
   
   if (MINECRAFT_TEXTURE_MAP[clean]) {
     return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/${MINECRAFT_TEXTURE_MAP[clean]}.png`;
+  }
+
+  // Fallback direct pour toute lance / spear personnalisee
+  if (clean.includes('spear') || clean.includes('lance')) {
+    return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/item/trident.png`;
   }
   
   // Dynamic fallback for any other material

@@ -54,3 +54,6 @@ maven/
 
 # Agent Scratch Folders
 scratch/
+
+# Database files
+*.db

@@ -801,6 +801,8 @@ public class WebManager {
                 }
                 Map<String, Object> map = new HashMap<>(item);
                 map.put("unitSellPrice", sellPrice);
+                map.put("currentSellPrice", sellPrice);
+                map.put("baseSellPrice", sellPrice);
                 map.put("totalSellPrice", Math.round(sellPrice * amount * 100.0) / 100.0);
                 map.put("canSell", isShopItem && sellPrice > 0);
                 result.add(map);
@@ -1265,6 +1267,171 @@ public class WebManager {
             } else {
                 ctx.status(404).result("AH module not found");
             }
+        });
+
+        // Achat d'une offre de l'Hôtel des Ventes (AH) depuis le Web
+        post("/api/ah/buy", ctx -> {
+            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            if (sessionUuid == null) {
+                ctx.status(401).json(Map.of("error", "Non connecté"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = ctx.bodyAsClass(Map.class);
+            if (body == null || !body.containsKey("id")) {
+                ctx.status(400).json(Map.of("error", "Paramètre id manquant"));
+                return;
+            }
+            int auctionId = ((Number) body.get("id")).intValue();
+
+            fr.gens.core.modules.AuctionHouseModule ah = (fr.gens.core.modules.AuctionHouseModule) plugin.getModuleManager().getModule("auctionhouse");
+            if (ah == null || ah.getAhDAO() == null) {
+                ctx.status(404).json(Map.of("error", "Module Hôtel des Ventes indisponible"));
+                return;
+            }
+
+            fr.gens.core.modules.AuctionHouseModule.AhItem ahItem = ah.getAhDAO().getAuction(auctionId);
+            if (ahItem == null) {
+                ctx.status(404).json(Map.of("error", "Cette offre n'existe plus ou a déjà été achetée."));
+                return;
+            }
+
+            if (sessionUuid.equals(ahItem.sellerUuid)) {
+                ctx.status(400).json(Map.of("error", "Vous ne pouvez pas acheter votre propre offre. Utilisez le bouton Récupérer."));
+                return;
+            }
+
+            EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
+            if (eco == null) {
+                ctx.status(500).json(Map.of("error", "Système économique indisponible."));
+                return;
+            }
+
+            UUID buyerUuid = UUID.fromString(sessionUuid);
+            double balance = eco.getBalance(buyerUuid);
+            if (balance < ahItem.price) {
+                ctx.status(400).json(Map.of("error", "Solde insuffisant (" + String.format("%.2f", balance) + " $ disponible, " + String.format("%.2f", ahItem.price) + " $ requis)."));
+                return;
+            }
+
+            if (!eco.takeMoneyAtomic(buyerUuid, ahItem.price)) {
+                ctx.status(400).json(Map.of("error", "Fonds insuffisants lors du débit."));
+                return;
+            }
+
+            if (!ah.getAhDAO().deleteAuction(auctionId)) {
+                // Déjà acheté ou retiré au même moment : remboursement immédiat !
+                eco.giveMoney(buyerUuid, ahItem.price);
+                ctx.status(409).json(Map.of("error", "Cette offre a été achetée ou retirée au même moment. Vous avez été remboursé."));
+                return;
+            }
+
+            // Calcul de la taxe et crédit au vendeur
+            double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
+            double taxAmount = ahItem.price * taxRate;
+            double sellerProfit = ahItem.price - taxAmount;
+            UUID sellerUuid = UUID.fromString(ahItem.sellerUuid);
+            eco.giveMoney(sellerUuid, sellerProfit);
+
+            // Notification du vendeur s'il est en ligne
+            Player seller = Bukkit.getPlayer(sellerUuid);
+            if (seller != null && seller.isOnline()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(seller, (ts) -> {
+                    if (taxAmount > 0) {
+                        seller.sendMessage(PlaceholderUtils.parseToComponent(
+                            "<green>[Hôtel des Ventes] Un joueur a acheté votre offre sur le Web ! Vous gagnez <yellow>" + String.format("%.2f", sellerProfit) + " $ <dark_gray>(Taxe: -" + String.format("%.2f", taxAmount) + " $)"));
+                    } else {
+                        seller.sendMessage(PlaceholderUtils.parseToComponent(
+                            "<green>[Hôtel des Ventes] Un joueur a acheté votre offre sur le Web pour <yellow>" + String.format("%.2f", ahItem.price) + " $ <green>!"));
+                    }
+                });
+            }
+
+            // Remise de l'objet à l'acheteur
+            ItemStack itemStack = fr.gens.core.utils.ItemSerializer.fromBase64(ahItem.itemData);
+            Player buyer = Bukkit.getPlayer(buyerUuid);
+            if (buyer != null && buyer.isOnline()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(buyer, (task) -> {
+                    if (itemStack != null) {
+                        for (ItemStack rem : buyer.getInventory().addItem(itemStack).values()) {
+                            buyer.getWorld().dropItemNaturally(buyer.getLocation(), rem);
+                        }
+                        buyer.sendMessage(PlaceholderUtils.parseToComponent(
+                            "<green>[Hôtel des Ventes] Vous avez acheté un objet sur le Web à <yellow>" + ahItem.sellerName + " <green>pour <yellow>" + String.format("%.2f", ahItem.price) + " $ <green>!"));
+                    }
+                });
+            } else {
+                // Hors-ligne : stocké dans player_web_rewards
+                webDAO.addWebReward(sessionUuid, itemStack != null ? itemStack.getType().name() : "ITEM", itemStack != null ? itemStack.getAmount() : 1, ahItem.itemData);
+            }
+
+            ctx.json(Map.of(
+                "success", true,
+                "message", "Achat effectué avec succès ! L'objet vous a été livré en jeu (ou placé dans vos récompenses en attente).",
+                "price", ahItem.price,
+                "newBalance", eco.getBalance(buyerUuid)
+            ));
+        });
+
+        // Annulation et récupération d'une offre AH par son vendeur depuis le Web
+        post("/api/ah/cancel", ctx -> {
+            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            if (sessionUuid == null) {
+                ctx.status(401).json(Map.of("error", "Non connecté"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = ctx.bodyAsClass(Map.class);
+            if (body == null || !body.containsKey("id")) {
+                ctx.status(400).json(Map.of("error", "Paramètre id manquant"));
+                return;
+            }
+            int auctionId = ((Number) body.get("id")).intValue();
+
+            fr.gens.core.modules.AuctionHouseModule ah = (fr.gens.core.modules.AuctionHouseModule) plugin.getModuleManager().getModule("auctionhouse");
+            if (ah == null || ah.getAhDAO() == null) {
+                ctx.status(404).json(Map.of("error", "Module Hôtel des Ventes indisponible"));
+                return;
+            }
+
+            fr.gens.core.modules.AuctionHouseModule.AhItem ahItem = ah.getAhDAO().getAuction(auctionId);
+            if (ahItem == null) {
+                ctx.status(404).json(Map.of("error", "Cette offre n'existe plus ou a déjà été retirée."));
+                return;
+            }
+
+            if (!sessionUuid.equals(ahItem.sellerUuid)) {
+                ctx.status(403).json(Map.of("error", "Vous n'êtes pas le vendeur de cette offre."));
+                return;
+            }
+
+            if (!ah.getAhDAO().deleteAuction(auctionId)) {
+                ctx.status(500).json(Map.of("error", "Impossible de retirer cette offre."));
+                return;
+            }
+
+            // Restituer l'objet au vendeur
+            ItemStack itemStack = fr.gens.core.utils.ItemSerializer.fromBase64(ahItem.itemData);
+            UUID sellerUuid = UUID.fromString(sessionUuid);
+            Player seller = Bukkit.getPlayer(sellerUuid);
+            if (seller != null && seller.isOnline()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(seller, (task) -> {
+                    if (itemStack != null) {
+                        for (ItemStack rem : seller.getInventory().addItem(itemStack).values()) {
+                            seller.getWorld().dropItemNaturally(seller.getLocation(), rem);
+                        }
+                        seller.sendMessage(PlaceholderUtils.parseToComponent(
+                            "<green>[Hôtel des Ventes] Offre retirée depuis le Web. Votre objet vous a été restitué !"));
+                    }
+                });
+            } else {
+                webDAO.addWebReward(sessionUuid, itemStack != null ? itemStack.getType().name() : "ITEM", itemStack != null ? itemStack.getAmount() : 1, ahItem.itemData);
+            }
+
+            ctx.json(Map.of(
+                "success", true,
+                "message", "Offre retirée avec succès ! L'objet a été restitué dans votre inventaire (ou dans vos récompenses en attente)."
+            ));
         });
 
           // ==========================================
