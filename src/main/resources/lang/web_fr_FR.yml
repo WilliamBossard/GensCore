@@ -85,6 +85,7 @@ web:
       data_title: Gestion des Données
       eco_quests: Économie & Quêtes
       games_casino: Activer la Machine à Sous
+      games_coinflip: Activer le Pile ou Face
       games_title: Mini-Jeux
       games_wheel: Activer la Roue de la Fortune
       head_drop: Chance de drop d'une tête (en %)
@@ -346,3 +347,12 @@ web:
       win_small_symbol: CERISE
       win_medium_symbol: PIECES
       jackpot_symbol: DIAMANT
+      coinflip_title: Pile ou Face
+      coinflip_desc: Pariez votre objet sur Pile ou Face et tentez de doubler (x2) votre mise !
+      coinflip_heads: PILE
+      coinflip_tails: FACE
+      coinflip_flip_btn: Lancer la pièce !
+      coinflip_flipping: La pièce vole dans les airs...
+      coinflip_multiplier: "Gain : x2 votre objet (50% de chance)"
+      coinflip_win: "Gagné ! La pièce est tombée sur {{outcome}}. Votre mise est doublée (x2) !"
+      coinflip_loss: "Perdu ! La pièce est tombée sur {{outcome}}. Votre objet a été perdu."

@@ -312,13 +312,16 @@ public class WebPlayerAPI implements Listener {
                     : plugin.getConfigManager().getConfig("modules.yml").getBoolean("modules.minigame", true);
             boolean wheelConfig = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true);
             boolean casinoConfig = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true);
+            boolean coinflipConfig = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.coinflip.enabled", true);
             boolean wheelEnabled = moduleEnabled && wheelConfig;
             boolean casinoEnabled = moduleEnabled && casinoConfig;
-            boolean totalEnabled = moduleEnabled && (wheelConfig || casinoConfig);
+            boolean coinflipEnabled = moduleEnabled && coinflipConfig;
+            boolean totalEnabled = moduleEnabled && (wheelConfig || casinoConfig || coinflipConfig);
 
             Map<String, Object> resp = new HashMap<>();
             resp.put("wheelEnabled", wheelEnabled);
             resp.put("casinoEnabled", casinoEnabled);
+            resp.put("coinflipEnabled", coinflipEnabled);
             resp.put("enabled", totalEnabled);
             ctx.json(resp);
         });
@@ -368,6 +371,38 @@ public class WebPlayerAPI implements Listener {
 
             // Casino Logic with Transaction via DAO
             Map<String, Object> result = webDAO.playCasino(sessionUuid, req.betId);
+            ctx.json(result);
+        });
+
+        post("/api/games/coinflip/play", ctx -> {
+            fr.gens.core.modules.Module minigamesModule = plugin.getModuleManager().getModule("minigames");
+            if (minigamesModule != null && !minigamesModule.isEnabled()) {
+                ctx.json(Map.of("error", "Les mini-jeux sont actuellement désactivés par l'administration."));
+                return;
+            }
+            boolean coinflipEnabled = plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.coinflip.enabled", true);
+            if (!coinflipEnabled) {
+                ctx.json(Map.of("error", "Le Pile ou Face est actuellement désactivé."));
+                return;
+            }
+            CoinFlipPlayRequest req = ctx.bodyAsClass(CoinFlipPlayRequest.class);
+            String sessionUuid = ctx.attribute("playerUuid");
+            if (sessionUuid == null || req.betId <= 0 || req.choice == null) {
+                ctx.json(Map.of("error", "Requête invalide"));
+                return;
+            }
+
+            // Cooldown de 5s pour coinflip
+            long lastPlayed = webDAO.getMinigameLastPlayed(sessionUuid, "coinflip");
+            long now = System.currentTimeMillis();
+            if (now - lastPlayed < 5 * 1000L) {
+                long timeLeft = (5 * 1000L) - (now - lastPlayed);
+                ctx.json(Map.of("error", "Patientez " + (timeLeft / 1000L + 1) + "s avant de relancer la pièce."));
+                return;
+            }
+            webDAO.updateMinigameLastPlayed(sessionUuid, "coinflip", now);
+
+            Map<String, Object> result = webDAO.playCoinFlip(sessionUuid, req.betId, req.choice);
             ctx.json(result);
         });
 
@@ -494,6 +529,12 @@ public class WebPlayerAPI implements Listener {
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class CasinoPlayRequest {
         public int betId;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CoinFlipPlayRequest {
+        public int betId;
+        public String choice;
     }
 
     public static class LoginRequest {

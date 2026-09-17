@@ -84,6 +84,7 @@ web:
       data_title: Data Management
       eco_quests: Economy & Quests
       games_casino: Enable Slot Machine
+      games_coinflip: Enable CoinFlip
       games_title: Mini-Games
       games_wheel: Enable Fortune Wheel
       head_drop: Head Drop Chance (in %)
@@ -376,3 +377,12 @@ web:
       win_small_symbol: CHERRY
       win_medium_symbol: COINS
       jackpot_symbol: DIAMOND
+      coinflip_title: CoinFlip
+      coinflip_desc: Bet your item on Heads or Tails and try to double (x2) your bet!
+      coinflip_heads: HEADS
+      coinflip_tails: TAILS
+      coinflip_flip_btn: Flip the Coin!
+      coinflip_flipping: The coin is flipping in the air...
+      coinflip_multiplier: "Win: x2 your item (50% chance)"
+      coinflip_win: "Won! The coin landed on {{outcome}}. Your bet was doubled (x2)!"
+      coinflip_loss: "Lost! The coin landed on {{outcome}}. Your item was lost."

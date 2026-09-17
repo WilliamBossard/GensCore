@@ -2,36 +2,63 @@
 minigames:
   # Fortune Wheel settings
   wheel:
-    # Enable or disable the Casino
+    # Enable or disable the Wheel
     enabled: true
-    # List of possible rewards from the Wheel
+    # List of possible rewards from the Wheel (8 balanced slices)
     rewards:
       '1':
-        name: "10 Diamonds"
-        command: "give %player% diamond 10"
-        chance: 40
-        color: "#10b981"
+        name: "16x Pain"
+        command: "give %player% bread 16"
+        chance: 32
+        color: "#eab308"
       '2':
-        name: "2 Netherite Ingots"
-        command: "give %player% netherite_ingot 2"
-        chance: 30
-        color: "#3b82f6"
+        name: "150$"
+        command: "eco give %player% 150"
+        chance: 25
+        color: "#10b981"
       '3':
-        name: "1 Enchanted Golden Apple"
-        command: "give %player% enchanted_golden_apple 1"
+        name: "8x Fer"
+        command: "give %player% iron_ingot 8"
         chance: 20
-        color: "#f59e0b"
+        color: "#94a3b8"
       '4':
-        name: "1 Elytra"
-        command: "give %player% elytra 1"
-        chance: 9
-        color: "#8b5cf6"
+        name: "350$"
+        command: "eco give %player% 350"
+        chance: 12
+        color: "#06b6d4"
       '5':
-        name: "Cow Spawner"
-        command: "give %player% spawner 1 name:<yellow>Cow_Spawner"
+        name: "2x Diamants"
+        command: "give %player% diamond 2"
+        chance: 6
+        color: "#3b82f6"
+      '6':
+        name: "1x Pomme Dorée"
+        command: "give %player% golden_apple 1"
+        chance: 3
+        color: "#f59e0b"
+      '7':
+        name: "750$"
+        command: "eco give %player% 750"
+        chance: 1
+        color: "#a855f7"
+      '8':
+        name: "1x Netherite"
+        command: "give %player% netherite_ingot 1"
         chance: 1
         color: "#ef4444"
+
   # Casino/Slot Machine settings
   casino:
     # Enable or disable the Casino
     enabled: true
+    # Balanced RTP ~84% (4% * 5 + 8% * 3 + 20% * 2 = 84% return to player)
+    jackpot_chance: 4
+    medium_win_chance: 8
+    small_win_chance: 20
+
+  # CoinFlip (Pile ou Face) settings
+  coinflip:
+    # Enable or disable CoinFlip
+    enabled: true
+    # Multiplier on win (e.g. 2 for double the bet)
+    multiplier: 2

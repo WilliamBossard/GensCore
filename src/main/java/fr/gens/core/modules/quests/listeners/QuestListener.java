@@ -17,6 +17,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 import org.bukkit.event.player.PlayerShearEntityEvent;
 import org.bukkit.event.inventory.FurnaceExtractEvent;
+import org.bukkit.inventory.CraftingInventory;
+import org.bukkit.inventory.ItemStack;
 
 
 public class QuestListener implements Listener {
@@ -58,12 +60,59 @@ public class QuestListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onCraft(CraftItemEvent event) {
-        if (event.getWhoClicked() instanceof Player) {
-            Player p = (Player) event.getWhoClicked();
-            Material result = event.getRecipe().getResult().getType();
-            // Approximative calculation for shift-click craft could be complex, simple 1 for now or calculate from itemstack
-            int amount = event.getRecipe().getResult().getAmount();
-            questModule.handleQuestProgress(p, QuestType.CRAFT, result.name(), amount);
+        if (!(event.getWhoClicked() instanceof Player)) return;
+        if (event.getRecipe() == null || event.getRecipe().getResult() == null) return;
+
+        Player p = (Player) event.getWhoClicked();
+        ItemStack resultItem = event.getRecipe().getResult();
+        if (resultItem.getType().isAir()) return;
+
+        int yieldPerCraft = resultItem.getAmount();
+        if (yieldPerCraft <= 0) yieldPerCraft = 1;
+
+        int totalCrafted = 0;
+
+        if (event.isShiftClick()) {
+            CraftingInventory inv = event.getInventory();
+            ItemStack[] matrix = inv.getMatrix();
+            int minIngredients = Integer.MAX_VALUE;
+            for (ItemStack item : matrix) {
+                if (item != null && !item.getType().isAir()) {
+                    minIngredients = Math.min(minIngredients, item.getAmount());
+                }
+            }
+            if (minIngredients == Integer.MAX_VALUE || minIngredients <= 0) return;
+
+            // Space in player storage inventory
+            int spaceAvailable = 0;
+            int maxStack = resultItem.getMaxStackSize();
+            for (ItemStack is : p.getInventory().getStorageContents()) {
+                if (is == null || is.getType().isAir()) {
+                    spaceAvailable += maxStack;
+                } else if (is.isSimilar(resultItem)) {
+                    spaceAvailable += Math.max(0, maxStack - is.getAmount());
+                }
+            }
+
+            int craftsPossibleBySpace = spaceAvailable / yieldPerCraft;
+            int actualCrafts = Math.min(minIngredients, craftsPossibleBySpace);
+            if (actualCrafts <= 0) return;
+
+            totalCrafted = actualCrafts * yieldPerCraft;
+        } else {
+            // Normal click: 1 craft operation occurs if cursor can hold the result
+            ItemStack cursor = event.getCursor();
+            if (cursor == null || cursor.getType().isAir()) {
+                totalCrafted = yieldPerCraft;
+            } else if (cursor.isSimilar(resultItem) && cursor.getAmount() + yieldPerCraft <= cursor.getMaxStackSize()) {
+                totalCrafted = yieldPerCraft;
+            } else {
+                return;
+            }
+        }
+
+        if (totalCrafted > 0) {
+            questModule.handleQuestProgress(p, QuestType.CRAFT, resultItem.getType().name(), totalCrafted);
         }
     }
 

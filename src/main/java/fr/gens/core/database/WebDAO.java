@@ -273,19 +273,20 @@ public class WebDAO {
                     pstmt.executeUpdate();
                 }
 
-                // 3. Roll Casino Logic
+                // 3. Roll Casino Logic - Balanced 84% RTP
+                // 4% Jackpot (x5), 8% Medium Win (x3), 20% Small Win (x2), 68% Loss (x0)
                 int roll = new Random().nextInt(100);
                 int multiplier = 0;
                 String resultType = "LOSS";
-                if (roll < 5) {
+                if (roll < 4) {
                     multiplier = 5;
                     resultType = "JACKPOT";
                 }
-                else if (roll < 15) {
+                else if (roll < 12) {
                     multiplier = 3;
                     resultType = "WIN_MEDIUM";
                 }
-                else if (roll < 50) {
+                else if (roll < 32) {
                     multiplier = 2;
                     resultType = "WIN_SMALL";
                 }
@@ -305,6 +306,77 @@ public class WebDAO {
                 
                 conn.commit();
                 return Map.of("success", true, "multiplier", multiplier, "result", resultType);
+            } catch (Exception e) {
+                conn.rollback();
+                e.printStackTrace();
+                return Map.of("error", "Erreur serveur lors de la transaction");
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (Exception e) {
+            return Map.of("error", "Erreur de connexion a la base");
+        }
+    }
+
+    public Map<String, Object> playCoinFlip(String uuid, int betId, String choice) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // 1. Get bet info
+                String material = null;
+                int amount = 0;
+                String base64 = null;
+                try (PreparedStatement pstmt = conn.prepareStatement("SELECT material, amount, base64_data FROM player_web_bets WHERE id = ? AND uuid = ?")) {
+                    pstmt.setInt(1, betId);
+                    pstmt.setString(2, uuid);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        if (rs.next()) {
+                            material = rs.getString("material");
+                            amount = rs.getInt("amount");
+                            base64 = rs.getString("base64_data");
+                        }
+                    }
+                }
+
+                if (material == null) {
+                    conn.rollback();
+                    return Map.of("error", "Mise introuvable ou n'appartient pas au joueur");
+                }
+
+                // 2. Remove bet
+                try (PreparedStatement pstmt = conn.prepareStatement("DELETE FROM player_web_bets WHERE id = ?")) {
+                    pstmt.setInt(1, betId);
+                    pstmt.executeUpdate();
+                }
+
+                // 3. CoinFlip Logic (50/50 chance)
+                boolean userChoseHeads = choice != null && (choice.equalsIgnoreCase("HEADS") || choice.equalsIgnoreCase("PILE"));
+                boolean outcomeHeads = new Random().nextBoolean();
+                String outcomeSide = outcomeHeads ? "HEADS" : "TAILS";
+                boolean won = (userChoseHeads == outcomeHeads);
+
+                int multiplier = won ? 2 : 0;
+                if (won) {
+                    try (PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_rewards (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
+                        for (int i = 0; i < multiplier; i++) {
+                            pstmt.setString(1, uuid);
+                            pstmt.setString(2, material);
+                            pstmt.setInt(3, amount);
+                            pstmt.setString(4, base64);
+                            pstmt.addBatch();
+                        }
+                        pstmt.executeBatch();
+                    }
+                }
+
+                conn.commit();
+                return Map.of(
+                    "success", true,
+                    "won", won,
+                    "choice", userChoseHeads ? "HEADS" : "TAILS",
+                    "outcome", outcomeSide,
+                    "multiplier", multiplier
+                );
             } catch (Exception e) {
                 conn.rollback();
                 e.printStackTrace();

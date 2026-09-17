@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import net.kyori.adventure.text.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,6 +107,54 @@ public class ShopModule implements Module {
         categories.clear();
         categories.addAll(this.shopDAO.loadShopCategories());
         this.shopDAO.loadShopItems(categories);
+        if (categories.isEmpty()) {
+            loadShopFromConfig();
+            saveShop();
+            plugin.getLogger().info("[Shop] Boutique initialisée avec succès depuis modules/shop.yml !");
+        }
+    }
+
+    public void loadShopFromConfig() {
+        categories.clear();
+        org.bukkit.configuration.file.FileConfiguration config = plugin.getConfigManager().getConfig("modules/shop.yml");
+        org.bukkit.configuration.ConfigurationSection catSection = config.getConfigurationSection("categories");
+        if (catSection != null) {
+            for (String catKey : catSection.getKeys(false)) {
+                org.bukkit.configuration.ConfigurationSection cs = catSection.getConfigurationSection(catKey);
+                if (cs == null) continue;
+                String displayName = cs.getString("displayName", catKey);
+                String iconName = cs.getString("icon", "CHEST");
+                Material icon = Material.matchMaterial(iconName);
+                if (icon == null) icon = Material.CHEST;
+                ShopCategory cat = new ShopCategory(catKey, displayName, icon);
+
+                org.bukkit.configuration.ConfigurationSection itemsSec = cs.getConfigurationSection("items");
+                if (itemsSec != null) {
+                    for (String matKey : itemsSec.getKeys(false)) {
+                        org.bukkit.configuration.ConfigurationSection is = itemsSec.getConfigurationSection(matKey);
+                        if (is == null) continue;
+                        Material mat = Material.matchMaterial(matKey);
+                        if (mat == null) continue;
+                        double buyPrice = is.getDouble("buyPrice", 10.0);
+                        double sellPrice = is.getDouble("sellPrice", 0.0);
+                        int stock = is.getInt("stock", 500);
+                        int targetStock = is.getInt("targetStock", 500);
+                        boolean isCommand = is.getBoolean("isCommand", false);
+                        String commandToExecute = is.getString("commandToExecute", "");
+                        boolean isEnabled = is.getBoolean("isEnabled", true);
+
+                        ShopItem item = new ShopItem(mat, buyPrice, sellPrice);
+                        item.setStock(stock);
+                        item.setTargetStock(targetStock);
+                        item.setCommand(isCommand);
+                        item.setCommandToExecute(commandToExecute);
+                        item.setEnabled(isEnabled);
+                        cat.addItem(item);
+                    }
+                }
+                categories.add(cat);
+            }
+        }
     }
 
     public void saveShop() {
@@ -144,6 +193,15 @@ public class ShopModule implements Module {
         plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> openCategoryGui(p));
     }
 
+    @Command("shop reload")
+    @org.incendo.cloud.annotations.Permission("genscore.admin")
+    public void executeShopReload(org.bukkit.command.CommandSender sender) {
+        plugin.getConfigManager().loadConfig("modules/shop.yml");
+        loadShopFromConfig();
+        saveShop();
+        plugin.getLangManager().sendMessage(sender, "shopmodule.reload_success");
+    }
+
     public void openCategoryGui(Player player) {
         if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
             java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
@@ -160,7 +218,7 @@ public class ShopModule implements Module {
 
         ShopCategoryGuiHolder holder = new ShopCategoryGuiHolder();
         int size = Math.max(9, (int) (Math.ceil(categories.size() / 9.0) * 9));
-        Inventory inv = Bukkit.createInventory(holder, size, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Boutique - Catégories"));
+        Inventory inv = Bukkit.createInventory(holder, size, plugin.getLangManager().get("shopmodule.gui_categories_title"));
         holder.setInventory(inv);
 
         for (int i = 0; i < categories.size(); i++) {
@@ -182,6 +240,10 @@ public class ShopModule implements Module {
     }
 
     public void openItemsGui(Player player, ShopCategory category) {
+        openItemsGui(player, category, 0);
+    }
+
+    public void openItemsGui(Player player, ShopCategory category, int page) {
         if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
             java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
             buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§c§lRetour\n§r§8Menu Principal", org.bukkit.Material.BARRIER, p -> openCategoryGui(p)));
@@ -205,48 +267,90 @@ public class ShopModule implements Module {
             return;
         }
 
-        ShopItemsGuiHolder holder = new ShopItemsGuiHolder(category);
-        Inventory inv = Bukkit.createInventory(holder, 54, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Shop - " + category.getDisplayName()));
+        List<ShopItem> enabledItems = category.getItems().stream().filter(ShopItem::isEnabled).toList();
+        int totalPages = Math.max(1, (int) Math.ceil(enabledItems.size() / 45.0));
+        int currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        ShopItemsGuiHolder holder = new ShopItemsGuiHolder(category, currentPage);
+        String pageSuffix = totalPages > 1 ? " (" + (currentPage + 1) + "/" + totalPages + ")" : "";
+        Component titleComp = plugin.getLangManager().get("shopmodule.gui_items_title",
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("category", category.getDisplayName()),
+                net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("page", pageSuffix));
+        Inventory inv = Bukkit.createInventory(holder, 54, titleComp);
         holder.setInventory(inv);
 
+        int startIndex = currentPage * 45;
+        int endIndex = Math.min(enabledItems.size(), startIndex + 45);
+
         int slot = 0;
-        for (ShopItem item : category.getItems()) {
-            if (!item.isEnabled()) continue;
-            if (slot >= 45) break; // Pagination plus tard
-            ItemStack i = new ItemStack(item.getMaterial());
-            ItemMeta meta = i.getItemMeta();
+        for (int i = startIndex; i < endIndex; i++) {
+            ShopItem item = enabledItems.get(i);
+            ItemStack is = new ItemStack(item.getMaterial());
+            ItemMeta meta = is.getItemMeta();
             if (meta != null) {
                 meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<white><bold>" + item.getMaterial().name()));
                 List<String> lore = new ArrayList<>();
                 lore.add("<dark_gray>Prix Dynamique (Inflation)");
                 lore.add("");
                 if (item.isCommand()) {
-                lore.add("<green>➔ Achat Unique : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
-                lore.add("<dark_gray>(Exécute une commande sur votre compte)");
-                lore.add("");
-                lore.add("<yellow>Clic Gauche pour Acheter");
-            } else {
-                lore.add("<green>➔ Achat (x1) : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
-                lore.add("<red>➔ Vente (x1) : <yellow>" + String.format("%.2f", item.getCurrentSellPrice()) + " $");
-                lore.add("");
-                lore.add("<gray>Stock du Serveur: " + item.getStock() + " (Cible: " + item.getTargetStock() + ")");
-                lore.add("");
-                lore.add("<yellow>Clic Gauche pour Acheter");
-                lore.add("<yellow>Clic Droit pour Vendre");
-                lore.add("<dark_gray>(Shift pour x64)");
+                    lore.add("<green>➔ Achat Unique : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
+                    lore.add("<dark_gray>(Exécute une commande sur votre compte)");
+                    lore.add("");
+                    lore.add("<yellow>Clic Gauche pour Acheter");
+                } else {
+                    lore.add("<green>➔ Achat (x1) : <yellow>" + String.format("%.2f", item.getCurrentBuyPrice()) + " $");
+                    if (item.getBaseSellPrice() > 0) {
+                        lore.add("<red>➔ Vente (x1) : <yellow>" + String.format("%.2f", item.getCurrentSellPrice()) + " $");
+                    }
+                    lore.add("");
+                    lore.add("<gray>Stock du Serveur: " + item.getStock() + " (Cible: " + item.getTargetStock() + ")");
+                    lore.add("");
+                    lore.add("<yellow>Clic Gauche pour Acheter");
+                    if (item.getBaseSellPrice() > 0) {
+                        lore.add("<yellow>Clic Droit pour Vendre");
+                    }
+                    lore.add("<dark_gray>(Shift pour x64)");
+                }
+                meta.lore(lore.stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent(s)).collect(java.util.stream.Collectors.toList()));
+                is.setItemMeta(meta);
             }
-                meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
-                i.setItemMeta(meta);
+            inv.setItem(slot++, is);
+        }
+
+        // Bouton page précédente
+        if (currentPage > 0) {
+            ItemStack prev = new ItemStack(Material.ARROW);
+            ItemMeta prevMeta = prev.getItemMeta();
+            if (prevMeta != null) {
+                prevMeta.displayName(plugin.getLangManager().get("shopmodule.gui_prev_page",
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("page", String.valueOf(currentPage)),
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("total", String.valueOf(totalPages))));
+                prev.setItemMeta(prevMeta);
             }
-            inv.setItem(slot++, i);
+            inv.setItem(45, prev);
         }
 
         // Bouton retour
         ItemStack back = new ItemStack(Material.BARRIER);
         ItemMeta backMeta = back.getItemMeta();
-        backMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red><bold>Retour aux catégories"));
-        back.setItemMeta(backMeta);
+        if (backMeta != null) {
+            backMeta.displayName(plugin.getLangManager().get("shopmodule.gui_back"));
+            back.setItemMeta(backMeta);
+        }
         inv.setItem(49, back);
+
+        // Bouton page suivante
+        if (currentPage < totalPages - 1) {
+            ItemStack next = new ItemStack(Material.ARROW);
+            ItemMeta nextMeta = next.getItemMeta();
+            if (nextMeta != null) {
+                nextMeta.displayName(plugin.getLangManager().get("shopmodule.gui_next_page",
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("page", String.valueOf(currentPage + 2)),
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("total", String.valueOf(totalPages))));
+                next.setItemMeta(nextMeta);
+            }
+            inv.setItem(53, next);
+        }
 
         plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));
     }
@@ -321,9 +425,11 @@ public class ShopModule implements Module {
     private class ShopItemsGuiHolder implements GensGuiHolder {
         private Inventory inventory;
         private final ShopCategory category;
+        private final int page;
 
-        public ShopItemsGuiHolder(ShopCategory category) {
+        public ShopItemsGuiHolder(ShopCategory category, int page) {
             this.category = category;
+            this.page = page;
         }
 
         public void setInventory(Inventory inv) { this.inventory = inv; }
@@ -341,8 +447,18 @@ public class ShopModule implements Module {
             ItemStack clicked = event.getCurrentItem();
             if (clicked == null || clicked.getType() == Material.AIR) return;
 
+            if (event.getSlot() == 45 && clicked.getType() == Material.ARROW) {
+                openItemsGui(p, category, page - 1);
+                return;
+            }
+
             if (event.getSlot() == 49 && clicked.getType() == Material.BARRIER) {
                 openCategoryGui(p);
+                return;
+            }
+
+            if (event.getSlot() == 53 && clicked.getType() == Material.ARROW) {
+                openItemsGui(p, category, page + 1);
                 return;
             }
 
@@ -351,14 +467,14 @@ public class ShopModule implements Module {
                 int amount = (event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_LEFT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) ? 64 : 1;
                 if (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_LEFT) {
                     buyItem(p, shopItem, amount);
-                    openItemsGui(p, category); // Refresh
+                    openItemsGui(p, category, page); // Refresh
                 } else if (event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) {
                     if (shopItem.isCommand()) {
                         plugin.getLangManager().sendMessage(p, "shopmodule.msg_3");
                         return;
                     }
                     sellItem(p, shopItem, amount);
-                    openItemsGui(p, category); // Refresh
+                    openItemsGui(p, category, page); // Refresh
                 }
             }
         }
@@ -377,16 +493,20 @@ public class ShopModule implements Module {
                 plugin.getFoliaLib().getScheduler().runNextTick((gt) -> {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
                 });
-                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat validé ! Vous avez obtenu le contenu de <yellow>" + shopItem.getMaterial().name()));
+                plugin.getLangManager().sendMessage(p, "shopmodule.buy_cmd_success",
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("item", shopItem.getMaterial().name()));
             } else {
                 Map<Integer, ItemStack> leftover = p.getInventory().addItem(new ItemStack(shopItem.getMaterial(), amount));
                 if (!leftover.isEmpty()) {
                     for (ItemStack drop : leftover.values()) {
                         p.getWorld().dropItemNaturally(p.getLocation(), drop);
                     }
-                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Attention : Votre inventaire était plein, des items ont été déposés au sol."));
+                    plugin.getLangManager().sendMessage(p, "shopmodule.inventory_full");
                 }
-                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Achat de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalCost) + " $"));
+                plugin.getLangManager().sendMessage(p, "shopmodule.buy_success",
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("item", shopItem.getMaterial().name()),
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("price", String.format("%.2f", totalCost)));
             }
             
             this.shopDAO.updateItemStockAsync(shopItem);
@@ -445,7 +565,10 @@ public class ShopModule implements Module {
 
             eco.giveMoney(p.getUniqueId(), totalEarn);
             shopItem.setStock(shopItem.getStock() + amount);
-            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Vente de " + amount + "x " + shopItem.getMaterial().name() + " pour <yellow>" + String.format("%.2f", totalEarn) + " $"));
+            plugin.getLangManager().sendMessage(p, "shopmodule.sell_success",
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)),
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("item", shopItem.getMaterial().name()),
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("price", String.format("%.2f", totalEarn)));
             this.shopDAO.updateItemStockAsync(shopItem);
             logTransaction(shopItem);
             logPlayerTransaction(p.getUniqueId(), "VENTE", shopItem.getMaterial().name(), amount, totalEarn);

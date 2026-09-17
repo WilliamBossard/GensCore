@@ -21,6 +21,7 @@ interface ConfigState {
   motdLine2?: string;
   minigameWheelEnabled: boolean;
   minigameCasinoEnabled: boolean;
+  minigameCoinflipEnabled: boolean;
   publicFeaturesText: string;
   bluemapUrl: string;
   serverIp: string;
@@ -126,6 +127,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     motdLine2: "&7&l>> &eSaison 4 &7&l- &bdiscord.gg/gensbien",
     minigameWheelEnabled: true,
     minigameCasinoEnabled: true,
+    minigameCoinflipEnabled: true,
     publicFeaturesText: "",
     bluemapUrl: "http://localhost:8100",
     serverIp: "gens-core.duckdns.org",
@@ -169,10 +171,10 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     });
   };
 
-  const toggleMinigame = (game: 'wheel' | 'casino', state: boolean) => {
+  const toggleMinigame = (game: 'wheel' | 'casino' | 'coinflip', state: boolean) => {
     const newConfig = {
       ...config,
-      ...(game === 'wheel' ? { minigameWheelEnabled: state } : { minigameCasinoEnabled: state })
+      ...(game === 'wheel' ? { minigameWheelEnabled: state } : game === 'casino' ? { minigameCasinoEnabled: state } : { minigameCoinflipEnabled: state })
     };
     setConfig(newConfig);
     saveConfigToServer(newConfig);
@@ -353,6 +355,13 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                     <span className="slider"></span>
                   </label>
                   <span style={{fontWeight: 500}}>{t('web.admin.settings.games_casino')}</span>
+                </div>
+                <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', flexDirection: 'row'}}>
+                  <label className="switch">
+                    <input type="checkbox" checked={config.minigameCoinflipEnabled !== false} onChange={e => toggleMinigame('coinflip', e.target.checked)} />
+                    <span className="slider"></span>
+                  </label>
+                  <span style={{fontWeight: 500}}>{t('web.admin.settings.games_coinflip') || 'Pile ou Face (Web)'}</span>
                 </div>
               </div>
 

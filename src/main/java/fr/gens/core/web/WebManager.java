@@ -263,6 +263,7 @@ public class WebManager {
         public String motdLine2;
         public boolean minigameWheelEnabled;
         public boolean minigameCasinoEnabled;
+        public boolean minigameCoinflipEnabled;
         public String publicFeaturesText;
         public String bluemapUrl;
         public String serverIp;
@@ -272,7 +273,7 @@ public class WebManager {
         public String tombExpirationAction;
         public String tombDefaultAccess;
 
-        public ConfigResponse(double inf, double ahTax, String pass, double hDrop, int qRerolls, boolean lootrPreventBreak, boolean lootrPreventHopper, boolean lootrParticles, String motdLine1, String motdLine2, boolean wheel, boolean casino, String publicFeaturesText, String bluemapUrl, String serverIp, String tombBlockType, boolean tombStoreXp, long tombExpirationSeconds, String tombExpirationAction, String tombDefaultAccess) {
+        public ConfigResponse(double inf, double ahTax, String pass, double hDrop, int qRerolls, boolean lootrPreventBreak, boolean lootrPreventHopper, boolean lootrParticles, String motdLine1, String motdLine2, boolean wheel, boolean casino, boolean coinflip, String publicFeaturesText, String bluemapUrl, String serverIp, String tombBlockType, boolean tombStoreXp, long tombExpirationSeconds, String tombExpirationAction, String tombDefaultAccess) {
             this.inflationExponent = inf;
             this.ahTaxPercentage = ahTax;
             this.adminPassword = pass;
@@ -285,6 +286,7 @@ public class WebManager {
             this.motdLine2 = motdLine2;
             this.minigameWheelEnabled = wheel;
             this.minigameCasinoEnabled = casino;
+            this.minigameCoinflipEnabled = coinflip;
             this.publicFeaturesText = publicFeaturesText;
             this.bluemapUrl = bluemapUrl;
             this.serverIp = serverIp;
@@ -309,6 +311,7 @@ public class WebManager {
         public String motdLine2;
         public boolean minigameWheelEnabled;
         public boolean minigameCasinoEnabled;
+        public boolean minigameCoinflipEnabled;
         public String publicFeaturesText;
         public String bluemapUrl;
         public String serverIp;
@@ -415,6 +418,7 @@ public class WebManager {
                 plugin.getConfigManager().getConfig("modules/motd.yml").getString("motd.line2", "<gray><bold>>> <yellow>Saison 4 <gray><bold>- <aqua>discord.gg/gensbien"),
                 plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.wheel.enabled", true),
                 plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.casino.enabled", true),
+                plugin.getConfigManager().getConfig("modules/minigames.yml").getBoolean("minigames.coinflip.enabled", true),
                 plugin.getConfigManager().getConfig("modules/web.yml").getString("web.public_features_text", defaultPublicText),
                 plugin.getConfigManager().getConfig("modules/bluemap.yml").getString("bluemap.url", "http://localhost:8100"),
                 plugin.getConfigManager().getConfig("modules/web.yml").getString("web.server_ip", "gens-core.duckdns.org"),
@@ -468,6 +472,7 @@ public class WebManager {
                 }
                 plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.wheel.enabled", req.minigameWheelEnabled);
                 plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.casino.enabled", req.minigameCasinoEnabled);
+                plugin.getConfigManager().getConfig("modules/minigames.yml").set("minigames.coinflip.enabled", req.minigameCoinflipEnabled);
                 if (req.publicFeaturesText != null) {
                     plugin.getConfigManager().getConfig("modules/web.yml").set("web.public_features_text", req.publicFeaturesText);
                 }

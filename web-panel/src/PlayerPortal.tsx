@@ -210,7 +210,7 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
 
 function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, isEnabled?: boolean }) {
   const { t } = useTranslation();
-  const [config, setConfig] = useState<{ wheelEnabled?: boolean, casinoEnabled?: boolean, enabled?: boolean }>({ wheelEnabled: true, casinoEnabled: true, enabled: true });
+  const [config, setConfig] = useState<{ wheelEnabled?: boolean, casinoEnabled?: boolean, coinflipEnabled?: boolean, enabled?: boolean }>({ wheelEnabled: true, casinoEnabled: true, coinflipEnabled: true, enabled: true });
   
   // Wheel State
   const [spinResult, setSpinResult] = useState<string | null>(null);
@@ -226,6 +226,13 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
   const [isRolling, setIsRolling] = useState(false);
   const [slotReels, setSlotReels] = useState<React.ReactNode[]>(['?', '?', '?']);
 
+  // CoinFlip State
+  const [selectedCoinBet, setSelectedCoinBet] = useState<number | null>(null);
+  const [coinChoice, setCoinChoice] = useState<'HEADS' | 'TAILS'>('HEADS');
+  const [coinResult, setCoinResult] = useState<string | null>(null);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [coinSide, setCoinSide] = useState<'HEADS' | 'TAILS'>('HEADS');
+
   useEffect(() => {
     fetch(`${API_URL}/games/config`)
       .then(res => res.json())
@@ -240,7 +247,7 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
     fetchCasinoInventory();
   }, [uuid]);
 
-  if (isEnabled === false || config.enabled === false || (config.wheelEnabled === false && config.casinoEnabled === false)) {
+  if (isEnabled === false || config.enabled === false || (config.wheelEnabled === false && config.casinoEnabled === false && config.coinflipEnabled === false)) {
     return (
       <div className="dashboard-content" style={{textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)'}}>
         <Gamepad2 size={48} style={{opacity: 0.5, marginBottom: '1rem'}}/>
@@ -361,6 +368,46 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
     }
   };
 
+  const playCoinFlip = async () => {
+    if (!selectedCoinBet || isFlipping) return;
+    setIsFlipping(true);
+    setCoinResult(null);
+
+    try {
+      const res = await fetch(`${API_URL}/games/coinflip/play`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ betId: selectedCoinBet, choice: coinChoice })
+      });
+      const data = await res.json();
+
+      setTimeout(() => {
+        setIsFlipping(false);
+        if (res.ok && !data.error) {
+          const outcome = data.outcome === 'HEADS' ? 'HEADS' : 'TAILS';
+          setCoinSide(outcome);
+          const outcomeName = outcome === 'HEADS' ? (t('web.public.games.coinflip_heads') || 'PILE') : (t('web.public.games.coinflip_tails') || 'FACE');
+          if (data.won) {
+            setCoinResult(t('web.public.games.coinflip_win', { outcome: outcomeName }) || `Gagné ! La pièce est tombée sur ${outcomeName}. Vos gains sont doublés (x2) !`);
+          } else {
+            setCoinResult(t('web.public.games.coinflip_loss', { outcome: outcomeName }) || `Perdu ! La pièce est tombée sur ${outcomeName}. Votre mise a été perdue.`);
+          }
+          setSelectedCoinBet(null);
+          fetchCasinoInventory();
+        } else {
+          if (res.status === 401 || data.error === 'Session expired' || data.error === 'Unauthorized') {
+            setCoinResult(`[ERROR] Session expirée ! Veuillez vous déconnecter en bas à gauche et vous reconnecter.`);
+          } else {
+            setCoinResult(`[ERROR] ${data.error || t('web.public.games.casino_error') || 'Erreur lors du lancer'}`);
+          }
+        }
+      }, 1500);
+    } catch (err) {
+      setIsFlipping(false);
+      setCoinResult("[ERROR] Erreur réseau ou session expirée. Veuillez vous reconnecter.");
+    }
+  };
+
   const sliceDeg = rewards.length > 0 ? 360 / rewards.length : 0;
   const gradientStr = rewards.map((r, i) => `${r.color} ${i * sliceDeg}deg ${(i + 1) * sliceDeg}deg`).join(', ');
 
@@ -440,6 +487,19 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
               <div style={{background: 'var(--card-bg)', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', border: '1px solid var(--border-color)'}}>{slotReels[2]}</div>
             </div>
 
+            {/* Paytable Strip */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+              background: 'rgba(255,255,255,0.03)', padding: '0.6rem 0.8rem',
+              borderRadius: '8px', border: '1px solid var(--card-border)', marginBottom: '1.5rem',
+              fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px'
+            }}>
+              <span style={{color: '#8b5cf6', fontWeight: 600}}>💎 x3 = x5 (4%)</span>
+              <span style={{color: '#f59e0b', fontWeight: 600}}>👑 x3 = x3 (8%)</span>
+              <span style={{color: '#10b981', fontWeight: 600}}>🪙 x3 = x2 (20%)</span>
+              <span style={{color: '#ef4444'}}>❌ = x0 (68%)</span>
+            </div>
+
             <div style={{textAlign: 'left', marginBottom: '1.5rem'}}>
               <h4 style={{marginBottom: '0.5rem'}}>{t('web.public.games.casino_inventory')} :</h4>
               {casinoInventory.length === 0 ? (
@@ -493,6 +553,165 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
           </div>
         )}
 
+        {config.coinflipEnabled && (
+          <div className="admin-card" style={{flex: '1 1 280px', maxWidth: '600px'}}>
+            <h3 style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'}}>
+              <Coins size={22} color="#f59e0b"/> {t('web.public.games.coinflip_title') || 'Pile ou Face'}
+            </h3>
+            <p style={{color: 'var(--text-muted)', marginBottom: '1rem'}}>
+              {t('web.public.games.coinflip_desc') || 'Pariez un objet déposé, choisissez votre côté et tentez de doubler (x2) votre mise !'}
+            </p>
+
+            {/* Coin 3D Visual */}
+            <div style={{
+              perspective: '1000px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '1.5rem 0'
+            }}>
+              <div 
+                onClick={() => !isFlipping && setCoinChoice(coinChoice === 'HEADS' ? 'TAILS' : 'HEADS')}
+                style={{
+                  width: '90px',
+                  height: '90px',
+                  borderRadius: '50%',
+                  background: coinSide === 'HEADS' 
+                    ? 'radial-gradient(circle at 30% 30%, #fef08a, #eab308 60%, #ca8a04 100%)' 
+                    : 'radial-gradient(circle at 30% 30%, #93c5fd, #3b82f6 60%, #1d4ed8 100%)',
+                  border: `4px solid ${coinSide === 'HEADS' ? '#facc15' : '#60a5fa'}`,
+                  boxShadow: isFlipping 
+                    ? '0 0 30px rgba(234, 179, 8, 0.7)' 
+                    : '0 8px 20px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.6)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transformStyle: 'preserve-3d',
+                  transition: 'transform 1.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transform: isFlipping ? 'rotateY(1440deg) scale(1.1)' : 'rotateY(0deg) scale(1)',
+                  cursor: isFlipping ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {coinSide === 'HEADS' ? (
+                  <>
+                    <Crown size={36} color="#713f12" />
+                    <span style={{fontSize: '0.7rem', fontWeight: 900, color: '#713f12', letterSpacing: '1px'}}>PILE</span>
+                  </>
+                ) : (
+                  <>
+                    <Coins size={36} color="#1e3a8a" />
+                    <span style={{fontSize: '0.7rem', fontWeight: 900, color: '#1e3a8a', letterSpacing: '1px'}}>FACE</span>
+                  </>
+                )}
+              </div>
+              <span style={{fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.8rem'}}>
+                {isFlipping ? (t('web.public.games.coinflip_flipping') || 'La pièce vole dans les airs...') : (t('web.public.games.coinflip_multiplier') || 'Gain : x2 votre objet (50% de chance)')}
+              </span>
+            </div>
+
+            {/* Side Selection Buttons */}
+            <div style={{display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '1.5rem'}}>
+              <button
+                type="button"
+                disabled={isFlipping}
+                onClick={() => setCoinChoice('HEADS')}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: coinChoice === 'HEADS' ? '2px solid #eab308' : '2px solid var(--card-border)',
+                  background: coinChoice === 'HEADS' ? 'rgba(234, 179, 8, 0.2)' : 'var(--bg-color)',
+                  color: coinChoice === 'HEADS' ? '#facc15' : 'var(--text-muted)',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  cursor: isFlipping ? 'not-allowed' : 'pointer'
+                }}
+              >
+                <Crown size={18} /> {t('web.public.games.coinflip_heads') || 'PILE'}
+              </button>
+
+              <button
+                type="button"
+                disabled={isFlipping}
+                onClick={() => setCoinChoice('TAILS')}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: coinChoice === 'TAILS' ? '2px solid #3b82f6' : '2px solid var(--card-border)',
+                  background: coinChoice === 'TAILS' ? 'rgba(59, 130, 246, 0.2)' : 'var(--bg-color)',
+                  color: coinChoice === 'TAILS' ? '#60a5fa' : 'var(--text-muted)',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  cursor: isFlipping ? 'not-allowed' : 'pointer'
+                }}
+              >
+                <Coins size={18} /> {t('web.public.games.coinflip_tails') || 'FACE'}
+              </button>
+            </div>
+
+            {/* Inventory Selection */}
+            <div style={{textAlign: 'left', marginBottom: '1.5rem'}}>
+              <h4 style={{marginBottom: '0.5rem'}}>{t('web.public.games.casino_inventory')} :</h4>
+              {casinoInventory.length === 0 ? (
+                <p style={{color: 'var(--text-muted)', fontStyle: 'italic', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px'}}>{t('web.public.games.casino_empty')}</p>
+              ) : (
+                <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+                  {casinoInventory.map(item => (
+                    <div 
+                      key={item.id} 
+                      onClick={() => !isFlipping && setSelectedCoinBet(item.id)}
+                      style={{
+                        padding: '10px 15px', background: selectedCoinBet === item.id ? 'rgba(234, 179, 8, 0.2)' : 'var(--bg-color)',
+                        border: `2px solid ${selectedCoinBet === item.id ? '#eab308' : 'var(--card-border)'}`,
+                        borderRadius: '8px', cursor: isFlipping ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '80px'
+                      }}
+                    >
+                      <div style={{marginBottom: '5px'}}><Package size={32} color="var(--accent)" /></div>
+                      <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>{item.material.replace('_', ' ')} x{item.amount}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button 
+              className="login-button" 
+              onClick={playCoinFlip} 
+              disabled={isFlipping || !selectedCoinBet} 
+              style={{
+                padding: '12px 30px', fontSize: '1.1rem', 
+                background: (!selectedCoinBet || isFlipping) ? 'var(--card-bg)' : 'linear-gradient(to right, #eab308, #f59e0b)', 
+                border: 'none', color: (!selectedCoinBet || isFlipping) ? 'var(--text-muted)' : 'white', width: '100%'
+              }}
+            >
+              {isFlipping ? (t('web.public.games.coinflip_flipping') || 'Lancer en cours...') : selectedCoinBet ? (t('web.public.games.coinflip_flip_btn') || 'Lancer la pièce !') : (t('web.public.games.casino_select'))}
+            </button>
+
+            {coinResult && (
+              <div style={{
+                marginTop: '1.5rem', padding: '1rem', 
+                background: coinResult.includes('Perdu') || coinResult.startsWith('[ERROR]') ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)', 
+                borderRadius: '8px', 
+                border: `1px solid ${coinResult.includes('Perdu') || coinResult.startsWith('[ERROR]') ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)'}`, 
+                color: coinResult.includes('Perdu') || coinResult.startsWith('[ERROR]') ? '#ef4444' : '#10b981',
+                fontSize: '1.1rem', fontWeight: 'bold'
+              }}>
+                {coinResult.replace('[ERROR] ', '')}
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
     </div>
   );
@@ -503,7 +722,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [modules, setModules] = useState<any[]>([]);
-  const [gamesConfig, setGamesConfig] = useState<{ wheelEnabled?: boolean, casinoEnabled?: boolean, enabled?: boolean } | null>(null);
+  const [gamesConfig, setGamesConfig] = useState<{ wheelEnabled?: boolean, casinoEnabled?: boolean, coinflipEnabled?: boolean, enabled?: boolean } | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/modules`)
@@ -530,7 +749,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
     }
     if (gamesConfig) {
       if (gamesConfig.enabled === false) return false;
-      if (gamesConfig.wheelEnabled === false && gamesConfig.casinoEnabled === false) return false;
+      if (gamesConfig.wheelEnabled === false && gamesConfig.casinoEnabled === false && gamesConfig.coinflipEnabled === false) return false;
     }
     return true;
   };

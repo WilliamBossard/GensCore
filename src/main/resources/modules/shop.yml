@@ -1,0 +1,1647 @@
+# ==========================================================
+# GENSCORE - CONFIGURATION DE LA BOUTIQUE PAR DÉFAUT (SHOP)
+# ==========================================================
+# Ce fichier sert de base pour initialiser la boutique du serveur.
+# Les prix ont été rigoureusement équilibrés avec les gains de quêtes,
+# les récompenses de métiers et les mécaniques de craft vanilla
+# pour éliminer tout arbitrage financier ou boucle infinie.
+#
+# Ratio de marge : vente = ~25% à 35% du prix d'achat.
+# Compatible Minecraft 26.3 (Paper / Folia).
+
+categories:
+  ores:
+    displayName: "Minerais & Métaux"
+    icon: DIAMOND
+    items:
+      COAL:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 2000
+        targetStock: 2000
+      CHARCOAL:
+        buyPrice: 2.5
+        sellPrice: 0.6
+        stock: 1500
+        targetStock: 1500
+      COAL_BLOCK:
+        buyPrice: 27.0
+        sellPrice: 7.2
+        stock: 300
+        targetStock: 300
+      RAW_COPPER:
+        buyPrice: 3.0
+        sellPrice: 0.7
+        stock: 2000
+        targetStock: 2000
+      COPPER_INGOT:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2000
+        targetStock: 2000
+      COPPER_BLOCK:
+        buyPrice: 36.0
+        sellPrice: 9.0
+        stock: 300
+        targetStock: 300
+      RAW_COPPER_BLOCK:
+        buyPrice: 27.0
+        sellPrice: 6.3
+        stock: 250
+        targetStock: 250
+      RAW_IRON:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 1500
+        targetStock: 1500
+      IRON_INGOT:
+        buyPrice: 10.0
+        sellPrice: 2.8
+        stock: 1500
+        targetStock: 1500
+      IRON_NUGGET:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 5000
+        targetStock: 5000
+      IRON_BLOCK:
+        buyPrice: 90.0
+        sellPrice: 25.0
+        stock: 200
+        targetStock: 200
+      RAW_IRON_BLOCK:
+        buyPrice: 72.0
+        sellPrice: 18.0
+        stock: 200
+        targetStock: 200
+      RAW_GOLD:
+        buyPrice: 14.0
+        sellPrice: 3.8
+        stock: 1000
+        targetStock: 1000
+      GOLD_INGOT:
+        buyPrice: 16.0
+        sellPrice: 4.5
+        stock: 1000
+        targetStock: 1000
+      GOLD_NUGGET:
+        buyPrice: 1.8
+        sellPrice: 0.45
+        stock: 4000
+        targetStock: 4000
+      GOLD_BLOCK:
+        buyPrice: 144.0
+        sellPrice: 40.0
+        stock: 150
+        targetStock: 150
+      RAW_GOLD_BLOCK:
+        buyPrice: 126.0
+        sellPrice: 34.0
+        stock: 150
+        targetStock: 150
+      REDSTONE:
+        buyPrice: 3.5
+        sellPrice: 0.9
+        stock: 3000
+        targetStock: 3000
+      REDSTONE_BLOCK:
+        buyPrice: 31.5
+        sellPrice: 8.1
+        stock: 400
+        targetStock: 400
+      LAPIS_LAZULI:
+        buyPrice: 4.5
+        sellPrice: 1.2
+        stock: 2500
+        targetStock: 2500
+      LAPIS_BLOCK:
+        buyPrice: 40.5
+        sellPrice: 10.8
+        stock: 300
+        targetStock: 300
+      DIAMOND:
+        buyPrice: 120.0
+        sellPrice: 35.0
+        stock: 500
+        targetStock: 500
+      DIAMOND_BLOCK:
+        buyPrice: 1080.0
+        sellPrice: 315.0
+        stock: 80
+        targetStock: 80
+      EMERALD:
+        buyPrice: 45.0
+        sellPrice: 12.0
+        stock: 800
+        targetStock: 800
+      EMERALD_BLOCK:
+        buyPrice: 405.0
+        sellPrice: 108.0
+        stock: 120
+        targetStock: 120
+      ANCIENT_DEBRIS:
+        buyPrice: 400.0
+        sellPrice: 120.0
+        stock: 100
+        targetStock: 100
+      NETHERITE_SCRAP:
+        buyPrice: 450.0
+        sellPrice: 130.0
+        stock: 100
+        targetStock: 100
+      NETHERITE_INGOT:
+        buyPrice: 2000.0
+        sellPrice: 600.0
+        stock: 50
+        targetStock: 50
+      NETHERITE_BLOCK:
+        buyPrice: 18000.0
+        sellPrice: 5400.0
+        stock: 10
+        targetStock: 10
+      QUARTZ:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2000
+        targetStock: 2000
+      QUARTZ_BLOCK:
+        buyPrice: 16.0
+        sellPrice: 4.0
+        stock: 500
+        targetStock: 500
+      AMETHYST_SHARD:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 1500
+        targetStock: 1500
+      AMETHYST_BLOCK:
+        buyPrice: 24.0
+        sellPrice: 6.0
+        stock: 400
+        targetStock: 400
+
+  farming:
+    displayName: "Agriculture & Nourriture"
+    icon: WHEAT
+    items:
+      WHEAT:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 3000
+        targetStock: 3000
+      WHEAT_SEEDS:
+        buyPrice: 0.5
+        sellPrice: 0.1
+        stock: 5000
+        targetStock: 5000
+      HAY_BLOCK:
+        buyPrice: 13.5
+        sellPrice: 3.6
+        stock: 500
+        targetStock: 500
+      CARROT:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 3000
+        targetStock: 3000
+      GOLDEN_CARROT:
+        buyPrice: 25.0
+        sellPrice: 7.0
+        stock: 1000
+        targetStock: 1000
+      POTATO:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 3000
+        targetStock: 3000
+      BAKED_POTATO:
+        buyPrice: 2.5
+        sellPrice: 0.7
+        stock: 2000
+        targetStock: 2000
+      POISONOUS_POTATO:
+        buyPrice: 5.0
+        sellPrice: 1.0
+        stock: 300
+        targetStock: 300
+      BEETROOT:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 2500
+        targetStock: 2500
+      BEETROOT_SEEDS:
+        buyPrice: 0.5
+        sellPrice: 0.1
+        stock: 4000
+        targetStock: 4000
+      BEETROOT_SOUP:
+        buyPrice: 10.0
+        sellPrice: 2.5
+        stock: 500
+        targetStock: 500
+      MELON:
+        buyPrice: 10.0
+        sellPrice: 2.5
+        stock: 800
+        targetStock: 800
+      MELON_SLICE:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 4000
+        targetStock: 4000
+      MELON_SEEDS:
+        buyPrice: 0.6
+        sellPrice: 0.15
+        stock: 3000
+        targetStock: 3000
+      PUMPKIN:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 1200
+        targetStock: 1200
+      PUMPKIN_SEEDS:
+        buyPrice: 0.6
+        sellPrice: 0.15
+        stock: 3000
+        targetStock: 3000
+      CARVED_PUMPKIN:
+        buyPrice: 5.0
+        sellPrice: 1.2
+        stock: 500
+        targetStock: 500
+      JACK_O_LANTERN:
+        buyPrice: 6.5
+        sellPrice: 1.6
+        stock: 500
+        targetStock: 500
+      PUMPKIN_PIE:
+        buyPrice: 8.0
+        sellPrice: 2.2
+        stock: 800
+        targetStock: 800
+      SUGAR_CANE:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 3000
+        targetStock: 3000
+      SUGAR:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 3000
+        targetStock: 3000
+      BAMBOO:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 4000
+        targetStock: 4000
+      COCOA_BEANS:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2000
+        targetStock: 2000
+      CACTUS:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 2500
+        targetStock: 2500
+      SWEET_BERRIES:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 3000
+        targetStock: 3000
+      GLOW_BERRIES:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 1500
+        targetStock: 1500
+      BROWN_MUSHROOM:
+        buyPrice: 2.5
+        sellPrice: 0.6
+        stock: 1500
+        targetStock: 1500
+      RED_MUSHROOM:
+        buyPrice: 2.5
+        sellPrice: 0.6
+        stock: 1500
+        targetStock: 1500
+      MUSHROOM_STEW:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 500
+        targetStock: 500
+      CHORUS_FRUIT:
+        buyPrice: 5.0
+        sellPrice: 1.2
+        stock: 1000
+        targetStock: 1000
+      POPPED_CHORUS_FRUIT:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 1000
+        targetStock: 1000
+      APPLE:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 2000
+        targetStock: 2000
+      GOLDEN_APPLE:
+        buyPrice: 140.0
+        sellPrice: 40.0
+        stock: 250
+        targetStock: 250
+      ENCHANTED_GOLDEN_APPLE:
+        buyPrice: 1500.0
+        sellPrice: 450.0
+        stock: 30
+        targetStock: 30
+      BREAD:
+        buyPrice: 4.5
+        sellPrice: 1.2
+        stock: 2000
+        targetStock: 2000
+      COOKIE:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 3000
+        targetStock: 3000
+      CAKE:
+        buyPrice: 20.0
+        sellPrice: 5.0
+        stock: 300
+        targetStock: 300
+      BEEF:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 2000
+        targetStock: 2000
+      COOKED_BEEF:
+        buyPrice: 5.0
+        sellPrice: 1.4
+        stock: 2000
+        targetStock: 2000
+      PORKCHOP:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 2000
+        targetStock: 2000
+      COOKED_PORKCHOP:
+        buyPrice: 5.0
+        sellPrice: 1.4
+        stock: 2000
+        targetStock: 2000
+      MUTTON:
+        buyPrice: 2.5
+        sellPrice: 0.7
+        stock: 1800
+        targetStock: 1800
+      COOKED_MUTTON:
+        buyPrice: 4.5
+        sellPrice: 1.2
+        stock: 1800
+        targetStock: 1800
+      CHICKEN:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2000
+        targetStock: 2000
+      COOKED_CHICKEN:
+        buyPrice: 4.0
+        sellPrice: 1.1
+        stock: 2000
+        targetStock: 2000
+      RABBIT:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 1200
+        targetStock: 1200
+      COOKED_RABBIT:
+        buyPrice: 5.0
+        sellPrice: 1.3
+        stock: 1200
+        targetStock: 1200
+      RABBIT_STEW:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 400
+        targetStock: 400
+      COD:
+        buyPrice: 2.5
+        sellPrice: 0.7
+        stock: 2000
+        targetStock: 2000
+      COOKED_COD:
+        buyPrice: 4.0
+        sellPrice: 1.1
+        stock: 2000
+        targetStock: 2000
+      SALMON:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 2000
+        targetStock: 2000
+      COOKED_SALMON:
+        buyPrice: 4.8
+        sellPrice: 1.3
+        stock: 2000
+        targetStock: 2000
+      TROPICAL_FISH:
+        buyPrice: 5.0
+        sellPrice: 1.3
+        stock: 800
+        targetStock: 800
+      DRIED_KELP:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 3000
+        targetStock: 3000
+      DRIED_KELP_BLOCK:
+        buyPrice: 9.0
+        sellPrice: 2.25
+        stock: 500
+        targetStock: 500
+      KELP:
+        buyPrice: 0.8
+        sellPrice: 0.2
+        stock: 3000
+        targetStock: 3000
+      SEA_PICKLE:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 600
+        targetStock: 600
+      EGG:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 3000
+        targetStock: 3000
+      HONEY_BOTTLE:
+        buyPrice: 12.0
+        sellPrice: 3.0
+        stock: 1000
+        targetStock: 1000
+      HONEYCOMB:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 1200
+        targetStock: 1200
+      HONEY_BLOCK:
+        buyPrice: 48.0
+        sellPrice: 12.0
+        stock: 300
+        targetStock: 300
+      HONEYCOMB_BLOCK:
+        buyPrice: 32.0
+        sellPrice: 8.0
+        stock: 300
+        targetStock: 300
+
+  wood:
+    displayName: "Bois & Sylviculture"
+    icon: OAK_LOG
+    items:
+      OAK_LOG:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2500
+        targetStock: 2500
+      OAK_PLANKS:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 8000
+        targetStock: 8000
+      OAK_SAPLING:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 1500
+        targetStock: 1500
+      OAK_WOOD:
+        buyPrice: 4.5
+        sellPrice: 1.1
+        stock: 1000
+        targetStock: 1000
+      STRIPPED_OAK_LOG:
+        buyPrice: 4.2
+        sellPrice: 1.05
+        stock: 1000
+        targetStock: 1000
+      SPRUCE_LOG:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2500
+        targetStock: 2500
+      SPRUCE_PLANKS:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 8000
+        targetStock: 8000
+      SPRUCE_SAPLING:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 1500
+        targetStock: 1500
+      SPRUCE_WOOD:
+        buyPrice: 4.5
+        sellPrice: 1.1
+        stock: 1000
+        targetStock: 1000
+      STRIPPED_SPRUCE_LOG:
+        buyPrice: 4.2
+        sellPrice: 1.05
+        stock: 1000
+        targetStock: 1000
+      BIRCH_LOG:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2500
+        targetStock: 2500
+      BIRCH_PLANKS:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 8000
+        targetStock: 8000
+      BIRCH_SAPLING:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 1500
+        targetStock: 1500
+      BIRCH_WOOD:
+        buyPrice: 4.5
+        sellPrice: 1.1
+        stock: 1000
+        targetStock: 1000
+      STRIPPED_BIRCH_LOG:
+        buyPrice: 4.2
+        sellPrice: 1.05
+        stock: 1000
+        targetStock: 1000
+      JUNGLE_LOG:
+        buyPrice: 4.5
+        sellPrice: 1.1
+        stock: 2000
+        targetStock: 2000
+      JUNGLE_PLANKS:
+        buyPrice: 1.15
+        sellPrice: 0.28
+        stock: 6000
+        targetStock: 6000
+      JUNGLE_SAPLING:
+        buyPrice: 2.5
+        sellPrice: 0.6
+        stock: 1200
+        targetStock: 1200
+      JUNGLE_WOOD:
+        buyPrice: 5.0
+        sellPrice: 1.2
+        stock: 800
+        targetStock: 800
+      STRIPPED_JUNGLE_LOG:
+        buyPrice: 4.7
+        sellPrice: 1.15
+        stock: 800
+        targetStock: 800
+      ACACIA_LOG:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2000
+        targetStock: 2000
+      ACACIA_PLANKS:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 6000
+        targetStock: 6000
+      ACACIA_SAPLING:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 1200
+        targetStock: 1200
+      ACACIA_WOOD:
+        buyPrice: 4.5
+        sellPrice: 1.1
+        stock: 800
+        targetStock: 800
+      STRIPPED_ACACIA_LOG:
+        buyPrice: 4.2
+        sellPrice: 1.05
+        stock: 800
+        targetStock: 800
+      DARK_OAK_LOG:
+        buyPrice: 4.5
+        sellPrice: 1.1
+        stock: 2000
+        targetStock: 2000
+      DARK_OAK_PLANKS:
+        buyPrice: 1.15
+        sellPrice: 0.28
+        stock: 6000
+        targetStock: 6000
+      DARK_OAK_SAPLING:
+        buyPrice: 2.5
+        sellPrice: 0.6
+        stock: 1200
+        targetStock: 1200
+      DARK_OAK_WOOD:
+        buyPrice: 5.0
+        sellPrice: 1.2
+        stock: 800
+        targetStock: 800
+      STRIPPED_DARK_OAK_LOG:
+        buyPrice: 4.7
+        sellPrice: 1.15
+        stock: 800
+        targetStock: 800
+      MANGROVE_LOG:
+        buyPrice: 5.0
+        sellPrice: 1.3
+        stock: 1800
+        targetStock: 1800
+      MANGROVE_PLANKS:
+        buyPrice: 1.25
+        sellPrice: 0.32
+        stock: 5000
+        targetStock: 5000
+      MANGROVE_PROPAGULE:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 1000
+        targetStock: 1000
+      MANGROVE_WOOD:
+        buyPrice: 5.5
+        sellPrice: 1.4
+        stock: 700
+        targetStock: 700
+      STRIPPED_MANGROVE_LOG:
+        buyPrice: 5.2
+        sellPrice: 1.35
+        stock: 700
+        targetStock: 700
+      CHERRY_LOG:
+        buyPrice: 5.0
+        sellPrice: 1.3
+        stock: 1800
+        targetStock: 1800
+      CHERRY_PLANKS:
+        buyPrice: 1.25
+        sellPrice: 0.32
+        stock: 5000
+        targetStock: 5000
+      CHERRY_SAPLING:
+        buyPrice: 3.0
+        sellPrice: 0.8
+        stock: 1000
+        targetStock: 1000
+      CHERRY_WOOD:
+        buyPrice: 5.5
+        sellPrice: 1.4
+        stock: 700
+        targetStock: 700
+      STRIPPED_CHERRY_LOG:
+        buyPrice: 5.2
+        sellPrice: 1.35
+        stock: 700
+        targetStock: 700
+      PALE_OAK_LOG:
+        buyPrice: 5.5
+        sellPrice: 1.4
+        stock: 1800
+        targetStock: 1800
+      PALE_OAK_PLANKS:
+        buyPrice: 1.35
+        sellPrice: 0.35
+        stock: 5000
+        targetStock: 5000
+      PALE_OAK_SAPLING:
+        buyPrice: 3.5
+        sellPrice: 0.9
+        stock: 1000
+        targetStock: 1000
+      PALE_OAK_WOOD:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 700
+        targetStock: 700
+      STRIPPED_PALE_OAK_LOG:
+        buyPrice: 5.7
+        sellPrice: 1.45
+        stock: 700
+        targetStock: 700
+      BAMBOO_BLOCK:
+        buyPrice: 9.0
+        sellPrice: 2.25
+        stock: 1500
+        targetStock: 1500
+      BAMBOO_PLANKS:
+        buyPrice: 2.25
+        sellPrice: 0.55
+        stock: 4000
+        targetStock: 4000
+      STRIPPED_BAMBOO_BLOCK:
+        buyPrice: 9.5
+        sellPrice: 2.4
+        stock: 1000
+        targetStock: 1000
+      CRIMSON_STEM:
+        buyPrice: 6.0
+        sellPrice: 1.6
+        stock: 1500
+        targetStock: 1500
+      CRIMSON_PLANKS:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 5000
+        targetStock: 5000
+      CRIMSON_FUNGUS:
+        buyPrice: 3.5
+        sellPrice: 0.9
+        stock: 1000
+        targetStock: 1000
+      STRIPPED_CRIMSON_STEM:
+        buyPrice: 6.3
+        sellPrice: 1.65
+        stock: 800
+        targetStock: 800
+      WARPED_STEM:
+        buyPrice: 6.0
+        sellPrice: 1.6
+        stock: 1500
+        targetStock: 1500
+      WARPED_PLANKS:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 5000
+        targetStock: 5000
+      WARPED_FUNGUS:
+        buyPrice: 3.5
+        sellPrice: 0.9
+        stock: 1000
+        targetStock: 1000
+      STRIPPED_WARPED_STEM:
+        buyPrice: 6.3
+        sellPrice: 1.65
+        stock: 800
+        targetStock: 800
+
+  building:
+    displayName: "Matériaux de Construction"
+    icon: BRICKS
+    items:
+      STONE:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 5000
+        targetStock: 5000
+      SMOOTH_STONE:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 3000
+        targetStock: 3000
+      COBBLESTONE:
+        buyPrice: 0.8
+        sellPrice: 0.2
+        stock: 6000
+        targetStock: 6000
+      MOSSY_COBBLESTONE:
+        buyPrice: 1.5
+        sellPrice: 0.4
+        stock: 2500
+        targetStock: 2500
+      STONE_BRICKS:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 4000
+        targetStock: 4000
+      MOSSY_STONE_BRICKS:
+        buyPrice: 1.8
+        sellPrice: 0.45
+        stock: 2500
+        targetStock: 2500
+      CRACKED_STONE_BRICKS:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 2000
+        targetStock: 2000
+      CHISELED_STONE_BRICKS:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 1500
+        targetStock: 1500
+      GRANITE:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 3000
+        targetStock: 3000
+      POLISHED_GRANITE:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 2500
+        targetStock: 2500
+      DIORITE:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 3000
+        targetStock: 3000
+      POLISHED_DIORITE:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 2500
+        targetStock: 2500
+      ANDESITE:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 3000
+        targetStock: 3000
+      POLISHED_ANDESITE:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 2500
+        targetStock: 2500
+      DEEPSLATE:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 4000
+        targetStock: 4000
+      COBBLED_DEEPSLATE:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 5000
+        targetStock: 5000
+      POLISHED_DEEPSLATE:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 3000
+        targetStock: 3000
+      DEEPSLATE_BRICKS:
+        buyPrice: 1.8
+        sellPrice: 0.45
+        stock: 3000
+        targetStock: 3000
+      DEEPSLATE_TILES:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 2500
+        targetStock: 2500
+      CHISELED_DEEPSLATE:
+        buyPrice: 2.2
+        sellPrice: 0.55
+        stock: 1500
+        targetStock: 1500
+      TUFF:
+        buyPrice: 1.2
+        sellPrice: 0.3
+        stock: 3000
+        targetStock: 3000
+      POLISHED_TUFF:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 2500
+        targetStock: 2500
+      TUFF_BRICKS:
+        buyPrice: 1.8
+        sellPrice: 0.45
+        stock: 2500
+        targetStock: 2500
+      CHISELED_TUFF_BRICKS:
+        buyPrice: 2.2
+        sellPrice: 0.55
+        stock: 1500
+        targetStock: 1500
+      BRICKS:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2500
+        targetStock: 2500
+      MUD:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 3000
+        targetStock: 3000
+      PACKED_MUD:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 2500
+        targetStock: 2500
+      MUD_BRICKS:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 2500
+        targetStock: 2500
+      SAND:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 5000
+        targetStock: 5000
+      RED_SAND:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 3000
+        targetStock: 3000
+      SANDSTONE:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 3000
+        targetStock: 3000
+      RED_SANDSTONE:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2000
+        targetStock: 2000
+      SMOOTH_SANDSTONE:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2000
+        targetStock: 2000
+      SMOOTH_RED_SANDSTONE:
+        buyPrice: 3.0
+        sellPrice: 0.75
+        stock: 1500
+        targetStock: 1500
+      GRAVEL:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 4000
+        targetStock: 4000
+      CLAY:
+        buyPrice: 3.0
+        sellPrice: 0.75
+        stock: 2500
+        targetStock: 2500
+      TERRACOTTA:
+        buyPrice: 3.5
+        sellPrice: 0.9
+        stock: 2500
+        targetStock: 2500
+      WHITE_TERRACOTTA:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 1500
+        targetStock: 1500
+      GLASS:
+        buyPrice: 1.5
+        sellPrice: 0.35
+        stock: 4000
+        targetStock: 4000
+      TINTED_GLASS:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 1000
+        targetStock: 1000
+      OBSIDIAN:
+        buyPrice: 25.0
+        sellPrice: 7.0
+        stock: 800
+        targetStock: 800
+      CRYING_OBSIDIAN:
+        buyPrice: 40.0
+        sellPrice: 11.0
+        stock: 500
+        targetStock: 500
+      NETHERRACK:
+        buyPrice: 0.5
+        sellPrice: 0.12
+        stock: 6000
+        targetStock: 6000
+      NETHER_BRICKS:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 3000
+        targetStock: 3000
+      RED_NETHER_BRICKS:
+        buyPrice: 3.5
+        sellPrice: 0.9
+        stock: 2000
+        targetStock: 2000
+      BASALT:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 2500
+        targetStock: 2500
+      POLISHED_BASALT:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 2000
+        targetStock: 2000
+      SMOOTH_BASALT:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 2000
+        targetStock: 2000
+      BLACKSTONE:
+        buyPrice: 1.5
+        sellPrice: 0.38
+        stock: 3000
+        targetStock: 3000
+      POLISHED_BLACKSTONE:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 2500
+        targetStock: 2500
+      POLISHED_BLACKSTONE_BRICKS:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2500
+        targetStock: 2500
+      END_STONE:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 3000
+        targetStock: 3000
+      END_STONE_BRICKS:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2500
+        targetStock: 2500
+      PURPUR_BLOCK:
+        buyPrice: 3.0
+        sellPrice: 0.75
+        stock: 2000
+        targetStock: 2000
+      PURPUR_PILLAR:
+        buyPrice: 3.5
+        sellPrice: 0.88
+        stock: 1500
+        targetStock: 1500
+      PRISMARINE:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2000
+        targetStock: 2000
+      PRISMARINE_BRICKS:
+        buyPrice: 5.0
+        sellPrice: 1.25
+        stock: 1800
+        targetStock: 1800
+      DARK_PRISMARINE:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 1500
+        targetStock: 1500
+      SEA_LANTERN:
+        buyPrice: 18.0
+        sellPrice: 4.5
+        stock: 1000
+        targetStock: 1000
+      GLOWSTONE:
+        buyPrice: 12.0
+        sellPrice: 3.0
+        stock: 1500
+        targetStock: 1500
+      SHROOMLIGHT:
+        buyPrice: 10.0
+        sellPrice: 2.5
+        stock: 1200
+        targetStock: 1200
+      WHITE_WOOL:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 3000
+        targetStock: 3000
+      BLACK_WOOL:
+        buyPrice: 2.5
+        sellPrice: 0.6
+        stock: 1500
+        targetStock: 1500
+      WHITE_CONCRETE:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 3000
+        targetStock: 3000
+      BLACK_CONCRETE:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2500
+        targetStock: 2500
+      GRAY_CONCRETE:
+        buyPrice: 2.5
+        sellPrice: 0.65
+        stock: 2500
+        targetStock: 2500
+
+  mob_drops:
+    displayName: "Butins de Monstres"
+    icon: ROTTEN_FLESH
+    items:
+      ROTTEN_FLESH:
+        buyPrice: 1.5
+        sellPrice: 0.35
+        stock: 4000
+        targetStock: 4000
+      BONE:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 3000
+        targetStock: 3000
+      BONE_MEAL:
+        buyPrice: 0.8
+        sellPrice: 0.18
+        stock: 5000
+        targetStock: 5000
+      BONE_BLOCK:
+        buyPrice: 7.2
+        sellPrice: 1.6
+        stock: 600
+        targetStock: 600
+      STRING:
+        buyPrice: 2.5
+        sellPrice: 0.6
+        stock: 3000
+        targetStock: 3000
+      COBWEB:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 500
+        targetStock: 500
+      SPIDER_EYE:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 1500
+        targetStock: 1500
+      GUNPOWDER:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 2500
+        targetStock: 2500
+      TNT:
+        buyPrice: 35.0
+        sellPrice: 9.0
+        stock: 600
+        targetStock: 600
+      ENDER_PEARL:
+        buyPrice: 20.0
+        sellPrice: 5.5
+        stock: 1200
+        targetStock: 1200
+      ENDER_EYE:
+        buyPrice: 38.0
+        sellPrice: 10.0
+        stock: 600
+        targetStock: 600
+      BLAZE_ROD:
+        buyPrice: 25.0
+        sellPrice: 6.5
+        stock: 1000
+        targetStock: 1000
+      GHAST_TEAR:
+        buyPrice: 50.0
+        sellPrice: 15.0
+        stock: 400
+        targetStock: 400
+      SLIME_BALL:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 2000
+        targetStock: 2000
+      SLIME_BLOCK:
+        buyPrice: 54.0
+        sellPrice: 13.5
+        stock: 300
+        targetStock: 300
+      MAGMA_CREAM:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 1500
+        targetStock: 1500
+      MAGMA_BLOCK:
+        buyPrice: 32.0
+        sellPrice: 8.0
+        stock: 500
+        targetStock: 500
+      LEATHER:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2500
+        targetStock: 2500
+      RABBIT_HIDE:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 1500
+        targetStock: 1500
+      FEATHER:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 3000
+        targetStock: 3000
+      INK_SAC:
+        buyPrice: 3.0
+        sellPrice: 0.75
+        stock: 2000
+        targetStock: 2000
+      GLOW_INK_SAC:
+        buyPrice: 5.0
+        sellPrice: 1.3
+        stock: 1200
+        targetStock: 1200
+      PRISMARINE_SHARD:
+        buyPrice: 3.0
+        sellPrice: 0.75
+        stock: 2500
+        targetStock: 2500
+      PRISMARINE_CRYSTALS:
+        buyPrice: 4.5
+        sellPrice: 1.15
+        stock: 2000
+        targetStock: 2000
+      SHULKER_SHELL:
+        buyPrice: 250.0
+        sellPrice: 75.0
+        stock: 250
+        targetStock: 250
+      NETHER_STAR:
+        buyPrice: 3500.0
+        sellPrice: 1000.0
+        stock: 30
+        targetStock: 30
+      PHANTOM_MEMBRANE:
+        buyPrice: 25.0
+        sellPrice: 7.5
+        stock: 600
+        targetStock: 600
+      TURTLE_SCUTE:
+        buyPrice: 40.0
+        sellPrice: 11.0
+        stock: 400
+        targetStock: 400
+      ARMADILLO_SCUTE:
+        buyPrice: 35.0
+        sellPrice: 9.5
+        stock: 400
+        targetStock: 400
+      BREEZE_ROD:
+        buyPrice: 80.0
+        sellPrice: 25.0
+        stock: 400
+        targetStock: 400
+      WIND_CHARGE:
+        buyPrice: 25.0
+        sellPrice: 7.0
+        stock: 800
+        targetStock: 800
+      HEAVY_CORE:
+        buyPrice: 8000.0
+        sellPrice: 2500.0
+        stock: 20
+        targetStock: 20
+
+  potions:
+    displayName: "Potions & Alchimie"
+    icon: BREWING_STAND
+    items:
+      BREWING_STAND:
+        buyPrice: 45.0
+        sellPrice: 12.0
+        stock: 400
+        targetStock: 400
+      CAULDRON:
+        buyPrice: 40.0
+        sellPrice: 10.0
+        stock: 400
+        targetStock: 400
+      GLASS_BOTTLE:
+        buyPrice: 1.0
+        sellPrice: 0.25
+        stock: 4000
+        targetStock: 4000
+      EXPERIENCE_BOTTLE:
+        buyPrice: 35.0
+        sellPrice: 10.0
+        stock: 1000
+        targetStock: 1000
+      OMINOUS_BOTTLE:
+        buyPrice: 250.0
+        sellPrice: 75.0
+        stock: 250
+        targetStock: 250
+      POTION:
+        buyPrice: 60.0
+        sellPrice: 15.0
+        stock: 500
+        targetStock: 500
+        isCommand: true
+        commandToExecute: "give %player% potion[potion_contents={potion:\"minecraft:strong_healing\"}] 1"
+      SPLASH_POTION:
+        buyPrice: 90.0
+        sellPrice: 25.0
+        stock: 400
+        targetStock: 400
+        isCommand: true
+        commandToExecute: "give %player% splash_potion[potion_contents={potion:\"minecraft:strong_healing\"}] 1"
+      LINGERING_POTION:
+        buyPrice: 180.0
+        sellPrice: 45.0
+        stock: 200
+        targetStock: 200
+        isCommand: true
+        commandToExecute: "give %player% lingering_potion[potion_contents={potion:\"minecraft:strong_regeneration\"}] 1"
+      TIPPED_ARROW:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 800
+        targetStock: 800
+      NETHER_WART:
+        buyPrice: 3.5
+        sellPrice: 0.9
+        stock: 2500
+        targetStock: 2500
+      BLAZE_POWDER:
+        buyPrice: 14.0
+        sellPrice: 3.5
+        stock: 2000
+        targetStock: 2000
+      FERMENTED_SPIDER_EYE:
+        buyPrice: 10.0
+        sellPrice: 2.8
+        stock: 1200
+        targetStock: 1200
+      GLISTERING_MELON_SLICE:
+        buyPrice: 16.0
+        sellPrice: 4.5
+        stock: 1000
+        targetStock: 1000
+      PUFFERFISH:
+        buyPrice: 20.0
+        sellPrice: 5.5
+        stock: 600
+        targetStock: 600
+      RABBIT_FOOT:
+        buyPrice: 35.0
+        sellPrice: 10.0
+        stock: 500
+        targetStock: 500
+      DRAGON_BREATH:
+        buyPrice: 120.0
+        sellPrice: 35.0
+        stock: 300
+        targetStock: 300
+      GLOWSTONE_DUST:
+        buyPrice: 3.0
+        sellPrice: 0.75
+        stock: 3000
+        targetStock: 3000
+      MILK_BUCKET:
+        buyPrice: 15.0
+        sellPrice: 3.5
+        stock: 600
+        targetStock: 600
+
+  utilities:
+    displayName: "Utilitaires & Équipement"
+    icon: CHEST
+    items:
+      TORCH:
+        buyPrice: 1.0
+        sellPrice: 0.2
+        stock: 5000
+        targetStock: 5000
+      SOUL_TORCH:
+        buyPrice: 1.5
+        sellPrice: 0.3
+        stock: 2500
+        targetStock: 2500
+      REDSTONE_TORCH:
+        buyPrice: 2.0
+        sellPrice: 0.5
+        stock: 2000
+        targetStock: 2000
+      LANTERN:
+        buyPrice: 12.0
+        sellPrice: 3.0
+        stock: 1500
+        targetStock: 1500
+      SOUL_LANTERN:
+        buyPrice: 14.0
+        sellPrice: 3.5
+        stock: 1000
+        targetStock: 1000
+      CAMPFIRE:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 800
+        targetStock: 800
+      SOUL_CAMPFIRE:
+        buyPrice: 10.0
+        sellPrice: 2.5
+        stock: 600
+        targetStock: 600
+      CHEST:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 2000
+        targetStock: 2000
+      TRAPPED_CHEST:
+        buyPrice: 12.0
+        sellPrice: 3.0
+        stock: 800
+        targetStock: 800
+      BARREL:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 1500
+        targetStock: 1500
+      ENDER_CHEST:
+        buyPrice: 150.0
+        sellPrice: 42.0
+        stock: 400
+        targetStock: 400
+      SHULKER_BOX:
+        buyPrice: 600.0
+        sellPrice: 180.0
+        stock: 200
+        targetStock: 200
+      CRAFTING_TABLE:
+        buyPrice: 4.0
+        sellPrice: 1.0
+        stock: 2000
+        targetStock: 2000
+      FURNACE:
+        buyPrice: 6.0
+        sellPrice: 1.5
+        stock: 2000
+        targetStock: 2000
+      BLAST_FURNACE:
+        buyPrice: 35.0
+        sellPrice: 9.0
+        stock: 800
+        targetStock: 800
+      SMOKER:
+        buyPrice: 25.0
+        sellPrice: 6.5
+        stock: 800
+        targetStock: 800
+      ANVIL:
+        buyPrice: 320.0
+        sellPrice: 85.0
+        stock: 300
+        targetStock: 300
+      CHIPPED_ANVIL:
+        buyPrice: 220.0
+        sellPrice: 55.0
+        stock: 150
+        targetStock: 150
+      DAMAGED_ANVIL:
+        buyPrice: 120.0
+        sellPrice: 30.0
+        stock: 150
+        targetStock: 150
+      ENCHANTING_TABLE:
+        buyPrice: 350.0
+        sellPrice: 95.0
+        stock: 250
+        targetStock: 250
+      BOOKSHELF:
+        buyPrice: 18.0
+        sellPrice: 4.5
+        stock: 1200
+        targetStock: 1200
+      CHISELED_BOOKSHELF:
+        buyPrice: 22.0
+        sellPrice: 5.5
+        stock: 800
+        targetStock: 800
+      GRINDSTONE:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 600
+        targetStock: 600
+      SMITHING_TABLE:
+        buyPrice: 25.0
+        sellPrice: 6.0
+        stock: 600
+        targetStock: 600
+      CARTOGRAPHY_TABLE:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 500
+        targetStock: 500
+      LOOM:
+        buyPrice: 10.0
+        sellPrice: 2.5
+        stock: 500
+        targetStock: 500
+      STONECUTTER:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 600
+        targetStock: 600
+      HOPPER:
+        buyPrice: 45.0
+        sellPrice: 12.0
+        stock: 1000
+        targetStock: 1000
+      DROPPER:
+        buyPrice: 10.0
+        sellPrice: 2.5
+        stock: 800
+        targetStock: 800
+      DISPENSER:
+        buyPrice: 18.0
+        sellPrice: 4.5
+        stock: 800
+        targetStock: 800
+      OBSERVER:
+        buyPrice: 20.0
+        sellPrice: 5.0
+        stock: 1000
+        targetStock: 1000
+      PISTON:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 1200
+        targetStock: 1200
+      STICKY_PISTON:
+        buyPrice: 25.0
+        sellPrice: 6.5
+        stock: 1000
+        targetStock: 1000
+      REPEATER:
+        buyPrice: 8.0
+        sellPrice: 2.0
+        stock: 1500
+        targetStock: 1500
+      COMPARATOR:
+        buyPrice: 18.0
+        sellPrice: 4.5
+        stock: 1200
+        targetStock: 1200
+      TARGET:
+        buyPrice: 12.0
+        sellPrice: 3.0
+        stock: 600
+        targetStock: 600
+      LIGHTNING_ROD:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 600
+        targetStock: 600
+      BUCKET:
+        buyPrice: 30.0
+        sellPrice: 8.0
+        stock: 1000
+        targetStock: 1000
+      WATER_BUCKET:
+        buyPrice: 35.0
+        sellPrice: 9.0
+        stock: 800
+        targetStock: 800
+      LAVA_BUCKET:
+        buyPrice: 50.0
+        sellPrice: 13.0
+        stock: 800
+        targetStock: 800
+      SADDLE:
+        buyPrice: 120.0
+        sellPrice: 35.0
+        stock: 400
+        targetStock: 400
+      NAME_TAG:
+        buyPrice: 60.0
+        sellPrice: 18.0
+        stock: 600
+        targetStock: 600
+      LEAD:
+        buyPrice: 15.0
+        sellPrice: 4.0
+        stock: 800
+        targetStock: 800
+      COMPASS:
+        buyPrice: 25.0
+        sellPrice: 7.0
+        stock: 600
+        targetStock: 600
+      RECOVERY_COMPASS:
+        buyPrice: 300.0
+        sellPrice: 85.0
+        stock: 200
+        targetStock: 200
+      CLOCK:
+        buyPrice: 45.0
+        sellPrice: 12.0
+        stock: 500
+        targetStock: 500
+      SPYGLASS:
+        buyPrice: 20.0
+        sellPrice: 5.0
+        stock: 500
+        targetStock: 500
+      BEACON:
+        buyPrice: 6000.0
+        sellPrice: 1800.0
+        stock: 30
+        targetStock: 30
+      SPONGE:
+        buyPrice: 180.0
+        sellPrice: 50.0
+        stock: 300
+        targetStock: 300
+      ELYTRA:
+        buyPrice: 12000.0
+        sellPrice: 3500.0
+        stock: 25
+        targetStock: 25
+      TRIDENT:
+        buyPrice: 4500.0
+        sellPrice: 1300.0
+        stock: 40
+        targetStock: 40
+      TOTEM_OF_UNDYING:
+        buyPrice: 2500.0
+        sellPrice: 750.0
+        stock: 60
+        targetStock: 60
