@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './i18n';
-import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, TrendingUp, Shield, ToggleLeft, ToggleRight, FileText, Target, Gamepad2, Users, UserX, Gavel, Mic, MicOff, MessageSquare, Menu, X } from 'lucide-react';
+import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, Shield, ToggleLeft, ToggleRight, FileText, Target, Gamepad2, Users, UserX, Gavel, Mic, MicOff, MessageSquare, Menu, X, Search } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PlayerLogin, PlayerDashboard } from './PlayerPortal';
 import { Docs } from './Docs';
@@ -61,6 +61,31 @@ function getPlayerAvatarUrl(name: string, size: number = 64): string {
   if (!name) return `${API_URL}/head/Steve/${size}`;
   return `${API_URL}/head/${encodeURIComponent(name)}/${size}`;
 }
+
+export function getMinecraftItemUrl(material: string): string {
+  if (!material) return '';
+  const clean = material.toLowerCase();
+  return `https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/default/items/${clean}.png`;
+}
+
+const BUKKIT_MATERIALS = [
+  "DIAMOND", "DIAMOND_BLOCK", "DIAMOND_SWORD", "DIAMOND_PICKAXE", "DIAMOND_AXE", "DIAMOND_SHOVEL", "DIAMOND_HOE", 
+  "DIAMOND_HELMET", "DIAMOND_CHESTPLATE", "DIAMOND_LEGGINGS", "DIAMOND_BOOTS",
+  "NETHERITE_INGOT", "NETHERITE_BLOCK", "NETHERITE_SWORD", "NETHERITE_PICKAXE", "NETHERITE_AXE", "NETHERITE_SHOVEL",
+  "NETHERITE_HELMET", "NETHERITE_CHESTPLATE", "NETHERITE_LEGGINGS", "NETHERITE_BOOTS",
+  "IRON_INGOT", "IRON_BLOCK", "RAW_IRON", "IRON_SWORD", "IRON_PICKAXE", "IRON_AXE", "IRON_HELMET", "IRON_CHESTPLATE",
+  "GOLD_INGOT", "GOLD_BLOCK", "RAW_GOLD", "GOLDEN_APPLE", "ENCHANTED_GOLDEN_APPLE", "GOLDEN_CARROT",
+  "COPPER_INGOT", "COPPER_BLOCK", "RAW_COPPER", "COAL", "COAL_BLOCK", "CHARCOAL", "EMERALD", "EMERALD_BLOCK",
+  "LAPIS_LAZULI", "LAPIS_BLOCK", "REDSTONE", "REDSTONE_BLOCK", "AMETHYST_SHARD", "QUARTZ",
+  "OAK_LOG", "OAK_PLANKS", "SPRUCE_LOG", "SPRUCE_PLANKS", "BIRCH_LOG", "BIRCH_PLANKS", "DARK_OAK_LOG", "MANGROVE_LOG", "CHERRY_LOG",
+  "STONE", "COBBLESTONE", "STONE_BRICKS", "SMOOTH_STONE", "MOSSY_STONE_BRICKS", "DEEPSLATE", "COBBLED_DEEPSLATE", "OBSIDIAN", "CRYING_OBSIDIAN", "ANCIENT_DEBRIS",
+  "WHEAT", "WHEAT_SEEDS", "HAY_BLOCK", "CARROT", "POTATO", "BAKED_POTATO", "BEETROOT", "BEETROOT_SEEDS", "MELON", "MELON_SLICE", "PUMPKIN",
+  "BREAD", "BEEF", "COOKED_BEEF", "PORKCHOP", "COOKED_PORKCHOP", "CHICKEN", "COOKED_CHICKEN", "APPLE", "SWEET_BERRIES",
+  "ROTTEN_FLESH", "BONE", "STRING", "SPIDER_EYE", "GUNPOWDER", "ENDER_PEARL", "BLAZE_ROD", "BLAZE_POWDER", "MAGMA_CREAM", "GHAST_TEAR",
+  "SLIME_BALL", "PHANTOM_MEMBRANE", "WITHER_SKELETON_SKULL", "NETHER_STAR", "SHULKER_SHELL",
+  "POTION", "SPLASH_POTION", "LINGERING_POTION", "EXPERIENCE_BOTTLE", "ENCHANTED_BOOK", "TOTEM_OF_UNDYING", "ELYTRA", "TRIDENT", "BOW", "CROSSBOW", "SHIELD",
+  "BEACON", "CONDUIT", "HEART_OF_THE_SEA", "SPONGE", "SHULKER_BOX", "ENDER_CHEST", "ENCHANTING_TABLE", "ANVIL", "BREWING_STAND"
+];
 
 // === COMPOSANT : LOGIN ADMIN ===
 function AdminLogin({ onLogin }: { onLogin: (pwd: string) => void }) {
@@ -381,7 +406,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                 <div className="settings-section-title"><Trash2 size={20} /> {t('web.admin.settings.data_title')}</div>
                 <div className="form-group" style={{ marginBottom: '0' }}>
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                    ⚠️ <b>ATTENTION :</b> Ce bouton va formater la base de données (tous les stats, homes, inventaires, teams). Seuls le shop et les paramètres yml seront conservés. 
+                    <b>ATTENTION :</b> Ce bouton va formater la base de données (tous les stats, homes, inventaires, teams). Seuls le shop et les paramètres yml seront conservés. 
                   </p>
                   <button 
                     type="button" 
@@ -391,8 +416,8 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                       const confirmPassword = prompt("Cette action est irréversible et supprimera toutes les données joueurs. Tapez le mot de passe admin pour confirmer :");
                       if (confirmPassword === password) {
                         const res = await fetch(`${API_URL}/admin/wipe-server`, { method: 'POST', headers: { 'Authorization': `Bearer ${password}` } });
-                        if (res.ok) alert("✅ Wipe terminé avec succès ! Le serveur est en train de s'arrêter. Supprimez le dossier de la map puis redémarrez le serveur.");
-                        else alert("❌ Erreur lors du wipe.");
+                        if (res.ok) alert("Wipe terminé avec succès ! Le serveur est en train de s'arrêter. Supprimez le dossier de la map puis redémarrez le serveur.");
+                        else alert("Erreur lors du wipe.");
                       } else if (confirmPassword !== null) {
                         alert("Mot de passe incorrect, wipe annulé.");
                       }
@@ -845,28 +870,37 @@ function AdminModules({ password }: { password: string }) {
   );
 }
 
-// === COMPOSANT : GESTION DE LA BOUTIQUE ===
+// === COMPOSANT : GESTION DE LA BOUTIQUE (ADMIN STUDIO) ===
 function AdminShop({ password }: { password: string }) {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<ShopCategory[]>([]);
+  const [activeCatId, setActiveCatId] = useState<string>('');
+  const [selectedMaterial, setSelectedMaterial] = useState<string>('');
+  const [inspectorMode, setInspectorMode] = useState<'edit' | 'create'>('edit');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [isEcoEnabled, setIsEcoEnabled] = useState(true);
+  const [statusMsg, setStatusMsg] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+  // Formulaire d'ajout / édition
+  const [formMat, setFormMat] = useState('DIAMOND');
+  const [formBuy, setFormBuy] = useState(10.0);
+  const [formSell, setFormSell] = useState(3.0);
+  const [formTargetStock, setFormTargetStock] = useState(1000);
+  const [formCurrentStock, setFormCurrentStock] = useState(1000);
+  const [formIsEnabled, setFormIsEnabled] = useState(true);
+  const [formIsCommand, setFormIsCommand] = useState(false);
+  const [formCommand, setFormCommand] = useState('');
+  const [autocompleteResults, setAutocompleteResults] = useState<string[]>([]);
   const [showCatModal, setShowCatModal] = useState(false);
-  const [showItemModal, setShowItemModal] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState('');
+  const [newCatId, setNewCatId] = useState('');
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('DIAMOND');
 
-  const [catId, setCatId] = useState('');
-  const [catName, setCatName] = useState('');
-  const [catIcon, setCatIcon] = useState('BRICKS');
-
-  const [itemMat, setItemMat] = useState('STONE');
-  const [buyP, setBuyP] = useState(1.0);
-  const [sellP, setSellP] = useState(0.5);
-  const [targetS, setTargetS] = useState(1000);
-  const [isCmd, setIsCmd] = useState(false);
-  const [cmdExec, setCmdExec] = useState('');
-  const [isEnabled, setIsEnabled] = useState(true);
+  const showStatus = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setStatusMsg({ text, type });
+    setTimeout(() => setStatusMsg(null), 3500);
+  };
 
   const fetchShop = () => {
     fetch(`${API_URL}/modules`)
@@ -874,14 +908,26 @@ function AdminShop({ password }: { password: string }) {
       .then(mods => {
         const eco = mods.find((m: any) => m.name === 'Economy' || m.name === 'DynamicShop');
         if (eco && !eco.enabled) {
-            setIsEcoEnabled(false);
-            setLoading(false);
-            return;
+          setIsEcoEnabled(false);
+          setLoading(false);
+          return;
         }
         setIsEcoEnabled(true);
         fetch(`${API_URL}/shop/categories`)
           .then(res => res.json())
-          .then(data => { setCategories(data || []); setLoading(false); })
+          .then(data => {
+            const list: ShopCategory[] = data || [];
+            setCategories(list);
+            if (list.length > 0) {
+              const currentCat = list.find(c => c.id === activeCatId) || list[0];
+              setActiveCatId(currentCat.id);
+              if (currentCat.items && currentCat.items.length > 0) {
+                const currentItem = currentCat.items.find(i => i.material === selectedMaterial) || currentCat.items[0];
+                loadItemToForm(currentItem);
+              }
+            }
+            setLoading(false);
+          })
           .catch(() => { setCategories([]); setLoading(false); });
       }).catch(() => setLoading(false));
   };
@@ -890,14 +936,57 @@ function AdminShop({ password }: { password: string }) {
     fetchShop();
   }, []);
 
+  const loadItemToForm = (item: ShopItem) => {
+    setSelectedMaterial(item.material);
+    setFormMat(item.material);
+    setFormBuy(item.baseBuyPrice);
+    setFormSell(item.baseSellPrice);
+    setFormTargetStock(item.targetStock || 1000);
+    setFormCurrentStock(item.stock || 0);
+    setFormIsEnabled(item.isEnabled !== false);
+    setFormIsCommand(item.isCommand || false);
+    setFormCommand(item.commandToExecute || '');
+    setInspectorMode('edit');
+  };
+
   const handleAuthError = () => {
     alert('Votre session administrateur a expiré ou est invalide. Veuillez vous reconnecter.');
     localStorage.removeItem('gens_admin_pwd');
     window.location.reload();
   };
 
+  const saveItemForm = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    try {
+      const res = await fetch(`${API_URL}/admin/shop/item`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
+        body: JSON.stringify({
+          categoryId: activeCatId,
+          material: formMat.trim().toUpperCase(),
+          baseBuyPrice: formBuy,
+          baseSellPrice: formSell,
+          targetStock: formTargetStock,
+          isCommand: formIsCommand,
+          commandToExecute: formCommand,
+          isEnabled: formIsEnabled
+        })
+      });
+      if (!res.ok) {
+        if (res.status === 401) return handleAuthError();
+        const err = await res.json().catch(() => ({}));
+        showStatus(err.error || "Erreur lors de l'enregistrement de l'objet", 'error');
+        return;
+      }
+      showStatus(`Objet ${formMat} enregistre avec succes !`, 'success');
+      fetchShop();
+    } catch (err) {
+      showStatus('Erreur de connexion avec le serveur', 'error');
+    }
+  };
+
   const deleteItem = async (categoryId: string, material: string) => {
-    if (!confirm('Supprimer cet objet ?')) return;
+    if (!confirm(`Supprimer l'objet ${material} ?`)) return;
     try {
       const res = await fetch(`${API_URL}/admin/shop/item/${categoryId}/${material}`, {
         method: 'DELETE',
@@ -906,17 +995,18 @@ function AdminShop({ password }: { password: string }) {
       if (!res.ok) {
         if (res.status === 401) return handleAuthError();
         const err = await res.json().catch(() => ({}));
-        alert(err.error || 'Erreur lors de la suppression');
+        showStatus(err.error || 'Erreur lors de la suppression', 'error');
         return;
       }
+      showStatus(`Objet ${material} supprime avec succes`, 'info');
       fetchShop();
     } catch (err) {
-      alert('Erreur de communication avec le serveur');
+      showStatus('Erreur de communication avec le serveur', 'error');
     }
   };
 
   const deleteCategory = async (categoryId: string) => {
-    if (!confirm('Supprimer cette catégorie et tous ses objets ?')) return;
+    if (!confirm('Supprimer cette categorie et tous ses objets ?')) return;
     try {
       const res = await fetch(`${API_URL}/admin/shop/category/${categoryId}`, {
         method: 'DELETE',
@@ -925,28 +1015,14 @@ function AdminShop({ password }: { password: string }) {
       if (!res.ok) {
         if (res.status === 401) return handleAuthError();
         const err = await res.json().catch(() => ({}));
-        alert(err.error || 'Erreur lors de la suppression');
+        showStatus(err.error || 'Erreur lors de la suppression', 'error');
         return;
       }
+      showStatus('Categorie supprimee', 'info');
       fetchShop();
     } catch (err) {
-      alert('Erreur de communication avec le serveur');
+      showStatus('Erreur de communication avec le serveur', 'error');
     }
-  };
-
-  const toggleItemEnabled = async (categoryId: string, item: any) => {
-    try {
-      const res = await fetch(`${API_URL}/admin/shop/item`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-        body: JSON.stringify({ categoryId, ...item, isEnabled: !item.isEnabled })
-      });
-      if (!res.ok && res.status === 401) {
-        handleAuthError();
-        return;
-      }
-      fetchShop();
-    } catch (err) {}
   };
 
   const submitCategory = async (e: React.FormEvent) => {
@@ -955,45 +1031,65 @@ function AdminShop({ password }: { password: string }) {
       const res = await fetch(`${API_URL}/admin/shop/category`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-        body: JSON.stringify({ id: catId, displayName: catName, icon: catIcon, items: [] })
+        body: JSON.stringify({ id: newCatId.trim().toLowerCase(), displayName: newCatName.trim(), icon: newCatIcon.trim().toUpperCase(), items: [] })
       });
       if (!res.ok) {
         if (res.status === 401) return handleAuthError();
         const err = await res.json().catch(() => ({}));
-        alert(err.error || "Erreur lors de l'ajout de la catégorie");
+        showStatus(err.error || "Erreur lors de l'ajout de la categorie", 'error');
         return;
       }
       setShowCatModal(false);
-      setCatId('');
-      setCatName('');
+      setNewCatId('');
+      setNewCatName('');
+      showStatus(`Categorie ${newCatName} creee avec succes !`, 'success');
       fetchShop();
     } catch (err) {
-      alert("Erreur de connexion avec le serveur.");
+      showStatus('Erreur de connexion avec le serveur', 'error');
     }
   };
 
-  const submitItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch(`${API_URL}/admin/shop/item`, {
+  const applyBulkCategoryPrice = async (factor: number) => {
+    const activeCat = categories.find(c => c.id === activeCatId);
+    if (!activeCat || !activeCat.items || activeCat.items.length === 0) return;
+    if (!confirm(`Appliquer une modification de ${(factor > 1 ? '+' : '')}${Math.round((factor - 1) * 100)}% sur tous les prix de la categorie "${activeCat.displayName}" ?`)) return;
+
+    for (const item of activeCat.items) {
+      const newBuy = parseFloat((item.baseBuyPrice * factor).toFixed(2));
+      const newSell = parseFloat((item.baseSellPrice * factor).toFixed(2));
+      await fetch(`${API_URL}/admin/shop/item`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
         body: JSON.stringify({
-          categoryId: editingCategoryId,
-          material: itemMat, baseBuyPrice: buyP, baseSellPrice: sellP, targetStock: targetS, isCommand: isCmd, commandToExecute: cmdExec, isEnabled: isEnabled
+          categoryId: activeCatId,
+          material: item.material,
+          baseBuyPrice: newBuy,
+          baseSellPrice: newSell,
+          targetStock: item.targetStock,
+          isCommand: item.isCommand,
+          commandToExecute: item.commandToExecute,
+          isEnabled: item.isEnabled !== false
         })
       });
-      if (!res.ok) {
-        if (res.status === 401) return handleAuthError();
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || "Erreur lors de l'enregistrement de l'objet");
-        return;
-      }
-      setShowItemModal(false);
-      fetchShop();
-    } catch (err) {
-      alert("Erreur de connexion avec le serveur.");
     }
+    showStatus(`Prix de la categorie modifies avec succes !`, 'success');
+    fetchShop();
+  };
+
+  const handleAutocomplete = (text: string) => {
+    setFormMat(text);
+    if (!text.trim()) {
+      setAutocompleteResults([]);
+      return;
+    }
+    const q = text.toUpperCase();
+    const matches = BUKKIT_MATERIALS.filter(m => m.includes(q)).slice(0, 8);
+    setAutocompleteResults(matches);
+  };
+
+  const selectBukkit = (mat: string) => {
+    setFormMat(mat);
+    setAutocompleteResults([]);
   };
 
   if (loading) return <div className="loading">Chargement...</div>;
@@ -1005,161 +1101,403 @@ function AdminShop({ password }: { password: string }) {
           <ShoppingCart size={64} style={{opacity: 0.5}} />
         </div>
         <h2>{t('web.public.shop.disabled_title')}</h2>
-        <p style={{color: 'var(--text-muted)'}}>Le module Economy ou DynamicShop est actuellement désactivé. Veuillez le réactiver dans l'onglet Modules pour gérer la boutique.</p>
+        <p style={{color: 'var(--text-muted)'}}>Le module Economy ou DynamicShop est actuellement desactive.</p>
       </div>
     );
   }
 
+  const activeCat = categories.find(c => c.id === activeCatId) || categories[0];
+  let filteredItems = activeCat ? activeCat.items || [] : [];
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    filteredItems = filteredItems.filter(i => i.material.toLowerCase().includes(q));
+  }
+
+  const calculatedMargin = formBuy > 0 ? (((formBuy - formSell) / formBuy) * 100).toFixed(1) : '0.0';
+  const calculatedRatio = formSell > 0 ? (formBuy / formSell).toFixed(1) + 'x' : 'Inf';
+
   return (
     <div>
-      <div style={{marginBottom: '20px'}}>
-        <button className="btn-small btn-primary" onClick={() => { setCatId(''); setCatName(''); setCatIcon('BRICKS'); setShowCatModal(true); }}>
-          <Plus size={16}/> {t('web.admin.shop.new_cat')}
-        </button>
-      </div>
+      {statusMsg && (
+        <div className={`notification ${statusMsg.type}`} style={{position: 'fixed', top: '20px', right: '20px', zIndex: 1000}}>
+          {statusMsg.text}
+        </div>
+      )}
 
       {/* MODAL CATEGORY */}
       {showCatModal && (
         <div className="modal-overlay">
           <div className="modal-card">
-            <h2>Nouvelle Catégorie</h2>
+            <h2>Nouvelle Categorie</h2>
             <form onSubmit={submitCategory}>
               <div className="form-group">
-                <label>ID (minuscules, sans espace)</label>
-                <input required value={catId} onChange={e=>setCatId(e.target.value)} className="login-input" />
+                <label>Identifiant (minuscules, sans espace)</label>
+                <input required value={newCatId} onChange={e => setNewCatId(e.target.value)} className="login-input" placeholder="ex: nether" />
               </div>
               <div className="form-group">
                 <label>Nom d'affichage</label>
-                <input required value={catName} onChange={e=>setCatName(e.target.value)} className="login-input" />
+                <input required value={newCatName} onChange={e => setNewCatName(e.target.value)} className="login-input" placeholder="ex: Ressources du Nether" />
               </div>
               <div className="form-group">
-                <label>Icône (Matériel Bukkit, ex: BRICKS)</label>
-                <input required value={catIcon} onChange={e=>setCatIcon(e.target.value)} className="login-input" />
+                <label>Icone (Materiau Minecraft)</label>
+                <input required value={newCatIcon} onChange={e => setNewCatIcon(e.target.value)} className="login-input" placeholder="ex: NETHERRACK" />
               </div>
-              <div style={{display:'flex', gap:'10px', marginTop: '20px'}}>
-                <button type="submit" className="login-button">enregistréer</button>
-                <button type="button" className="login-button" style={{background:'var(--card-bg)'}} onClick={() => setShowCatModal(false)}>Annuler</button>
+              <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
+                <button type="submit" className="login-button">Enregistrer</button>
+                <button type="button" className="login-button" style={{background: 'var(--card-bg)'}} onClick={() => setShowCatModal(false)}>Annuler</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL ITEM */}
-      {showItemModal && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <h2>Nouvel Objet</h2>
-            <form onSubmit={submitItem}>
-              <div className="form-group">
-                <label>Matériel (ex: DIAMOND)</label>
-                <input required value={itemMat} onChange={e=>setItemMat(e.target.value)} className="login-input" />
-              </div>
-              <div style={{display:'flex', gap:'10px'}}>
-                <div className="form-group">
-                  <label>Prix Achat Base</label>
-                  <input type="number" step="0.1" required value={buyP} onChange={e=>setBuyP(parseFloat(e.target.value))} className="login-input" />
+      <div className="admin-studio-grid">
+        {/* COLONNE 1 : LISTE DES CATEGORIES */}
+        <div className="admin-panel-card">
+          <div className="admin-panel-header">
+            <span style={{fontWeight: 700, fontSize: '0.95rem'}}>Categories ({categories.length})</span>
+            <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => { setNewCatId(''); setNewCatName(''); setNewCatIcon('DIAMOND'); setShowCatModal(true); }}>
+              <Plus size={14}/> Creer
+            </button>
+          </div>
+          <div style={{padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '680px', overflowY: 'auto'}}>
+            {categories.map(c => (
+              <div 
+                key={c.id} 
+                className={`admin-cat-row ${c.id === activeCat?.id ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveCatId(c.id);
+                  if (c.items && c.items.length > 0) loadItemToForm(c.items[0]);
+                }}
+              >
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                  <div className="mc-item-icon" style={{width: '24px', height: '24px'}}>
+                    <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                  </div>
+                  <span style={{fontWeight: 600, fontSize: '0.88rem'}}>{c.displayName}</span>
                 </div>
-                <div className="form-group">
-                  <label>Prix Vente Base</label>
-                  <input type="number" step="0.1" required value={sellP} onChange={e=>setSellP(parseFloat(e.target.value))} className="login-input" />
+                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                  <span style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>{c.items?.length || 0}</span>
+                  <button 
+                    className="wallet-reset-btn" 
+                    style={{color: 'var(--danger)', padding: '2px'}} 
+                    onClick={(e) => { e.stopPropagation(); deleteCategory(c.id); }}
+                    title="Supprimer la categorie"
+                  >
+                    <Trash2 size={14}/>
+                  </button>
                 </div>
               </div>
-              <div className="form-group" style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-                <input type="checkbox" id="isEnabled" checked={isEnabled} onChange={e => setIsEnabled(e.target.checked)} />
-                <label htmlFor="isEnabled" style={{marginBottom: 0}}>Objet Actif (Vendu dans le shop)</label>
-              </div>
-              <div className="form-group">
-                <label>Stock d'équilibre (Cible)</label>
-                <input type="number" required value={targetS} onChange={e=>setTargetS(parseInt(e.target.value))} className="login-input" />
-              </div>
-              <div className="form-group" style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'15px'}}>
-                <input type="checkbox" checked={isCmd} onChange={e=>setIsCmd(e.target.checked)} style={{width:'20px', height:'20px'}} />
-                <label style={{marginBottom:0}}>Est-ce un Grade/Commande ?</label>
-              </div>
-              {isCmd && (
-                <div className="form-group">
-                  <label>Commande à exécuter (utilisez %player%)</label>
-                  <input required value={cmdExec} onChange={e=>setCmdExec(e.target.value)} className="login-input" placeholder="lp user %player% parent set vip" />
-                </div>
-              )}
-              <div style={{display:'flex', gap:'10px', marginTop: '20px'}}>
-                <button type="submit" className="login-button">enregistréer</button>
-                <button type="button" className="login-button" style={{background:'var(--card-bg)'}} onClick={() => setShowItemModal(false)}>Annuler</button>
-              </div>
-            </form>
+            ))}
           </div>
         </div>
-      )}
 
-      {categories.map(cat => (
-        <div key={cat.id} className="shop-category-card">
-          <div className="shop-category-header">
-            <h3>{cat.displayName} <span>({cat.items.length} objets)</span></h3>
-            <div style={{display: 'flex', gap: '10px'}}>
-              <button className="btn-small btn-primary" onClick={() => { 
-                setEditingCategoryId(cat.id); setItemMat('STONE'); setBuyP(1.0); setSellP(0.5); setTargetS(1000); setIsCmd(false); setCmdExec(''); setIsEnabled(true); setShowItemModal(true); 
-              }}><Plus size={16}/> Ajouter objet</button>
-              <button className="btn-icon" onClick={() => deleteCategory(cat.id)} title="Supprimer la catégorie"><Trash2 size={16}/></button>
+        {/* COLONNE 2 : GRILLE D'ITEMS */}
+        <div className="admin-panel-card">
+          <div className="admin-panel-header" style={{flexWrap: 'wrap', gap: '10px'}}>
+            <div>
+              <span style={{fontWeight: 700, fontSize: '1rem'}}>Objets : {activeCat?.displayName} ({filteredItems.length})</span>
+              <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Cliquez sur un objet pour charger sa fiche complete</div>
+            </div>
+            <div style={{display: 'flex', gap: '6px'}}>
+              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => applyBulkCategoryPrice(1.10)}>+10% Prix</button>
+              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => applyBulkCategoryPrice(0.90)}>-10% Prix</button>
+              <button 
+                className="multiplier-btn" 
+                style={{padding: '4px 10px', fontSize: '0.75rem', background: 'var(--accent)', color: 'white'}}
+                onClick={() => {
+                  setInspectorMode('create');
+                  setFormMat('DIAMOND');
+                  setFormBuy(10.0);
+                  setFormSell(3.0);
+                  setFormTargetStock(1000);
+                  setFormCurrentStock(1000);
+                  setFormIsEnabled(true);
+                  setFormIsCommand(false);
+                  setFormCommand('');
+                }}
+              >
+                <Plus size={14}/> Nouvel Item
+              </button>
             </div>
           </div>
-          <table className="shop-table">
-            <thead>
-              <tr>
-                <th>Objet</th>
-                <th>Prix Achat / Vente</th>
-                <th>Stock / Target</th>
-                <th>Type</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(cat.items || []).map(item => (
-                <tr key={item.material}>
-                  <td><strong>{item.material}</strong></td>
-                  <td>{item.baseBuyPrice} $ / {item.baseSellPrice} $</td>
-                  <td>{item.stock} / {item.targetStock}</td>
-                  <td>
-                    {item.isCommand ? <span style={{color: 'var(--accent)'}}>Commande</span> : <span>Item Brut</span>}
-                  </td>
-                  <td>
-                    <button className="btn-icon" onClick={() => toggleItemEnabled(cat.id, item)} title={item.isEnabled ? "Désactiver" : "Activer"} style={{marginRight: '10px', color: item.isEnabled ? '#10b981' : '#ef4444'}}>
-                      {item.isEnabled ? <ToggleRight size={24}/> : <ToggleLeft size={24}/>}
+
+          <div style={{padding: '12px 16px', borderBottom: '1px solid var(--card-border)', background: 'rgba(0,0,0,0.2)'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <Search size={16} color="var(--text-muted)"/>
+              <input 
+                type="text" 
+                placeholder="Rechercher dans cette categorie..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{background: 'transparent', border: 'none', color: 'white', width: '100%', outline: 'none', fontSize: '0.88rem'}}
+              />
+            </div>
+          </div>
+
+          <div style={{padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '620px', overflowY: 'auto'}}>
+            {filteredItems.map(item => {
+              const isSel = selectedMaterial === item.material && inspectorMode === 'edit';
+              const isEnabled = item.isEnabled !== false;
+              return (
+                <div 
+                  key={item.material}
+                  className={`admin-item-row ${isSel ? 'selected' : ''}`}
+                  onClick={() => loadItemToForm(item)}
+                >
+                  <div className="mc-slot-box" style={{width: '40px', height: '40px'}}>
+                    <div className="mc-item-icon" style={{width: '30px', height: '30px'}}>
+                      <img src={getMinecraftItemUrl(item.material)} alt={item.material} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                      <span style={{fontWeight: 700, fontSize: '0.9rem', color: 'white'}}>{item.material}</span>
+                      <span style={{fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: isEnabled ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: isEnabled ? '#10b981' : '#ef4444'}}>
+                        {isEnabled ? 'ACTIF' : 'MASQUE'}
+                      </span>
+                    </div>
+                    <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Stock : {item.stock} / Cible : {item.targetStock}</div>
+                  </div>
+                  <div onClick={e => e.stopPropagation()}>
+                    <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Achat</span>
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      className="inline-editable-cell" 
+                      defaultValue={item.baseBuyPrice} 
+                      onBlur={e => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val) && val !== item.baseBuyPrice) {
+                          fetch(`${API_URL}/admin/shop/item`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
+                            body: JSON.stringify({ categoryId: activeCat?.id, ...item, baseBuyPrice: val })
+                          }).then(() => fetchShop());
+                        }
+                      }}
+                    />
+                  </div>
+                  <div onClick={e => e.stopPropagation()}>
+                    <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Vente</span>
+                    <input 
+                      type="number" 
+                      step="0.1" 
+                      className="inline-editable-cell" 
+                      defaultValue={item.baseSellPrice} 
+                      onBlur={e => {
+                        const val = parseFloat(e.target.value);
+                        if (!isNaN(val) && val !== item.baseSellPrice) {
+                          fetch(`${API_URL}/admin/shop/item`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
+                            body: JSON.stringify({ categoryId: activeCat?.id, ...item, baseSellPrice: val })
+                          }).then(() => fetchShop());
+                        }
+                      }}
+                    />
+                  </div>
+                  <div style={{textAlign: 'right'}} onClick={e => e.stopPropagation()}>
+                    <button 
+                      className="wallet-reset-btn" 
+                      style={{color: 'var(--danger)', marginLeft: 'auto'}} 
+                      onClick={() => deleteItem(activeCat.id, item.material)} 
+                      title="Supprimer cet item"
+                    >
+                      <Trash2 size={16}/>
                     </button>
-                    <button className="btn-small btn-primary" onClick={() => {
-                      setEditingCategoryId(cat.id);
-                      setItemMat(item.material);
-                      setBuyP(item.baseBuyPrice);
-                      setSellP(item.baseSellPrice);
-                      setTargetS(item.targetStock || 1000);
-                      setIsCmd(item.isCommand || false);
-                      setCmdExec(item.commandToExecute || '');
-                      setIsEnabled(item.isEnabled ?? true);
-                      setShowItemModal(true);
-                    }} style={{marginRight: '10px', background: 'var(--accent)', color: 'black'}}>Éditer</button>
-                    <button className="btn-icon" onClick={() => deleteItem(cat.id, item.material)} title="Supprimer"><Trash2 size={18}/></button>
-                  </td>
-                </tr>
-              ))}
-              {(!cat.items || cat.items.length === 0) && (
-                <tr><td colSpan={5} style={{textAlign:'center', color:'var(--text-muted)'}}>Aucun objet dans cette catégorie</td></tr>
-              )}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              );
+            })}
+            {filteredItems.length === 0 && (
+              <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>
+                Aucun objet trouve. Cliquez sur "+ Nouvel Item" pour ajouter.
+              </div>
+            )}
+          </div>
         </div>
-      ))}
+
+        {/* COLONNE 3 : PANNEAU D'INSPECTION & ÉDITION */}
+        <div className="admin-panel-card">
+          <div className="admin-panel-header">
+            <div>
+              <span style={{fontWeight: 700, fontSize: '0.95rem'}}>
+                {inspectorMode === 'edit' ? `Fiche : ${formMat}` : 'Ajouter un Nouvel Objet'}
+              </span>
+              <div style={{fontSize: '0.72rem', color: 'var(--accent)'}}>
+                {inspectorMode === 'edit' ? 'Modification de la fiche' : 'Autocompletion 300+ Bukkit'}
+              </div>
+            </div>
+            {inspectorMode === 'edit' ? (
+              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => setInspectorMode('create')}>
+                <Plus size={14}/> Nouveau
+              </button>
+            ) : (
+              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => setInspectorMode('edit')}>
+                Retour Fiche
+              </button>
+            )}
+          </div>
+
+          <form onSubmit={saveItemForm} style={{padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px'}}>
+            {inspectorMode === 'create' ? (
+              <div className="autocomplete-container">
+                <label className="form-label">Materiau Minecraft Bukkit</label>
+                <input 
+                  type="text" 
+                  value={formMat} 
+                  onChange={e => handleAutocomplete(e.target.value)} 
+                  className="input-field" 
+                  placeholder="Tapez ex: DIAMOND, NETHER..." 
+                  required 
+                />
+                {autocompleteResults.length > 0 && (
+                  <div className="autocomplete-dropdown">
+                    {autocompleteResults.map(mat => (
+                      <div key={mat} className="autocomplete-item" onClick={() => selectBukkit(mat)}>
+                        <div className="mc-item-icon" style={{width: '20px', height: '20px'}}>
+                          <img src={getMinecraftItemUrl(mat)} alt={mat} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                        </div>
+                        <span>{mat}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px', border: '1px solid var(--card-border)'}}>
+                <div className="mc-slot-box" style={{width: '54px', height: '54px'}}>
+                  <div className="mc-item-icon" style={{width: '40px', height: '40px'}}>
+                    <img src={getMinecraftItemUrl(formMat)} alt={formMat} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontWeight: 700, fontSize: '1.1rem', color: 'white'}}>{formMat.replace(/_/g, ' ')}</div>
+                  <div style={{fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace'}}>{formMat}</div>
+                  <span style={{display: 'inline-block', marginTop: '4px', fontSize: '0.7rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: formIsEnabled ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: formIsEnabled ? '#10b981' : '#ef4444'}}>
+                    {formIsEnabled ? 'EN VENTE (ACTIF)' : 'DESACTIVE (MASQUE)'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--card-border)'}}>
+              <div>
+                <div style={{fontWeight: 600, fontSize: '0.85rem', color: 'white'}}>Actif dans la Boutique</div>
+                <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Visible par les joueurs pour achat/vente</div>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={formIsEnabled} 
+                onChange={e => setFormIsEnabled(e.target.checked)} 
+                style={{width: '18px', height: '18px', accentColor: 'var(--accent)'}} 
+              />
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+              <div>
+                <label className="form-label">Prix Achat Base ($)</label>
+                <input 
+                  type="number" 
+                  step="0.1" 
+                  value={formBuy} 
+                  onChange={e => setFormBuy(parseFloat(e.target.value) || 0)} 
+                  className="input-field" 
+                  required 
+                />
+              </div>
+              <div>
+                <label className="form-label">Prix Vente Base ($)</label>
+                <input 
+                  type="number" 
+                  step="0.1" 
+                  value={formSell} 
+                  onChange={e => setFormSell(parseFloat(e.target.value) || 0)} 
+                  className="input-field" 
+                  required 
+                />
+              </div>
+            </div>
+
+            <div style={{background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '10px 14px', borderRadius: '6px'}}>
+              <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Marge serveur en temps reel :</div>
+              <div style={{fontSize: '1.05rem', fontWeight: 700, color: 'var(--accent)'}}>
+                {calculatedMargin}% de marge (Ratio {calculatedRatio})
+              </div>
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+              <div>
+                <label className="form-label">Stock Cible (Equilibre)</label>
+                <input 
+                  type="number" 
+                  value={formTargetStock} 
+                  onChange={e => setFormTargetStock(parseInt(e.target.value) || 1000)} 
+                  className="input-field" 
+                  required 
+                />
+              </div>
+              <div>
+                <label className="form-label">Stock Actuel (Serveur)</label>
+                <input 
+                  type="number" 
+                  value={formCurrentStock} 
+                  onChange={e => setFormCurrentStock(parseInt(e.target.value) || 0)} 
+                  className="input-field" 
+                />
+              </div>
+            </div>
+
+            <div style={{background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '8px', border: '1px solid var(--card-border)'}}>
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px'}}>
+                <div>
+                  <div style={{fontWeight: 600, fontSize: '0.85rem', color: 'white'}}>Mode Commande / Grade</div>
+                  <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Execute une commande au lieu de donner l'item</div>
+                </div>
+                <input 
+                  type="checkbox" 
+                  checked={formIsCommand} 
+                  onChange={e => setFormIsCommand(e.target.checked)} 
+                  style={{width: '18px', height: '18px', accentColor: 'var(--accent)'}} 
+                />
+              </div>
+              {formIsCommand && (
+                <div style={{marginTop: '8px'}}>
+                  <label className="form-label">Commande a executer (%player%)</label>
+                  <input 
+                    type="text" 
+                    value={formCommand} 
+                    onChange={e => setFormCommand(e.target.value)} 
+                    className="input-field" 
+                    placeholder="lp user %player% parent set vip" 
+                  />
+                </div>
+              )}
+            </div>
+
+            <button type="submit" className="login-button" style={{padding: '12px', fontWeight: 700}}>
+              {inspectorMode === 'edit' ? 'Enregistrer les Modifications' : `Ajouter a ${activeCat?.displayName}`}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
 
-// === COMPOSANTS : VUE CLIENT ===
-
+// === COMPOSANTS : VUE CLIENT (BOUTIQUE JOUEUR DYNAMIQUE) ===
 export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<ShopCategory[]>([]);
+  const [activeCatId, setActiveCatId] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<'buy' | 'sell'>('buy');
+  const [drawerQuantity, setDrawerQuantity] = useState(1);
 
   useEffect(() => {
     if (isEnabled === false) {
@@ -1168,23 +1506,35 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
     }
     fetch(`${API_URL}/shop/categories`)
       .then(res => res.json())
-      .then(data => { setCategories(data); setLoading(false); })
+      .then(data => {
+        setCategories(data || []);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
-  }, []);
+  }, [isEnabled]);
 
-  const loadHistory = (item: ShopItem) => {
+  const openItemDrawer = (item: ShopItem) => {
     setSelectedItem(item);
+    setDrawerQuantity(1);
+    setDrawerMode('buy');
+    setDrawerOpen(true);
+
     fetch(`${API_URL}/shop/history/${item.material}`)
       .then(res => res.json())
       .then(data => {
-        const formatted = data.map((d: any) => ({
-          time: new Date(d.timestamp).toLocaleTimeString(),
-          Achat: d.buyPrice,
-          Vente: d.sellPrice,
-          Stock: d.stock
-        }));
-        setHistory(formatted);
-      });
+        if (Array.isArray(data)) {
+          const formatted = data.map((d: any) => ({
+            time: new Date(d.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            Achat: d.buyPrice,
+            Vente: d.sellPrice,
+            Stock: d.stock
+          }));
+          setHistory(formatted);
+        } else {
+          setHistory([]);
+        }
+      })
+      .catch(() => setHistory([]));
   };
 
   if (isEnabled === false) {
@@ -1199,6 +1549,19 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 
   if (loading) return <div className="loading">{t('web.public.shop.loading')}</div>;
 
+  // Filtrage des catégories et items
+  const allItems: ShopItem[] = categories.flatMap(c => c.items || []);
+  let displayItems = activeCatId === 'all' ? allItems : (categories.find(c => c.id === activeCatId)?.items || []);
+  displayItems = displayItems.filter(i => i.isEnabled !== false);
+
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    displayItems = displayItems.filter(i => i.material.toLowerCase().includes(q));
+  }
+
+  const unitPrice = selectedItem ? (drawerMode === 'buy' ? (selectedItem.currentBuyPrice || selectedItem.baseBuyPrice) : (selectedItem.currentSellPrice || selectedItem.baseSellPrice)) : 0;
+  const totalCost = unitPrice * drawerQuantity;
+
   return (
     <div>
       <div className="client-hero" style={{padding: '2rem 0'}}>
@@ -1206,80 +1569,242 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
         <p>{t('web.public.shop.subtitle')}</p>
       </div>
 
-      <div className="dashboard-split" style={{display: 'grid', gridTemplateColumns: categories.length > 0 ? '1fr 1fr' : '1fr', gap: '2rem', alignItems: 'flex-start'}}>
-        {categories.length > 0 && (
-          <div style={{display: 'flex', flexDirection: 'column', gap: '2rem'}}>
-            {categories.map(cat => (
-              <div key={cat.id} className="shop-category-card">
-                <div className="shop-category-header">
-                  <h3>{cat.displayName}</h3>
-                </div>
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
-                  {(cat.items || []).filter(i => i.isEnabled !== false).map(item => (
-                    <div 
-                      key={item.material} 
-                      style={{
-                        background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '8px', cursor: 'pointer',
-                        border: selectedItem?.material === item.material ? '1px solid var(--accent)' : '1px solid transparent'
-                      }}
-                      onClick={() => loadHistory(item)}
-                    >
-                      <div style={{fontWeight: 600, marginBottom: '5px'}}>{item.material}</div>
-                      <div style={{fontSize: '0.9rem', color: 'green'}}>{t('web.public.shop.buy')}: {item.currentBuyPrice?.toFixed(2)} $</div>
-                      {item.baseSellPrice > 0 ? (
-                        <div style={{fontSize: '0.9rem', color: 'red'}}>{t('web.public.shop.sell')}: {item.currentSellPrice?.toFixed(2)} $</div>
-                      ) : (
-                        <div style={{fontSize: '0.9rem', color: 'var(--text-muted)'}}>{t('web.public.shop.unsellable')}</div>
-                      )}
-                      {item.isCommand && (
-                        <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '5px', fontWeight: 'bold'}}>🌟 {t('web.public.shop.command_tag')}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+      {/* BARRE DE FILTRES ET RECHERCHE */}
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap'}}>
+        <div style={{display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px'}}>
+          <button 
+            className={`multiplier-btn ${activeCatId === 'all' ? 'selected' : ''}`}
+            onClick={() => setActiveCatId('all')}
+          >
+            Tous ({allItems.length})
+          </button>
+          {categories.map(c => (
+            <button 
+              key={c.id} 
+              className={`multiplier-btn ${activeCatId === c.id ? 'selected' : ''}`}
+              onClick={() => setActiveCatId(c.id)}
+              style={{display: 'flex', alignItems: 'center', gap: '6px'}}
+            >
+              <div className="mc-item-icon" style={{width: '18px', height: '18px'}}>
+                <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} onError={(e: any) => e.currentTarget.style.display = 'none'} />
               </div>
-            ))}
-          </div>
-        )}
+              <span>{c.displayName}</span>
+              <span style={{fontSize: '0.72rem', opacity: 0.7}}>({c.items?.length || 0})</span>
+            </button>
+          ))}
+        </div>
 
-        <div style={{background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem', position: 'sticky', top: '2rem'}}>
-          <h3 style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem'}}>
-            <TrendingUp size={20} color="var(--accent)" /> 
-            {selectedItem ? `${t('web.public.shop.history')} : ${selectedItem.material}` : t('web.public.shop.select_item')}
-          </h3>
-          
-          {selectedItem ? (
-            <div style={{height: '300px', width: '100%'}}>
-              {history.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" minHeight={300} minWidth={100}>
-                  <LineChart data={history}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                    <XAxis dataKey="time" stroke="var(--text-muted)" />
-                    <YAxis stroke="var(--text-muted)" />
-                    <Tooltip contentStyle={{background: '#0b0f19', border: '1px solid var(--card-border)', borderRadius: '8px'}} />
-                    <Line type="monotone" dataKey="Achat" stroke="#10b981" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="Vente" stroke="#ef4444" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div style={{textAlign: 'center', color: 'var(--text-muted)', paddingTop: '4rem'}}>{t('web.public.shop.no_history')}</div>
-              )}
-            </div>
-          ) : (
-            <div style={{textAlign: 'center', color: 'var(--text-muted)', paddingTop: '4rem'}}>
-              {t('web.public.shop.select_item_desc')}
-            </div>
-          )}
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 14px', minWidth: '260px'}}>
+          <Search size={18} color="var(--text-muted)"/>
+          <input 
+            type="text" 
+            placeholder="Rechercher un objet..." 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem'}}
+          />
         </div>
       </div>
+
+      {/* GRILLE D'ITEMS */}
+      <div className="shop-grid">
+        {displayItems.map(item => {
+          const buyPrice = item.currentBuyPrice || item.baseBuyPrice;
+          const sellPrice = item.currentSellPrice || item.baseSellPrice;
+          const targetStock = item.targetStock || 1000;
+          const currentStock = item.stock || 0;
+          const stockRatio = Math.min(100, Math.round((currentStock / targetStock) * 100));
+          const stockClass = stockRatio > 80 ? 'stock-high' : stockRatio > 40 ? 'stock-medium' : 'stock-low';
+
+          return (
+            <div key={item.material} className="shop-card" onClick={() => openItemDrawer(item)}>
+              <div style={{display: 'flex', alignItems: 'flex-start', gap: '14px'}}>
+                <div className="mc-slot-box">
+                  <div className="mc-item-icon">
+                    <img src={getMinecraftItemUrl(item.material)} alt={item.material} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                  </div>
+                </div>
+                <div style={{flex: 1, minWidth: 0}}>
+                  <div style={{fontWeight: 700, fontSize: '1rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                    {item.material.replace(/_/g, ' ')}
+                  </div>
+                  <div style={{fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace'}}>{item.material}</div>
+                  {item.isCommand && (
+                    <span style={{fontSize: '0.68rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', display: 'inline-block', marginTop: '4px'}}>
+                      Commande
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)'}}>
+                  <span>Stock : {currentStock}</span>
+                  <span>Cible : {targetStock} ({stockRatio}%)</span>
+                </div>
+                <div className="stock-gauge-bar">
+                  <div className={`stock-gauge-fill ${stockClass}`} style={{width: `${stockRatio}%`, height: '100%'}}></div>
+                </div>
+              </div>
+
+              <div className="price-row">
+                <div>
+                  <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Achat</span>
+                  <span style={{fontWeight: 700, color: '#10b981', fontSize: '1.05rem'}}>{buyPrice.toFixed(2)} $</span>
+                </div>
+                <div>
+                  <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Vente</span>
+                  {sellPrice > 0 ? (
+                    <span style={{fontWeight: 700, color: '#ef4444', fontSize: '1.05rem'}}>{sellPrice.toFixed(2)} $</span>
+                  ) : (
+                    <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Non revendable</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {displayItems.length === 0 && (
+          <div style={{gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: 'var(--text-muted)'}}>
+            Aucun objet correspondant dans cette categorie.
+          </div>
+        )}
+      </div>
+
+      {/* TIROIR LATÉRAL D'ACHAT / VENTE RAPIDE */}
+      <div className={`drawer-overlay ${drawerOpen ? 'open' : ''}`} onClick={() => setDrawerOpen(false)}></div>
+      <aside className={`drawer-panel ${drawerOpen ? 'open' : ''}`}>
+        {selectedItem && (
+          <>
+            <div className="drawer-header">
+              <div style={{fontWeight: 700, fontSize: '1.1rem', color: 'white'}}>
+                {drawerMode === 'buy' ? 'Acheter' : 'Vendre'} : {selectedItem.material}
+              </div>
+              <button className="wallet-reset-btn" onClick={() => setDrawerOpen(false)}>
+                <X size={20}/>
+              </button>
+            </div>
+
+            <div className="drawer-body">
+              <div style={{display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '12px', border: '1px solid var(--card-border)'}}>
+                <div className="mc-slot-box" style={{width: '60px', height: '60px'}}>
+                  <div className="mc-item-icon" style={{width: '44px', height: '44px'}}>
+                    <img src={getMinecraftItemUrl(selectedItem.material)} alt={selectedItem.material} />
+                  </div>
+                </div>
+                <div>
+                  <div style={{fontWeight: 700, fontSize: '1.15rem', color: 'white'}}>{selectedItem.material.replace(/_/g, ' ')}</div>
+                  <div style={{fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'monospace'}}>{selectedItem.material}</div>
+                  <div style={{fontSize: '0.8rem', color: 'var(--accent)', marginTop: '4px'}}>Stock disponible : {selectedItem.stock || 0}</div>
+                </div>
+              </div>
+
+              {/* TABS ACHAT / VENTE */}
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: 'var(--bg-color)', padding: '4px', borderRadius: '8px'}}>
+                <button 
+                  className={`multiplier-btn ${drawerMode === 'buy' ? 'selected' : ''}`}
+                  onClick={() => setDrawerMode('buy')}
+                >
+                  Mode Achat
+                </button>
+                <button 
+                  className={`multiplier-btn ${drawerMode === 'sell' ? 'selected' : ''}`}
+                  onClick={() => setDrawerMode('sell')}
+                  disabled={(selectedItem.currentSellPrice || selectedItem.baseSellPrice) <= 0}
+                  style={{opacity: (selectedItem.currentSellPrice || selectedItem.baseSellPrice) <= 0 ? 0.4 : 1}}
+                >
+                  Mode Vente
+                </button>
+              </div>
+
+              {/* GRAPHIQUE HISTORIQUE */}
+              <div style={{background: 'rgba(0,0,0,0.35)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '14px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '10px'}}>
+                  <span>Cours en temps reel</span>
+                  <span style={{color: '#10b981', fontWeight: 700}}>Actuel : {unitPrice.toFixed(2)} $</span>
+                </div>
+                <div style={{height: '140px', width: '100%'}}>
+                  {history.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={history}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                        <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={10} />
+                        <YAxis stroke="var(--text-muted)" fontSize={10} domain={['dataMin - 1', 'dataMax + 1']} />
+                        <Tooltip contentStyle={{background: '#12141a', border: '1px solid var(--card-border)', borderRadius: '8px', fontSize: '0.8rem'}} />
+                        <Line type="monotone" dataKey="Achat" stroke="#10b981" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="Vente" stroke="#ef4444" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div style={{textAlign: 'center', color: 'var(--text-muted)', paddingTop: '50px', fontSize: '0.85rem'}}>
+                      Cours stable ou pas encore d'historique
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* MULTIPLICATEURS DE QUANTITE */}
+              <div>
+                <span className="form-label">Quantite Rapide</span>
+                <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px'}}>
+                  <button className={`multiplier-btn ${drawerQuantity === 1 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(1)}>x1</button>
+                  <button className={`multiplier-btn ${drawerQuantity === 16 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(16)}>x16</button>
+                  <button className={`multiplier-btn ${drawerQuantity === 32 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(32)}>x32</button>
+                  <button className={`multiplier-btn ${drawerQuantity === 64 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(64)}>x64</button>
+                  <button className="multiplier-btn" onClick={() => setDrawerQuantity(Math.min(selectedItem.stock || 64, 576))}>Max</button>
+                </div>
+              </div>
+
+              {/* CURSEUR DE QUANTITÉ */}
+              <div>
+                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px'}}>
+                  <span style={{color: 'var(--text-muted)'}}>Ajuster la quantite :</span>
+                  <span style={{fontWeight: 700, color: 'white'}}>{drawerQuantity} unites</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="1" 
+                  max="256" 
+                  value={drawerQuantity} 
+                  onChange={e => setDrawerQuantity(parseInt(e.target.value))} 
+                  style={{width: '100%', accentColor: 'var(--accent)'}} 
+                />
+              </div>
+
+              {/* SYNTHÈSE */}
+              <div style={{background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                  <span>Prix unitaire :</span>
+                  <span style={{fontWeight: 600, color: 'white'}}>{unitPrice.toFixed(2)} $</span>
+                </div>
+                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                  <span>Quantite :</span>
+                  <span style={{fontWeight: 600, color: 'white'}}>x{drawerQuantity}</span>
+                </div>
+                <div style={{borderTop: '1px solid var(--card-border)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.15rem', color: 'white'}}>
+                  <span>Total :</span>
+                  <span style={{color: drawerMode === 'buy' ? '#10b981' : '#ef4444'}}>{totalCost.toFixed(2)} $</span>
+                </div>
+              </div>
+
+              <div style={{textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)'}}>
+                Utilisez la commande in-game <code style={{color: 'var(--accent)'}}>/shop</code> pour echanger directement vos items dans Minecraft.
+              </div>
+            </div>
+          </>
+        )}
+      </aside>
     </div>
   );
 }
 
+// === COMPOSANTS : VUE CLIENT (HOTEL DES VENTES / AH) ===
 export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
   const { t } = useTranslation();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   useEffect(() => {
     if (isEnabled === false) {
@@ -1288,7 +1813,7 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
     }
     fetch(`${API_URL}/ah/items`)
       .then(res => res.json())
-      .then(data => { setItems(data); setLoading(false); })
+      .then(data => { setItems(data || []); setLoading(false); })
       .catch(() => setLoading(false));
   }, [isEnabled]);
 
@@ -1304,6 +1829,16 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
 
   if (loading) return <div className="loading">{t('web.public.ah.loading')}</div>;
 
+  let filtered = items;
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(i => 
+      (i.displayName && i.displayName.toLowerCase().includes(q)) || 
+      (i.material && i.material.toLowerCase().includes(q)) ||
+      (i.sellerName && i.sellerName.toLowerCase().includes(q))
+    );
+  }
+
   return (
     <div>
       <div className="client-hero" style={{padding: '2rem 0'}}>
@@ -1311,25 +1846,94 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
         <p>{t('web.public.ah.subtitle')}</p>
       </div>
 
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: '1rem'}}>
-        {items.map(item => (
-          <div key={item.id} style={{background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem'}}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem'}}>
-              <Package size={24} color="var(--accent)" />
-              <div style={{fontWeight: 'bold', fontSize: '1.1rem'}}>
-                {item.displayName ? item.displayName : (item.material ? item.material.replace(/_/g, ' ') : `${t('web.public.ah.offer')}${item.id}`)} 
-                {item.amount && item.amount > 1 && ` (x${item.amount})`}
+      {/* BARRE DE RECHERCHE ET FILTRES */}
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap'}}>
+        <div style={{display: 'flex', gap: '8px', overflowX: 'auto'}}>
+          <button className={`multiplier-btn ${categoryFilter === 'all' ? 'selected' : ''}`} onClick={() => setCategoryFilter('all')}>
+            Toutes les offres ({items.length})
+          </button>
+        </div>
+
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 14px', minWidth: '260px'}}>
+          <Search size={18} color="var(--text-muted)"/>
+          <input 
+            type="text" 
+            placeholder="Rechercher objet ou vendeur..." 
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem'}}
+          />
+        </div>
+      </div>
+
+      {/* GRILLE D'OFFRES AVEC CARTES ENCHANTÉES & TÊTES DE JOUEURS */}
+      <div className="ah-grid">
+        {filtered.map(item => {
+          const isEnchanted = item.isEnchanted || (item.enchantments && item.enchantments.length > 0);
+          const remainingDays = Math.max(0, Math.floor(((item.expireTime || Date.now()) - Date.now()) / (1000 * 60 * 60 * 24)));
+          const unitPrice = item.price / (item.amount || 1);
+
+          return (
+            <div key={item.id} className={`ah-card ${isEnchanted ? 'enchanted-foil' : ''}`}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                <img 
+                  className="mc-player-head" 
+                  src={getPlayerAvatarUrl(item.sellerName, 32)} 
+                  alt={item.sellerName} 
+                  onError={(e: any) => e.currentTarget.src = `${API_URL}/head/Steve/32`}
+                />
+                <div>
+                  <div style={{fontWeight: 700, fontSize: '0.88rem', color: 'white'}}>{item.sellerName}</div>
+                  <span style={{fontSize: '0.68rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(59,130,246,0.15)', color: 'var(--accent)'}}>
+                    VENDEUR
+                  </span>
+                </div>
+                <div style={{marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)'}}>#{item.id}</div>
+              </div>
+
+              <div style={{display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid var(--card-border)'}}>
+                <div className="mc-slot-box" style={{width: '50px', height: '50px'}}>
+                  <div className="mc-item-icon" style={{width: '36px', height: '36px'}}>
+                    <img src={getMinecraftItemUrl(item.material || 'STONE')} alt={item.material} />
+                  </div>
+                </div>
+                <div style={{flex: 1, minWidth: 0}}>
+                  <div style={{fontWeight: 700, fontSize: '1rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                    {item.displayName || (item.material ? item.material.replace(/_/g, ' ') : `Offre #${item.id}`)}
+                  </div>
+                  <div style={{fontSize: '0.78rem', color: 'var(--text-muted)'}}>Quantite : x{item.amount || 1}</div>
+                </div>
+              </div>
+
+              {item.enchantments && item.enchantments.length > 0 && (
+                <div style={{display: 'flex', flexWrap: 'wrap', gap: '6px'}}>
+                  {item.enchantments.map((ench: string, idx: number) => (
+                    <span key={idx} className="enchant-tag">{ench}</span>
+                  ))}
+                </div>
+              )}
+
+              {item.lore && item.lore.length > 0 && (
+                <div className="mc-lore-box">
+                  {item.lore.map((l: string, idx: number) => (
+                    <div key={idx}>{l}</div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--card-border)', paddingTop: '12px', marginTop: 'auto'}}>
+                <div>
+                  <div style={{fontSize: '1.2rem', fontWeight: 800, color: '#10b981'}}>{item.price.toFixed(2)} $</div>
+                  <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>{unitPrice.toFixed(2)} $ / unite</div>
+                </div>
+                <div style={{fontSize: '0.78rem', color: 'var(--text-muted)'}}>
+                  Expire dans {remainingDays}j
+                </div>
               </div>
             </div>
-            <div style={{color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '10px'}}>#{item.id}</div>
-            <div style={{color: 'var(--text-muted)', marginBottom: '5px'}}>{t('web.public.ah.seller')} : <span style={{color: '#fff'}}>{item.sellerName}</span></div>
-            <div style={{color: 'var(--text-muted)', marginBottom: '15px'}}>{t('web.public.ah.price')} : <span style={{color: '#10b981', fontWeight: 'bold'}}>{item.price.toFixed(2)} $</span></div>
-            <div style={{fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid var(--card-border)', paddingTop: '10px'}}>
-              {t('web.public.ah.expire_in')} : {Math.max(0, Math.floor((item.expireTime - Date.now()) / (1000 * 60 * 60 * 24)))} {t('web.public.ah.days')}
-            </div>
-          </div>
-        ))}
-        {items.length === 0 && (
+          );
+        })}
+        {filtered.length === 0 && (
           <div style={{gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-muted)', padding: '3rem 0'}}>
             {t('web.public.ah.empty')}
           </div>

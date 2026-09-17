@@ -114,6 +114,31 @@ public class AuctionHouseDAO {
                             if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
                                 ahItem.put("displayName", net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(item.getItemMeta().displayName()));
                             }
+
+                            List<String> enchants = new ArrayList<>();
+                            if (item.hasItemMeta()) {
+                                org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+                                if (meta.hasEnchants()) {
+                                    for (Map.Entry<org.bukkit.enchantments.Enchantment, Integer> entry : meta.getEnchants().entrySet()) {
+                                        enchants.add(formatEnchantmentName(entry.getKey().getKey().getKey(), entry.getValue()));
+                                    }
+                                }
+                                if (meta instanceof org.bukkit.inventory.meta.EnchantmentStorageMeta) {
+                                    org.bukkit.inventory.meta.EnchantmentStorageMeta bookMeta = (org.bukkit.inventory.meta.EnchantmentStorageMeta) meta;
+                                    for (Map.Entry<org.bukkit.enchantments.Enchantment, Integer> entry : bookMeta.getStoredEnchants().entrySet()) {
+                                        enchants.add(formatEnchantmentName(entry.getKey().getKey().getKey(), entry.getValue()));
+                                    }
+                                }
+                                if (meta.hasLore() && meta.lore() != null) {
+                                    List<String> loreLines = new ArrayList<>();
+                                    for (net.kyori.adventure.text.Component line : meta.lore()) {
+                                        loreLines.add(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line));
+                                    }
+                                    ahItem.put("lore", loreLines);
+                                }
+                            }
+                            ahItem.put("enchantments", enchants);
+                            ahItem.put("isEnchanted", !enchants.isEmpty());
                         }
                     } catch (Exception ignored) {
                         ahItem.put("material", "UNKNOWN");
@@ -126,6 +151,25 @@ public class AuctionHouseDAO {
             e.printStackTrace();
         }
         return ahItems;
+    }
+
+    private String formatEnchantmentName(String key, int level) {
+        if (key == null || key.isEmpty()) return "Enchantment";
+        String name = key.replace('_', ' ');
+        name = Character.toUpperCase(name.charAt(0)) + name.substring(1);
+        String roman = toRoman(level);
+        return roman.isEmpty() ? name : name + " " + roman;
+    }
+
+    private String toRoman(int n) {
+        switch (n) {
+            case 1: return "I";
+            case 2: return "II";
+            case 3: return "III";
+            case 4: return "IV";
+            case 5: return "V";
+            default: return n > 0 ? String.valueOf(n) : "";
+        }
     }
 }
 

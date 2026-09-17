@@ -1,0 +1,3174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GensCore - Laboratoire des Boutiques (Rework Preview)</title>
+  <style>
+    /* RESET & THEME VARIABLES */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-base: #09090b;
+      --bg-surface: #12141a;
+      --bg-surface-elevated: #181b24;
+      --bg-card: rgba(24, 27, 36, 0.75);
+      --bg-card-hover: rgba(32, 36, 48, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-medium: rgba(255, 255, 255, 0.15);
+      --border-accent: rgba(59, 130, 246, 0.5);
+
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      --accent-blue: #3b82f6;
+      --accent-blue-glow: rgba(59, 130, 246, 0.25);
+      --accent-emerald: #10b981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.25);
+      --accent-amber: #f59e0b;
+      --accent-rose: #ef4444;
+      --accent-purple: #a855f7;
+      --accent-cyan: #06b6d4;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(59, 130, 246, 0.07), transparent 35%),
+        radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.06), transparent 35%);
+    }
+
+    /* CONTROLLERS & HEADER */
+    .lab-header {
+      background: rgba(18, 20, 26, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px 28px;
+    }
+
+    .header-content {
+      max-width: 1560px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent-blue);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* MODULE NAV SWITCHER */
+    .module-switcher {
+      display: flex;
+      background: var(--bg-base);
+      padding: 4px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      gap: 4px;
+    }
+
+    .module-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.2s ease;
+    }
+
+    .module-tab:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .module-tab.active {
+      color: #fff;
+      background: var(--bg-surface-elevated);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-medium);
+    }
+
+    /* RIGHT STATUS / WALLET SIMULATOR */
+    .user-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .wallet-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 6px 14px;
+      border-radius: var(--radius-lg);
+      font-weight: 700;
+      color: var(--accent-emerald);
+      font-size: 0.92rem;
+    }
+
+    .wallet-reset-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+
+    .wallet-reset-btn:hover {
+      color: var(--text-main);
+    }
+
+    /* VARIANT BAR (HERO SUB-BAR) */
+    .variant-banner {
+      background: linear-gradient(180deg, rgba(24, 27, 36, 0.9) 0%, rgba(18, 20, 26, 0.6) 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 28px;
+    }
+
+    .variant-banner-inner {
+      max-width: 1560px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .variant-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .variant-pill {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 0.05em;
+    }
+
+    .pill-shop { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid rgba(59, 130, 246, 0.3); }
+    .pill-ah { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); border: 1px solid rgba(168, 85, 247, 0.3); }
+    .pill-admin { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    .variant-toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-base);
+      padding: 3px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .variant-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .variant-btn:hover {
+      color: var(--text-main);
+    }
+
+    .variant-btn.active {
+      background: var(--accent-blue);
+      color: #fff;
+      box-shadow: 0 2px 8px var(--accent-blue-glow);
+    }
+
+    /* MAIN CONTAINER */
+    .lab-container {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 24px 28px 60px;
+    }
+
+    /* MINECRAFT ITEM SPRITE RENDERING */
+    .mc-item-icon {
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    .mc-item-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    }
+
+    .mc-slot-box {
+      width: 56px;
+      height: 56px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* ENCHANTED FOIL EFFECT - ATTENUE ET SUBTIL */
+    .enchanted-foil {
+      position: relative;
+    }
+
+    .enchanted-foil::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(192, 132, 252, 0.12) 49%, rgba(96, 165, 250, 0.14) 51%, transparent 60%);
+      background-size: 300% 300%;
+      animation: foil-sheen 6s infinite ease-in-out;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      border-radius: inherit;
+      opacity: 0.45;
+    }
+
+    @keyframes foil-sheen {
+      0% { background-position: -300% 0; }
+      100% { background-position: 300% 0; }
+    }
+
+    /* PLAYER HEAD AVATAR */
+    .mc-player-head {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      image-rendering: pixelated;
+      border: 1px solid var(--border-medium);
+      background: #27272a;
+      flex-shrink: 0;
+    }
+
+    /* ================================================================= */
+    /* INTERFACE 1 : BOUTIQUE DYNAMIQUE - VAR A (MODERN E-COMMERCE) */
+    /* ================================================================= */
+    .shop-modern-filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .category-pill-list {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      scrollbar-width: thin;
+    }
+
+    .category-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .category-pill:hover {
+      border-color: var(--border-medium);
+      color: var(--text-main);
+    }
+
+    .category-pill.active {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .category-pill .pill-count {
+      font-size: 0.72rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 10px;
+      color: var(--text-muted);
+    }
+
+    .shop-search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 14px;
+      min-width: 280px;
+    }
+
+    .shop-search-box input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      width: 100%;
+    }
+
+    .shop-search-box input::placeholder {
+      color: var(--text-dim);
+    }
+
+    /* GRID OF ITEMS */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .shop-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shop-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-accent);
+      background: var(--bg-card-hover);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    .shop-card:hover .mc-item-icon {
+      transform: scale(1.08);
+    }
+
+    .shop-card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .shop-card-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .shop-card-name {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .shop-card-bukkit {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-family: monospace;
+      margin-top: 2px;
+    }
+
+    .shop-tag-cmd {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+
+    /* STOCK GAUGE */
+    .stock-gauge-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stock-gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .stock-gauge-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .stock-gauge-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .stock-high { background: var(--accent-emerald); }
+    .stock-medium { background: var(--accent-amber); }
+    .stock-low { background: var(--accent-rose); }
+
+    /* PRICE BOX */
+    .price-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .price-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 0.04em;
+    }
+
+    .price-value-buy {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent-emerald);
+    }
+
+    .price-value-sell {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent-rose);
+    }
+
+    .price-value-none {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    /* DRAWER SIDEBAR FOR QUICK BUY/SELL */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 440px;
+      max-width: 95vw;
+      background: var(--bg-surface-elevated);
+      border-left: 1px solid var(--border-medium);
+      z-index: 201;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .drawer-panel.open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-close-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .drawer-close-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .drawer-item-hero {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 16px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .drawer-mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: var(--bg-base);
+      padding: 4px;
+      border-radius: var(--radius-md);
+    }
+
+    .drawer-mode-btn {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .drawer-mode-btn.active.buy {
+      background: var(--accent-emerald);
+      color: #000;
+    }
+
+    .drawer-mode-btn.active.sell {
+      background: var(--accent-rose);
+      color: #fff;
+    }
+
+    .multiplier-btn-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .multiplier-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .multiplier-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-medium);
+    }
+
+    .multiplier-btn.selected {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    .qty-slider-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .qty-slider-box input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-blue);
+    }
+
+    /* CANVAS SPARKLINE / CHART */
+    .chart-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+    }
+
+    .chart-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    canvas.price-history-canvas {
+      width: 100%;
+      height: 120px;
+      display: block;
+    }
+
+    .drawer-summary-card {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .summary-line.total {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 10px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #fff;
+    }
+
+    .drawer-action-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .drawer-action-btn.buy {
+      background: var(--accent-emerald);
+      color: #000;
+      box-shadow: 0 4px 16px var(--accent-emerald-glow);
+    }
+
+    .drawer-action-btn.sell {
+      background: var(--accent-rose);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.3);
+    }
+
+    /* ================================================================= */
+    /* INTERFACE 1 : BOUTIQUE DYNAMIQUE - VAR B (TRADER TERMINAL) */
+    /* ================================================================= */
+    .terminal-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr 360px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .terminal-sidebar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .terminal-category-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .terminal-category-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+    }
+
+    .terminal-category-item.active {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+
+    .terminal-center {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .terminal-table-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .terminal-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .terminal-table th {
+      text-align: left;
+      padding: 12px 18px;
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text-dim);
+      font-weight: 600;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .terminal-table td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+    }
+
+    .terminal-table tr:hover td {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .terminal-table tr.selected td {
+      background: rgba(59, 130, 246, 0.08);
+      border-left: 3px solid var(--accent-blue);
+    }
+
+    .terminal-order-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 140px;
+    }
+
+    /* ================================================================= */
+    /* INTERFACE 2 : HOTEL DES VENTES (AH) - VAR A (MARKETPLACE SHOWCASE) */
+    /* ================================================================= */
+    .ah-filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .ah-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 20px;
+    }
+
+    .ah-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .ah-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+    }
+
+    /* RARITY BORDERS */
+    .ah-card.rarity-common { border-color: rgba(148, 163, 184, 0.2); }
+    .ah-card.rarity-rare { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 15px rgba(59, 130, 246, 0.08); }
+    .ah-card.rarity-epic { border-color: rgba(168, 85, 247, 0.4); box-shadow: 0 0 15px rgba(168, 85, 247, 0.1); }
+    .ah-card.rarity-legendary { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 18px rgba(245, 158, 11, 0.12); }
+    .ah-card.rarity-mythic { border-color: rgba(236, 72, 153, 0.6); box-shadow: 0 0 20px rgba(236, 72, 153, 0.15); }
+
+    .ah-card-seller {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .seller-name {
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
+
+    .seller-rank {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .rank-vip { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .rank-joueur { background: rgba(148, 163, 184, 0.1); color: var(--text-dim); }
+
+    .ah-item-showcase {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .ah-item-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ah-item-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #fff;
+    }
+
+    .ah-item-qty {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+
+    /* ENCHANTMENTS LIST */
+    .ah-enchants-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .enchant-tag {
+      font-size: 0.72rem;
+      background: rgba(168, 85, 247, 0.12);
+      color: #d8b4fe;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* MINECRAFT LORE TOOLTIP */
+    .mc-lore-box {
+      background: #100010;
+      border: 2px solid #280028;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-family: monospace;
+      font-size: 0.76rem;
+      color: #aa00aa;
+      line-height: 1.4;
+    }
+
+    .ah-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 14px;
+      margin-top: auto;
+    }
+
+    .ah-price-tag {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ah-price-total {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--accent-emerald);
+    }
+
+    .ah-price-unit {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    .ah-buy-btn {
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .ah-buy-btn:hover {
+      background: #2563eb;
+      box-shadow: 0 4px 12px var(--accent-blue-glow);
+    }
+
+    /* ================================================================= */
+    /* INTERFACE 3 : STUDIO ADMIN SHOP - VAR A (VISUAL STUDIO) */
+    /* ================================================================= */
+    .admin-studio-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr 380px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .admin-panel-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .admin-panel-header {
+      padding: 16px 20px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-panel-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-cat-list {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .admin-cat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .admin-cat-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-subtle);
+    }
+
+    .admin-cat-row.active {
+      background: rgba(59, 130, 246, 0.15);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
+
+    /* INLINE EDITABLE ITEMS LIST */
+    .admin-items-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 680px;
+      overflow-y: auto;
+    }
+
+    .admin-item-row {
+      display: grid;
+      grid-template-columns: 50px 1fr 140px 100px 90px;
+      gap: 12px;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      transition: all 0.15s;
+    }
+
+    .admin-item-row:hover {
+      border-color: var(--border-medium);
+      background: var(--bg-card-hover);
+      cursor: pointer;
+    }
+
+    .admin-item-row.selected {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.12);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+    }
+
+    .inline-editable-cell {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 4px 8px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.88rem;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+
+    .inline-editable-cell:focus {
+      border-color: var(--accent-blue);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    /* AUTOCOMPLETE BUKKIT INPUT */
+    .autocomplete-container {
+      position: relative;
+    }
+
+    .autocomplete-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 50;
+      margin-top: 4px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    .autocomplete-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .autocomplete-item:hover {
+      background: rgba(59, 130, 246, 0.15);
+      color: #fff;
+    }
+
+    /* GENERAL FORM ELEMENTS */
+    .form-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    /* SWITCH TOGGLE */
+    .switch-toggle {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider-toggle {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      transition: .2s;
+    }
+
+    .slider-toggle:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: .2s;
+    }
+
+    input:checked + .slider-toggle {
+      background-color: var(--accent-emerald);
+    }
+
+    input:checked + .slider-toggle:before {
+      transform: translateX(20px);
+    }
+
+    /* TOASTER NOTIFICATIONS */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast-message {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-medium);
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toast-slide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto;
+    }
+
+    .toast-message.success { border-left: 4px solid var(--accent-emerald); }
+    .toast-message.error { border-left: 4px solid var(--accent-rose); }
+    .toast-message.info { border-left: 4px solid var(--accent-blue); }
+
+    @keyframes toast-slide {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* MODAL SYSTEM */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 250;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-window {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      width: 480px;
+      max-width: 90vw;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      transform: scale(0.95);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-backdrop.open .modal-window {
+      transform: scale(1);
+    }
+
+    /* RESPONSIVE BREAKPOINTS */
+    @media (max-width: 1200px) {
+      .terminal-layout { grid-template-columns: 1fr; }
+      .admin-studio-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .header-content { flex-direction: column; align-items: stretch; }
+      .module-switcher { width: 100%; overflow-x: auto; }
+      .shop-grid { grid-template-columns: 1fr; }
+      .drawer-panel { width: 100vw; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================================================================= -->
+  <!-- BARRE SUPÉRIEURE DU LABORATOIRE -->
+  <!-- ================================================================= -->
+  <header class="lab-header">
+    <div class="header-content">
+      <div class="brand-section">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+          <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+          <path d="M2 7h20"/>
+        </svg>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="brand-title">GensCore</span>
+            <span class="brand-badge">Lab Rework</span>
+          </div>
+          <div class="brand-subtitle">Previsualisation et Comparaison Ergonomique (Mode Hors-Ligne)</div>
+        </div>
+      </div>
+
+      <!-- ONGLETS DE MODULE -->
+      <nav class="module-switcher">
+        <button class="module-tab active" data-module="shop" onclick="switchModule('shop')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          Shop Dynamique
+        </button>
+        <button class="module-tab" data-module="ah" onclick="switchModule('ah')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9"/><path d="M16 16l6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg>
+          Hotel des Ventes (AH)
+        </button>
+        <button class="module-tab" data-module="admin" onclick="switchModule('admin')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          Studio Admin Shop
+        </button>
+      </nav>
+
+      <!-- SIMULATEUR DE SOLDE JOUEUR -->
+      <div class="user-status">
+        <div class="wallet-pill" title="Solde virtuel pour tester les achats/ventes">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+          <span id="playerWalletDisplay">12 450.00 $</span>
+          <button class="wallet-reset-btn" onclick="resetWallet()" title="Reinitialiser a 10 000 $">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================================= -->
+  <!-- BANNIÈRE DE SÉLECTION DE RENDUS (POUR COMPARER A vs B) -->
+  <!-- ================================================================= -->
+  <section class="variant-banner">
+    <div class="variant-banner-inner">
+      <div class="variant-info">
+        <span id="activeModulePill" class="variant-pill pill-shop">Module Actif : Boutique Joueur</span>
+        <span style="color:var(--text-dim); font-size:0.85rem;">Basculez entre les deux variantes ergonomiques pour comparer :</span>
+      </div>
+
+      <!-- BOUTONS DE BASORTE A / B -->
+      <div class="variant-toggle-group" id="variantToggleContainer">
+        <!-- Rempli dynamiquement en JS selon le module actif -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <!-- ZONE PRINCIPALE DE CONTENU -->
+  <!-- ================================================================= -->
+  <main class="lab-container" id="mainContent">
+    <!-- Rendu injecté dynamiquement par JS -->
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- TIROIR LATÉRAL D'ACHAT / VENTE RAPIDE (SHOP VARIANTE A) -->
+  <!-- ================================================================= -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <aside class="drawer-panel" id="drawerPanel">
+    <div class="drawer-header">
+      <div style="font-weight:700; font-size:1.1rem; color:#fff;" id="drawerTitle">Action Commerciale</div>
+      <button class="drawer-close-btn" onclick="closeDrawer()" title="Fermer le tiroir">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="drawer-body" id="drawerBody">
+      <!-- Rempli au clic sur un item -->
+    </div>
+  </aside>
+
+  <!-- ================================================================= -->
+  <!-- SYSTÈME DE MODAL DE CONFIRMATION / CRÉATION -->
+  <!-- ================================================================= -->
+  <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
+    <div class="modal-window" id="modalWindow">
+      <!-- Rempli par showModal(...) -->
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- TOAST NOTIFICATIONS -->
+  <!-- ================================================================= -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ================================================================= -->
+  <!-- LOGIQUE APPLICATIVE & DONNÉES SIMULÉES -->
+  <!-- ================================================================= -->
+  <script>
+    // ETAT GLOBAL DU LABORATOIRE
+    const state = {
+      activeModule: 'shop', // 'shop' | 'ah' | 'admin'
+      shopVariant: 'modern', // 'modern' (A) | 'terminal' (B)
+      ahVariant: 'showcase', // 'showcase' (A) | 'grid' (B)
+      adminVariant: 'studio', // 'studio' (A) | 'table' (B)
+
+      wallet: 12450.00,
+      activeCategory: 'ores',
+      searchQuery: '',
+      ahFilterCat: 'all',
+      selectedShopItem: null,
+      selectedTerminalItem: null,
+      selectedAdminItem: 'DIAMOND',
+      adminInspectorMode: 'edit', // 'edit' | 'create'
+      drawerMode: 'buy', // 'buy' | 'sell'
+      drawerQuantity: 1,
+
+      // Selection multiple pour le mode tableur admin
+      adminSelectedIds: new Set()
+    };
+
+    // MATÉRIAUX BUKKIT STANDARDS POUR L'AUTOCOMPLÉTION ADMIN (300+ items)
+    const BUKKIT_MATERIALS = [
+      "DIAMOND", "DIAMOND_BLOCK", "DIAMOND_SWORD", "DIAMOND_PICKAXE", "DIAMOND_AXE", "DIAMOND_SHOVEL", "DIAMOND_HOE", 
+      "DIAMOND_HELMET", "DIAMOND_CHESTPLATE", "DIAMOND_LEGGINGS", "DIAMOND_BOOTS",
+      "NETHERITE_INGOT", "NETHERITE_BLOCK", "NETHERITE_SWORD", "NETHERITE_PICKAXE", "NETHERITE_AXE", "NETHERITE_SHOVEL",
+      "NETHERITE_HELMET", "NETHERITE_CHESTPLATE", "NETHERITE_LEGGINGS", "NETHERITE_BOOTS",
+      "IRON_INGOT", "IRON_BLOCK", "RAW_IRON", "IRON_SWORD", "IRON_PICKAXE", "IRON_AXE", "IRON_HELMET", "IRON_CHESTPLATE",
+      "GOLD_INGOT", "GOLD_BLOCK", "RAW_GOLD", "GOLDEN_APPLE", "ENCHANTED_GOLDEN_APPLE", "GOLDEN_CARROT",
+      "COPPER_INGOT", "COPPER_BLOCK", "RAW_COPPER", "COAL", "COAL_BLOCK", "CHARCOAL", "EMERALD", "EMERALD_BLOCK",
+      "LAPIS_LAZULI", "LAPIS_BLOCK", "REDSTONE", "REDSTONE_BLOCK", "AMETHYST_SHARD", "QUARTZ",
+      "OAK_LOG", "OAK_PLANKS", "SPRUCE_LOG", "SPRUCE_PLANKS", "BIRCH_LOG", "BIRCH_PLANKS", "DARK_OAK_LOG", "MANGROVE_LOG", "CHERRY_LOG",
+      "STONE", "COBBLESTONE", "STONE_BRICKS", "SMOOTH_STONE", "MOSSY_STONE_BRICKS", "DEEPSLATE", "COBBLED_DEEPSLATE", "OBSIDIAN", "CRYING_OBSIDIAN", "ANCIENT_DEBRIS",
+      "WHEAT", "WHEAT_SEEDS", "HAY_BLOCK", "CARROT", "POTATO", "BAKED_POTATO", "BEETROOT", "BEETROOT_SEEDS", "MELON", "MELON_SLICE", "PUMPKIN",
+      "BREAD", "BEEF", "COOKED_BEEF", "PORKCHOP", "COOKED_PORKCHOP", "CHICKEN", "COOKED_CHICKEN", "APPLE", "SWEET_BERRIES",
+      "ROTTEN_FLESH", "BONE", "STRING", "SPIDER_EYE", "GUNPOWDER", "ENDER_PEARL", "BLAZE_ROD", "BLAZE_POWDER", "MAGMA_CREAM", "GHAST_TEAR",
+      "SLIME_BALL", "PHANTOM_MEMBRANE", "WITHER_SKELETON_SKULL", "NETHER_STAR", "SHULKER_SHELL",
+      "POTION", "SPLASH_POTION", "LINGERING_POTION", "EXPERIENCE_BOTTLE", "ENCHANTED_BOOK", "TOTEM_OF_UNDYING", "ELYTRA", "TRIDENT", "BOW", "CROSSBOW", "SHIELD",
+      "BEACON", "CONDUIT", "HEART_OF_THE_SEA", "SPONGE", "SHULKER_BOX", "ENDER_CHEST", "ENCHANTING_TABLE", "ANVIL", "BREWING_STAND"
+    ];
+
+    // BASE DE DONNÉES DU SHOP DYNAMIQUE (SIMULATION DES 7 CATÉGORIES DE GENSCORE)
+    const SHOP_DATA = [
+      {
+        id: "ores",
+        displayName: "Minerais & Metaux",
+        icon: "DIAMOND",
+        items: [
+          { material: "COAL", buyPrice: 3.0, sellPrice: 0.8, stock: 1850, targetStock: 2000, history: [2.8, 2.9, 3.1, 3.0, 3.0, 3.2, 3.0] },
+          { material: "RAW_COPPER", buyPrice: 3.0, sellPrice: 0.7, stock: 2400, targetStock: 2000, history: [3.4, 3.2, 3.1, 3.0, 2.9, 3.0, 3.0] },
+          { material: "COPPER_INGOT", buyPrice: 4.0, sellPrice: 1.0, stock: 2100, targetStock: 2000, history: [4.2, 4.1, 4.0, 4.0, 3.9, 4.0, 4.0] },
+          { material: "RAW_IRON", buyPrice: 8.0, sellPrice: 2.0, stock: 1420, targetStock: 1500, history: [7.5, 7.8, 8.0, 8.2, 8.1, 8.0, 8.0] },
+          { material: "IRON_INGOT", buyPrice: 10.0, sellPrice: 2.8, stock: 1300, targetStock: 1500, history: [9.2, 9.5, 9.8, 10.2, 10.1, 10.0, 10.0] },
+          { material: "RAW_GOLD", buyPrice: 12.0, sellPrice: 3.0, stock: 950, targetStock: 1000, history: [11.5, 11.8, 12.0, 12.3, 12.1, 12.0, 12.0] },
+          { material: "GOLD_INGOT", buyPrice: 15.0, sellPrice: 4.2, stock: 880, targetStock: 1000, history: [14.0, 14.5, 15.0, 15.4, 15.2, 15.0, 15.0] },
+          { material: "REDSTONE", buyPrice: 4.0, sellPrice: 1.0, stock: 3200, targetStock: 3000, history: [4.3, 4.2, 4.1, 4.0, 3.9, 4.0, 4.0] },
+          { material: "LAPIS_LAZULI", buyPrice: 4.0, sellPrice: 1.0, stock: 2800, targetStock: 2500, history: [4.2, 4.1, 4.0, 4.0, 3.8, 3.9, 4.0] },
+          { material: "DIAMOND", buyPrice: 60.0, sellPrice: 18.0, stock: 420, targetStock: 600, history: [52.0, 55.0, 58.0, 62.0, 64.0, 61.0, 60.0] },
+          { material: "DIAMOND_BLOCK", buyPrice: 540.0, sellPrice: 162.0, stock: 35, targetStock: 60, history: [480.0, 510.0, 530.0, 560.0, 550.0, 540.0, 540.0] },
+          { material: "EMERALD", buyPrice: 20.0, sellPrice: 5.5, stock: 750, targetStock: 800, history: [19.0, 19.5, 20.0, 20.5, 20.2, 20.0, 20.0] },
+          { material: "ANCIENT_DEBRIS", buyPrice: 250.0, sellPrice: 80.0, stock: 45, targetStock: 100, history: [210.0, 230.0, 245.0, 260.0, 270.0, 255.0, 250.0] },
+          { material: "NETHERITE_INGOT", buyPrice: 1100.0, sellPrice: 350.0, stock: 12, targetStock: 30, history: [950.0, 1020.0, 1080.0, 1150.0, 1120.0, 1100.0, 1100.0] }
+        ]
+      },
+      {
+        id: "farming",
+        displayName: "Agriculture & Nourriture",
+        icon: "WHEAT",
+        items: [
+          { material: "WHEAT", buyPrice: 1.5, sellPrice: 0.4, stock: 3100, targetStock: 3000, history: [1.6, 1.5, 1.5, 1.4, 1.5, 1.5, 1.5] },
+          { material: "CARROT", buyPrice: 1.5, sellPrice: 0.4, stock: 2800, targetStock: 3000, history: [1.4, 1.5, 1.5, 1.6, 1.5, 1.5, 1.5] },
+          { material: "POTATO", buyPrice: 1.5, sellPrice: 0.4, stock: 3500, targetStock: 3000, history: [1.6, 1.5, 1.4, 1.4, 1.5, 1.5, 1.5] },
+          { material: "BAKED_POTATO", buyPrice: 2.5, sellPrice: 0.7, stock: 1900, targetStock: 2000, history: [2.6, 2.5, 2.5, 2.4, 2.5, 2.5, 2.5] },
+          { material: "GOLDEN_CARROT", buyPrice: 25.0, sellPrice: 7.0, stock: 850, targetStock: 1000, history: [22.0, 23.5, 24.0, 26.0, 25.5, 25.0, 25.0] },
+          { material: "GOLDEN_APPLE", buyPrice: 120.0, sellPrice: 35.0, stock: 140, targetStock: 200, history: [105.0, 112.0, 118.0, 125.0, 122.0, 120.0, 120.0] },
+          { material: "ENCHANTED_GOLDEN_APPLE", buyPrice: 2500.0, sellPrice: 800.0, stock: 4, targetStock: 10, history: [2200.0, 2350.0, 2480.0, 2600.0, 2550.0, 2500.0, 2500.0] },
+          { material: "COOKED_BEEF", buyPrice: 3.5, sellPrice: 0.9, stock: 1450, targetStock: 1500, history: [3.2, 3.4, 3.5, 3.6, 3.5, 3.5, 3.5] }
+        ]
+      },
+      {
+        id: "mob_drops",
+        displayName: "Monstres & Butin",
+        icon: "ROTTEN_FLESH",
+        items: [
+          { material: "ROTTEN_FLESH", buyPrice: 0.5, sellPrice: 0.12, stock: 6500, targetStock: 5000, history: [0.6, 0.5, 0.5, 0.45, 0.5, 0.5, 0.5] },
+          { material: "BONE", buyPrice: 1.5, sellPrice: 0.4, stock: 3200, targetStock: 3000, history: [1.6, 1.5, 1.5, 1.4, 1.5, 1.5, 1.5] },
+          { material: "STRING", buyPrice: 2.0, sellPrice: 0.5, stock: 2100, targetStock: 2000, history: [2.1, 2.0, 2.0, 1.9, 2.0, 2.0, 2.0] },
+          { material: "GUNPOWDER", buyPrice: 4.5, sellPrice: 1.2, stock: 1600, targetStock: 2000, history: [4.0, 4.2, 4.5, 4.8, 4.6, 4.5, 4.5] },
+          { material: "ENDER_PEARL", buyPrice: 12.0, sellPrice: 3.2, stock: 850, targetStock: 1000, history: [10.5, 11.2, 11.8, 12.5, 12.2, 12.0, 12.0] },
+          { material: "BLAZE_ROD", buyPrice: 15.0, sellPrice: 4.0, stock: 620, targetStock: 800, history: [13.5, 14.2, 14.8, 15.5, 15.2, 15.0, 15.0] },
+          { material: "WITHER_SKELETON_SKULL", buyPrice: 450.0, sellPrice: 140.0, stock: 28, targetStock: 50, history: [390.0, 415.0, 440.0, 470.0, 460.0, 450.0, 450.0] },
+          { material: "NETHER_STAR", buyPrice: 2800.0, sellPrice: 950.0, stock: 6, targetStock: 15, history: [2500.0, 2650.0, 2750.0, 2900.0, 2850.0, 2800.0, 2800.0] }
+        ]
+      },
+      {
+        id: "alchemy",
+        displayName: "Potions & Alchimie",
+        icon: "BREWING_STAND",
+        items: [
+          { material: "EXPERIENCE_BOTTLE", buyPrice: 20.0, sellPrice: 5.0, stock: 850, targetStock: 1000, history: [18.0, 19.2, 19.8, 20.5, 20.1, 20.0, 20.0] },
+          { material: "BREWING_STAND", buyPrice: 35.0, sellPrice: 8.0, stock: 280, targetStock: 300, history: [32.0, 34.0, 35.0, 36.0, 35.5, 35.0, 35.0] },
+          { material: "BLAZE_POWDER", buyPrice: 8.0, sellPrice: 2.0, stock: 1200, targetStock: 1500, history: [7.2, 7.6, 7.9, 8.3, 8.1, 8.0, 8.0] },
+          { material: "MAGMA_CREAM", buyPrice: 10.0, sellPrice: 2.5, stock: 750, targetStock: 800, history: [9.2, 9.6, 9.9, 10.4, 10.1, 10.0, 10.0] },
+          { material: "GHAST_TEAR", buyPrice: 45.0, sellPrice: 14.0, stock: 120, targetStock: 200, history: [38.0, 41.0, 43.5, 47.0, 46.0, 45.0, 45.0] }
+        ]
+      },
+      {
+        id: "equipment",
+        displayName: "Outils & Armures",
+        icon: "NETHERITE_SWORD",
+        items: [
+          { material: "DIAMOND_SWORD", buyPrice: 140.0, sellPrice: 35.0, stock: 120, targetStock: 150, history: [125.0, 132.0, 138.0, 145.0, 142.0, 140.0, 140.0] },
+          { material: "DIAMOND_PICKAXE", buyPrice: 200.0, sellPrice: 50.0, stock: 95, targetStock: 150, history: [180.0, 190.0, 198.0, 210.0, 205.0, 200.0, 200.0] },
+          { material: "DIAMOND_CHESTPLATE", buyPrice: 500.0, sellPrice: 140.0, stock: 45, targetStock: 80, history: [440.0, 470.0, 490.0, 520.0, 510.0, 500.0, 500.0] },
+          { material: "NETHERITE_SWORD", buyPrice: 1350.0, sellPrice: 420.0, stock: 8, targetStock: 25, history: [1150.0, 1220.0, 1300.0, 1400.0, 1380.0, 1350.0, 1350.0] },
+          { material: "ELYTRA", buyPrice: 7500.0, sellPrice: 2500.0, stock: 3, targetStock: 10, history: [6800.0, 7100.0, 7350.0, 7800.0, 7650.0, 7500.0, 7500.0] },
+          { material: "TOTEM_OF_UNDYING", buyPrice: 1200.0, sellPrice: 380.0, stock: 15, targetStock: 40, history: [1050.0, 1120.0, 1180.0, 1250.0, 1220.0, 1200.0, 1200.0] }
+        ]
+      },
+      {
+        id: "commands",
+        displayName: "Grades & Avantages",
+        icon: "BEACON",
+        items: [
+          { material: "BEACON", buyPrice: 3500.0, sellPrice: 0.0, stock: 10, targetStock: 10, isCommand: true, commandToExecute: "lp user %player% parent set vip", history: [3500, 3500, 3500, 3500, 3500, 3500, 3500] },
+          { material: "CONDUIT", buyPrice: 1800.0, sellPrice: 0.0, stock: 15, targetStock: 15, isCommand: true, commandToExecute: "eco give %player% 5000", history: [1800, 1800, 1800, 1800, 1800, 1800, 1800] }
+        ]
+      }
+    ];
+
+    // BASE DE DONNÉES DE L'HOTEL DES VENTES (AH)
+    let AH_ITEMS = [
+      {
+        id: 1084,
+        seller: "KevCraft",
+        rank: "VIP",
+        material: "NETHERITE_SWORD",
+        displayName: "Lame des Cendres",
+        amount: 1,
+        price: 3450.00,
+        category: "weapons",
+        rarity: "mythic",
+        isEnchanted: true,
+        enchantments: [
+          { name: "Tranchant V", desc: "Degats infliges augmentes de +3.5" },
+          { name: "Aura de Feu II", desc: "Enflamme la cible pendant 8s" },
+          { name: "Butin III", desc: "Augmente drastiquement les loots" },
+          { name: "Solidite III", desc: "Chances quadruples de ne pas s'user" },
+          { name: "Raccommodage", desc: "Repare l'objet avec l'experience" }
+        ],
+        lore: ["Forge dans le magma le plus profond du Nether", "Signe par le forgeron du royaume"],
+        expireIn: "1j 18h"
+      },
+      {
+        id: 1085,
+        seller: "AlexSurvival",
+        rank: "JOUEUR",
+        material: "NETHERITE_CHESTPLATE",
+        displayName: "Cuirasse Titanesque",
+        amount: 1,
+        price: 4200.00,
+        category: "armor",
+        rarity: "legendary",
+        isEnchanted: true,
+        enchantments: [
+          { name: "Protection IV", desc: "Reduction generale de tous degats" },
+          { name: "Epines III", desc: "Renvoie une partie des degats" },
+          { name: "Solidite III", desc: "Haute durabilite" },
+          { name: "Raccommodage", desc: "Auto-reparation XP" }
+        ],
+        lore: ["Une armure d'une solidite a toute epreuve"],
+        expireIn: "2j 04h"
+      },
+      {
+        id: 1086,
+        seller: "RedstoneMaster",
+        rank: "VIP",
+        material: "ENCHANTED_BOOK",
+        displayName: "Tome de Puissance V + Mending",
+        amount: 1,
+        price: 850.00,
+        category: "books",
+        rarity: "epic",
+        isEnchanted: true,
+        enchantments: [
+          { name: "Puissance V", desc: "Degats arc decuples" },
+          { name: "Raccommodage", desc: "Auto-reparation XP" }
+        ],
+        lore: ["Recupere dans une cite de l'End"],
+        expireIn: "18h 30m"
+      },
+      {
+        id: 1087,
+        seller: "Nocturne_",
+        rank: "JOUEUR",
+        material: "ENCHANTED_GOLDEN_APPLE",
+        displayName: "Pomme de Notch Pure",
+        amount: 8,
+        price: 18000.00,
+        category: "rare",
+        rarity: "mythic",
+        isEnchanted: true,
+        enchantments: [],
+        lore: ["Lot de 8 pommes dorees enchantees", "Conservees sous cloche d'obsidienne"],
+        expireIn: "3j 12h"
+      },
+      {
+        id: 1088,
+        seller: "MinerPro99",
+        rank: "JOUEUR",
+        material: "DIAMOND_PICKAXE",
+        displayName: "Foreuse des Profondeurs",
+        amount: 1,
+        price: 1200.00,
+        category: "tools",
+        rarity: "rare",
+        isEnchanted: true,
+        enchantments: [
+          { name: "Efficacite V", desc: "Minage ultra-rapide" },
+          { name: "Fortune III", desc: "Multiplie les gemmes recoltees" },
+          { name: "Solidite III", desc: "Duree de vie accrue" }
+        ],
+        lore: [],
+        expireIn: "14h 10m"
+      },
+      {
+        id: 1089,
+        seller: "ZenGardener",
+        rank: "JOUEUR",
+        material: "GOLDEN_CARROT",
+        displayName: "Carottes Dorees de Guilde",
+        amount: 64,
+        price: 1450.00,
+        category: "rare",
+        rarity: "common",
+        isEnchanted: false,
+        enchantments: [],
+        lore: ["Stack complet de 64 unites"],
+        expireIn: "1j 02h"
+      }
+    ];
+
+    // FONCTION HELPER : URL TEXTURE MINECRAFT (AVEC FALLBACK PIXEL ART ROBUSTE)
+    function getMinecraftItemUrl(material) {
+      if (!material) return '';
+      const clean = material.toLowerCase();
+      // CDN Prismarine GitHub (tres complet pour 1.20+)
+      return `https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/default/items/${clean}.png`;
+    }
+
+    function getMinecraftPlayerHead(name) {
+      if (!name) return '';
+      return `https://mc-heads.net/avatar/${encodeURIComponent(name)}/48`;
+    }
+
+    // GESTION DU BASULEMENT DE MODULE
+    function switchModule(mod) {
+      state.activeModule = mod;
+      document.querySelectorAll('.module-tab').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-module') === mod);
+      });
+
+      const pill = document.getElementById('activeModulePill');
+      const toggleGroup = document.getElementById('variantToggleContainer');
+
+      if (mod === 'shop') {
+        pill.className = 'variant-pill pill-shop';
+        pill.textContent = 'Module Actif : Boutique Dynamique Joueur';
+        toggleGroup.innerHTML = `
+          <button class="variant-btn ${state.shopVariant === 'modern' ? 'active' : ''}" onclick="switchVariant('modern')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+            Variante A : E-Commerce Moderne
+          </button>
+          <button class="variant-btn ${state.shopVariant === 'terminal' ? 'active' : ''}" onclick="switchVariant('terminal')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M9 9l3 3-3 3"/><path d="M14 15h3"/></svg>
+            Variante B : Terminal Trader
+          </button>
+        `;
+      } else if (mod === 'ah') {
+        pill.className = 'variant-pill pill-ah';
+        pill.textContent = 'Module Actif : Hotel des Ventes (AH)';
+        toggleGroup.innerHTML = `
+          <button class="variant-btn ${state.ahVariant === 'showcase' ? 'active' : ''}" onclick="switchVariant('showcase')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            Variante A : Vitrine Marketplace
+          </button>
+          <button class="variant-btn ${state.ahVariant === 'grid' ? 'active' : ''}" onclick="switchVariant('grid')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            Variante B : Grille Boursiere
+          </button>
+        `;
+      } else if (mod === 'admin') {
+        pill.className = 'variant-pill pill-admin';
+        pill.textContent = 'Module Actif : Studio Admin Shop';
+        toggleGroup.innerHTML = `
+          <button class="variant-btn ${state.adminVariant === 'studio' ? 'active' : ''}" onclick="switchVariant('studio')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Variante A : Visual Studio & Inspecteur
+          </button>
+          <button class="variant-btn ${state.adminVariant === 'table' ? 'active' : ''}" onclick="switchVariant('table')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+            Variante B : Tableur Actions Groupees
+          </button>
+        `;
+      }
+
+      renderMain();
+    }
+
+    // BASCULEMENT DE VARIANTE
+    function switchVariant(v) {
+      if (state.activeModule === 'shop') state.shopVariant = v;
+      else if (state.activeModule === 'ah') state.ahVariant = v;
+      else if (state.activeModule === 'admin') state.adminVariant = v;
+
+      switchModule(state.activeModule);
+    }
+
+    // GESTION DU PORTEFEUILLE
+    function updateWalletDisplay() {
+      document.getElementById('playerWalletDisplay').textContent = state.wallet.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $';
+    }
+
+    function resetWallet() {
+      state.wallet = 10000.00;
+      updateWalletDisplay();
+      showToast('Solde reinitialise a 10 000.00 $', 'info');
+    }
+
+    // TOASTS
+    function showToast(text, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast-message ${type}`;
+      toast.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>${text}</span>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // =================================================================
+    // RENDU DE L'INTERFACE PRINCIPALE SELON ÉTAT
+    // =================================================================
+    function renderMain() {
+      const container = document.getElementById('mainContent');
+
+      if (state.activeModule === 'shop') {
+        if (state.shopVariant === 'modern') {
+          renderShopModern(container);
+        } else {
+          renderShopTerminal(container);
+        }
+      } else if (state.activeModule === 'ah') {
+        if (state.ahVariant === 'showcase') {
+          renderAhShowcase(container);
+        } else {
+          renderAhGrid(container);
+        }
+      } else if (state.activeModule === 'admin') {
+        if (state.adminVariant === 'studio') {
+          renderAdminStudio(container);
+        } else {
+          renderAdminTable(container);
+        }
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // SHOP VARIANTE A : E-COMMERCE MODERNE
+    // -----------------------------------------------------------------
+    function renderShopModern(container) {
+      const activeCatObj = SHOP_DATA.find(c => c.id === state.activeCategory) || SHOP_DATA[0];
+
+      // Filtrage des items
+      let items = activeCatObj.items;
+      if (state.searchQuery.trim()) {
+        const q = state.searchQuery.toLowerCase();
+        items = items.filter(i => i.material.toLowerCase().includes(q));
+      }
+
+      container.innerHTML = `
+        <div class="shop-modern-filter-bar">
+          <div class="category-pill-list">
+            ${SHOP_DATA.map(c => `
+              <button class="category-pill ${c.id === state.activeCategory ? 'active' : ''}" onclick="setShopCategory('${c.id}')">
+                <div class="mc-item-icon" style="width:20px; height:20px;">
+                  <img src="${getMinecraftItemUrl(c.icon)}" onerror="this.style.display='none'" />
+                </div>
+                <span>${c.displayName}</span>
+                <span class="pill-count">${c.items.length}</span>
+              </button>
+            `).join('')}
+          </div>
+
+          <div class="shop-search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Rechercher un objet (ex: diamant, fer...)" value="${state.searchQuery}" oninput="handleSearch(this.value)" />
+          </div>
+        </div>
+
+        <div class="shop-grid">
+          ${items.map(item => {
+            const stockPct = Math.min(100, Math.round((item.stock / item.targetStock) * 100));
+            const stockClass = stockPct > 80 ? 'stock-high' : stockPct > 40 ? 'stock-medium' : 'stock-low';
+            return `
+              <div class="shop-card" onclick="openDrawerForItem('${item.material}')">
+                <div class="shop-card-top">
+                  <div class="mc-slot-box">
+                    <div class="mc-item-icon">
+                      <img src="${getMinecraftItemUrl(item.material)}" alt="${item.material}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'32\\' height=\\'32\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23666\\' stroke-width=\\'2\\'><rect width=\\'18\\' height=\\'18\\' x=\\'3\\' y=\\'3\\' rx=\\'2\\'/></svg>'" />
+                    </div>
+                  </div>
+                  <div class="shop-card-meta">
+                    <div class="shop-card-name">${item.material.replace(/_/g, ' ')}</div>
+                    <div class="shop-card-bukkit">${item.material}</div>
+                    ${item.isCommand ? `<span class="shop-tag-cmd">Commande</span>` : ''}
+                  </div>
+                </div>
+
+                <div class="stock-gauge-wrapper">
+                  <div class="stock-gauge-labels">
+                    <span>Stock : ${item.stock}</span>
+                    <span>Cible : ${item.targetStock} (${stockPct}%)</span>
+                  </div>
+                  <div class="stock-gauge-bar">
+                    <div class="stock-gauge-fill ${stockClass}" style="width: ${stockPct}%;"></div>
+                  </div>
+                </div>
+
+                <div class="price-row">
+                  <div class="price-item">
+                    <span class="price-label">Achat</span>
+                    <span class="price-value-buy">${item.buyPrice.toFixed(2)} $</span>
+                  </div>
+                  <div class="price-item">
+                    <span class="price-label">Vente</span>
+                    ${item.sellPrice > 0 
+                      ? `<span class="price-value-sell">${item.sellPrice.toFixed(2)} $</span>` 
+                      : `<span class="price-value-none">Non revendable</span>`}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+          ${items.length === 0 ? `
+            <div style="grid-column: 1 / -1; text-align:center; padding: 60px; color:var(--text-dim);">
+              Aucun objet trouve pour "${state.searchQuery}" dans cette categorie.
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function setShopCategory(catId) {
+      state.activeCategory = catId;
+      renderMain();
+    }
+
+    function handleSearch(val) {
+      state.searchQuery = val;
+      renderMain();
+    }
+
+    // -----------------------------------------------------------------
+    // SHOP VARIANTE B : TRADER TERMINAL SPLIT-SCREEN
+    // -----------------------------------------------------------------
+    function renderShopTerminal(container) {
+      const activeCatObj = SHOP_DATA.find(c => c.id === state.activeCategory) || SHOP_DATA[0];
+      const selectedItem = state.selectedTerminalItem || activeCatObj.items[0];
+
+      container.innerHTML = `
+        <div class="terminal-layout">
+          <!-- VOLET GAUCHE : ARBORESCENCE MARCHES -->
+          <div class="terminal-sidebar">
+            <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px; padding-left:4px;">
+              Marches Disponibles
+            </div>
+            ${SHOP_DATA.map(c => `
+              <div class="terminal-category-item ${c.id === state.activeCategory ? 'active' : ''}" onclick="setShopCategory('${c.id}')">
+                <span>${c.displayName}</span>
+                <span style="font-size:0.75rem; opacity:0.7;">${c.items.length}</span>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- ZONE CENTRALE : TABLEAU HAUTE DENSITÉ -->
+          <div class="terminal-center">
+            <div class="terminal-table-header">
+              <div style="font-weight:700; font-size:1rem; color:#fff;">Marche : ${activeCatObj.displayName}</div>
+              <div style="font-size:0.8rem; color:var(--text-dim);">${activeCatObj.items.length} instruments cotes</div>
+            </div>
+            <table class="terminal-table">
+              <thead>
+                <tr>
+                  <th>Instrument</th>
+                  <th>Stock / Cible</th>
+                  <th>Cours Achat</th>
+                  <th>Cours Vente</th>
+                  <th>Variation 24h</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${activeCatObj.items.map(item => {
+                  const isSel = selectedItem && selectedItem.material === item.material;
+                  const ratio = Math.round((item.stock / item.targetStock) * 100);
+                  const var24 = (Math.random() * 8 - 4).toFixed(1); // Simulation variation
+                  const isUp = parseFloat(var24) >= 0;
+                  return `
+                    <tr class="${isSel ? 'selected' : ''}" onclick="selectTerminalItem('${item.material}')" style="cursor:pointer;">
+                      <td>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                          <div class="mc-item-icon" style="width:28px; height:28px;">
+                            <img src="${getMinecraftItemUrl(item.material)}" onerror="this.style.display='none'" />
+                          </div>
+                          <div>
+                            <div style="font-weight:700; color:#fff;">${item.material.replace(/_/g, ' ')}</div>
+                            <div style="font-size:0.7rem; color:var(--text-dim); font-family:monospace;">${item.material}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <span>${item.stock}</span>
+                          <span style="font-size:0.72rem; color:var(--text-dim);">(${ratio}%)</span>
+                        </div>
+                      </td>
+                      <td style="font-weight:700; color:var(--accent-emerald);">${item.buyPrice.toFixed(2)} $</td>
+                      <td style="font-weight:700; color:${item.sellPrice > 0 ? 'var(--accent-rose)' : 'var(--text-dim)'};">
+                        ${item.sellPrice > 0 ? item.sellPrice.toFixed(2) + ' $' : '-'}
+                      </td>
+                      <td>
+                        <span style="font-weight:700; font-size:0.82rem; color:${isUp ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                          ${isUp ? '+' : ''}${var24}%
+                        </span>
+                      </td>
+                      <td>
+                        <button class="multiplier-btn" style="padding:4px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); openDrawerForItem('${item.material}')">
+                          Ordre
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- VOLET DROIT : FICHE D'ORDRE PERMANENTE -->
+          <div class="terminal-order-panel">
+            <div style="display:flex; align-items:center; gap:14px; padding-bottom:12px; border-bottom:1px solid var(--border-subtle);">
+              <div class="mc-slot-box" style="width:48px; height:48px;">
+                <div class="mc-item-icon" style="width:36px; height:36px;">
+                  <img src="${getMinecraftItemUrl(selectedItem.material)}" />
+                </div>
+              </div>
+              <div>
+                <div style="font-weight:700; font-size:1.05rem; color:#fff;">${selectedItem.material.replace(/_/g, ' ')}</div>
+                <div style="font-size:0.75rem; color:var(--text-dim);">Instrument selectionne</div>
+              </div>
+            </div>
+
+            <!-- Graphique Sparkline Canvas -->
+            <div class="chart-box">
+              <div class="chart-box-header">
+                <span>Historique de Cotation (7j)</span>
+                <span style="color:var(--accent-emerald);">Tendance stable</span>
+              </div>
+              <canvas id="terminalCanvas" class="price-history-canvas"></canvas>
+            </div>
+
+            <!-- Ordre d'Achat Rapide -->
+            <div>
+              <div class="form-label">Passation d'Ordre Rapide</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                <button class="drawer-action-btn buy" style="padding:10px; font-size:0.88rem;" onclick="executeFastTrade('${selectedItem.material}', 'buy', 16)">
+                  Acheter x16
+                </button>
+                <button class="drawer-action-btn sell" style="padding:10px; font-size:0.88rem;" onclick="executeFastTrade('${selectedItem.material}', 'sell', 16)">
+                  Vendre x16
+                </button>
+              </div>
+              <button class="multiplier-btn" style="width:100%; padding:10px;" onclick="openDrawerForItem('${selectedItem.material}')">
+                Ouvrir Calculateur Complet
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Dessiner le graphique canvas du terminal
+      setTimeout(() => drawPriceCanvas('terminalCanvas', selectedItem.history || [10, 11, 10, 12, 11, 10, 10]), 50);
+    }
+
+    function selectTerminalItem(mat) {
+      for (const cat of SHOP_DATA) {
+        const it = cat.items.find(i => i.material === mat);
+        if (it) {
+          state.selectedTerminalItem = it;
+          renderMain();
+          break;
+        }
+      }
+    }
+
+    function executeFastTrade(mat, mode, qty) {
+      for (const cat of SHOP_DATA) {
+        const item = cat.items.find(i => i.material === mat);
+        if (item) {
+          if (mode === 'buy') {
+            const cost = item.buyPrice * qty;
+            if (state.wallet < cost) return showToast('Solde insuffisant pour cet achat !', 'error');
+            state.wallet -= cost;
+            item.stock = Math.max(1, item.stock - qty);
+            updateWalletDisplay();
+            showToast(`Achat confirme : x${qty} ${mat} pour ${cost.toFixed(2)} $`, 'success');
+          } else {
+            const gain = item.sellPrice * qty;
+            state.wallet += gain;
+            item.stock += qty;
+            updateWalletDisplay();
+            showToast(`Vente confirmee : x${qty} ${mat} pour ${gain.toFixed(2)} $`, 'success');
+          }
+          renderMain();
+          break;
+        }
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // GESTION DU TIROIR D'ACHAT/VENTE RAPIDE (DRAWER)
+    // -----------------------------------------------------------------
+    function openDrawerForItem(mat) {
+      let found = null;
+      for (const cat of SHOP_DATA) {
+        const it = cat.items.find(i => i.material === mat);
+        if (it) { found = it; break; }
+      }
+      if (!found) return;
+
+      state.selectedShopItem = found;
+      state.drawerQuantity = 1;
+      state.drawerMode = 'buy';
+
+      renderDrawerContent();
+
+      document.getElementById('drawerOverlay').classList.add('open');
+      document.getElementById('drawerPanel').classList.add('open');
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawerOverlay').classList.remove('open');
+      document.getElementById('drawerPanel').classList.remove('open');
+    }
+
+    function setDrawerMode(m) {
+      state.drawerMode = m;
+      renderDrawerContent();
+    }
+
+    function setDrawerQty(q) {
+      state.drawerQuantity = Math.max(1, q);
+      renderDrawerContent();
+    }
+
+    function renderDrawerContent() {
+      const item = state.selectedShopItem;
+      if (!item) return;
+
+      const isBuy = state.drawerMode === 'buy';
+      const unitPrice = isBuy ? item.buyPrice : item.sellPrice;
+      const totalCost = unitPrice * state.drawerQuantity;
+
+      document.getElementById('drawerTitle').textContent = `${isBuy ? 'Acheter' : 'Vendre'} : ${item.material}`;
+
+      document.getElementById('drawerBody').innerHTML = `
+        <div class="drawer-item-hero">
+          <div class="mc-slot-box" style="width:64px; height:64px;">
+            <div class="mc-item-icon" style="width:48px; height:48px;">
+              <img src="${getMinecraftItemUrl(item.material)}" />
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:700; font-size:1.2rem; color:#fff;">${item.material.replace(/_/g, ' ')}</div>
+            <div style="font-size:0.75rem; color:var(--text-dim); font-family:monospace;">${item.material}</div>
+            <div style="font-size:0.8rem; color:var(--accent-blue); margin-top:4px;">Stock disponible : ${item.stock}</div>
+          </div>
+        </div>
+
+        <!-- Mode Achat / Vente -->
+        <div class="drawer-mode-tabs">
+          <button class="drawer-mode-btn ${isBuy ? 'active buy' : ''}" onclick="setDrawerMode('buy')">
+            Mode Achat
+          </button>
+          <button class="drawer-mode-btn ${!isBuy ? 'active sell' : ''}" onclick="setDrawerMode('sell')" ${item.sellPrice <= 0 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}>
+            Mode Vente
+          </button>
+        </div>
+
+        <!-- Graphique d'historique des prix -->
+        <div class="chart-box">
+          <div class="chart-box-header">
+            <span>Fluctuation du cours (7 derniers jours)</span>
+            <span style="font-weight:700; color:var(--accent-emerald);">Actuel : ${unitPrice.toFixed(2)} $</span>
+          </div>
+          <canvas id="drawerCanvas" class="price-history-canvas"></canvas>
+        </div>
+
+        <!-- Raccourcis Multiplicateurs -->
+        <div>
+          <div class="form-label">Quantite Rapide</div>
+          <div class="multiplier-btn-row">
+            <button class="multiplier-btn ${state.drawerQuantity === 1 ? 'selected' : ''}" onclick="setDrawerQty(1)">x1</button>
+            <button class="multiplier-btn ${state.drawerQuantity === 16 ? 'selected' : ''}" onclick="setDrawerQty(16)">x16</button>
+            <button class="multiplier-btn ${state.drawerQuantity === 32 ? 'selected' : ''}" onclick="setDrawerQty(32)">x32</button>
+            <button class="multiplier-btn ${state.drawerQuantity === 64 ? 'selected' : ''}" onclick="setDrawerQty(64)">x64</button>
+            <button class="multiplier-btn" onclick="setDrawerQty(Math.min(item.stock, 576))">Max</button>
+          </div>
+        </div>
+
+        <!-- Curseur Précis -->
+        <div class="qty-slider-box">
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+            <span style="color:var(--text-dim);">Ajuster la quantite :</span>
+            <span style="font-weight:700; color:#fff;">${state.drawerQuantity} unites</span>
+          </div>
+          <input type="range" min="1" max="256" value="${state.drawerQuantity}" oninput="setDrawerQty(parseInt(this.value))" />
+        </div>
+
+        <!-- Synthese Financiere -->
+        <div class="drawer-summary-card">
+          <div class="summary-line">
+            <span>Prix unitaire :</span>
+            <span style="font-weight:600;">${unitPrice.toFixed(2)} $</span>
+          </div>
+          <div class="summary-line">
+            <span>Quantite selectionnee :</span>
+            <span style="font-weight:600;">x${state.drawerQuantity}</span>
+          </div>
+          <div class="summary-line">
+            <span>Impact inflation estime :</span>
+            <span style="color:var(--accent-amber);">+0.12%</span>
+          </div>
+          <div class="summary-line total">
+            <span>Montant Total :</span>
+            <span style="color:${isBuy ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">${totalCost.toFixed(2)} $</span>
+          </div>
+        </div>
+
+        <button class="drawer-action-btn ${isBuy ? 'buy' : 'sell'}" onclick="confirmDrawerTransaction()">
+          ${isBuy ? `Confirmer l'Achat (${totalCost.toFixed(2)} $)` : `Confirmer la Vente (+${totalCost.toFixed(2)} $)`}
+        </button>
+      `;
+
+      setTimeout(() => drawPriceCanvas('drawerCanvas', item.history || [item.buyPrice, item.buyPrice * 1.05, item.buyPrice]), 40);
+    }
+
+    function confirmDrawerTransaction() {
+      const item = state.selectedShopItem;
+      const isBuy = state.drawerMode === 'buy';
+      const qty = state.drawerQuantity;
+      const unitPrice = isBuy ? item.buyPrice : item.sellPrice;
+      const total = unitPrice * qty;
+
+      if (isBuy) {
+        if (state.wallet < total) {
+          return showToast('Solde insuffisant pour finaliser cet achat !', 'error');
+        }
+        state.wallet -= total;
+        item.stock = Math.max(0, item.stock - qty);
+        showToast(`Achat reussi : x${qty} ${item.material} pour ${total.toFixed(2)} $`, 'success');
+      } else {
+        state.wallet += total;
+        item.stock += qty;
+        showToast(`Vente effectuee : x${qty} ${item.material} credites (+${total.toFixed(2)} $)`, 'success');
+      }
+
+      updateWalletDisplay();
+      closeDrawer();
+      renderMain();
+    }
+
+    // DESSIN DU GRAPHIQUE HISTORIQUE SUR CANVAS
+    function drawPriceCanvas(canvasId, points) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.parentElement.clientWidth - 28;
+      const h = 120;
+      canvas.width = w;
+      canvas.height = h;
+
+      ctx.clearRect(0, 0, w, h);
+
+      if (!points || points.length < 2) return;
+
+      const min = Math.min(...points) * 0.95;
+      const max = Math.max(...points) * 1.05;
+      const range = max - min || 1;
+
+      // Grille subtile
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let y = 20; y < h; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // Courbe de tendance avec dégradé
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+      grad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+      ctx.beginPath();
+      const step = w / (points.length - 1);
+      points.forEach((p, idx) => {
+        const x = idx * step;
+        const y = h - ((p - min) / range) * (h - 20) - 10;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+
+      // Remplissage sous la courbe
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Trait principal
+      ctx.beginPath();
+      points.forEach((p, idx) => {
+        const x = idx * step;
+        const y = h - ((p - min) / range) * (h - 20) - 10;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Point actif actuel
+      const lastX = (points.length - 1) * step;
+      const lastY = h - ((points[points.length - 1] - min) / range) * (h - 20) - 10;
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#10b981';
+      ctx.fill();
+    }
+
+    // =================================================================
+    // INTERFACE 2 : HOTEL DES VENTES (AH) - VAR A (MARKETPLACE SHOWCASE)
+    // =================================================================
+    function renderAhShowcase(container) {
+      let items = AH_ITEMS;
+      if (state.ahFilterCat !== 'all') {
+        items = items.filter(i => i.category === state.ahFilterCat);
+      }
+
+      container.innerHTML = `
+        <div class="ah-filter-header">
+          <div class="category-pill-list">
+            <button class="category-pill ${state.ahFilterCat === 'all' ? 'active' : ''}" onclick="setAhFilter('all')">Toutes les offres (${AH_ITEMS.length})</button>
+            <button class="category-pill ${state.ahFilterCat === 'weapons' ? 'active' : ''}" onclick="setAhFilter('weapons')">Armes</button>
+            <button class="category-pill ${state.ahFilterCat === 'armor' ? 'active' : ''}" onclick="setAhFilter('armor')">Armures</button>
+            <button class="category-pill ${state.ahFilterCat === 'tools' ? 'active' : ''}" onclick="setAhFilter('tools')">Outils</button>
+            <button class="category-pill ${state.ahFilterCat === 'books' ? 'active' : ''}" onclick="setAhFilter('books')">Livres Enchantes</button>
+            <button class="category-pill ${state.ahFilterCat === 'rare' ? 'active' : ''}" onclick="setAhFilter('rare')">Ressources Rares</button>
+          </div>
+
+          <button class="ah-buy-btn" style="background:var(--accent-emerald); color:#000;" onclick="openCreateListingModal()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Mettre un objet en vente
+          </button>
+        </div>
+
+        <div class="ah-grid">
+          ${items.map(item => `
+            <div class="ah-card rarity-${item.rarity} ${item.isEnchanted ? 'enchanted-foil' : ''}">
+              <div class="ah-card-seller">
+                <img class="mc-player-head" src="${getMinecraftPlayerHead(item.seller)}" alt="${item.seller}" onerror="this.style.background='#555'" />
+                <div>
+                  <div class="seller-name">${item.seller}</div>
+                  <span class="seller-rank ${item.rank === 'VIP' ? 'rank-vip' : 'rank-joueur'}">${item.rank}</span>
+                </div>
+                <div style="margin-left:auto; font-size:0.75rem; color:var(--text-dim);">#${item.id}</div>
+              </div>
+
+              <div class="ah-item-showcase">
+                <div class="mc-slot-box">
+                  <div class="mc-item-icon">
+                    <img src="${getMinecraftItemUrl(item.material)}" alt="${item.material}" />
+                  </div>
+                </div>
+                <div class="ah-item-details">
+                  <div class="ah-item-name">${item.displayName || item.material.replace(/_/g, ' ')}</div>
+                  <div class="ah-item-qty">Quantite : x${item.amount}</div>
+                </div>
+              </div>
+
+              ${item.enchantments && item.enchantments.length > 0 ? `
+                <div class="ah-enchants-box">
+                  ${item.enchantments.map(e => `
+                    <span class="enchant-tag" title="${e.desc}">${e.name}</span>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              ${item.lore && item.lore.length > 0 ? `
+                <div class="mc-lore-box">
+                  ${item.lore.map(l => `<div>${l}</div>`).join('')}
+                </div>
+              ` : ''}
+
+              <div class="ah-card-footer">
+                <div class="ah-price-tag">
+                  <span class="ah-price-total">${item.price.toFixed(2)} $</span>
+                  <span class="ah-price-unit">${(item.price / item.amount).toFixed(2)} $ / unite</span>
+                </div>
+                <button class="ah-buy-btn" onclick="buyAhListing(${item.id})">
+                  Acheter
+                </button>
+              </div>
+            </div>
+          `).join('')}
+          ${items.length === 0 ? `
+            <div style="grid-column:1 / -1; text-align:center; padding:60px; color:var(--text-dim);">
+              Aucune offre disponible dans cette categorie.
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function setAhFilter(cat) {
+      state.ahFilterCat = cat;
+      renderMain();
+    }
+
+    function buyAhListing(id) {
+      const item = AH_ITEMS.find(i => i.id === id);
+      if (!item) return;
+
+      if (state.wallet < item.price) {
+        return showToast('Solde joueur insuffisant pour acquerir cette offre !', 'error');
+      }
+
+      state.wallet -= item.price;
+      AH_ITEMS = AH_ITEMS.filter(i => i.id !== id);
+      updateWalletDisplay();
+      showToast(`Achat reussi : ${item.displayName || item.material} achete a ${item.seller} !`, 'success');
+      renderMain();
+    }
+
+    function openCreateListingModal() {
+      const windowEl = document.getElementById('modalWindow');
+      windowEl.innerHTML = `
+        <h3 style="margin-bottom:16px; font-size:1.2rem; color:#fff;">Mettre un Objet en Vente a l'Hotel des Ventes</h3>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label class="form-label">Objet Minecraft (Materiel)</label>
+            <input type="text" id="newListingMat" class="form-input" value="DIAMOND" />
+          </div>
+          <div>
+            <label class="form-label">Nom Personnalise de l'Offre</label>
+            <input type="text" id="newListingName" class="form-input" placeholder="Ex: Epee du Dragon" />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label class="form-label">Quantite (Stack)</label>
+              <input type="number" id="newListingQty" class="form-input" value="1" min="1" max="64" />
+            </div>
+            <div>
+              <label class="form-label">Prix de Vente Total ($)</label>
+              <input type="number" id="newListingPrice" class="form-input" value="500" min="1" step="0.5" />
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="drawer-action-btn buy" style="flex:1;" onclick="submitNewListing()">
+              Publier l'Offre
+            </button>
+            <button class="multiplier-btn" onclick="closeModalDirect()">
+              Annuler
+            </button>
+          </div>
+        </div>
+      `;
+      document.getElementById('modalBackdrop').classList.add('open');
+    }
+
+    function submitNewListing() {
+      const mat = document.getElementById('newListingMat').value.trim().toUpperCase() || 'DIAMOND';
+      const name = document.getElementById('newListingName').value.trim() || mat.replace(/_/g, ' ');
+      const qty = parseInt(document.getElementById('newListingQty').value) || 1;
+      const price = parseFloat(document.getElementById('newListingPrice').value) || 100;
+
+      const newListing = {
+        id: Math.floor(1000 + Math.random() * 9000),
+        seller: "Vous (Joueur)",
+        rank: "VIP",
+        material: mat,
+        displayName: name,
+        amount: qty,
+        price: price,
+        category: "rare",
+        rarity: "rare",
+        isEnchanted: false,
+        enchantments: [],
+        lore: ["Mis en vente depuis le portail Web"],
+        expireIn: "2j 00h"
+      };
+
+      AH_ITEMS.unshift(newListing);
+      closeModalDirect();
+      showToast(`Votre offre #${newListing.id} est desormais en ligne sur l'AH !`, 'success');
+      renderMain();
+    }
+
+    // -----------------------------------------------------------------
+    // HOTEL DES VENTES (AH) - VAR B : DATA-GRID BOURSIÈRE
+    // -----------------------------------------------------------------
+    function renderAhGrid(container) {
+      container.innerHTML = `
+        <div class="terminal-center">
+          <div class="terminal-table-header">
+            <div style="font-weight:700; font-size:1rem; color:#fff;">Comparateur de Prix des Offres Joueurs</div>
+            <div style="font-size:0.8rem; color:var(--text-dim);">${AH_ITEMS.length} offres actives</div>
+          </div>
+          <table class="terminal-table">
+            <thead>
+              <tr>
+                <th>Objet & Visuel</th>
+                <th>Vendeur</th>
+                <th>Quantite</th>
+                <th>Prix Total</th>
+                <th>Prix Unitaire</th>
+                <th>Expiration</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${AH_ITEMS.map(item => `
+                <tr>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <div class="mc-slot-box" style="width:36px; height:36px;">
+                        <div class="mc-item-icon" style="width:26px; height:26px;">
+                          <img src="${getMinecraftItemUrl(item.material)}" />
+                        </div>
+                      </div>
+                      <div>
+                        <div style="font-weight:700; color:#fff;">${item.displayName || item.material}</div>
+                        <div style="font-size:0.7rem; color:var(--text-dim);">${item.material}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <img class="mc-player-head" src="${getMinecraftPlayerHead(item.seller)}" style="width:20px; height:20px;" />
+                      <span style="font-weight:600;">${item.seller}</span>
+                    </div>
+                  </td>
+                  <td>x${item.amount}</td>
+                  <td style="font-weight:700; color:var(--accent-emerald); font-size:0.95rem;">${item.price.toFixed(2)} $</td>
+                  <td style="color:var(--text-muted);">${(item.price / item.amount).toFixed(2)} $</td>
+                  <td style="color:var(--text-dim); font-size:0.8rem;">${item.expireIn}</td>
+                  <td>
+                    <button class="ah-buy-btn" style="padding:4px 12px; font-size:0.8rem;" onclick="buyAhListing(${item.id})">
+                      Acheter
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // =================================================================
+    // INTERFACE 3 : STUDIO ADMIN SHOP - VAR A (VISUAL STUDIO & INSPECTEUR)
+    // =================================================================
+    function renderAdminStudio(container) {
+      const activeCatObj = SHOP_DATA.find(c => c.id === state.activeCategory) || SHOP_DATA[0];
+
+      // S'assurer qu'un item est sélectionné pour l'inspecteur
+      let selectedItem = activeCatObj.items.find(i => i.material === state.selectedAdminItem);
+      if (!selectedItem && activeCatObj.items.length > 0) {
+        selectedItem = activeCatObj.items[0];
+        state.selectedAdminItem = selectedItem.material;
+      }
+
+      container.innerHTML = `
+        <div class="admin-studio-grid">
+          <!-- COLONNE 1 : GESTION DES CATÉGORIES -->
+          <div class="admin-panel-card">
+            <div class="admin-panel-header">
+              <span class="admin-panel-title">Categories (${SHOP_DATA.length})</span>
+              <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="openCreateCategoryModal()">+ Creer</button>
+            </div>
+            <div class="admin-cat-list">
+              ${SHOP_DATA.map(c => `
+                <div class="admin-cat-row ${c.id === state.activeCategory ? 'active' : ''}" onclick="setShopCategory('${c.id}')">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="mc-item-icon" style="width:20px; height:20px;">
+                      <img src="${getMinecraftItemUrl(c.icon)}" onerror="this.style.display='none'" />
+                    </div>
+                    <span style="font-weight:600; font-size:0.85rem;">${c.displayName}</span>
+                  </div>
+                  <span style="font-size:0.72rem; color:var(--text-dim);">${c.items.length}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- COLONNE 2 : GRILLE D'ITEMS AVEC ACTIONS & CLIC POUR INSPECTION -->
+          <div class="admin-panel-card">
+            <div class="admin-panel-header" style="flex-wrap:wrap; gap:10px;">
+              <div>
+                <span class="admin-panel-title">Objets : ${activeCatObj.displayName} (${activeCatObj.items.length})</span>
+                <div style="font-size:0.72rem; color:var(--text-dim);">Cliquez sur un objet pour charger sa fiche complete</div>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="applyCategoryPriceMultiplier(1.10)">+10% Prix</button>
+                <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="applyCategoryPriceMultiplier(0.90)">-10% Prix</button>
+                <button class="multiplier-btn" style="padding:4px 10px; font-size:0.75rem; background:var(--accent-blue); color:#fff;" onclick="setAdminInspectorMode('create')">+ Nouvel Item</button>
+              </div>
+            </div>
+            <div class="admin-items-body">
+              ${activeCatObj.items.map(item => {
+                const isSel = selectedItem && selectedItem.material === item.material;
+                const isEnabled = item.isEnabled !== false;
+                return `
+                  <div class="admin-item-row ${isSel ? 'selected' : ''}" onclick="selectAdminItem('${item.material}')">
+                    <div class="mc-slot-box" style="width:40px; height:40px;">
+                      <div class="mc-item-icon" style="width:30px; height:30px;">
+                        <img src="${getMinecraftItemUrl(item.material)}" />
+                      </div>
+                    </div>
+                    <div>
+                      <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-weight:700; font-size:0.88rem; color:#fff;">${item.material}</span>
+                        <span style="font-size:0.65rem; font-weight:700; padding:1px 5px; border-radius:3px; ${isEnabled ? 'background:rgba(16,185,129,0.15); color:var(--accent-emerald);' : 'background:rgba(239,68,68,0.15); color:var(--accent-rose);'}">
+                          ${isEnabled ? 'ACTIF' : 'MASQUE'}
+                        </span>
+                      </div>
+                      <div style="font-size:0.7rem; color:var(--text-dim);">Stock : ${item.stock} / Cible : ${item.targetStock}</div>
+                    </div>
+                    <div onclick="event.stopPropagation()">
+                      <span class="form-label">Prix Achat</span>
+                      <input type="number" step="0.1" class="inline-editable-cell" value="${item.buyPrice}" onchange="updateItemInlinePrice('${item.material}', 'buy', this.value)" />
+                    </div>
+                    <div onclick="event.stopPropagation()">
+                      <span class="form-label">Prix Vente</span>
+                      <input type="number" step="0.1" class="inline-editable-cell" value="${item.sellPrice}" onchange="updateItemInlinePrice('${item.material}', 'sell', this.value)" />
+                    </div>
+                    <div style="text-align:right;">
+                      <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem; margin-left:auto;" onclick="event.stopPropagation(); selectAdminItem('${item.material}')">
+                        Fiche
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+              ${activeCatObj.items.length === 0 ? `
+                <div style="text-align:center; padding:40px; color:var(--text-dim);">
+                  Aucun objet dans cette categorie. Cliquez sur "+ Nouvel Item" pour commencer.
+                </div>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- COLONNE 3 : PANNEAU COMPLET D'INSPECTION & ÉDITION OU FORMULAIRE D'AJOUT -->
+          <div class="admin-panel-card">
+            ${state.adminInspectorMode === 'edit' && selectedItem ? `
+              <!-- FICHE COMPLÈTE DE MODIFICATION DE L'OBJET SÉLECTIONNÉ -->
+              <div class="admin-panel-header">
+                <div>
+                  <span class="admin-panel-title">Fiche Objet : ${selectedItem.material}</span>
+                  <div style="font-size:0.72rem; color:var(--accent-blue);">Modification en direct</div>
+                </div>
+                <button class="multiplier-btn" style="padding:4px 10px; font-size:0.75rem;" onclick="setAdminInspectorMode('create')">
+                  + Nouvel Item
+                </button>
+              </div>
+              <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+                <!-- Hero de l'item sélectionné -->
+                <div style="display:flex; align-items:center; gap:14px; background:rgba(0,0,0,0.3); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+                  <div class="mc-slot-box" style="width:54px; height:54px;">
+                    <div class="mc-item-icon" style="width:40px; height:40px;">
+                      <img src="${getMinecraftItemUrl(selectedItem.material)}" />
+                    </div>
+                  </div>
+                  <div>
+                    <div style="font-weight:700; font-size:1.1rem; color:#fff;">${selectedItem.material.replace(/_/g, ' ')}</div>
+                    <div style="font-size:0.75rem; color:var(--text-dim); font-family:monospace;">${selectedItem.material}</div>
+                    <span style="display:inline-block; margin-top:4px; font-size:0.7rem; font-weight:700; padding:2px 6px; border-radius:4px; ${selectedItem.isEnabled !== false ? 'background:rgba(16,185,129,0.15); color:var(--accent-emerald);' : 'background:rgba(239,68,68,0.15); color:var(--accent-rose);'}">
+                      ${selectedItem.isEnabled !== false ? 'EN VENTE (ACTIF)' : 'DESACTIVE (MASQUE)'}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Interrupteur Activation de l'item -->
+                <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+                  <div>
+                    <div style="font-weight:600; font-size:0.85rem; color:#fff;">Actif dans la Boutique</div>
+                    <div style="font-size:0.72rem; color:var(--text-dim);">Visible par les joueurs pour achat/vente</div>
+                  </div>
+                  <label class="switch-toggle">
+                    <input type="checkbox" id="editItemEnabled" ${selectedItem.isEnabled !== false ? 'checked' : ''} />
+                    <span class="slider-toggle"></span>
+                  </label>
+                </div>
+
+                <!-- Prix Achat & Vente -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                  <div>
+                    <label class="form-label">Prix Achat Base ($)</label>
+                    <input type="number" id="editItemBuy" class="form-input" value="${selectedItem.buyPrice}" step="0.1" oninput="recalculateEditMargin()" />
+                  </div>
+                  <div>
+                    <label class="form-label">Prix Vente Base ($)</label>
+                    <input type="number" id="editItemSell" class="form-input" value="${selectedItem.sellPrice}" step="0.1" oninput="recalculateEditMargin()" />
+                  </div>
+                </div>
+
+                <!-- Marge serveur calculée -->
+                <div style="background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.2); padding:10px 14px; border-radius:var(--radius-sm);">
+                  <div style="font-size:0.72rem; color:var(--text-muted);">Marge serveur en temps reel :</div>
+                  <div id="editMarginDisplay" style="font-size:1.05rem; font-weight:700; color:var(--accent-blue);">
+                    ${(((selectedItem.buyPrice - selectedItem.sellPrice) / (selectedItem.buyPrice || 1)) * 100).toFixed(1)}% de marge (${selectedItem.sellPrice > 0 ? (selectedItem.buyPrice / selectedItem.sellPrice).toFixed(1) + 'x' : 'Inf'})
+                  </div>
+                </div>
+
+                <!-- Stocks Cible et Actuel -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                  <div>
+                    <label class="form-label">Stock Cible (Equilibre)</label>
+                    <input type="number" id="editItemTargetStock" class="form-input" value="${selectedItem.targetStock || 1000}" />
+                  </div>
+                  <div>
+                    <label class="form-label">Stock Actuel (Serveur)</label>
+                    <input type="number" id="editItemCurrentStock" class="form-input" value="${selectedItem.stock || 0}" />
+                  </div>
+                </div>
+
+                <!-- Commande serveur / Grade -->
+                <div style="background:rgba(0,0,0,0.25); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <div>
+                      <div style="font-weight:600; font-size:0.85rem; color:#fff;">Mode Commande / Grade</div>
+                      <div style="font-size:0.72rem; color:var(--text-dim);">Execute une commande au lieu de donner l'item</div>
+                    </div>
+                    <label class="switch-toggle">
+                      <input type="checkbox" id="editItemIsCommand" ${selectedItem.isCommand ? 'checked' : ''} onchange="toggleEditCmdInput(this.checked)" />
+                      <span class="slider-toggle"></span>
+                    </label>
+                  </div>
+                  <div id="editCmdInputWrapper" style="display:${selectedItem.isCommand ? 'block' : 'none'}; margin-top:8px;">
+                    <label class="form-label">Commande a executer (%player%)</label>
+                    <input type="text" id="editItemCommand" class="form-input" value="${selectedItem.commandToExecute || ''}" placeholder="ex: lp user %player% parent set vip" />
+                  </div>
+                </div>
+
+                <!-- Boutons d'Action de l'Item -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+                  <button class="drawer-action-btn buy" onclick="saveAdminItemEdits('${selectedItem.material}')">
+                    Enregistrer les Modifications
+                  </button>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <button class="multiplier-btn" onclick="duplicateAdminItem('${selectedItem.material}')">
+                      Dupliquer
+                    </button>
+                    <button class="multiplier-btn" style="color:var(--accent-rose); border-color:rgba(239,68,68,0.3);" onclick="deleteShopItem('${selectedItem.material}')">
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ` : `
+              <!-- FORMULAIRE D'AJOUT D'UN NOUVEL OBJET AVEC AUTOCOMPLÉTION BUKKIT -->
+              <div class="admin-panel-header">
+                <span class="admin-panel-title">Ajouter un Nouvel Objet</span>
+                ${selectedItem ? `
+                  <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="setAdminInspectorMode('edit')">
+                    Retour Fiche
+                  </button>
+                ` : ''}
+              </div>
+              <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
+                <div class="autocomplete-container">
+                  <label class="form-label">Materiau Minecraft Bukkit (300+ items)</label>
+                  <input type="text" id="adminMatInput" class="form-input" placeholder="Tapez ex: DIAMOND, NETHER..." oninput="handleBukkitAutocomplete(this.value)" autocomplete="off" />
+                  <div class="autocomplete-dropdown" id="bukkitDropdown" style="display:none;"></div>
+                </div>
+
+                <!-- Aperçu direct du sprite de l'item choisi -->
+                <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+                  <div class="mc-slot-box">
+                    <div class="mc-item-icon">
+                      <img id="adminPreviewImg" src="${getMinecraftItemUrl('DIAMOND')}" />
+                    </div>
+                  </div>
+                  <div>
+                    <div id="adminPreviewName" style="font-weight:700; color:#fff;">DIAMOND</div>
+                    <div style="font-size:0.72rem; color:var(--text-dim);">Previsualisation Texture HD</div>
+                  </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                  <div>
+                    <label class="form-label">Prix Achat ($)</label>
+                    <input type="number" id="adminBuyInput" class="form-input" value="10.0" step="0.5" oninput="calculateMargin()" />
+                  </div>
+                  <div>
+                    <label class="form-label">Prix Vente ($)</label>
+                    <input type="number" id="adminSellInput" class="form-input" value="3.0" step="0.5" oninput="calculateMargin()" />
+                  </div>
+                </div>
+
+                <div style="background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.2); padding:10px; border-radius:var(--radius-sm);">
+                  <div style="font-size:0.72rem; color:var(--text-muted);">Marge serveur calculee :</div>
+                  <div id="adminMarginDisplay" style="font-size:1.1rem; font-weight:700; color:var(--accent-blue);">70.0% de marge (Ratio 3.3x)</div>
+                </div>
+
+                <div>
+                  <label class="form-label">Stock d'Equilibre Cible</label>
+                  <input type="number" id="adminTargetStock" class="form-input" value="1000" />
+                </div>
+
+                <button class="drawer-action-btn buy" onclick="submitAdminNewItem()">
+                  Inserer dans ${activeCatObj.displayName}
+                </button>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    function selectAdminItem(mat) {
+      state.selectedAdminItem = mat;
+      state.adminInspectorMode = 'edit';
+      renderMain();
+    }
+
+    function setAdminInspectorMode(mode) {
+      state.adminInspectorMode = mode;
+      renderMain();
+    }
+
+    function toggleEditCmdInput(checked) {
+      const el = document.getElementById('editCmdInputWrapper');
+      if (el) el.style.display = checked ? 'block' : 'none';
+    }
+
+    function recalculateEditMargin() {
+      const buy = parseFloat(document.getElementById('editItemBuy').value) || 1;
+      const sell = parseFloat(document.getElementById('editItemSell').value) || 0;
+      const margin = (((buy - sell) / buy) * 100).toFixed(1);
+      const ratio = sell > 0 ? (buy / sell).toFixed(1) + 'x' : 'Inf';
+      const box = document.getElementById('editMarginDisplay');
+      if (box) box.textContent = `${margin}% de marge (${ratio})`;
+    }
+
+    function saveAdminItemEdits(mat) {
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+      const item = cat.items.find(i => i.material === mat);
+      if (!item) return;
+
+      item.buyPrice = parseFloat(document.getElementById('editItemBuy').value) || 0;
+      item.sellPrice = parseFloat(document.getElementById('editItemSell').value) || 0;
+      item.targetStock = parseInt(document.getElementById('editItemTargetStock').value) || 1000;
+      item.stock = parseInt(document.getElementById('editItemCurrentStock').value) || 0;
+      item.isEnabled = document.getElementById('editItemEnabled').checked;
+      item.isCommand = document.getElementById('editItemIsCommand').checked;
+      if (item.isCommand) {
+        item.commandToExecute = (document.getElementById('editItemCommand').value || '').trim();
+      }
+
+      showToast(`Fiche de ${mat} mise a jour avec succes !`, 'success');
+      renderMain();
+    }
+
+    function duplicateAdminItem(mat) {
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+      const item = cat.items.find(i => i.material === mat);
+      if (!item) return;
+
+      const copyMat = `${item.material}_COPY`;
+      cat.items.push({
+        ...JSON.parse(JSON.stringify(item)),
+        material: copyMat
+      });
+      state.selectedAdminItem = copyMat;
+      state.adminInspectorMode = 'edit';
+      showToast(`Objet duplique : ${copyMat}`, 'info');
+      renderMain();
+    }
+
+    function applyCategoryPriceMultiplier(factor) {
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+      cat.items.forEach(i => {
+        i.buyPrice = parseFloat((i.buyPrice * factor).toFixed(2));
+        i.sellPrice = parseFloat((i.sellPrice * factor).toFixed(2));
+      });
+      const pct = Math.round((factor - 1) * 100);
+      showToast(`Prix de la categorie ${cat.displayName} modifies de ${pct > 0 ? '+' : ''}${pct}% !`, 'success');
+      renderMain();
+    }
+
+    function handleBukkitAutocomplete(query) {
+      const dropdown = document.getElementById('bukkitDropdown');
+      if (!query.trim()) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      const q = query.toUpperCase();
+      const matches = BUKKIT_MATERIALS.filter(m => m.includes(q)).slice(0, 8);
+
+      if (matches.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+      }
+
+      dropdown.style.display = 'block';
+      dropdown.innerHTML = matches.map(mat => `
+        <div class="autocomplete-item" onclick="selectBukkitMat('${mat}')">
+          <div class="mc-item-icon" style="width:20px; height:20px;">
+            <img src="${getMinecraftItemUrl(mat)}" onerror="this.style.display='none'" />
+          </div>
+          <span>${mat}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectBukkitMat(mat) {
+      document.getElementById('adminMatInput').value = mat;
+      document.getElementById('bukkitDropdown').style.display = 'none';
+      document.getElementById('adminPreviewImg').src = getMinecraftItemUrl(mat);
+      document.getElementById('adminPreviewName').textContent = mat;
+    }
+
+    function calculateMargin() {
+      const buy = parseFloat(document.getElementById('adminBuyInput').value) || 1;
+      const sell = parseFloat(document.getElementById('adminSellInput').value) || 0;
+      const margin = (((buy - sell) / buy) * 100).toFixed(1);
+      const ratio = sell > 0 ? (buy / sell).toFixed(1) + 'x' : 'Inf';
+      document.getElementById('adminMarginDisplay').textContent = `${margin}% de marge (Ratio ${ratio})`;
+    }
+
+    function updateItemInlinePrice(mat, type, val) {
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+      const item = cat.items.find(i => i.material === mat);
+      if (!item) return;
+
+      const num = parseFloat(val) || 0;
+      if (type === 'buy') item.buyPrice = num;
+      else item.sellPrice = num;
+
+      showToast(`Prix de ${mat} mis a jour avec succes !`, 'success');
+    }
+
+    function deleteShopItem(mat) {
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+      cat.items = cat.items.filter(i => i.material !== mat);
+      showToast(`${mat} supprime du shop`, 'info');
+      renderMain();
+    }
+
+    function submitAdminNewItem() {
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+
+      const mat = (document.getElementById('adminMatInput').value || 'STONE').trim().toUpperCase();
+      const buy = parseFloat(document.getElementById('adminBuyInput').value) || 10.0;
+      const sell = parseFloat(document.getElementById('adminSellInput').value) || 3.0;
+      const targetS = parseInt(document.getElementById('adminTargetStock').value) || 1000;
+
+      // Vérifier si déjà existant
+      if (cat.items.some(i => i.material === mat)) {
+        return showToast(`L'item ${mat} est deja present dans cette categorie !`, 'error');
+      }
+
+      cat.items.push({
+        material: mat,
+        buyPrice: buy,
+        sellPrice: sell,
+        stock: targetS,
+        targetStock: targetS,
+        history: [buy * 0.9, buy, buy * 1.05, buy]
+      });
+
+      showToast(`Objet ${mat} ajoute avec succes dans ${cat.displayName} !`, 'success');
+      renderMain();
+    }
+
+    function openCreateCategoryModal() {
+      const windowEl = document.getElementById('modalWindow');
+      windowEl.innerHTML = `
+        <h3 style="margin-bottom:16px; font-size:1.2rem; color:#fff;">Creer une Nouvelle Categorie de Boutique</h3>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label class="form-label">Identifiant Categorie (sans espace)</label>
+            <input type="text" id="newCatId" class="form-input" placeholder="ex: nether" />
+          </div>
+          <div>
+            <label class="form-label">Nom d'affichage Joueur</label>
+            <input type="text" id="newCatName" class="form-input" placeholder="ex: Ressources du Nether" />
+          </div>
+          <div>
+            <label class="form-label">Icone (Materiel Bukkit)</label>
+            <input type="text" id="newCatIcon" class="form-input" value="NETHERRACK" />
+          </div>
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="drawer-action-btn buy" style="flex:1;" onclick="submitNewCategory()">
+              Enregistrer la Categorie
+            </button>
+            <button class="multiplier-btn" onclick="closeModalDirect()">
+              Annuler
+            </button>
+          </div>
+        </div>
+      `;
+      document.getElementById('modalBackdrop').classList.add('open');
+    }
+
+    function submitNewCategory() {
+      const id = (document.getElementById('newCatId').value || 'custom').toLowerCase().trim();
+      const name = document.getElementById('newCatName').value.trim() || 'Nouvelle Categorie';
+      const icon = (document.getElementById('newCatIcon').value || 'STONE').toUpperCase().trim();
+
+      if (SHOP_DATA.some(c => c.id === id)) {
+        return showToast(`Une categorie avec l'identifiant "${id}" existe deja !`, 'error');
+      }
+
+      SHOP_DATA.push({
+        id: id,
+        displayName: name,
+        icon: icon,
+        items: []
+      });
+
+      state.activeCategory = id;
+      closeModalDirect();
+      showToast(`Categorie "${name}" creee avec succes !`, 'success');
+      renderMain();
+    }
+
+    // -----------------------------------------------------------------
+    // STUDIO ADMIN SHOP - VAR B : TABLEUR ACTIONS GROUPÉES
+    // -----------------------------------------------------------------
+    function renderAdminTable(container) {
+      const activeCatObj = SHOP_DATA.find(c => c.id === state.activeCategory) || SHOP_DATA[0];
+
+      container.innerHTML = `
+        <div class="terminal-center">
+          <!-- BARRE D'ACTIONS GROUPÉES -->
+          <div style="padding:16px 20px; background:rgba(0,0,0,0.4); border-bottom:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-weight:700; color:#fff;">Actions sur la Selection (${state.adminSelectedIds.size} objets) :</span>
+              <button class="multiplier-btn" onclick="applyBulkPrice(1.10)">+10% Prix</button>
+              <button class="multiplier-btn" onclick="applyBulkPrice(0.90)">-10% Prix</button>
+              <button class="multiplier-btn" style="color:var(--accent-rose);" onclick="deleteBulkSelected()">Supprimer Selection</button>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px;">
+              <button class="multiplier-btn" onclick="selectAllTableItems()">Tout Selectionner</button>
+              <button class="multiplier-btn" onclick="clearTableSelection()">Deselectionner</button>
+            </div>
+          </div>
+
+          <table class="terminal-table">
+            <thead>
+              <tr>
+                <th style="width:40px;">Select</th>
+                <th>Materiel</th>
+                <th>Prix Achat Base</th>
+                <th>Prix Vente Base</th>
+                <th>Stock Actuel</th>
+                <th>Stock Cible</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${activeCatObj.items.map(item => {
+                const isChecked = state.adminSelectedIds.has(item.material);
+                return `
+                  <tr>
+                    <td>
+                      <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleTableSelection('${item.material}')" />
+                    </td>
+                    <td>
+                      <div style="display:flex; align-items:center; gap:10px;">
+                        <div class="mc-slot-box" style="width:32px; height:32px;">
+                          <div class="mc-item-icon" style="width:24px; height:24px;">
+                            <img src="${getMinecraftItemUrl(item.material)}" />
+                          </div>
+                        </div>
+                        <span style="font-weight:700; color:#fff;">${item.material}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <input type="number" step="0.1" class="inline-editable-cell" style="width:90px;" value="${item.buyPrice}" onchange="updateItemInlinePrice('${item.material}', 'buy', this.value)" />
+                    </td>
+                    <td>
+                      <input type="number" step="0.1" class="inline-editable-cell" style="width:90px;" value="${item.sellPrice}" onchange="updateItemInlinePrice('${item.material}', 'sell', this.value)" />
+                    </td>
+                    <td>${item.stock}</td>
+                    <td>${item.targetStock}</td>
+                    <td>
+                      <span style="font-size:0.75rem; font-weight:700; color:var(--accent-emerald);">ACTIF</span>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function toggleTableSelection(mat) {
+      if (state.adminSelectedIds.has(mat)) state.adminSelectedIds.delete(mat);
+      else state.adminSelectedIds.add(mat);
+      renderMain();
+    }
+
+    function selectAllTableItems() {
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (cat) cat.items.forEach(i => state.adminSelectedIds.add(i.material));
+      renderMain();
+    }
+
+    function clearTableSelection() {
+      state.adminSelectedIds.clear();
+      renderMain();
+    }
+
+    function applyBulkPrice(factor) {
+      if (state.adminSelectedIds.size === 0) return showToast('Veuillez selectionner au moins un objet.', 'error');
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+
+      cat.items.forEach(i => {
+        if (state.adminSelectedIds.has(i.material)) {
+          i.buyPrice = parseFloat((i.buyPrice * factor).toFixed(2));
+          i.sellPrice = parseFloat((i.sellPrice * factor).toFixed(2));
+        }
+      });
+
+      showToast(`Prix modifies de ${(factor > 1 ? '+' : '')}${Math.round((factor - 1) * 100)}% sur la selection !`, 'success');
+      renderMain();
+    }
+
+    function deleteBulkSelected() {
+      if (state.adminSelectedIds.size === 0) return showToast('Veuillez selectionner au moins un objet.', 'error');
+      const cat = SHOP_DATA.find(c => c.id === state.activeCategory);
+      if (!cat) return;
+
+      cat.items = cat.items.filter(i => !state.adminSelectedIds.has(i.material));
+      state.adminSelectedIds.clear();
+      showToast('Selection supprimee avec succes.', 'info');
+      renderMain();
+    }
+
+    // MODALS CLOSE HANDLERS
+    function closeModal(e) {
+      if (e.target.id === 'modalBackdrop') closeModalDirect();
+    }
+
+    function closeModalDirect() {
+      document.getElementById('modalBackdrop').classList.remove('open');
+    }
+
+    // INITIALISATION
+    window.addEventListener('DOMContentLoaded', () => {
+      switchModule('shop');
+      updateWalletDisplay();
+    });
+  </script>
+</body>
+</html>

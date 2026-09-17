@@ -494,10 +494,10 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
               borderRadius: '8px', border: '1px solid var(--card-border)', marginBottom: '1.5rem',
               fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '8px'
             }}>
-              <span style={{color: '#8b5cf6', fontWeight: 600}}>💎 x3 = x5 (4%)</span>
-              <span style={{color: '#f59e0b', fontWeight: 600}}>👑 x3 = x3 (8%)</span>
-              <span style={{color: '#10b981', fontWeight: 600}}>🪙 x3 = x2 (20%)</span>
-              <span style={{color: '#ef4444'}}>❌ = x0 (68%)</span>
+              <span style={{color: '#8b5cf6', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px'}}><Gem size={14} /> x3 = x5 (4%)</span>
+              <span style={{color: '#f59e0b', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px'}}><Crown size={14} /> x3 = x3 (8%)</span>
+              <span style={{color: '#10b981', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px'}}><Coins size={14} /> x3 = x2 (20%)</span>
+              <span style={{color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '4px'}}><XCircle size={14} /> = x0 (68%)</span>
             </div>
 
             <div style={{textAlign: 'left', marginBottom: '1.5rem'}}>

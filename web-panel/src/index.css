@@ -243,3 +243,370 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   .hero-container { padding: 3rem 1rem !important; }
   .public-header { padding: 15px 20px !important; }
 }
+
+/* === REWORK BOUTIQUES & AH GENSCORE === */
+.mc-item-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.mc-item-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.mc-slot-box {
+  width: 56px;
+  height: 56px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+}
+
+/* ENCHANTED FOIL - SUBTIL & ELEGANT */
+.enchanted-foil {
+  position: relative;
+}
+
+.enchanted-foil::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(192, 132, 252, 0.12) 49%, rgba(96, 165, 250, 0.14) 51%, transparent 60%);
+  background-size: 300% 300%;
+  animation: foil-sheen 6s infinite ease-in-out;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.45;
+}
+
+@keyframes foil-sheen {
+  0% { background-position: -300% 0; }
+  100% { background-position: 300% 0; }
+}
+
+/* SHOP REWORK STYLES */
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.shop-card {
+  background: rgba(24, 27, 36, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+}
+
+.shop-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(32, 36, 48, 0.85);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+}
+
+.shop-card:hover .mc-item-icon {
+  transform: scale(1.08);
+}
+
+.stock-gauge-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.stock-high { background: #10b981; }
+.stock-medium { background: #f59e0b; }
+.stock-low { background: #ef4444; }
+
+.price-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* DRAWER */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.drawer-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 440px;
+  max-width: 95vw;
+  background: #181b24;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 201;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+}
+
+.drawer-panel.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.multiplier-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.multiplier-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.multiplier-btn.selected {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+/* AH CARDS */
+.ah-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 20px;
+}
+
+.ah-card {
+  background: rgba(24, 27, 36, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.ah-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+}
+
+.ah-card.rarity-common { border-color: rgba(148, 163, 184, 0.2); }
+.ah-card.rarity-rare { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 15px rgba(59, 130, 246, 0.08); }
+.ah-card.rarity-epic { border-color: rgba(168, 85, 247, 0.4); box-shadow: 0 0 15px rgba(168, 85, 247, 0.1); }
+.ah-card.rarity-legendary { border-color: rgba(245, 158, 11, 0.5); box-shadow: 0 0 18px rgba(245, 158, 11, 0.12); }
+.ah-card.rarity-mythic { border-color: rgba(236, 72, 153, 0.6); box-shadow: 0 0 20px rgba(236, 72, 153, 0.15); }
+
+.enchant-tag {
+  font-size: 0.72rem;
+  background: rgba(168, 85, 247, 0.12);
+  color: #d8b4fe;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.mc-lore-box {
+  background: #100010;
+  border: 2px solid #280028;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: monospace;
+  font-size: 0.76rem;
+  color: #aa00aa;
+  line-height: 1.4;
+}
+
+/* ADMIN STUDIO */
+.admin-studio-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 380px;
+  gap: 20px;
+  align-items: start;
+}
+
+.admin-panel-card {
+  background: #12141a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-panel-header {
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-cat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.admin-cat-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-cat-row.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.admin-item-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 130px 130px 80px;
+  gap: 12px;
+  align-items: center;
+  background: rgba(24, 27, 36, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.admin-item-row:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(32, 36, 48, 0.85);
+}
+
+.admin-item-row.selected {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+.inline-editable-cell {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  outline: none;
+  width: 100%;
+}
+
+.inline-editable-cell:focus {
+  border-color: #3b82f6;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.autocomplete-container {
+  position: relative;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #181b24;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 50;
+  margin-top: 4px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.autocomplete-item:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #fff;
+}
+
+@media (max-width: 1200px) {
+  .admin-studio-grid { grid-template-columns: 1fr; }
+}
