@@ -336,28 +336,253 @@ export const MINECRAFT_TEXTURE_MAP: Record<string, string> = {
   "white_concrete": "block/white_concrete",
   "white_terracotta": "block/white_terracotta",
   "white_wool": "block/white_wool",
-  "wind_charge": "item/wind_charge"
+  "wind_charge": "item/wind_charge",
+
+  // --- NOUVEAUTÉS 26.3 (POPLIER, COUSSINS, CHAMPIGNON, LITS DE PAILLE) ---
+  "poplar_log": "block/poplar_log",
+  "poplar_wood": "block/poplar_log",
+  "stripped_poplar_log": "block/stripped_poplar_log",
+  "stripped_poplar_wood": "block/stripped_poplar_log",
+  "poplar_planks": "block/poplar_planks",
+  "poplar_stairs": "block/poplar_planks",
+  "poplar_slab": "block/poplar_planks",
+  "poplar_fence": "block/poplar_planks",
+  "poplar_fence_gate": "block/poplar_planks",
+  "poplar_door": "item/poplar_door",
+  "poplar_trapdoor": "block/poplar_trapdoor",
+  "poplar_pressure_plate": "block/poplar_planks",
+  "poplar_button": "block/poplar_planks",
+  "poplar_sign": "item/poplar_sign",
+  "poplar_wall_sign": "item/poplar_sign",
+  "poplar_hanging_sign": "item/poplar_hanging_sign",
+  "poplar_wall_hanging_sign": "item/poplar_hanging_sign",
+  "poplar_boat": "item/poplar_boat",
+  "poplar_chest_boat": "item/poplar_chest_boat",
+  "poplar_sapling": "block/poplar_sapling",
+  "poplar_shelf": "block/poplar_shelf",
+  "orange_poplar_leaves": "block/orange_poplar_leaves",
+  "red_poplar_leaves": "block/red_poplar_leaves",
+  "yellow_poplar_leaves": "block/yellow_poplar_leaves",
+  "straw_bed": "block/straw_bed",
+  "shelf_mushroom": "block/shelf_mushroom_stage1",
+
+  // COUSSINS (16 COULEURS)
+  "white_cushion": "item/white_cushion",
+  "orange_cushion": "item/orange_cushion",
+  "magenta_cushion": "item/magenta_cushion",
+  "light_blue_cushion": "item/light_blue_cushion",
+  "yellow_cushion": "item/yellow_cushion",
+  "lime_cushion": "item/lime_cushion",
+  "pink_cushion": "item/pink_cushion",
+  "gray_cushion": "item/gray_cushion",
+  "light_gray_cushion": "item/light_gray_cushion",
+  "cyan_cushion": "item/cyan_cushion",
+  "purple_cushion": "item/purple_cushion",
+  "blue_cushion": "item/blue_cushion",
+  "brown_cushion": "item/brown_cushion",
+  "green_cushion": "item/green_cushion",
+  "red_cushion": "item/red_cushion",
+  "black_cushion": "item/black_cushion",
+
+  // TAPIS (16 COULEURS)
+  "white_carpet": "block/white_wool",
+  "orange_carpet": "block/orange_wool",
+  "magenta_carpet": "block/magenta_wool",
+  "light_blue_carpet": "block/light_blue_wool",
+  "yellow_carpet": "block/yellow_wool",
+  "lime_carpet": "block/lime_wool",
+  "pink_carpet": "block/pink_wool",
+  "gray_carpet": "block/gray_wool",
+  "light_gray_carpet": "block/light_gray_wool",
+  "cyan_carpet": "block/cyan_wool",
+  "purple_carpet": "block/purple_wool",
+  "blue_carpet": "block/blue_wool",
+  "brown_carpet": "block/brown_wool",
+  "green_carpet": "block/green_wool",
+  "red_carpet": "block/red_wool",
+  "black_carpet": "block/black_wool",
+
+  // LITS (16 COULEURS)
+  "white_bed": "block/white_bed_head_up",
+  "orange_bed": "block/orange_bed_head_up",
+  "magenta_bed": "block/magenta_bed_head_up",
+  "light_blue_bed": "block/light_blue_bed_head_up",
+  "yellow_bed": "block/yellow_bed_head_up",
+  "lime_bed": "block/lime_bed_head_up",
+  "pink_bed": "block/pink_bed_head_up",
+  "gray_bed": "block/gray_bed_head_up",
+  "light_gray_bed": "block/light_gray_bed_head_up",
+  "cyan_bed": "block/cyan_bed_head_up",
+  "purple_bed": "block/purple_bed_head_up",
+  "blue_bed": "block/blue_bed_head_up",
+  "brown_bed": "block/brown_bed_head_up",
+  "green_bed": "block/green_bed_head_up",
+  "red_bed": "block/red_bed_head_up",
+  "black_bed": "block/black_bed_head_up",
+
+  // OBJETS SPÉCIAUX & CONTENEURS
+  "crossbow": "item/crossbow_standby",
+  "shield": "gui/sprites/container/slot/shield",
+  "debug_stick": "item/stick",
+  "bamboo_sapling": "item/bamboo",
+  "beetroots": "item/beetroot",
+  "carrots": "item/carrot",
+  "potatoes": "item/potato",
+  "cocoa": "item/cocoa_beans",
+  "sweet_berry_bush": "item/sweet_berries",
+  "cave_air": "item/barrier",
+  "void_air": "item/barrier",
+  "air": "item/barrier",
+  "lava": "item/lava_bucket",
+  "water": "item/water_bucket",
+  "lava_cauldron": "item/cauldron",
+  "powder_snow_cauldron": "item/cauldron",
+  "water_cauldron": "item/cauldron",
+  "light": "item/light",
+  "light_weighted_pressure_plate": "block/gold_block",
+  "heavy_weighted_pressure_plate": "block/iron_block",
+  "end_portal": "block/end_portal_frame_top",
+  "end_gateway": "block/end_portal_frame_top",
+  "nether_portal": "block/nether_portal",
+  "decorated_pot": "entity/decorated_pot/decorated_pot_side",
+  "dried_ghast": "item/ghast_tear",
+  "copper_chest": "block/copper_block",
+  "exposed_copper_chest": "block/exposed_copper",
+  "weathered_copper_chest": "block/weathered_copper",
+  "oxidized_copper_chest": "block/oxidized_copper",
+  "copper_golem_statue": "block/copper_block",
+  "exposed_copper_golem_statue": "block/exposed_copper",
+  "weathered_copper_golem_statue": "block/weathered_copper",
+  "oxidized_copper_golem_statue": "block/oxidized_copper",
+  "copper_wall_torch": "block/copper_torch",
+  "copper_torch": "block/copper_torch",
+  "bubble_column": "block/water_still",
+  "moss_carpet": "block/moss_block",
+  "snow_block": "block/snow",
+  "wall_torch": "block/torch",
+  "soul_wall_torch": "block/soul_torch",
+  "redstone_wall_torch": "block/redstone_torch",
+  "redstone_wire": "item/redstone",
+  "torchflower_crop": "item/torchflower_seeds",
+  "potted_cactus": "block/cactus_side",
+  "candle_cake": "item/cake",
+  "moving_piston": "block/piston_top",
+  "piston_head": "block/piston_top",
+  "skeleton_skull": "item/bone",
+  "skeleton_wall_skull": "item/bone",
+  "wither_skeleton_skull": "item/coal",
+  "wither_skeleton_wall_skull": "item/coal",
+  "zombie_head": "item/rotten_flesh",
+  "zombie_wall_head": "item/rotten_flesh",
+  "creeper_head": "item/gunpowder",
+  "creeper_wall_head": "item/gunpowder",
+  "dragon_head": "item/dragon_breath",
+  "dragon_wall_head": "item/dragon_breath",
+  "piglin_head": "item/porkchop",
+  "piglin_wall_head": "item/porkchop",
+  "player_head": "item/name_tag",
+  "player_wall_head": "item/name_tag",
+  "smooth_quartz": "block/smooth_quartz",
+  "smooth_quartz_slab": "block/smooth_quartz",
+  "smooth_quartz_stairs": "block/smooth_quartz",
+  "smooth_sandstone_slab": "block/sandstone_top",
+  "smooth_sandstone_stairs": "block/sandstone_top",
+  "smooth_red_sandstone_slab": "block/red_sandstone_top",
+  "smooth_red_sandstone_stairs": "block/red_sandstone_top",
+  "petrified_oak_slab": "block/oak_planks"
 };
 
 const MC_ASSETS_VERSION = '26.3';
 
 export function getMinecraftItemUrl(material: string): string {
   if (!material) return '';
-  const clean = material.toLowerCase().trim();
-  
+  let clean = material.toLowerCase().trim();
+
+  // Détection des variantes cirées (waxed) et infestées (infested)
+  if (clean.startsWith('waxed_')) clean = clean.substring(6);
+  if (clean.startsWith('infested_')) clean = clean.substring(9);
+
+  // Vérification de la table explicite
   if (MINECRAFT_TEXTURE_MAP[clean]) {
     return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/${MINECRAFT_TEXTURE_MAP[clean]}.png`;
   }
 
-  // Fallback direct pour toute lance / spear générique
+  // Lances / Spears génériques
   if (clean === 'spear' || clean === 'lance') {
     return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/iron_spear.png`;
   }
-  
-  // Dynamic fallback for any other material
-  if (clean.endsWith('_block') || clean.endsWith('_log') || clean.endsWith('_planks') || clean.includes('stone') || clean.includes('brick')) {
+
+  // Bannières (couleurs)
+  if (clean.endsWith('_banner') || clean.endsWith('_wall_banner')) {
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/gui/sprites/container/slot/banner.png`;
+  }
+
+  // Bois plein (_wood) -> texture du tronc (_log)
+  if (clean.endsWith('_wood')) {
+    const logBase = clean.substring(0, clean.length - 5) + '_log';
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${logBase}.png`;
+  }
+
+  // Tiges du Nether (hyphae) -> stem
+  if (clean.includes('hyphae')) {
+    const stemBase = clean.replace('hyphae', 'stem');
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${stemBase}.png`;
+  }
+
+  // Variantes murales de torches
+  if (clean === 'wall_torch') return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/torch.png`;
+  if (clean === 'soul_wall_torch') return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/soul_torch.png`;
+  if (clean === 'redstone_wall_torch') return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/redstone_torch.png`;
+
+  // Panneaux et suspensions
+  if (clean.endsWith('_wall_hanging_sign')) {
+    const base = clean.replace('_wall_hanging_sign', '_hanging_sign');
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/${base}.png`;
+  }
+  if (clean.endsWith('_wall_sign')) {
+    const base = clean.replace('_wall_sign', '_sign');
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/${base}.png`;
+  }
+
+  // Coraux muraux
+  if (clean.endsWith('_wall_fan')) {
+    const base = clean.replace('_wall_fan', '_fan');
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${base}.png`;
+  }
+
+  // Plantes en pot
+  if (clean.startsWith('potted_')) {
+    const plant = clean.substring(7);
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${plant}.png`;
+  }
+
+  // Dérivés de blocs (dalles, escaliers, murs, boutons, plaques, clôtures)
+  for (const suffix of ['_slab', '_stairs', '_wall', '_pressure_plate', '_button', '_fence', '_fence_gate']) {
+    if (clean.endsWith(suffix)) {
+      const base = clean.substring(0, clean.length - suffix.length);
+      return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${base}.png`;
+    }
+  }
+
+  // Heuristique par défaut blocs
+  if (
+    clean.endsWith('_block') || 
+    clean.endsWith('_log') || 
+    clean.endsWith('_planks') || 
+    clean.endsWith('_leaves') || 
+    clean.includes('stone') || 
+    clean.includes('brick') || 
+    clean.endsWith('_wool') || 
+    clean.endsWith('_terracotta') || 
+    clean.endsWith('_concrete') ||
+    clean.endsWith('_ore') ||
+    clean.endsWith('_sand') ||
+    clean.endsWith('_gravel')
+  ) {
     return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${clean}.png`;
   }
+
+  // Par défaut : dossier item/
   return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/${clean}.png`;
 }
 
@@ -377,6 +602,16 @@ export function handleMinecraftImageError(e: any) {
     }
   } else {
     target._hasRetriedTwice = true;
+    // Si c'était un dérivé en bois (escalier/dalle), tenter avec les planches (_planks)
+    if (current.includes('/block/') && !current.includes('_planks')) {
+      for (const wood of ['oak', 'spruce', 'birch', 'jungle', 'acacia', 'dark_oak', 'mangrove', 'cherry', 'pale_oak', 'poplar', 'bamboo', 'crimson', 'warped']) {
+        if (current.includes(wood)) {
+          target.src = `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${wood}_planks.png`;
+          return;
+        }
+      }
+    }
+    // Si c'était une lance
     if (current.includes('spear') || current.includes('lance')) {
       target.src = `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/iron_spear.png`;
     }
