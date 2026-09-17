@@ -305,14 +305,22 @@ export const MINECRAFT_TEXTURE_MAP: Record<string, string> = {
   "totem_of_undying": "item/totem_of_undying",
   "trapped_chest": "item/chest_minecart",
   "trident": "item/trident",
-  "spear": "item/trident",
-  "lance": "item/trident",
-  "wooden_spear": "item/wooden_sword",
-  "stone_spear": "item/stone_sword",
-  "iron_spear": "item/iron_sword",
-  "golden_spear": "item/golden_sword",
-  "diamond_spear": "item/diamond_sword",
-  "netherite_spear": "item/netherite_sword",
+  "spear": "item/iron_spear",
+  "lance": "item/iron_spear",
+  "wooden_spear": "item/wooden_spear",
+  "stone_spear": "item/stone_spear",
+  "copper_spear": "item/copper_spear",
+  "iron_spear": "item/iron_spear",
+  "golden_spear": "item/golden_spear",
+  "diamond_spear": "item/diamond_spear",
+  "netherite_spear": "item/netherite_spear",
+  "lance_en_bois": "item/wooden_spear",
+  "lance_en_pierre": "item/stone_spear",
+  "lance_en_cuivre": "item/copper_spear",
+  "lance_en_fer": "item/iron_spear",
+  "lance_en_or": "item/golden_spear",
+  "lance_en_diamant": "item/diamond_spear",
+  "lance_en_netherite": "item/netherite_spear",
   "mace": "item/mace",
   "pointed_dripstone": "item/pointed_dripstone",
   "tropical_fish": "item/tropical_fish",
@@ -331,38 +339,47 @@ export const MINECRAFT_TEXTURE_MAP: Record<string, string> = {
   "wind_charge": "item/wind_charge"
 };
 
+const MC_ASSETS_VERSION = '26.3';
+
 export function getMinecraftItemUrl(material: string): string {
   if (!material) return '';
   const clean = material.toLowerCase().trim();
   
   if (MINECRAFT_TEXTURE_MAP[clean]) {
-    return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/${MINECRAFT_TEXTURE_MAP[clean]}.png`;
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/${MINECRAFT_TEXTURE_MAP[clean]}.png`;
   }
 
-  // Fallback direct pour toute lance / spear personnalisee
-  if (clean.includes('spear') || clean.includes('lance')) {
-    return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/item/trident.png`;
+  // Fallback direct pour toute lance / spear générique
+  if (clean === 'spear' || clean === 'lance') {
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/iron_spear.png`;
   }
   
   // Dynamic fallback for any other material
   if (clean.endsWith('_block') || clean.endsWith('_log') || clean.endsWith('_planks') || clean.includes('stone') || clean.includes('brick')) {
-    return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/block/${clean}.png`;
+    return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/block/${clean}.png`;
   }
-  return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/item/${clean}.png`;
+  return `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/${clean}.png`;
 }
 
 export function handleMinecraftImageError(e: any) {
   const target = e.currentTarget;
-  if (!target || target._hasRetried) {
+  if (!target || target._hasRetriedTwice) {
     if (target) target.style.opacity = '0.3';
     return;
   }
-  target._hasRetried = true;
   const current = target.src || '';
-  if (current.includes('/item/')) {
-    target.src = current.replace('/item/', '/block/');
-  } else if (current.includes('/block/')) {
-    target.src = current.replace('/block/', '/item/');
+  if (!target._hasRetried) {
+    target._hasRetried = true;
+    if (current.includes('/item/')) {
+      target.src = current.replace('/item/', '/block/');
+    } else if (current.includes('/block/')) {
+      target.src = current.replace('/block/', '/item/');
+    }
+  } else {
+    target._hasRetriedTwice = true;
+    if (current.includes('spear') || current.includes('lance')) {
+      target.src = `https://assets.mcasset.cloud/${MC_ASSETS_VERSION}/assets/minecraft/textures/item/iron_spear.png`;
+    }
   }
 }
 
