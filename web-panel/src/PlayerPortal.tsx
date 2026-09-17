@@ -4,6 +4,7 @@ import { Route, Routes, Link, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
 import { ClientJobs } from './ClientJobs';
+import { PlayerBalanceWidget } from './PlayerBalanceWidget';
 
 const API_URL = '/api';
 
@@ -771,13 +772,16 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
 
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-header" style={{flexDirection: 'column', gap: '15px'}}>
+        <div className="admin-sidebar-header" style={{flexDirection: 'column', gap: '10px'}}>
           <img src={getPlayerAvatarUrl(playerData.username, 100)} alt="Avatar" style={{width: '64px', height: '64px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'}} />
           <h2 style={{fontSize: '1.2rem', textAlign: 'center'}}>{playerData.username}</h2>
           {playerData.isOp && <span style={{background: '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold'}}>ADMIN</span>}
+          <div style={{ width: '100%' }}>
+            <PlayerBalanceWidget uuid={playerData.uuid} token={playerData.token} variant="card" />
+          </div>
         </div>
         
-        <nav className="admin-nav" style={{marginTop: '2rem'}}>
+        <nav className="admin-nav" style={{marginTop: '1.5rem'}}>
           <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.shop')}</Link>
           <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
           {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Map size={18}/> {t('web.nav.map')}</Link>}
@@ -805,6 +809,25 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
 
       {/* Main Content */}
       <main className="admin-main">
+        {/* Topbar Persistante avec le Widget de Solde */}
+        <header className="player-topbar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: 'white' }}>
+              {location.pathname === '/dashboard' && (t('web.nav.shop') || 'Boutique')}
+              {location.pathname === '/dashboard/ah' && (t('web.nav.ah') || 'Hôtel des Ventes')}
+              {location.pathname === '/dashboard/games' && (t('web.nav.games') || 'Mini-Jeux')}
+              {location.pathname === '/dashboard/jobs' && (t('web.nav.jobs') || 'Métiers')}
+              {location.pathname === '/dashboard/map' && (t('web.nav.map') || 'Carte')}
+              {location.pathname === '/dashboard/stats' && (t('web.nav.stats') || 'Statistiques')}
+              {location.pathname === '/dashboard/quests' && (t('web.nav.quests') || 'Quêtes')}
+            </h3>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <PlayerBalanceWidget uuid={playerData.uuid} token={playerData.token} variant="pill" />
+          </div>
+        </header>
+
         <Routes>
           <Route index element={<ClientShop isEnabled={isModuleEnabled('DynamicShop')} />} />
           <Route path="ah" element={<ClientAh isEnabled={isModuleEnabled('AuctionHouse')} />} />

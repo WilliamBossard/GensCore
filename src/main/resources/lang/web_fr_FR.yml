@@ -181,6 +181,12 @@ web:
     title: Tableau de Bord
     web_inventory: Inventaire Web
     web_inventory_desc: Récupérez vos objets achetés ou gagnés sur le web.
+  wallet:
+    title: Porte-monnaie
+    live: Solde en direct
+    refresh: Actualiser le solde
+    after_purchase: Solde après achat
+    insufficient: Solde insuffisant
   nav:
     admin: Panel Administrateur
     admin_tag: ADMIN

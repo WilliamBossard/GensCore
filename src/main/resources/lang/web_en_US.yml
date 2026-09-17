@@ -175,6 +175,12 @@ web:
     title: Dashboard
     web_inventory: Web Inventory
     web_inventory_desc: Retrieve your items bought or won on the web.
+  wallet:
+    title: Wallet
+    live: Live Balance
+    refresh: Refresh balance
+    after_purchase: Balance after purchase
+    insufficient: Insufficient balance
   nav:
     admin: Admin Panel
     admin_tag: ADMIN

@@ -234,6 +234,27 @@ public class WebPlayerAPI implements Listener {
             ctx.redirect("https://crafthead.net/avatar/" + cleanName + "/" + size);
         });
 
+        get("/api/player/balance", ctx -> {
+            String uuidStr = ctx.queryParam("uuid");
+            if (uuidStr == null || uuidStr.trim().isEmpty()) {
+                uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            }
+            if (uuidStr == null || uuidStr.trim().isEmpty()) {
+                uuidStr = ctx.header("X-Player-UUID");
+            }
+            if (uuidStr == null || uuidStr.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "UUID manquant"));
+                return;
+            }
+
+            double balance = getLiveBalance(uuidStr);
+            ctx.json(Map.of(
+                "success", true,
+                "uuid", uuidStr,
+                "balance", balance
+            ));
+        });
+
         get("/api/player/stats", ctx -> {
             String uuidStr = ctx.queryParam("uuid");
             if (uuidStr == null) {
@@ -249,7 +270,7 @@ public class WebPlayerAPI implements Listener {
             stats.put("questsCompleted", questsCompleted);
 
             // Eco
-            stats.put("balance", webDAO.getPlayerBalance(uuidStr));
+            stats.put("balance", getLiveBalance(uuidStr));
 
             // Global Stats
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
@@ -511,6 +532,18 @@ public class WebPlayerAPI implements Listener {
             active.add(r);
         }
         return active;
+    }
+
+    public double getLiveBalance(String uuidStr) {
+        if (uuidStr == null || uuidStr.trim().isEmpty()) return 0.0;
+        try {
+            UUID uuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+            if (eco != null && eco.isEnabled()) {
+                return eco.getBalance(uuid);
+            }
+        } catch (Exception ignored) {}
+        return webDAO.getPlayerBalance(uuidStr);
     }
 
     public static class WheelReward {

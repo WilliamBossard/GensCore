@@ -6,6 +6,7 @@ import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, Shield, To
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PlayerLogin, PlayerDashboard } from './PlayerPortal';
 import { Docs } from './Docs';
+import { emitBalanceChange, usePlayerBalance, formatBalance } from './PlayerBalanceWidget';
 
 // === TYPES ===
 interface ConfigState {
@@ -1465,6 +1466,7 @@ export const getStoredPlayerData = () => {
 // === COMPOSANTS : VUE CLIENT (BOUTIQUE JOUEUR DYNAMIQUE) ===
 export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
   const { t } = useTranslation();
+  const { balance } = usePlayerBalance();
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [activeCatId, setActiveCatId] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -1572,6 +1574,11 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
       if (res.ok && data.success) {
         const gain = data.earned !== undefined ? data.earned : data.gain !== undefined ? data.gain : 0;
         showActionNotice(`Vente réussie ! +${gain.toFixed(2)} $ ont été ajoutés à votre solde en jeu.`, 'success');
+        if (typeof data.newBalance === 'number') {
+          emitBalanceChange(data.newBalance, gain);
+        } else {
+          emitBalanceChange(0, gain);
+        }
         fetchDeposited();
         fetch(`${API_URL}/shop/categories`).then(r => r.json()).then(d => setCategories(d || []));
       } else {
@@ -1607,7 +1614,13 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showActionNotice(`Achat effectué (${data.totalCost ? data.totalCost.toFixed(2) : '0.00'} $) ! Objets livrés en jeu (ou conservés pour votre prochaine connexion).`, 'success');
+        const cost = data.totalCost ? data.totalCost : drawerQuantity * ((selectedItem.currentBuyPrice !== undefined ? selectedItem.currentBuyPrice : selectedItem.baseBuyPrice) || 0);
+        showActionNotice(`Achat effectué (${cost.toFixed(2)} $) ! Objets livrés en jeu (ou conservés pour votre prochaine connexion).`, 'success');
+        if (typeof data.newBalance === 'number') {
+          emitBalanceChange(data.newBalance, -cost);
+        } else {
+          emitBalanceChange(0, -cost);
+        }
         fetch(`${API_URL}/shop/categories`).then(r => r.json()).then(d => setCategories(d || []));
       } else {
         showActionNotice(data.error || 'Solde insuffisant ou transaction refusée.', 'error');
@@ -2100,25 +2113,64 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
                       <span style={{fontWeight: 600, color: 'white'}}>{unitPrice.toFixed(2)} $</span>
                     </div>
                     <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
-                      <span>Quantite :</span>
+                      <span>Quantité :</span>
                       <span style={{fontWeight: 600, color: 'white'}}>x{drawerQuantity}</span>
                     </div>
+                    {balance !== null && (
+                      <>
+                        <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                          <span>Votre solde actuel :</span>
+                          <span style={{fontWeight: 600, color: '#34d399'}}>{formatBalance(balance)} $</span>
+                        </div>
+                        <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                          <span>Solde après achat :</span>
+                          <span style={{fontWeight: 600, color: balance >= totalCost ? '#34d399' : '#ef4444'}}>
+                            {formatBalance(balance - totalCost)} $
+                          </span>
+                        </div>
+                      </>
+                    )}
                     <div style={{borderTop: '1px solid var(--card-border)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.15rem', color: 'white'}}>
                       <span>Total :</span>
                       <span style={{color: '#10b981'}}>{totalCost.toFixed(2)} $</span>
                     </div>
                   </div>
 
+                  {balance !== null && balance < totalCost && (
+                    <div style={{
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.4)',
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      color: '#f87171',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}>
+                      <AlertTriangle size={18} />
+                      <span>Solde insuffisant ! Il vous manque {formatBalance(totalCost - balance)} $.</span>
+                    </div>
+                  )}
+
                   <button 
                     className="login-button" 
-                    style={{padding: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981'}}
-                    disabled={isProcessingAction}
+                    style={{
+                      padding: '12px', 
+                      fontWeight: 700, 
+                      background: (balance !== null && balance < totalCost) ? 'rgba(255,255,255,0.08)' : '#10b981', 
+                      borderColor: (balance !== null && balance < totalCost) ? 'transparent' : '#10b981',
+                      color: (balance !== null && balance < totalCost) ? 'var(--text-muted)' : 'white',
+                      cursor: (balance !== null && balance < totalCost) ? 'not-allowed' : 'pointer'
+                    }}
+                    disabled={isProcessingAction || (balance !== null && balance < totalCost)}
                     onClick={handleBuyItem}
                   >
-                    {isProcessingAction ? 'Traitement en cours...' : `Acheter maintenant (${totalCost.toFixed(2)} $)`}
+                    {isProcessingAction ? 'Traitement en cours...' : (balance !== null && balance < totalCost) ? 'Solde insuffisant' : `Acheter maintenant (${totalCost.toFixed(2)} $)`}
                   </button>
                   <div style={{fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center'}}>
-                    Distribution directe si vous etes en ligne, ou automatique a votre prochaine reconnexion.
+                    Distribution directe si vous êtes en ligne, ou automatique à votre prochaine reconnexion.
                   </div>
                 </>
               ) : (
@@ -2475,6 +2527,11 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
       const data = await res.json();
       if (res.ok && data.success) {
         showActionNotice(data.message || `Achat réussi (${item.price.toFixed(2)} $) ! L'objet vous a été livré en jeu (ou stocké pour votre reconnexion).`, 'success');
+        if (typeof data.newBalance === 'number') {
+          emitBalanceChange(data.newBalance, -item.price);
+        } else {
+          emitBalanceChange(0, -item.price);
+        }
         fetchAhItems();
       } else {
         showActionNotice(data.error || 'Erreur lors de la transaction.', 'error');
