@@ -40,6 +40,9 @@ public class WebDAO {
                     "amount INTEGER, " +
                     "base64_data TEXT" +
                     ");");
+
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_web_bets_uuid ON player_web_bets(uuid);");
+            stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_web_rewards_uuid ON player_web_rewards(uuid);");
             
             stmt.execute("CREATE TABLE IF NOT EXISTS web_player_sessions (" +
                     "token VARCHAR(100) PRIMARY KEY, " +
@@ -388,6 +391,131 @@ public class WebDAO {
             return Map.of("error", "Erreur de connexion a la base");
         }
     }
+
+    public Map<String, Object> getDepositedItem(int id, String uuid) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT id, material, amount, base64_data FROM player_web_bets WHERE id = ? AND uuid = ?")) {
+            pstmt.setInt(1, id);
+            pstmt.setString(2, uuid);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> res = new HashMap<>();
+                    res.put("id", rs.getInt("id"));
+                    res.put("material", rs.getString("material"));
+                    res.put("amount", rs.getInt("amount"));
+                    res.put("base64_data", rs.getString("base64_data"));
+                    return res;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean deleteDepositedItem(int id, String uuid) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("DELETE FROM player_web_bets WHERE id = ? AND uuid = ?")) {
+            pstmt.setInt(1, id);
+            pstmt.setString(2, uuid);
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public void addWebReward(String uuid, String material, int amount, String base64) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_rewards (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
+            pstmt.setString(1, uuid);
+            pstmt.setString(2, material);
+            pstmt.setInt(3, amount);
+            pstmt.setString(4, base64 != null ? base64 : "");
+            pstmt.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Retourne le nombre de slots de depot utilises par un joueur (lignes dans player_web_bets).
+     */
+    public int countDepositedSlots(String uuid) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) FROM player_web_bets WHERE uuid = ?")) {
+            pstmt.setString(1, uuid);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Cherche un depot existant stackable pour un meme materiau + meme base64_data (NBT identique),
+     * ayant de la place disponible (amount < maxStack).
+     * Retourne l'id et l'amount actuels si trouve, sinon null.
+     */
+    public Map<String, Object> findStackableDeposit(String uuid, String material, String base64, int maxStack) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "SELECT id, amount FROM player_web_bets WHERE uuid = ? AND material = ? AND base64_data = ? AND amount < ? ORDER BY id ASC LIMIT 1")) {
+            pstmt.setString(1, uuid);
+            pstmt.setString(2, material);
+            pstmt.setString(3, base64 != null ? base64 : "");
+            pstmt.setInt(4, maxStack);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("id", rs.getInt("id"));
+                    row.put("amount", rs.getInt("amount"));
+                    return row;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Met a jour la quantite d'un depot existant (pour vente/recuperation partielle ou stacking).
+     * Si newAmount <= 0, supprime la ligne.
+     */
+    public boolean updateDepositedItemAmount(int id, String uuid, int newAmount) {
+        if (newAmount <= 0) {
+            return deleteDepositedItem(id, uuid);
+        }
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "UPDATE player_web_bets SET amount = ? WHERE id = ? AND uuid = ?")) {
+            pstmt.setInt(1, newAmount);
+            pstmt.setInt(2, id);
+            pstmt.setString(3, uuid);
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Incrémente la quantite d'un depot existant (stacking).
+     */
+    public boolean incrementDepositedItemAmount(int id, String uuid, int delta) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(
+                 "UPDATE player_web_bets SET amount = amount + ? WHERE id = ? AND uuid = ?")) {
+            pstmt.setInt(1, delta);
+            pstmt.setInt(2, id);
+            pstmt.setString(3, uuid);
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
-
-

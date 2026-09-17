@@ -41,6 +41,29 @@ Accessible sur : `http://<ip-de-votre-serveur>:8080`
 
 ---
 
+---
+
+## Boutique Dynamique Web & Dépôts
+
+La boutique dynamique du serveur est entièrement accessible et synchronisée en direct sur le web (`http://<ip-de-votre-serveur>:8080/shop`).
+
+### 1. Achat en Ligne
+- Visualisation du cours dynamique en temps réel avec graphiques de tendance et jauges de stock.
+- Achat direct par tranche de quantite (x1, x16, x32, x64, Max ou curseur précis).
+- **Distribution Intelligente :** Si le joueur est connecté en jeu, ses objets sont livrés immédiatement dans son inventaire (ou déposés au sol si plein). Si le joueur est déconnecté, les récompenses sont stockées de façon sécurisée en base et distribuées automatiquement lors de sa prochaine connexion.
+
+### 2. Réserve & Vente d'Objets Déposés (`/web deposit`)
+- **Dépôt en jeu :** Tenez n'importe quel bloc ou objet en main et tapez `/web deposit`. L'objet est retiré et transféré dans votre réserve web.
+- **Limite de Stockage (27 Slots) :** Par défaut, un joueur dispose d'un espace de **27 slots** (l'équivalent exact d'un coffre Minecraft), configurable via la clé `web.deposit_limit` dans `modules/web.yml`.
+- **Stacking Intelligent :**
+  - Les objets identiques (même matériau et NBT/enchantements identiques) s'empilent automatiquement dans un même slot de réserve jusqu'à la limite maximale de pile Minecraft (64 pour les minerais/blocs, 16 pour les perles de l'Ender, etc.).
+  - Les armes, outils et équipements (stack max = 1) ne s'empilent jamais.
+  - En cas de surplus dépassant le stack max, un nouveau slot est utilisé s'il reste de la place, sinon l'excédent est restitué au joueur.
+- **Sélecteur de Quantité :** Dans l'onglet **Mes Objets Déposés** et dans le tiroir du shop, vous pouvez choisir précisément la quantité à vendre ou à récupérer via un curseur et des boutons rapides (x1, x16, x32, x64, Max).
+- **Retrait en jeu (`/web withdraw`) :** Cliquez sur le bouton "Récupérer en jeu" sur le web, ou tapez directement `/web withdraw` sur le serveur pour ouvrir le menu d'inventaire 54 slots et récupérer vos objets !
+
+---
+
 ## Mini-jeux Web
 
 ### 1. Roue de la Fortune
@@ -56,6 +79,6 @@ Accessible sur : `http://<ip-de-votre-serveur>:8080`
 ### 2. Casino Web (Machine à Sous)
 - Misez vos véritables objets Minecraft sur une machine à sous web animée à 3 rouleaux.
 - **Délai d'une heure (cooldown)** entre chaque lancer pour éviter les abus.
-- **Dépôt (`/web deposit`) :** Tenez n'importe quel objet en main en jeu et tapez `/web deposit`. L'objet est sérialisé en Base64 et transféré dans votre réserve de jeu web.
+- **Dépôt :** Alimenté par vos objets déposés via `/web deposit`.
 - **Jeu :** Faites tourner la machine dans votre navigateur avec vos objets misés.
-- **Retrait (`/web withdraw`) :** Exécutez `/web withdraw` en jeu pour ouvrir un inventaire 54 slots et récupérer l'intégralité de vos gains directement dans votre inventaire !
+- **Retrait :** Directement via l'interface web ou via `/web withdraw` en jeu.

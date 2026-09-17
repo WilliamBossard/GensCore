@@ -297,6 +297,29 @@ web:
       subtitle: Suivez les prix de l'économie en temps réel
       title: Bourse Dynamique
       unsellable: Invendable
+      deposited_tab: Mes Objets Déposés (/web deposit)
+      deposited_title: Vos Objets Déposés via /web deposit
+      deposited_desc: Ces objets sont stockés dans votre réserve. Vous pouvez les vendre en direct ici ou les récupérer dans votre inventaire en jeu !
+      withdraw_btn: Récupérer en jeu
+      sell_online_btn: Vendre en ligne
+      buy_online_btn: Acheter maintenant
+      deposit_empty_title: Aucun objet déposé en réserve
+      deposit_empty_desc: Prenez un bloc ou un objet en main sur le serveur Minecraft et tapez la commande /web deposit pour le déposer et pouvoir le vendre depuis cette page !
+      deposit_hint_title: Comment vendre cet objet en ligne ?
+      deposit_hint_step1: Prenez l'objet en main sur le serveur Minecraft.
+      deposit_hint_step2: "Tapez la commande : /web deposit"
+      deposit_hint_step3: Revenez ici ou ouvrez l'onglet Mes Objets Déposés pour le vendre en ligne d'un simple clic !
+      withdraw_tip: "Astuce : pour récupérer vos objets déposés non vendus directement dans votre inventaire en jeu, tapez /web withdraw."
+      instant_delivery_note: Distribution directe si vous êtes en ligne, ou automatique à votre prochaine reconnexion.
+      qty_modal_title: Choisir la quantité
+      qty_confirm_sell: Confirmer la vente
+      qty_confirm_withdraw: Confirmer la récupération
+      qty_cancel: Annuler
+      qty_available: Disponible :
+      slots_used: slots utilisés
+      slots_full: Inventaire de dépôt plein
+      sell_partial: Vendre {qty} unite(s)
+      withdraw_partial: Récupérer {qty} unite(s) en jeu
     stats:
       balance: Solde Bancaire
       best_team: Meilleure Guilde

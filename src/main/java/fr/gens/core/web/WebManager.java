@@ -12,6 +12,9 @@ import fr.gens.core.modules.shop.ShopModule;
 import fr.gens.core.modules.headdrop.HeadDropModule;
 import fr.gens.core.modules.discord.DiscordModule;
 import org.bukkit.Material;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.ban.ProfileBanList;
 import io.papermc.paper.ban.BanListType;
 import java.awt.Color;
@@ -21,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -48,6 +52,22 @@ public class WebManager {
         
         this.webDAO = new fr.gens.core.database.WebDAO(plugin);
         this.webDAO.initDatabase();
+    }
+
+    public String getPlayerUuidFromCtx(io.javalin.http.Context ctx) {
+        String sessionUuid = ctx.attribute("playerUuid");
+        if (sessionUuid != null) return sessionUuid;
+        String auth = ctx.header("Authorization");
+        if (auth != null && auth.startsWith("Bearer ")) {
+            String token = auth.substring(7);
+            if (activePlayerSessions.containsKey(token)) {
+                Long exp = playerSessionExpiry.get(token);
+                if (exp == null || exp >= System.currentTimeMillis()) {
+                    return activePlayerSessions.get(token);
+                }
+            }
+        }
+        return null;
     }
 
     private java.util.Map<String, Object> convertToMap(org.bukkit.configuration.ConfigurationSection section) {
@@ -749,6 +769,304 @@ public class WebManager {
             } else {
                 ctx.status(404).json(plugin.getLangManager().getRaw("webmanager.shop_disabled"));
             }
+        });
+
+        // Objets déposés en jeu par le joueur via /web deposit
+        get("/api/shop/deposited", ctx -> {
+            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            if (sessionUuid == null) {
+                ctx.status(401).json(Map.of("error", "Non connecté"));
+                return;
+            }
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            List<Map<String, Object>> deposited = webDAO.getCasinoInventory(sessionUuid);
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Map<String, Object> item : deposited) {
+                String material = (String) item.get("material");
+                int amount = ((Number) item.get("amount")).intValue();
+                double sellPrice = 0.0;
+                boolean isShopItem = false;
+                if (shop != null) {
+                    Material mat = Material.matchMaterial(material);
+                    if (mat != null) {
+                        for (ShopCategory cat : shop.getCategories()) {
+                            ShopItem si = cat.getItem(mat);
+                            if (si != null && si.isEnabled()) {
+                                sellPrice = si.getCurrentSellPrice();
+                                isShopItem = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                Map<String, Object> map = new HashMap<>(item);
+                map.put("unitSellPrice", sellPrice);
+                map.put("totalSellPrice", Math.round(sellPrice * amount * 100.0) / 100.0);
+                map.put("canSell", isShopItem && sellPrice > 0);
+                result.add(map);
+            }
+            ctx.json(result);
+        });
+
+        // Vente en ligne d'un objet déposé
+        post("/api/shop/sell-deposited", ctx -> {
+            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            if (sessionUuid == null) {
+                ctx.status(401).json(Map.of("error", "Non connecté"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = ctx.bodyAsClass(Map.class);
+            if (body == null || !body.containsKey("betId")) {
+                ctx.status(400).json(Map.of("error", "Paramètre betId manquant"));
+                return;
+            }
+            int betId = ((Number) body.get("betId")).intValue();
+            Map<String, Object> itemData = webDAO.getDepositedItem(betId, sessionUuid);
+            if (itemData == null) {
+                ctx.status(404).json(Map.of("error", "Objet introuvable ou déjà vendu"));
+                return;
+            }
+            String materialStr = (String) itemData.get("material");
+            int totalAmount = ((Number) itemData.get("amount")).intValue();
+            int amountToSell = totalAmount;
+            if (body.containsKey("quantity")) {
+                int reqQty = ((Number) body.get("quantity")).intValue();
+                if (reqQty <= 0) {
+                    ctx.status(400).json(Map.of("error", "Quantité invalide"));
+                    return;
+                }
+                if (reqQty < totalAmount) {
+                    amountToSell = reqQty;
+                }
+            }
+
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop == null) {
+                ctx.status(400).json(Map.of("error", "La boutique dynamique est désactivée"));
+                return;
+            }
+            Material mat = Material.matchMaterial(materialStr);
+            ShopItem targetItem = null;
+            if (mat != null) {
+                for (ShopCategory cat : shop.getCategories()) {
+                    targetItem = cat.getItem(mat);
+                    if (targetItem != null) break;
+                }
+            }
+            if (targetItem == null || !targetItem.isEnabled()) {
+                ctx.status(400).json(Map.of("error", "Cet objet n'est pas racheté par la boutique"));
+                return;
+            }
+
+            double unitPrice = targetItem.getCurrentSellPrice();
+            double totalEarned = Math.round(unitPrice * amountToSell * 100.0) / 100.0;
+
+            // Retirer ou mettre à jour la quantité de l'objet déposé
+            int remaining = totalAmount - amountToSell;
+            if (remaining <= 0) {
+                webDAO.deleteDepositedItem(betId, sessionUuid);
+            } else {
+                webDAO.updateDepositedItemAmount(betId, sessionUuid, remaining);
+            }
+
+            // Créditer le solde du joueur (supporte joueur en ligne ET hors-ligne)
+            EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
+            UUID uuid = UUID.fromString(sessionUuid);
+            if (eco != null) {
+                eco.addMoney(uuid, totalEarned);
+            }
+
+            // Réapprovisionner le stock de la boutique
+            targetItem.setStock(targetItem.getStock() + amountToSell);
+            shop.saveShop();
+            shop.logPlayerTransaction(uuid, "SELL", materialStr, amountToSell, totalEarned);
+
+            // Si le joueur est en jeu, notification directe
+            Player onlinePlayer = Bukkit.getPlayer(uuid);
+            if (onlinePlayer != null && onlinePlayer.isOnline()) {
+                onlinePlayer.sendMessage(PlaceholderUtils.parseToComponent(
+                    "<green>[Boutique Web] Vous avez vendu en ligne <white>x" + amountToSell + " " + materialStr + "</white> pour <yellow>" + totalEarned + " $</yellow> !"
+                ));
+            }
+
+            double newBalance = eco != null ? eco.getBalance(uuid) : 0.0;
+            ctx.json(Map.of(
+                "success", true,
+                "earned", totalEarned,
+                "newBalance", newBalance,
+                "material", materialStr,
+                "amount", amountToSell,
+                "remainingAmount", Math.max(0, remaining)
+            ));
+        });
+
+        // Récupération en jeu d'un objet déposé vers l'inventaire Minecraft
+        post("/api/shop/withdraw-deposited", ctx -> {
+            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            if (sessionUuid == null) {
+                ctx.status(401).json(Map.of("error", "Non connecté"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = ctx.bodyAsClass(Map.class);
+            if (body == null || !body.containsKey("betId")) {
+                ctx.status(400).json(Map.of("error", "Paramètre betId manquant"));
+                return;
+            }
+            int betId = ((Number) body.get("betId")).intValue();
+            Map<String, Object> itemData = webDAO.getDepositedItem(betId, sessionUuid);
+            if (itemData == null) {
+                ctx.status(404).json(Map.of("error", "Objet introuvable ou déjà récupéré"));
+                return;
+            }
+            String materialStr = (String) itemData.get("material");
+            int totalAmount = ((Number) itemData.get("amount")).intValue();
+            int amountToWithdraw = totalAmount;
+            if (body.containsKey("quantity")) {
+                int reqQty = ((Number) body.get("quantity")).intValue();
+                if (reqQty <= 0) {
+                    ctx.status(400).json(Map.of("error", "Quantité invalide"));
+                    return;
+                }
+                if (reqQty < totalAmount) {
+                    amountToWithdraw = reqQty;
+                }
+            }
+            String base64 = (String) itemData.get("base64_data");
+
+            // Retirer ou mettre à jour la quantité de l'objet déposé
+            int remaining = totalAmount - amountToWithdraw;
+            if (remaining <= 0) {
+                webDAO.deleteDepositedItem(betId, sessionUuid);
+            } else {
+                webDAO.updateDepositedItemAmount(betId, sessionUuid, remaining);
+            }
+
+            final int finalWithdrawAmount = amountToWithdraw;
+            UUID uuid = UUID.fromString(sessionUuid);
+            Player onlinePlayer = Bukkit.getPlayer(uuid);
+            if (onlinePlayer != null && onlinePlayer.isOnline()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(onlinePlayer, (task) -> {
+                    ItemStack stack = base64 != null && !base64.isEmpty() 
+                        ? plugin.getStorageManager().itemStackFromBase64(base64) 
+                        : null;
+                    if (stack == null) {
+                        Material mat = Material.matchMaterial(materialStr);
+                        if (mat != null) stack = new ItemStack(mat, finalWithdrawAmount);
+                    } else {
+                        stack.setAmount(finalWithdrawAmount);
+                    }
+                    if (stack != null) {
+                        for (ItemStack rem : onlinePlayer.getInventory().addItem(stack).values()) {
+                            onlinePlayer.getWorld().dropItemNaturally(onlinePlayer.getLocation(), rem);
+                        }
+                        onlinePlayer.sendMessage(PlaceholderUtils.parseToComponent(
+                            "<green>[Web] Vous avez récupéré votre objet déposé : <white>x" + finalWithdrawAmount + " " + materialStr + "</white> !"
+                        ));
+                    }
+                });
+            } else {
+                // Si hors-ligne, mise en attente sécurisée distribuée à la connexion
+                webDAO.addWebReward(sessionUuid, materialStr, finalWithdrawAmount, base64 != null ? base64 : "");
+            }
+
+            ctx.json(Map.of(
+                "success", true,
+                "message", "Objet transféré vers votre inventaire en jeu !",
+                "material", materialStr,
+                "amount", finalWithdrawAmount,
+                "remainingAmount", Math.max(0, remaining)
+            ));
+        });
+
+        // Achat en ligne avec débit immédiat et livraison différée/immédiate
+        post("/api/shop/buy", ctx -> {
+            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            if (sessionUuid == null) {
+                ctx.status(401).json(Map.of("error", "Non connecté"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = ctx.bodyAsClass(Map.class);
+            if (body == null || !body.containsKey("material")) {
+                ctx.status(400).json(Map.of("error", "Objet manquant"));
+                return;
+            }
+            String materialStr = (String) body.get("material");
+            int amount = body.containsKey("amount") ? ((Number) body.get("amount")).intValue() : 1;
+            if (amount <= 0 || amount > 2304) {
+                ctx.status(400).json(Map.of("error", "Quantité invalide (1 à 2304)"));
+                return;
+            }
+
+            ShopModule shop = (ShopModule) plugin.getModuleManager().getModule("dynamicshop");
+            if (shop == null) {
+                ctx.status(400).json(Map.of("error", "La boutique dynamique est désactivée"));
+                return;
+            }
+            Material mat = Material.matchMaterial(materialStr);
+            ShopItem targetItem = null;
+            if (mat != null) {
+                for (ShopCategory cat : shop.getCategories()) {
+                    targetItem = cat.getItem(mat);
+                    if (targetItem != null) break;
+                }
+            }
+            if (targetItem == null || !targetItem.isEnabled()) {
+                ctx.status(400).json(Map.of("error", "Objet non disponible à l'achat"));
+                return;
+            }
+
+            double unitPrice = targetItem.getCurrentBuyPrice();
+            double totalCost = Math.round(unitPrice * amount * 100.0) / 100.0;
+
+            EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
+            UUID uuid = UUID.fromString(sessionUuid);
+
+            if (eco != null) {
+                boolean debited = eco.takeMoneyAtomic(uuid, totalCost);
+                if (!debited) {
+                    double currentBal = eco.getBalance(uuid);
+                    ctx.status(400).json(Map.of("error", "Solde insuffisant (" + currentBal + " $ disponible, " + totalCost + " $ requis)"));
+                    return;
+                }
+            }
+
+            // Décrémenter le stock si applicable
+            if (targetItem.getStock() > 0) {
+                targetItem.setStock(Math.max(0, targetItem.getStock() - amount));
+                shop.saveShop();
+            }
+            shop.logPlayerTransaction(uuid, "BUY", materialStr, amount, totalCost);
+
+            // Distribution de l'objet
+            Player onlinePlayer = Bukkit.getPlayer(uuid);
+            if (onlinePlayer != null && onlinePlayer.isOnline()) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(onlinePlayer, (task) -> {
+                    ItemStack stack = new ItemStack(mat, amount);
+                    onlinePlayer.getInventory().addItem(stack).values().forEach(rem -> 
+                        onlinePlayer.getWorld().dropItemNaturally(onlinePlayer.getLocation(), rem)
+                    );
+                    onlinePlayer.sendMessage(PlaceholderUtils.parseToComponent(
+                        "<green>[Boutique Web] Vous avez acheté en ligne <white>x" + amount + " " + materialStr + "</white> pour <yellow>" + totalCost + " $</yellow> !"
+                    ));
+                });
+            } else {
+                ItemStack stack = new ItemStack(mat, amount);
+                String base64 = plugin.getStorageManager().itemStackToBase64(stack);
+                webDAO.addWebReward(sessionUuid, materialStr, amount, base64);
+            }
+
+            double newBalance = eco != null ? eco.getBalance(uuid) : 0.0;
+            ctx.json(Map.of(
+                "success", true,
+                "totalCost", totalCost,
+                "newBalance", newBalance,
+                "material", materialStr,
+                "amount", amount,
+                "deliveredInstantly", onlinePlayer != null && onlinePlayer.isOnline()
+            ));
         });
 
         post("/api/admin/shop/category", ctx -> {

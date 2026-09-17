@@ -41,6 +41,29 @@ Access at: `http://<your-server-ip>:8080`
 
 ---
 
+---
+
+## Web Dynamic Shop & Deposits
+
+The server's dynamic shop is fully accessible and synchronized in real-time on the web (`http://<your-server-ip>:8080/shop`).
+
+### 1. Online Purchases
+- Live market price tracking with historical trend charts and stock gauges.
+- Quick quantity multipliers (x1, x16, x32, x64, Max or precision slider).
+- **Smart Delivery:** If the player is online, purchased items are delivered straight to their inventory (or dropped safely at their feet if full). If offline, items are safely stored in the database and automatically dispatched on their next login.
+
+### 2. Deposit Inventory & Online Selling (`/web deposit`)
+- **In-Game Deposit:** Hold any block or item in hand and type `/web deposit`. The item is transferred into your web reserve.
+- **Storage Limit (27 Slots):** By default, each player has **27 slots** (equivalent to a single Minecraft chest), customizable via `web.deposit_limit` in `modules/web.yml`.
+- **Intelligent Stacking:**
+  - Identical items (same material and matching NBT/enchants) automatically stack into an existing deposit slot up to Minecraft's natural maximum stack size (64 for ores/blocks, 16 for Ender pearls, etc.).
+  - Weapons, tools, and armor (max stack = 1) never stack.
+  - If a stack overflows, a new slot is used if capacity remains, or the overflow is refunded to the player.
+- **Quantity Selectors:** In the **My Deposited Items** tab and in the shop drawer, players can select the exact quantity they want to sell or withdraw via a slider and quick buttons (x1, x16, x32, x64, Max).
+- **In-Game Retrieval (`/web withdraw`):** Click "Retrieve in-game" on the web, or type `/web withdraw` on the server to open a 54-slot GUI and collect your deposited items!
+
+---
+
 ## Web Minigames
 
 ### 1. Wheel of Fortune (Roue de la Fortune)
@@ -56,6 +79,6 @@ Access at: `http://<your-server-ip>:8080`
 ### 2. Web Casino (Slot Machine)
 - Bet real in-game items on an animated 3-reel web slot machine.
 - **1-Hour Cooldown** between spins to prevent spamming.
-- **Deposit (`/web deposit`):** Hold any item in your main hand in-game and type `/web deposit`. The item is serialized to Base64 and stored in your web casino inventory.
+- **Deposit:** Powered by items deposited via `/web deposit`.
 - **Play:** Spin the machine in your web browser with your deposited items.
-- **Withdraw (`/web withdraw`):** Run `/web withdraw` in Minecraft to open a 54-slot GUI and collect all your winnings back into your inventory!
+- **Withdraw:** Directly from the web interface or via `/web withdraw` in-game.

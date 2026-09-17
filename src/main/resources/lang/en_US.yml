@@ -53,6 +53,9 @@ webcommand:
   msg_6: "{prefix}<red>Usage: /web deposit | withdraw"
   msg_7: "{prefix}<red>Error loading rewards."
   msg_8: "{prefix}<green>Item retrieved!"
+  msg_9: "{prefix}<red>Your deposit inventory is full! ({current}/{max} slots used). Sell or retrieve items before depositing new ones."
+  msg_10: "{prefix}<green>Item stacked with your existing deposit: <white>x{amount} {material}</white>!"
+  msg_11: "{prefix}<green>Item deposited: <white>x{amount} {material}</white>. Find it on the web panel (My Deposited Items tab)!"
 auctionhousemodule:
   msg_1: "{prefix}<red>The Auction House module is disabled."
   msg_2: "{prefix}<red>Price must be greater than 0."

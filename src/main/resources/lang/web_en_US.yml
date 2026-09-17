@@ -327,6 +327,29 @@ web:
       subtitle: Track real-time economy prices
       title: Dynamic Market
       unsellable: Unsellable
+      deposited_tab: My Deposited Items (/web deposit)
+      deposited_title: Your Deposited Items via /web deposit
+      deposited_desc: These items are stored in your reserve. You can sell them live here or retrieve them into your in-game inventory!
+      withdraw_btn: Withdraw in-game
+      sell_online_btn: Sell online
+      buy_online_btn: Buy now
+      deposit_empty_title: No deposited items in reserve
+      deposit_empty_desc: Hold an item in hand on the Minecraft server and type /web deposit to store it and sell it from this page!
+      deposit_hint_title: How to sell this item online?
+      deposit_hint_step1: Hold the item in your hand on the Minecraft server.
+      deposit_hint_step2: "Type the command: /web deposit"
+      deposit_hint_step3: Come back here or open the My Deposited Items tab to sell it online with one click!
+      withdraw_tip: "Tip: you can also retrieve unsold deposited items directly in-game with /web withdraw."
+      instant_delivery_note: Direct delivery if you are online, or queued automatically for your next login.
+      qty_modal_title: Choose quantity
+      qty_confirm_sell: Confirm sale
+      qty_confirm_withdraw: Confirm retrieval
+      qty_cancel: Cancel
+      qty_available: "Available:"
+      slots_used: slots used
+      slots_full: Deposit inventory full
+      sell_partial: "Sell {qty} unit(s)"
+      withdraw_partial: "Retrieve {qty} unit(s) in-game"
     stats:
       balance: Bank Balance
       best_team: Best Guild

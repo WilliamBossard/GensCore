@@ -24,10 +24,12 @@ public class WebCommand implements Listener {
 
     private final CorePlugin plugin;
     private final NamespacedKey rewardKey;
+    private final fr.gens.core.database.WebDAO webDAO;
 
     public WebCommand(CorePlugin plugin) {
         this.plugin = plugin;
         this.rewardKey = new NamespacedKey(plugin, "web_reward_id");
+        this.webDAO = new fr.gens.core.database.WebDAO(plugin);
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
@@ -49,33 +51,110 @@ public class WebCommand implements Listener {
         }
 
         ItemStack toDeposit = item.clone();
-        String base64 = plugin.getStorageManager().itemStackToBase64(toDeposit);
+        // Serialiser un exemplaire unitaire (amount=1) pour que la signature base64_data soit identique
+        // quelle que soit la quantite de l'item depose (permettant le stacking propre)
+        ItemStack singleTemplate = toDeposit.clone();
+        singleTemplate.setAmount(1);
+        String base64 = plugin.getStorageManager().itemStackToBase64(singleTemplate);
         if (base64 == null) {
             plugin.getLangManager().sendMessage(player, "webcommand.msg_3");
             return;
         }
 
-        // Retrait immédiat sur le thread du joueur pour empêcher toute duplication par drop/coffre
+        final String materialName = toDeposit.getType().name();
+        final int initialDepositAmount = toDeposit.getAmount();
+        // Minecraft max stack size for this material
+        final int mcMaxStack = toDeposit.getType().getMaxStackSize();
+
+        // Retrait immediat sur le thread joueur pour eviter la duplication
         player.getInventory().setItemInMainHand(null);
 
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("INSERT INTO player_web_bets (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
-                pstmt.setString(1, player.getUniqueId().toString());
-                pstmt.setString(2, toDeposit.getType().name());
-                pstmt.setInt(3, toDeposit.getAmount());
-                pstmt.setString(4, base64);
-                pstmt.executeUpdate();
+            try {
+                fr.gens.core.database.WebDAO localWebDAO = this.webDAO;
+                int currentDepositAmount = initialDepositAmount;
 
-                plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
-                    plugin.getLangManager().sendMessage(player, "webcommand.msg_4");
-                });
+                // 1. Tenter le stacking tant que l'item est stackable (mcMaxStack > 1) et qu'il reste de la quantite
+                if (mcMaxStack > 1) {
+                    while (currentDepositAmount > 0) {
+                        java.util.Map<String, Object> existing = localWebDAO.findStackableDeposit(
+                            player.getUniqueId().toString(), materialName, base64, mcMaxStack);
+                        if (existing == null) break;
+
+                        int existingId = ((Number) existing.get("id")).intValue();
+                        int existingAmount = ((Number) existing.get("amount")).intValue();
+                        int space = mcMaxStack - existingAmount;
+                        if (space <= 0) break;
+
+                        int toAdd = Math.min(space, currentDepositAmount);
+                        int newTotal = existingAmount + toAdd;
+                        localWebDAO.updateDepositedItemAmount(existingId, player.getUniqueId().toString(), newTotal);
+                        currentDepositAmount -= toAdd;
+                    }
+                }
+
+                if (currentDepositAmount == 0) {
+                    // Tout a ete empile avec succes dans un slot existant !
+                    plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
+                        String msg = plugin.getLangManager().getRaw("webcommand.msg_10")
+                            .replace("{amount}", String.valueOf(initialDepositAmount))
+                            .replace("{material}", materialName);
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(msg));
+                    });
+                    return;
+                }
+
+                // 2. Verifier la limite de slots avant d'inserer une nouvelle ligne
+                int depositLimit = plugin.getConfigManager()
+                    .getConfig("modules/web.yml")
+                    .getInt("web.deposit_limit", 27);
+                int usedSlots = localWebDAO.countDepositedSlots(player.getUniqueId().toString());
+
+                if (usedSlots >= depositLimit) {
+                    // Restituer le surplus au joueur
+                    final int refundAmount = currentDepositAmount;
+                    plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
+                        if (player.isOnline()) {
+                            ItemStack refundStack = toDeposit.clone();
+                            refundStack.setAmount(refundAmount);
+                            player.getInventory().addItem(refundStack).values().forEach(rem ->
+                                player.getWorld().dropItemNaturally(player.getLocation(), rem)
+                            );
+                        }
+                        String msg = plugin.getLangManager().getRaw("webcommand.msg_9")
+                            .replace("{current}", String.valueOf(usedSlots))
+                            .replace("{max}", String.valueOf(depositLimit));
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(msg));
+                    });
+                    return;
+                }
+
+                // 3. Inserer un nouveau slot de depot
+                final int newSlotAmount = currentDepositAmount;
+                try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection();
+                     java.sql.PreparedStatement pstmt = conn.prepareStatement(
+                         "INSERT INTO player_web_bets (uuid, material, amount, base64_data) VALUES (?, ?, ?, ?)")) {
+                    pstmt.setString(1, player.getUniqueId().toString());
+                    pstmt.setString(2, materialName);
+                    pstmt.setInt(3, newSlotAmount);
+                    pstmt.setString(4, base64);
+                    pstmt.executeUpdate();
+
+                    plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
+                        String msg = plugin.getLangManager().getRaw("webcommand.msg_11")
+                            .replace("{amount}", String.valueOf(newSlotAmount))
+                            .replace("{material}", materialName);
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(msg));
+                    });
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                // Rollback défensif : restituer l'objet au joueur s'il est encore connecté
+                // Rollback defensif : restituer l'objet
                 plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
                     if (player.isOnline()) {
-                        player.getInventory().addItem(toDeposit).values().forEach(rem -> 
+                        ItemStack refundStack = toDeposit.clone();
+                        refundStack.setAmount(initialDepositAmount);
+                        player.getInventory().addItem(refundStack).values().forEach(rem ->
                             player.getWorld().dropItemNaturally(player.getLocation(), rem)
                         );
                     }
@@ -175,6 +254,54 @@ public class WebCommand implements Listener {
                 }
             });
         }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        plugin.getFoliaLib().getScheduler().runAsync((task) -> {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement("SELECT id, base64_data FROM player_web_rewards WHERE uuid = ?")) {
+                pstmt.setString(1, player.getUniqueId().toString());
+                ResultSet rs = pstmt.executeQuery();
+                List<WebRewardItem> pending = new ArrayList<>();
+                while (rs.next()) {
+                    pending.add(new WebRewardItem(rs.getInt("id"), rs.getString("base64_data")));
+                }
+                if (pending.isEmpty()) return;
+
+                plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
+                    if (!player.isOnline()) return;
+                    List<Integer> deliveredIds = new ArrayList<>();
+                    for (WebRewardItem wItem : pending) {
+                        ItemStack stack = plugin.getStorageManager().itemStackFromBase64(wItem.base64());
+                        if (stack != null) {
+                            player.getInventory().addItem(stack).values().forEach(rem -> 
+                                player.getWorld().dropItemNaturally(player.getLocation(), rem)
+                            );
+                            deliveredIds.add(wItem.id());
+                        }
+                    }
+                    if (!deliveredIds.isEmpty()) {
+                        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
+                            "<green>[Boutique Web] Vos achats effectues en ligne vous ont ete distribues !"
+                        ));
+                        plugin.getFoliaLib().getScheduler().runAsync((t3) -> {
+                            try (Connection conn2 = plugin.getDatabaseManager().getConnection()) {
+                                for (int delId : deliveredIds) {
+                                    try (PreparedStatement delStmt = conn2.prepareStatement("DELETE FROM player_web_rewards WHERE id = ?")) {
+                                        delStmt.setInt(1, delId);
+                                        delStmt.executeUpdate();
+                                    }
+                                }
+                            } catch (Exception ignored) {}
+                        });
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public record WebRewardItem(int id, String base64) {}

@@ -43,6 +43,83 @@
       --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
+    * {
+      box-sizing: border-box;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.25);
+    }
+
+    /* Custom modern scrollbars across all browsers */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Global Form Labels & Inputs */
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .input-field,
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    .input-field:focus,
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="password"]:focus,
+    select:focus {
+      border-color: var(--accent-blue);
+      background: rgba(15, 23, 42, 0.95);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    .input-field::placeholder,
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      opacity: 0.4;
+      filter: invert(1);
+    }
+
     body {
       background-color: var(--bg-base);
       color: var(--text-main);
@@ -1719,11 +1796,351 @@
     ];
 
     // FONCTION HELPER : URL TEXTURE MINECRAFT (AVEC FALLBACK PIXEL ART ROBUSTE)
+    
+    
+    const MINECRAFT_TEXTURE_MAP = {
+  "acacia_log": "block/acacia_log_top",
+  "acacia_planks": "block/acacia_planks",
+  "acacia_sapling": "block/acacia_sapling",
+  "acacia_wood": "block/acacia_log",
+  "amethyst_block": "block/amethyst_block",
+  "amethyst_shard": "item/amethyst_shard",
+  "ancient_debris": "block/ancient_debris_top",
+  "andesite": "block/andesite",
+  "anvil": "block/anvil_top",
+  "apple": "item/apple",
+  "armadillo_scute": "item/armadillo_scute",
+  "baked_potato": "item/baked_potato",
+  "bamboo": "item/bamboo",
+  "bamboo_block": "block/bamboo_block_top",
+  "bamboo_planks": "block/bamboo_planks",
+  "barrel": "block/barrel_bottom",
+  "basalt": "block/basalt_top",
+  "beacon": "block/glass",
+  "beef": "item/beef",
+  "beetroot": "item/beetroot",
+  "beetroot_seeds": "item/beetroot_seeds",
+  "beetroot_soup": "item/beetroot_soup",
+  "birch_log": "block/birch_log_top",
+  "birch_planks": "block/birch_planks",
+  "birch_sapling": "block/birch_sapling",
+  "birch_wood": "block/birch_log",
+  "blackstone": "block/blackstone_top",
+  "black_concrete": "block/black_concrete",
+  "black_wool": "block/black_wool",
+  "blast_furnace": "block/blast_furnace_front",
+  "blaze_powder": "item/blaze_powder",
+  "blaze_rod": "item/blaze_rod",
+  "bone": "item/bone",
+  "bone_block": "block/bone_block_top",
+  "bone_meal": "item/bone_meal",
+  "bookshelf": "block/oak_planks",
+  "bread": "item/bread",
+  "breeze_rod": "item/breeze_rod",
+  "brewing_stand": "item/brewing_stand",
+  "bricks": "block/bricks",
+  "brown_mushroom": "block/brown_mushroom",
+  "bucket": "item/bucket",
+  "cactus": "block/cactus_side",
+  "cake": "item/cake",
+  "campfire": "item/campfire",
+  "carrot": "item/carrot",
+  "cartography_table": "block/dark_oak_planks",
+  "carved_pumpkin": "block/carved_pumpkin",
+  "cauldron": "item/cauldron",
+  "charcoal": "item/charcoal",
+  "cherry_log": "block/cherry_log_top",
+  "cherry_planks": "block/cherry_planks",
+  "cherry_sapling": "block/cherry_sapling",
+  "cherry_wood": "block/cherry_log",
+  "chest": "item/chest_minecart",
+  "chicken": "item/chicken",
+  "chipped_anvil": "block/chipped_anvil_top",
+  "chiseled_bookshelf": "block/chiseled_bookshelf_top",
+  "chiseled_deepslate": "block/chiseled_deepslate",
+  "chiseled_stone_bricks": "block/chiseled_stone_bricks",
+  "chiseled_tuff_bricks": "block/chiseled_tuff_bricks_top",
+  "chorus_fruit": "item/chorus_fruit",
+  "clay": "block/clay",
+  "clock": "item/clock_00",
+  "coal": "item/coal",
+  "coal_block": "block/coal_block",
+  "cobbled_deepslate": "block/cobbled_deepslate",
+  "cobblestone": "block/cobblestone",
+  "cobweb": "block/cobweb",
+  "cocoa_beans": "item/cocoa_beans",
+  "cod": "item/cod",
+  "comparator": "item/comparator",
+  "compass": "item/compass_16",
+  "cooked_beef": "item/cooked_beef",
+  "cooked_chicken": "item/cooked_chicken",
+  "cooked_cod": "item/cooked_cod",
+  "cooked_mutton": "item/cooked_mutton",
+  "cooked_porkchop": "item/cooked_porkchop",
+  "cooked_rabbit": "item/cooked_rabbit",
+  "cooked_salmon": "item/cooked_salmon",
+  "cookie": "item/cookie",
+  "copper_block": "block/copper_block",
+  "copper_ingot": "item/copper_ingot",
+  "cracked_stone_bricks": "block/cracked_stone_bricks",
+  "crafting_table": "block/oak_planks",
+  "crimson_fungus": "block/crimson_fungus",
+  "crimson_planks": "block/crimson_planks",
+  "crimson_stem": "block/crimson_stem_top",
+  "crying_obsidian": "block/crying_obsidian",
+  "damaged_anvil": "block/damaged_anvil_top",
+  "dark_oak_log": "block/dark_oak_log_top",
+  "dark_oak_planks": "block/dark_oak_planks",
+  "dark_oak_sapling": "block/dark_oak_sapling",
+  "dark_oak_wood": "block/dark_oak_log",
+  "dark_prismarine": "block/dark_prismarine",
+  "deepslate": "block/deepslate_top",
+  "deepslate_bricks": "block/deepslate_bricks",
+  "deepslate_tiles": "block/deepslate_tiles",
+  "diamond": "item/diamond",
+  "diamond_block": "block/diamond_block",
+  "diorite": "block/diorite",
+  "dispenser": "block/dispenser_front",
+  "dragon_breath": "item/dragon_breath",
+  "dried_kelp": "item/dried_kelp",
+  "dried_kelp_block": "block/dried_kelp_side",
+  "dropper": "block/dropper_front",
+  "egg": "item/egg",
+  "elytra": "item/elytra",
+  "emerald": "item/emerald",
+  "emerald_block": "block/emerald_block",
+  "enchanted_golden_apple": "item/golden_apple",
+  "enchanting_table": "block/enchanting_table_bottom",
+  "ender_chest": "block/obsidian",
+  "ender_eye": "item/ender_eye",
+  "ender_pearl": "item/ender_pearl",
+  "end_stone": "block/end_stone",
+  "end_stone_bricks": "block/end_stone_bricks",
+  "experience_bottle": "item/experience_bottle",
+  "feather": "item/feather",
+  "fermented_spider_eye": "item/fermented_spider_eye",
+  "furnace": "block/furnace_front",
+  "ghast_tear": "item/ghast_tear",
+  "glass": "block/glass",
+  "glass_bottle": "item/glass_bottle",
+  "glistering_melon_slice": "item/glistering_melon_slice",
+  "glowstone": "block/glowstone",
+  "glowstone_dust": "item/glowstone_dust",
+  "glow_berries": "item/glow_berries",
+  "glow_ink_sac": "item/glow_ink_sac",
+  "golden_apple": "item/golden_apple",
+  "golden_carrot": "item/golden_carrot",
+  "gold_block": "block/gold_block",
+  "gold_ingot": "item/gold_ingot",
+  "gold_nugget": "item/gold_nugget",
+  "granite": "block/granite",
+  "gravel": "block/gravel",
+  "gray_concrete": "block/gray_concrete",
+  "grindstone": "block/grindstone_pivot",
+  "gunpowder": "item/gunpowder",
+  "hay_block": "block/hay_block_top",
+  "heavy_core": "block/heavy_core",
+  "honeycomb": "item/honeycomb",
+  "honeycomb_block": "block/honeycomb_block",
+  "honey_block": "block/honey_block_top",
+  "honey_bottle": "item/honey_bottle",
+  "hopper": "item/hopper",
+  "ink_sac": "item/ink_sac",
+  "iron_block": "block/iron_block",
+  "iron_ingot": "item/iron_ingot",
+  "iron_nugget": "item/iron_nugget",
+  "jack_o_lantern": "block/jack_o_lantern",
+  "jungle_log": "block/jungle_log_top",
+  "jungle_planks": "block/jungle_planks",
+  "jungle_sapling": "block/jungle_sapling",
+  "jungle_wood": "block/jungle_log",
+  "kelp": "item/kelp",
+  "lantern": "item/lantern",
+  "lapis_block": "block/lapis_block",
+  "lapis_lazuli": "item/lapis_lazuli",
+  "lava_bucket": "item/lava_bucket",
+  "lead": "item/lead",
+  "leather": "item/leather",
+  "lightning_rod": "block/lightning_rod",
+  "lingering_potion": "item/potion_overlay",
+  "loom": "block/loom_bottom",
+  "magma_block": "block/magma",
+  "magma_cream": "item/magma_cream",
+  "mangrove_log": "block/mangrove_log_top",
+  "mangrove_planks": "block/mangrove_planks",
+  "mangrove_propagule": "item/mangrove_propagule",
+  "mangrove_wood": "block/mangrove_log",
+  "melon": "block/melon_top",
+  "melon_seeds": "item/melon_seeds",
+  "melon_slice": "item/melon_slice",
+  "milk_bucket": "item/milk_bucket",
+  "mossy_cobblestone": "block/mossy_cobblestone",
+  "mossy_stone_bricks": "block/mossy_stone_bricks",
+  "mud": "block/mud",
+  "mud_bricks": "block/mud_bricks",
+  "mushroom_stew": "item/mushroom_stew",
+  "mutton": "item/mutton",
+  "name_tag": "item/name_tag",
+  "netherite_block": "block/netherite_block",
+  "netherite_ingot": "item/netherite_ingot",
+  "netherite_scrap": "item/netherite_scrap",
+  "netherrack": "block/netherrack",
+  "nether_bricks": "block/nether_bricks",
+  "nether_star": "item/nether_star",
+  "nether_wart": "item/nether_wart",
+  "oak_log": "block/oak_log_top",
+  "oak_planks": "block/oak_planks",
+  "oak_sapling": "block/oak_sapling",
+  "oak_wood": "block/oak_log",
+  "observer": "block/observer_back",
+  "obsidian": "block/obsidian",
+  "ominous_bottle": "item/ominous_bottle",
+  "packed_mud": "block/packed_mud",
+  "pale_oak_log": "block/pale_oak_log",
+  "pale_oak_planks": "block/pale_oak_planks",
+  "pale_oak_sapling": "item/pale_oak_sapling",
+  "pale_oak_wood": "block/pale_oak_wood",
+  "phantom_membrane": "item/phantom_membrane",
+  "piston": "block/piston_bottom",
+  "poisonous_potato": "item/poisonous_potato",
+  "polished_andesite": "block/polished_andesite",
+  "polished_basalt": "block/polished_basalt_top",
+  "polished_blackstone": "block/polished_blackstone",
+  "polished_blackstone_bricks": "block/polished_blackstone_bricks",
+  "polished_deepslate": "block/polished_deepslate",
+  "polished_diorite": "block/polished_diorite",
+  "polished_granite": "block/polished_granite",
+  "polished_tuff": "block/polished_tuff",
+  "popped_chorus_fruit": "item/popped_chorus_fruit",
+  "porkchop": "item/porkchop",
+  "potato": "item/potato",
+  "potion": "item/potion_overlay",
+  "prismarine": "block/prismarine",
+  "prismarine_bricks": "block/prismarine_bricks",
+  "prismarine_crystals": "item/prismarine_crystals",
+  "prismarine_shard": "item/prismarine_shard",
+  "pufferfish": "item/pufferfish",
+  "pumpkin": "block/pumpkin_top",
+  "pumpkin_pie": "item/pumpkin_pie",
+  "pumpkin_seeds": "item/pumpkin_seeds",
+  "purpur_block": "block/purpur_block",
+  "purpur_pillar": "block/purpur_pillar_top",
+  "quartz": "item/quartz",
+  "quartz_block": "block/quartz_block_top",
+  "rabbit": "item/rabbit",
+  "rabbit_foot": "item/rabbit_foot",
+  "rabbit_hide": "item/rabbit_hide",
+  "rabbit_stew": "item/rabbit_stew",
+  "raw_copper": "item/raw_copper",
+  "raw_copper_block": "block/raw_copper_block",
+  "raw_gold": "item/raw_gold",
+  "raw_gold_block": "block/raw_gold_block",
+  "raw_iron": "item/raw_iron",
+  "raw_iron_block": "block/raw_iron_block",
+  "recovery_compass": "item/recovery_compass_16",
+  "redstone": "item/redstone",
+  "redstone_block": "block/redstone_block",
+  "redstone_torch": "block/redstone_torch",
+  "red_mushroom": "block/red_mushroom",
+  "red_nether_bricks": "block/red_nether_bricks",
+  "red_sand": "block/red_sand",
+  "red_sandstone": "block/red_sandstone_bottom",
+  "repeater": "item/repeater",
+  "rotten_flesh": "item/rotten_flesh",
+  "saddle": "item/saddle",
+  "salmon": "item/salmon",
+  "sand": "block/sand",
+  "sandstone": "block/sandstone_bottom",
+  "sea_lantern": "block/sea_lantern",
+  "sea_pickle": "item/sea_pickle",
+  "shroomlight": "block/shroomlight",
+  "shulker_box": "block/shulker_box",
+  "shulker_shell": "item/shulker_shell",
+  "slime_ball": "item/slime_ball",
+  "slime_block": "block/slime_block",
+  "smithing_table": "block/smithing_table_bottom",
+  "smoker": "block/smoker_bottom",
+  "smooth_basalt": "block/smooth_basalt",
+  "smooth_red_sandstone": "block/red_sandstone_top",
+  "smooth_sandstone": "block/sandstone_top",
+  "smooth_stone": "block/smooth_stone",
+  "soul_campfire": "item/soul_campfire",
+  "soul_lantern": "item/soul_lantern",
+  "soul_torch": "block/soul_torch",
+  "spider_eye": "item/spider_eye",
+  "splash_potion": "item/potion_overlay",
+  "sponge": "block/sponge",
+  "spruce_log": "block/spruce_log_top",
+  "spruce_planks": "block/spruce_planks",
+  "spruce_sapling": "block/spruce_sapling",
+  "spruce_wood": "block/spruce_log",
+  "spyglass": "item/spyglass",
+  "sticky_piston": "block/piston_bottom",
+  "stone": "block/stone",
+  "stonecutter": "block/stonecutter_bottom",
+  "stone_bricks": "block/stone_bricks",
+  "string": "item/string",
+  "stripped_acacia_log": "block/stripped_acacia_log_top",
+  "stripped_bamboo_block": "block/stripped_bamboo_block_top",
+  "stripped_birch_log": "block/stripped_birch_log_top",
+  "stripped_cherry_log": "block/stripped_cherry_log_top",
+  "stripped_crimson_stem": "block/stripped_crimson_stem_top",
+  "stripped_dark_oak_log": "block/stripped_dark_oak_log_top",
+  "stripped_jungle_log": "block/stripped_jungle_log_top",
+  "stripped_mangrove_log": "block/stripped_mangrove_log_top",
+  "stripped_oak_log": "block/stripped_oak_log_top",
+  "stripped_pale_oak_log": "block/stripped_pale_oak_log",
+  "stripped_spruce_log": "block/stripped_spruce_log_top",
+  "stripped_warped_stem": "block/stripped_warped_stem_top",
+  "sugar": "item/sugar",
+  "sugar_cane": "item/sugar_cane",
+  "sweet_berries": "item/sweet_berries",
+  "target": "block/target_top",
+  "terracotta": "block/terracotta",
+  "tinted_glass": "block/tinted_glass",
+  "tipped_arrow": "item/tipped_arrow_head",
+  "tnt": "block/tnt_bottom",
+  "torch": "block/torch",
+  "totem_of_undying": "item/totem_of_undying",
+  "trapped_chest": "item/chest_minecart",
+  "trident": "item/trident",
+  "tropical_fish": "item/tropical_fish",
+  "tuff": "block/tuff",
+  "tuff_bricks": "block/tuff_bricks",
+  "turtle_scute": "item/turtle_scute",
+  "warped_fungus": "block/warped_fungus",
+  "warped_planks": "block/warped_planks",
+  "warped_stem": "block/warped_stem_top",
+  "water_bucket": "item/water_bucket",
+  "wheat": "item/wheat",
+  "wheat_seeds": "item/wheat_seeds",
+  "white_concrete": "block/white_concrete",
+  "white_terracotta": "block/white_terracotta",
+  "white_wool": "block/white_wool",
+  "wind_charge": "item/wind_charge"
+};
+
     function getMinecraftItemUrl(material) {
       if (!material) return '';
-      const clean = material.toLowerCase();
-      // CDN Prismarine GitHub (tres complet pour 1.20+)
-      return `https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/default/items/${clean}.png`;
+      const clean = material.toLowerCase().trim();
+      if (MINECRAFT_TEXTURE_MAP[clean]) {
+        return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/${MINECRAFT_TEXTURE_MAP[clean]}.png`;
+      }
+      if (clean.endsWith('_block') || clean.endsWith('_log') || clean.endsWith('_planks') || clean.includes('stone') || clean.includes('brick')) {
+        return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/block/${clean}.png`;
+      }
+      return `https://assets.mcasset.cloud/1.21.4/assets/minecraft/textures/item/${clean}.png`;
+    }
+
+    function handleImageError(img, material) {
+      if (img._retried) {
+        img.style.opacity = '0.3';
+        return;
+      }
+      img._retried = true;
+      const cur = img.src || '';
+      if (cur.includes('/item/')) img.src = cur.replace('/item/', '/block/');
+      else if (cur.includes('/block/')) img.src = cur.replace('/block/', '/item/');
     }
 
     function getMinecraftPlayerHead(name) {
@@ -1852,7 +2269,12 @@
     // -----------------------------------------------------------------
     // SHOP VARIANTE A : E-COMMERCE MODERNE
     // -----------------------------------------------------------------
-    function renderShopModern(container) {
+        function renderShopModern(container) {
+      if (state.activeCategory === 'deposited') {
+        renderDepositedShop(container);
+        return;
+      }
+
       const activeCatObj = SHOP_DATA.find(c => c.id === state.activeCategory) || SHOP_DATA[0];
 
       // Filtrage des items
@@ -1865,10 +2287,17 @@
       container.innerHTML = `
         <div class="shop-modern-filter-bar">
           <div class="category-pill-list">
-            ${SHOP_DATA.map(c => `
+            <button class="category-pill ${state.activeCategory === 'deposited' ? 'active' : ''}" style="${state.activeCategory === 'deposited' ? 'border-color:#10b981; background:rgba(16,185,129,0.15);' : ''}" onclick="setShopCategory('deposited')">
+                <div class="mc-item-icon" style="width:20px; height:20px;">
+                  <img src="${getMinecraftItemUrl('CHEST')}" />
+                </div>
+                <span>Mes Objets Deposes (/web deposit)</span>
+                <span class="pill-count" style="background:#10b981; color:#000;">3</span>
+              </button>
+              ${SHOP_DATA.map(c => `
               <button class="category-pill ${c.id === state.activeCategory ? 'active' : ''}" onclick="setShopCategory('${c.id}')">
                 <div class="mc-item-icon" style="width:20px; height:20px;">
-                  <img src="${getMinecraftItemUrl(c.icon)}" onerror="this.style.display='none'" />
+                  <img src="${getMinecraftItemUrl(c.icon)}" onerror="handleImageError(this, '${c.icon}')" />
                 </div>
                 <span>${c.displayName}</span>
                 <span class="pill-count">${c.items.length}</span>
@@ -1948,6 +2377,240 @@
     // -----------------------------------------------------------------
     // SHOP VARIANTE B : TRADER TERMINAL SPLIT-SCREEN
     // -----------------------------------------------------------------
+    
+        const MOCK_DEPOSITED_ITEMS = [
+      { id: 1, material: 'STONE', amount: 64, unitSellPrice: 0.25, totalEarned: 16.00 },
+      { id: 2, material: 'IRON_INGOT', amount: 32, unitSellPrice: 2.80, totalEarned: 89.60 },
+      { id: 3, material: 'COAL', amount: 64, unitSellPrice: 0.80, totalEarned: 51.20 }
+    ];
+
+    let mockQtyState = {
+      open: false,
+      itemId: null,
+      action: 'sell',
+      qty: 1
+    };
+
+    function renderDepositedShop(container) {
+      const usedSlots = MOCK_DEPOSITED_ITEMS.length;
+      const maxSlots = 27;
+      const pct = Math.min(100, Math.round((usedSlots / maxSlots) * 100));
+      const isFull = usedSlots >= maxSlots;
+
+      container.innerHTML = `
+        <div class="shop-modern-filter-bar">
+          <div class="category-pill-list">
+            <button class="category-pill active" style="border-color:#10b981; background:rgba(16,185,129,0.15);" onclick="setShopCategory('deposited')">
+              <div class="mc-item-icon" style="width:20px; height:20px;">
+                <img src="${getMinecraftItemUrl('CHEST')}" />
+              </div>
+              <span>Mes Objets Déposés (/web deposit)</span>
+              <span class="pill-count" style="background:#10b981; color:#000;">${MOCK_DEPOSITED_ITEMS.length}</span>
+            </button>
+            ${SHOP_DATA.map(c => `
+              <button class="category-pill" onclick="setShopCategory('${c.id}')">
+                <div class="mc-item-icon" style="width:20px; height:20px;">
+                  <img src="${getMinecraftItemUrl(c.icon)}" onerror="handleImageError(this, '${c.icon}')" />
+                </div>
+                <span>${c.displayName}</span>
+                <span class="pill-count">${c.items.length}</span>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- BANDEAU CAPACITÉ 27 SLOTS (COFFRE MINECRAFT) -->
+        <div style="padding:16px 20px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:12px; margin-bottom:20px; display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:1.05rem; color:#10b981;">
+              📦 Vos Objets Déposés via /web deposit
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem;">
+              <span style="color:var(--text-muted);">Capacité de stockage :</span>
+              <span style="padding:3px 10px; border-radius:12px; font-weight:700; background:${isFull ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}; color:${isFull ? '#ef4444' : '#10b981'}; border:1px solid ${isFull ? '#ef4444' : 'rgba(16,185,129,0.4)'};">
+                ${usedSlots} / ${maxSlots} slots ${isFull ? '(Plein !)' : '(Coffre)'}
+              </span>
+            </div>
+          </div>
+          <div style="background:rgba(0,0,0,0.35); border-radius:6px; height:8px; overflow:hidden;">
+            <div style="height:100%; width:${pct}%; background:${isFull ? '#ef4444' : usedSlots >= 20 ? '#f59e0b' : '#10b981'}; transition:width 0.3s ease;"></div>
+          </div>
+          <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+            Ces objets sont stockés dans votre réserve web (limite : 27 slots d'un coffre Minecraft). Les objets identiques et empilables se fusionnent automatiquement pour économiser la place !
+            <span style="display:block; margin-top:4px; font-style:italic;">
+              Pour récupérer un objet en jeu, cliquez sur <b>Récupérer</b> ou tapez <code style="background:rgba(0,0,0,0.4); padding:2px 6px; border-radius:4px; color:#60a5fa; font-weight:700;">/web withdraw</code> en jeu.
+            </span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap:16px;">
+          ${MOCK_DEPOSITED_ITEMS.map(item => `
+            <div class="shop-card" style="display:flex; flex-direction:column; justify-content:space-between; cursor:default; border:1px solid rgba(16,185,129,0.3);">
+              <div style="display:flex; align-items:center; gap:14px; margin-bottom:14px;">
+                <div class="mc-slot-box" style="width:50px; height:50px;">
+                  <div class="mc-item-icon" style="width:36px; height:36px;">
+                    <img src="${getMinecraftItemUrl(item.material)}" onerror="handleImageError(this, '${item.material}')" />
+                  </div>
+                </div>
+                <div>
+                  <div style="font-weight:700; font-size:1.05rem; color:#fff;">${item.material.replace(/_/g, ' ')}</div>
+                  <div style="font-size:0.75rem; color:#10b981; font-weight:700; margin-top:2px;">En réserve : x${item.amount}</div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--border-subtle); padding-top:12px;">
+                <div>
+                  <div style="font-size:0.75rem; color:var(--text-dim);">Valeur totale :</div>
+                  <div style="font-size:1.2rem; font-weight:800; color:var(--accent-amber);">${(item.amount * item.unitSellPrice).toFixed(2)} $</div>
+                  <div style="font-size:0.7rem; color:var(--text-dim);">${item.unitSellPrice.toFixed(2)} $ / unité</div>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <button class="drawer-action-btn sell" style="padding:7px 14px; font-size:0.82rem;" onclick="openMockQtyModal(${item.id}, 'sell')">
+                    Vendre (x${item.amount})
+                  </button>
+                  <button class="drawer-action-btn" style="padding:7px 14px; font-size:0.82rem; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); color:#93c5fd;" onclick="openMockQtyModal(${item.id}, 'withdraw')">
+                    Récupérer en jeu
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+          ${MOCK_DEPOSITED_ITEMS.length === 0 ? `
+            <div style="grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-dim); background:var(--bg-surface); border-radius:12px; border:1px dashed var(--border-medium);">
+              Aucun objet déposé. Prenez un objet en main en jeu et tapez <b>/web deposit</b> !
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function openMockQtyModal(id, action) {
+      const item = MOCK_DEPOSITED_ITEMS.find(i => i.id === id);
+      if (!item) return;
+      mockQtyState = {
+        open: true,
+        itemId: id,
+        action: action,
+        qty: item.amount
+      };
+      renderMockQtyModal();
+    }
+
+    function closeMockQtyModal() {
+      mockQtyState.open = false;
+      const modal = document.getElementById('mockQtyModalContainer');
+      if (modal) modal.innerHTML = '';
+    }
+
+    function setMockQtyValue(val) {
+      const item = MOCK_DEPOSITED_ITEMS.find(i => i.id === mockQtyState.itemId);
+      if (!item) return;
+      mockQtyState.qty = Math.max(1, Math.min(val, item.amount));
+      renderMockQtyModal();
+    }
+
+    function renderMockQtyModal() {
+      const item = MOCK_DEPOSITED_ITEMS.find(i => i.id === mockQtyState.itemId);
+      if (!item) return;
+      let modalBox = document.getElementById('mockQtyModalContainer');
+      if (!modalBox) {
+        modalBox = document.createElement('div');
+        modalBox.id = 'mockQtyModalContainer';
+        document.body.appendChild(modalBox);
+      }
+
+      const isSell = mockQtyState.action === 'sell';
+      const totalGain = (item.unitSellPrice * mockQtyState.qty).toFixed(2);
+
+      modalBox.innerHTML = `
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px); z-index:9999; display:flex; align-items:center; justify-content:center; padding:16px;" onclick="closeMockQtyModal()">
+          <div style="background:#161922; border:1px solid rgba(255,255,255,0.15); border-radius:14px; padding:24px; max-width:460px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.6); display:flex; flex-direction:column; gap:16px;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="font-weight:700; font-size:1.1rem; color:#fff; display:flex; align-items:center; gap:8px;">
+                <span>${isSell ? '📈 Vendre des objets déposés' : '📦 Récupérer des objets en jeu'}</span>
+              </div>
+              <button onclick="closeMockQtyModal()" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem;">✕</button>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:14px; background:rgba(0,0,0,0.3); padding:12px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+              <div class="mc-slot-box" style="width:48px; height:48px;">
+                <div class="mc-item-icon" style="width:36px; height:36px;">
+                  <img src="${getMinecraftItemUrl(item.material)}" onerror="handleImageError(this, '${item.material}')" />
+                </div>
+              </div>
+              <div>
+                <div style="font-weight:700; font-size:1rem; color:#fff;">${item.material.replace(/_/g, ' ')}</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">Total disponible : <b style="color:#10b981;">x${item.amount}</b></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:8px;">
+                <span style="color:var(--text-muted);">Quantité à ${isSell ? 'vendre' : 'récupérer'} :</span>
+                <span style="font-weight:700; color:#fff; font-size:1rem;">${mockQtyState.qty} / ${item.amount}</span>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin-bottom:12px;">
+                <button class="multiplier-btn ${mockQtyState.qty === 1 ? 'selected' : ''}" onclick="setMockQtyValue(1)">x1</button>
+                <button class="multiplier-btn ${mockQtyState.qty === 16 ? 'selected' : ''}" onclick="setMockQtyValue(16)" ${item.amount < 16 ? 'disabled style="opacity:0.3;"' : ''}>x16</button>
+                <button class="multiplier-btn ${mockQtyState.qty === 32 ? 'selected' : ''}" onclick="setMockQtyValue(32)" ${item.amount < 32 ? 'disabled style="opacity:0.3;"' : ''}>x32</button>
+                <button class="multiplier-btn ${mockQtyState.qty === 64 ? 'selected' : ''}" onclick="setMockQtyValue(64)" ${item.amount < 64 ? 'disabled style="opacity:0.3;"' : ''}>x64</button>
+                <button class="multiplier-btn ${mockQtyState.qty === item.amount ? 'selected' : ''}" onclick="setMockQtyValue(${item.amount})">Max</button>
+              </div>
+              <input type="range" min="1" max="${item.amount}" value="${mockQtyState.qty}" oninput="setMockQtyValue(parseInt(this.value))" style="width:100%; accent-color:${isSell ? '#10b981' : '#3b82f6'};" />
+            </div>
+
+            ${isSell ? `
+              <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px 16px; display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-muted);">
+                  <span>Cours unitaire :</span>
+                  <span style="font-weight:600; color:#fff;">${item.unitSellPrice.toFixed(2)} $ /u</span>
+                </div>
+                <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:6px; display:flex; justify-content:space-between; font-weight:700; font-size:1rem; color:#fff;">
+                  <span>Gain estimé :</span>
+                  <span style="color:#10b981;">+${totalGain} $</span>
+                </div>
+              </div>
+            ` : ''}
+
+            <div style="display:flex; gap:10px; margin-top:4px;">
+              <button class="multiplier-btn" style="flex:1; padding:12px; color:#fff;" onclick="closeMockQtyModal()">Annuler</button>
+              <button class="drawer-action-btn ${isSell ? 'sell' : 'buy'}" style="flex:2; padding:12px; font-weight:700;" onclick="confirmMockQtyTransaction()">
+                ${isSell ? `Confirmer la vente (x${mockQtyState.qty})` : `Confirmer le retrait (x${mockQtyState.qty})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function confirmMockQtyTransaction() {
+      const idx = MOCK_DEPOSITED_ITEMS.findIndex(i => i.id === mockQtyState.itemId);
+      if (idx === -1) return;
+      const item = MOCK_DEPOSITED_ITEMS[idx];
+      const qty = mockQtyState.qty;
+      const isSell = mockQtyState.action === 'sell';
+
+      if (isSell) {
+        const gained = item.unitSellPrice * qty;
+        state.wallet += gained;
+        updateWalletDisplay();
+        showToast(`Vente réussie : x${qty} ${item.material} pour +${gained.toFixed(2)} $ !`, 'success');
+      } else {
+        showToast(`Récupération réussie : x${qty} ${item.material} transféré en jeu (ou à votre prochaine connexion).`, 'success');
+      }
+
+      item.amount -= qty;
+      if (item.amount <= 0) {
+        MOCK_DEPOSITED_ITEMS.splice(idx, 1);
+      } else {
+        item.totalEarned = item.amount * item.unitSellPrice;
+      }
+
+      closeMockQtyModal();
+      renderMain();
+    }
+
+
     function renderShopTerminal(container) {
       const activeCatObj = SHOP_DATA.find(c => c.id === state.activeCategory) || SHOP_DATA[0];
       const selectedItem = state.selectedTerminalItem || activeCatObj.items[0];
@@ -2153,7 +2816,14 @@
 
       const isBuy = state.drawerMode === 'buy';
       const unitPrice = isBuy ? item.buyPrice : item.sellPrice;
-      const totalCost = unitPrice * state.drawerQuantity;
+      
+      const depositedItem = MOCK_DEPOSITED_ITEMS.find(i => i.material === item.material);
+      const totalDeposited = depositedItem ? depositedItem.amount : 0;
+      
+      const maxAllowed = isBuy ? Math.min(item.stock, 576) : Math.max(1, totalDeposited);
+      const currentQty = Math.max(1, Math.min(state.drawerQuantity, maxAllowed));
+      state.drawerQuantity = currentQty;
+      const totalCost = unitPrice * currentQty;
 
       document.getElementById('drawerTitle').textContent = `${isBuy ? 'Acheter' : 'Vendre'} : ${item.material}`;
 
@@ -2174,12 +2844,38 @@
         <!-- Mode Achat / Vente -->
         <div class="drawer-mode-tabs">
           <button class="drawer-mode-btn ${isBuy ? 'active buy' : ''}" onclick="setDrawerMode('buy')">
-            Mode Achat
+            Mode Achat (Livraison en jeu)
           </button>
           <button class="drawer-mode-btn ${!isBuy ? 'active sell' : ''}" onclick="setDrawerMode('sell')" ${item.sellPrice <= 0 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}>
-            Mode Vente
+            Mode Vente (Objets déposés)
           </button>
         </div>
+
+        ${!isBuy ? (totalDeposited > 0 ? `
+          <div style="padding:14px 16px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <span style="font-weight:700; color:#10b981; font-size:0.95rem;">📦 Objets en réserve (/web deposit)</span>
+              <span style="background:#10b981; color:#000; font-weight:700; font-size:0.75rem; padding:2px 8px; border-radius:10px;">
+                ${totalDeposited} disponible${totalDeposited > 1 ? 's' : ''}
+              </span>
+            </div>
+            <div style="font-size:0.82rem; color:var(--text-muted);">
+              Vous possédez <b style="color:#fff;">${totalDeposited}</b> unité(s) de cet objet en réserve web.
+            </div>
+          </div>
+        ` : `
+          <div style="padding:14px; background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:10px; margin-bottom:12px;">
+            <div style="font-weight:700; color:#f59e0b; font-size:0.92rem; margin-bottom:6px;">⚠️ Aucun objet déposé en réserve</div>
+            <div style="font-size:0.82rem; color:var(--text-muted); line-height:1.5;">
+              Vous ne possédez aucun <b>${item.material}</b> dans votre réserve web (0 disponible).
+              Pour en déposer, prenez l'objet en main en jeu et tapez <code style="background:rgba(0,0,0,0.4); padding:2px 6px; border-radius:4px; color:#60a5fa; font-weight:700;">/web deposit</code> !
+            </div>
+          </div>
+        `) : `
+          <div style="padding:10px 14px; background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:8px; font-size:0.8rem; color:#6ee7b7; margin-bottom:12px;">
+            Achat instantané : si vous êtes connecté, l'objet vous est donné directement. Si vous êtes hors-ligne, vous le recevrez automatiquement dès votre prochaine connexion !
+          </div>
+        `}
 
         <!-- Graphique d'historique des prix -->
         <div class="chart-box">
@@ -2192,37 +2888,37 @@
 
         <!-- Raccourcis Multiplicateurs -->
         <div>
-          <div class="form-label">Quantite Rapide</div>
+          <div class="form-label">Quantité Rapide</div>
           <div class="multiplier-btn-row">
-            <button class="multiplier-btn ${state.drawerQuantity === 1 ? 'selected' : ''}" onclick="setDrawerQty(1)">x1</button>
-            <button class="multiplier-btn ${state.drawerQuantity === 16 ? 'selected' : ''}" onclick="setDrawerQty(16)">x16</button>
-            <button class="multiplier-btn ${state.drawerQuantity === 32 ? 'selected' : ''}" onclick="setDrawerQty(32)">x32</button>
-            <button class="multiplier-btn ${state.drawerQuantity === 64 ? 'selected' : ''}" onclick="setDrawerQty(64)">x64</button>
-            <button class="multiplier-btn" onclick="setDrawerQty(Math.min(item.stock, 576))">Max</button>
+            <button class="multiplier-btn ${currentQty === 1 ? 'selected' : ''}" onclick="setDrawerQty(1)">x1</button>
+            <button class="multiplier-btn ${currentQty === 16 ? 'selected' : ''}" onclick="setDrawerQty(16)" ${maxAllowed < 16 ? 'disabled style="opacity:0.3;"' : ''}>x16</button>
+            <button class="multiplier-btn ${currentQty === 32 ? 'selected' : ''}" onclick="setDrawerQty(32)" ${maxAllowed < 32 ? 'disabled style="opacity:0.3;"' : ''}>x32</button>
+            <button class="multiplier-btn ${currentQty === 64 ? 'selected' : ''}" onclick="setDrawerQty(64)" ${maxAllowed < 64 ? 'disabled style="opacity:0.3;"' : ''}>x64</button>
+            <button class="multiplier-btn ${currentQty === maxAllowed ? 'selected' : ''}" onclick="setDrawerQty(${maxAllowed})">Max</button>
           </div>
         </div>
 
-        <!-- Curseur Précis -->
+        <!-- Curseur Précis (limité au stock si achat, ou au déposé si vente) -->
         <div class="qty-slider-box">
           <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
-            <span style="color:var(--text-dim);">Ajuster la quantite :</span>
-            <span style="font-weight:700; color:#fff;">${state.drawerQuantity} unites</span>
+            <span style="color:var(--text-dim);">Ajuster la quantité :</span>
+            <span style="font-weight:700; color:#fff;">${currentQty} / ${maxAllowed} unités</span>
           </div>
-          <input type="range" min="1" max="256" value="${state.drawerQuantity}" oninput="setDrawerQty(parseInt(this.value))" />
+          <input type="range" min="1" max="${maxAllowed}" value="${currentQty}" oninput="setDrawerQty(parseInt(this.value))" style="accent-color:${!isBuy ? '#10b981' : '#3b82f6'};" />
         </div>
 
-        <!-- Synthese Financiere -->
+        <!-- Synthèse Financière -->
         <div class="drawer-summary-card">
           <div class="summary-line">
             <span>Prix unitaire :</span>
             <span style="font-weight:600;">${unitPrice.toFixed(2)} $</span>
           </div>
           <div class="summary-line">
-            <span>Quantite selectionnee :</span>
-            <span style="font-weight:600;">x${state.drawerQuantity}</span>
+            <span>Quantité sélectionnée :</span>
+            <span style="font-weight:600;">x${currentQty}</span>
           </div>
           <div class="summary-line">
-            <span>Impact inflation estime :</span>
+            <span>Impact inflation estimé :</span>
             <span style="color:var(--accent-amber);">+0.12%</span>
           </div>
           <div class="summary-line total">
@@ -2231,12 +2927,44 @@
           </div>
         </div>
 
-        <button class="drawer-action-btn ${isBuy ? 'buy' : 'sell'}" onclick="confirmDrawerTransaction()">
-          ${isBuy ? `Confirmer l'Achat (${totalCost.toFixed(2)} $)` : `Confirmer la Vente (+${totalCost.toFixed(2)} $)`}
-        </button>
+        ${isBuy ? `
+          <button class="drawer-action-btn buy" onclick="confirmDrawerTransaction()">
+            Confirmer l'Achat (${totalCost.toFixed(2)} $)
+          </button>
+        ` : (totalDeposited > 0 ? `
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button class="drawer-action-btn sell" style="padding:12px; font-weight:700;" onclick="confirmDrawerTransaction()">
+              Vendre ${currentQty} unité(s) (+${totalCost.toFixed(2)} $)
+            </button>
+            <button class="drawer-action-btn" style="padding:12px; font-weight:700; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.5); color:#93c5fd;" onclick="withdrawFromDrawer(${currentQty})">
+              Récupérer ${currentQty} unité(s) en jeu
+            </button>
+          </div>
+        ` : `
+          <button class="drawer-action-btn sell" disabled style="opacity:0.4; cursor:not-allowed; padding:12px;">
+            Aucun objet en réserve à vendre
+          </button>
+        `)}
       `;
 
       setTimeout(() => drawPriceCanvas('drawerCanvas', item.history || [item.buyPrice, item.buyPrice * 1.05, item.buyPrice]), 40);
+    }
+
+        function withdrawFromDrawer(qty) {
+      const item = state.selectedShopItem;
+      if (!item) return;
+      const idx = MOCK_DEPOSITED_ITEMS.findIndex(i => i.material === item.material);
+      if (idx === -1) return showToast('Aucun objet en réserve !', 'error');
+      const dep = MOCK_DEPOSITED_ITEMS[idx];
+      dep.amount -= qty;
+      if (dep.amount <= 0) {
+        MOCK_DEPOSITED_ITEMS.splice(idx, 1);
+      } else {
+        dep.totalEarned = dep.amount * dep.unitSellPrice;
+      }
+      showToast(`Récupération réussie : x${qty} ${item.material} transféré en jeu !`, 'success');
+      renderDrawerContent();
+      renderMain();
     }
 
     function confirmDrawerTransaction() {
@@ -2568,7 +3296,6 @@
     function renderAdminStudio(container) {
       const activeCatObj = SHOP_DATA.find(c => c.id === state.activeCategory) || SHOP_DATA[0];
 
-      // S'assurer qu'un item est sélectionné pour l'inspecteur
       let selectedItem = activeCatObj.items.find(i => i.material === state.selectedAdminItem);
       if (!selectedItem && activeCatObj.items.length > 0) {
         selectedItem = activeCatObj.items[0];
@@ -2577,7 +3304,7 @@
 
       container.innerHTML = `
         <div class="admin-studio-grid">
-          <!-- COLONNE 1 : GESTION DES CATÉGORIES -->
+          <!-- COLONNE 1 : GESTION DES CATEGORIES -->
           <div class="admin-panel-card">
             <div class="admin-panel-header">
               <span class="admin-panel-title">Categories (${SHOP_DATA.length})</span>
@@ -2588,7 +3315,7 @@
                 <div class="admin-cat-row ${c.id === state.activeCategory ? 'active' : ''}" onclick="setShopCategory('${c.id}')">
                   <div style="display:flex; align-items:center; gap:8px;">
                     <div class="mc-item-icon" style="width:20px; height:20px;">
-                      <img src="${getMinecraftItemUrl(c.icon)}" onerror="this.style.display='none'" />
+                      <img src="${getMinecraftItemUrl(c.icon)}" onerror="handleImageError(this, '${c.icon}')" />
                     </div>
                     <span style="font-weight:600; font-size:0.85rem;">${c.displayName}</span>
                   </div>
@@ -2598,225 +3325,178 @@
             </div>
           </div>
 
-          <!-- COLONNE 2 : GRILLE D'ITEMS AVEC ACTIONS & CLIC POUR INSPECTION -->
+          <!-- COLONNE 2 : LISTE D'ITEMS EPUREE SANS BOUTONS EN TROP -->
           <div class="admin-panel-card">
             <div class="admin-panel-header" style="flex-wrap:wrap; gap:10px;">
               <div>
                 <span class="admin-panel-title">Objets : ${activeCatObj.displayName} (${activeCatObj.items.length})</span>
                 <div style="font-size:0.72rem; color:var(--text-dim);">Cliquez sur un objet pour charger sa fiche complete</div>
               </div>
-              <div style="display:flex; gap:6px;">
-                <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="applyCategoryPriceMultiplier(1.10)">+10% Prix</button>
-                <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="applyCategoryPriceMultiplier(0.90)">-10% Prix</button>
-                <button class="multiplier-btn" style="padding:4px 10px; font-size:0.75rem; background:var(--accent-blue); color:#fff;" onclick="setAdminInspectorMode('create')">+ Nouvel Item</button>
-              </div>
+              <button class="multiplier-btn" style="padding:6px 14px; font-size:0.8rem; background:var(--accent-blue); color:#fff; font-weight:600;" onclick="setAdminInspectorMode('create')">+ Ajouter un objet</button>
             </div>
-            <div class="admin-items-body">
+            <div class="admin-items-body" style="padding:8px; display:flex; flex-direction:column; gap:6px;">
               ${activeCatObj.items.map(item => {
                 const isSel = selectedItem && selectedItem.material === item.material;
                 const isEnabled = item.isEnabled !== false;
                 return `
-                  <div class="admin-item-row ${isSel ? 'selected' : ''}" onclick="selectAdminItem('${item.material}')">
-                    <div class="mc-slot-box" style="width:40px; height:40px;">
-                      <div class="mc-item-icon" style="width:30px; height:30px;">
-                        <img src="${getMinecraftItemUrl(item.material)}" />
+                  <div class="admin-item-row ${isSel ? 'selected' : ''}" onclick="selectAdminItem('${item.material}')" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border-radius:8px; cursor:pointer; transition:background 0.15s;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                      <div class="mc-slot-box" style="width:40px; height:40px;">
+                        <div class="mc-item-icon" style="width:30px; height:30px;">
+                          <img src="${getMinecraftItemUrl(item.material)}" onerror="handleImageError(this, '${item.material}')" />
+                        </div>
+                      </div>
+                      <div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                          <span style="font-weight:700; font-size:0.9rem; color:#fff;">${item.material}</span>
+                          <span style="font-size:0.65rem; font-weight:700; padding:1px 5px; border-radius:3px; ${isEnabled ? 'background:rgba(16,185,129,0.15); color:var(--accent-emerald);' : 'background:rgba(239,68,68,0.15); color:var(--accent-rose);'}">
+                            ${isEnabled ? 'ACTIF' : 'MASQUE'}
+                          </span>
+                        </div>
+                        <div style="font-size:0.72rem; color:var(--text-dim);">Stock : ${item.stock} / Cible : ${item.targetStock}</div>
                       </div>
                     </div>
-                    <div>
-                      <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="font-weight:700; font-size:0.88rem; color:#fff;">${item.material}</span>
-                        <span style="font-size:0.65rem; font-weight:700; padding:1px 5px; border-radius:3px; ${isEnabled ? 'background:rgba(16,185,129,0.15); color:var(--accent-emerald);' : 'background:rgba(239,68,68,0.15); color:var(--accent-rose);'}">
-                          ${isEnabled ? 'ACTIF' : 'MASQUE'}
-                        </span>
-                      </div>
-                      <div style="font-size:0.7rem; color:var(--text-dim);">Stock : ${item.stock} / Cible : ${item.targetStock}</div>
-                    </div>
-                    <div onclick="event.stopPropagation()">
-                      <span class="form-label">Prix Achat</span>
-                      <input type="number" step="0.1" class="inline-editable-cell" value="${item.buyPrice}" onchange="updateItemInlinePrice('${item.material}', 'buy', this.value)" />
-                    </div>
-                    <div onclick="event.stopPropagation()">
-                      <span class="form-label">Prix Vente</span>
-                      <input type="number" step="0.1" class="inline-editable-cell" value="${item.sellPrice}" onchange="updateItemInlinePrice('${item.material}', 'sell', this.value)" />
-                    </div>
-                    <div style="text-align:right;">
-                      <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem; margin-left:auto;" onclick="event.stopPropagation(); selectAdminItem('${item.material}')">
-                        Fiche
-                      </button>
+                    <div style="display:flex; align-items:center; gap:10px; font-size:0.82rem;">
+                      <span style="background:rgba(16,185,129,0.1); color:#10b981; font-weight:700; padding:3px 8px; border-radius:5px;">Achat: ${item.buyPrice} $</span>
+                      <span style="background:rgba(245,158,11,0.1); color:#f59e0b; font-weight:700; padding:3px 8px; border-radius:5px;">Vente: ${item.sellPrice} $</span>
                     </div>
                   </div>
                 `;
               }).join('')}
               ${activeCatObj.items.length === 0 ? `
                 <div style="text-align:center; padding:40px; color:var(--text-dim);">
-                  Aucun objet dans cette categorie. Cliquez sur "+ Nouvel Item" pour commencer.
+                  Aucun objet dans cette categorie. Cliquez sur "+ Ajouter un objet" pour commencer.
                 </div>
               ` : ''}
             </div>
           </div>
 
-          <!-- COLONNE 3 : PANNEAU COMPLET D'INSPECTION & ÉDITION OU FORMULAIRE D'AJOUT -->
+          <!-- COLONNE 3 : PANNEAU COMPLET D'INSPECTION & EDITION -->
           <div class="admin-panel-card">
             ${state.adminInspectorMode === 'edit' && selectedItem ? `
-              <!-- FICHE COMPLÈTE DE MODIFICATION DE L'OBJET SÉLECTIONNÉ -->
               <div class="admin-panel-header">
                 <div>
-                  <span class="admin-panel-title">Fiche Objet : ${selectedItem.material}</span>
-                  <div style="font-size:0.72rem; color:var(--accent-blue);">Modification en direct</div>
+                  <span class="admin-panel-title">Fiche : ${selectedItem.material}</span>
+                  <div style="font-size:0.72rem; color:var(--accent-blue);">Modification complete de l'objet</div>
                 </div>
-                <button class="multiplier-btn" style="padding:4px 10px; font-size:0.75rem;" onclick="setAdminInspectorMode('create')">
-                  + Nouvel Item
-                </button>
               </div>
-              <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
-                <!-- Hero de l'item sélectionné -->
-                <div style="display:flex; align-items:center; gap:14px; background:rgba(0,0,0,0.3); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+              <form class="inspector-form" onsubmit="saveAdminItemInspector(event)">
+                <div style="display:flex; align-items:center; gap:14px; background:rgba(0,0,0,0.3); padding:14px; border-radius:10px; border:1px solid var(--border-subtle);">
                   <div class="mc-slot-box" style="width:54px; height:54px;">
                     <div class="mc-item-icon" style="width:40px; height:40px;">
-                      <img src="${getMinecraftItemUrl(selectedItem.material)}" />
+                      <img src="${getMinecraftItemUrl(selectedItem.material)}" onerror="handleImageError(this, '${selectedItem.material}')" />
                     </div>
                   </div>
                   <div>
-                    <div style="font-weight:700; font-size:1.1rem; color:#fff;">${selectedItem.material.replace(/_/g, ' ')}</div>
-                    <div style="font-size:0.75rem; color:var(--text-dim); font-family:monospace;">${selectedItem.material}</div>
-                    <span style="display:inline-block; margin-top:4px; font-size:0.7rem; font-weight:700; padding:2px 6px; border-radius:4px; ${selectedItem.isEnabled !== false ? 'background:rgba(16,185,129,0.15); color:var(--accent-emerald);' : 'background:rgba(239,68,68,0.15); color:var(--accent-rose);'}">
-                      ${selectedItem.isEnabled !== false ? 'EN VENTE (ACTIF)' : 'DESACTIVE (MASQUE)'}
+                    <div style="font-weight:700; font-size:1.1rem; color:#fff;">${selectedItem.material}</div>
+                    <div style="font-size:0.75rem; color:var(--text-dim);">${selectedItem.material}</div>
+                    <span style="font-size:0.7rem; font-weight:700; color:${selectedItem.isEnabled !== false ? 'var(--accent-emerald)' : 'var(--accent-rose)'};">
+                      ${selectedItem.isEnabled !== false ? 'EN VENTE (ACTIF)' : 'MASQUE (INACTIF)'}
                     </span>
                   </div>
                 </div>
 
-                <!-- Interrupteur Activation de l'item -->
-                <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+                <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:8px; border:1px solid var(--border-subtle);">
                   <div>
                     <div style="font-weight:600; font-size:0.85rem; color:#fff;">Actif dans la Boutique</div>
                     <div style="font-size:0.72rem; color:var(--text-dim);">Visible par les joueurs pour achat/vente</div>
                   </div>
-                  <label class="switch-toggle">
-                    <input type="checkbox" id="editItemEnabled" ${selectedItem.isEnabled !== false ? 'checked' : ''} />
-                    <span class="slider-toggle"></span>
-                  </label>
+                  <input type="checkbox" id="inspItemEnabled" ${selectedItem.isEnabled !== false ? 'checked' : ''} style="width:18px; height:18px; accent-color:var(--accent-blue); cursor:pointer;" />
                 </div>
 
-                <!-- Prix Achat & Vente -->
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                  <div>
+                  <div class="form-group">
                     <label class="form-label">Prix Achat Base ($)</label>
-                    <input type="number" id="editItemBuy" class="form-input" value="${selectedItem.buyPrice}" step="0.1" oninput="recalculateEditMargin()" />
+                    <input type="number" step="0.1" id="inspBuyPrice" class="input-field" value="${selectedItem.buyPrice}" required oninput="recalcInspectorMargin()" />
                   </div>
-                  <div>
+                  <div class="form-group">
                     <label class="form-label">Prix Vente Base ($)</label>
-                    <input type="number" id="editItemSell" class="form-input" value="${selectedItem.sellPrice}" step="0.1" oninput="recalculateEditMargin()" />
+                    <input type="number" step="0.1" id="inspSellPrice" class="input-field" value="${selectedItem.sellPrice}" required oninput="recalcInspectorMargin()" />
                   </div>
                 </div>
 
-                <!-- Marge serveur calculée -->
-                <div style="background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.2); padding:10px 14px; border-radius:var(--radius-sm);">
-                  <div style="font-size:0.72rem; color:var(--text-muted);">Marge serveur en temps reel :</div>
-                  <div id="editMarginDisplay" style="font-size:1.05rem; font-weight:700; color:var(--accent-blue);">
-                    ${(((selectedItem.buyPrice - selectedItem.sellPrice) / (selectedItem.buyPrice || 1)) * 100).toFixed(1)}% de marge (${selectedItem.sellPrice > 0 ? (selectedItem.buyPrice / selectedItem.sellPrice).toFixed(1) + 'x' : 'Inf'})
-                  </div>
+                <div id="inspectorMarginBox" style="padding:10px 14px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.25); border-radius:8px; font-size:0.82rem; color:#93c5fd;">
+                  Marge serveur en temps reel : 
+                  <b id="inspectorMarginText">${(selectedItem.buyPrice > 0 ? ((selectedItem.buyPrice - selectedItem.sellPrice) / selectedItem.buyPrice * 100).toFixed(1) : 0)}% de marge</b>
                 </div>
 
-                <!-- Stocks Cible et Actuel -->
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                  <div>
+                  <div class="form-group">
                     <label class="form-label">Stock Cible (Equilibre)</label>
-                    <input type="number" id="editItemTargetStock" class="form-input" value="${selectedItem.targetStock || 1000}" />
+                    <input type="number" id="inspTargetStock" class="input-field" value="${selectedItem.targetStock || 1000}" required />
                   </div>
-                  <div>
+                  <div class="form-group">
                     <label class="form-label">Stock Actuel (Serveur)</label>
-                    <input type="number" id="editItemCurrentStock" class="form-input" value="${selectedItem.stock || 0}" />
+                    <input type="number" id="inspStock" class="input-field" value="${selectedItem.stock || 500}" required />
                   </div>
                 </div>
 
-                <!-- Commande serveur / Grade -->
-                <div style="background:rgba(0,0,0,0.25); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
-                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-                    <div>
-                      <div style="font-weight:600; font-size:0.85rem; color:#fff;">Mode Commande / Grade</div>
-                      <div style="font-size:0.72rem; color:var(--text-dim);">Execute une commande au lieu de donner l'item</div>
-                    </div>
-                    <label class="switch-toggle">
-                      <input type="checkbox" id="editItemIsCommand" ${selectedItem.isCommand ? 'checked' : ''} onchange="toggleEditCmdInput(this.checked)" />
-                      <span class="slider-toggle"></span>
-                    </label>
+                <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); padding:10px 14px; border-radius:8px; border:1px solid var(--border-subtle);">
+                  <div>
+                    <div style="font-weight:600; font-size:0.85rem; color:#fff;">Mode Commande / Grade</div>
+                    <div style="font-size:0.72rem; color:var(--text-dim);">Execute une commande au lieu de donner l'item</div>
                   </div>
-                  <div id="editCmdInputWrapper" style="display:${selectedItem.isCommand ? 'block' : 'none'}; margin-top:8px;">
-                    <label class="form-label">Commande a executer (%player%)</label>
-                    <input type="text" id="editItemCommand" class="form-input" value="${selectedItem.commandToExecute || ''}" placeholder="ex: lp user %player% parent set vip" />
-                  </div>
+                  <input type="checkbox" id="inspIsCommand" ${selectedItem.isCommand ? 'checked' : ''} onchange="toggleCommandInput(this.checked)" style="width:18px; height:18px; accent-color:var(--accent-blue); cursor:pointer;" />
                 </div>
 
-                <!-- Boutons d'Action de l'Item -->
-                <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-                  <button class="drawer-action-btn buy" onclick="saveAdminItemEdits('${selectedItem.material}')">
-                    Enregistrer les Modifications
-                  </button>
+                <div class="form-group" id="inspCommandGroup" style="display:${selectedItem.isCommand ? 'block' : 'none'};">
+                  <label class="form-label">Commande a executer (%player%)</label>
+                  <input type="text" id="inspCommand" class="input-field" value="${selectedItem.commandToExecute || ''}" placeholder="ex: lp user %player% parent add vip" />
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                  <button type="submit" class="drawer-action-btn buy" style="width:100%; padding:12px; font-weight:700;">Enregistrer les Modifications</button>
                   <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                    <button class="multiplier-btn" onclick="duplicateAdminItem('${selectedItem.material}')">
-                      Dupliquer
-                    </button>
-                    <button class="multiplier-btn" style="color:var(--accent-rose); border-color:rgba(239,68,68,0.3);" onclick="deleteShopItem('${selectedItem.material}')">
-                      Supprimer
-                    </button>
+                    <button type="button" class="multiplier-btn" style="padding:8px;" onclick="duplicateCurrentItem()">Dupliquer</button>
+                    <button type="button" class="multiplier-btn" style="padding:8px; background:rgba(239,68,68,0.15); color:var(--accent-rose); border-color:rgba(239,68,68,0.3);" onclick="deleteCurrentItem()">Supprimer</button>
                   </div>
                 </div>
-              </div>
+              </form>
             ` : `
-              <!-- FORMULAIRE D'AJOUT D'UN NOUVEL OBJET AVEC AUTOCOMPLÉTION BUKKIT -->
               <div class="admin-panel-header">
                 <span class="admin-panel-title">Ajouter un Nouvel Objet</span>
-                ${selectedItem ? `
-                  <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="setAdminInspectorMode('edit')">
-                    Retour Fiche
-                  </button>
-                ` : ''}
+                <button class="multiplier-btn" style="padding:4px 8px; font-size:0.75rem;" onclick="setAdminInspectorMode('edit')">Fermer</button>
               </div>
-              <div style="padding:20px; display:flex; flex-direction:column; gap:16px;">
-                <div class="autocomplete-container">
-                  <label class="form-label">Materiau Minecraft Bukkit (300+ items)</label>
-                  <input type="text" id="adminMatInput" class="form-input" placeholder="Tapez ex: DIAMOND, NETHER..." oninput="handleBukkitAutocomplete(this.value)" autocomplete="off" />
-                  <div class="autocomplete-dropdown" id="bukkitDropdown" style="display:none;"></div>
+              <form class="inspector-form" onsubmit="saveNewAdminItem(event)">
+                <div class="form-group" style="position:relative;">
+                  <label class="form-label">Materiel Minecraft (Bukkit)</label>
+                  <input type="text" id="newMatInput" oninput="handleBukkitAutocomplete(this.value)" class="input-field" placeholder="Tapez ex: DIAMOND, NETHER..." required />
+                  <div id="bukkitAutocompleteDropdown" class="autocomplete-dropdown"></div>
                 </div>
 
-                <!-- Aperçu direct du sprite de l'item choisi -->
-                <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); padding:12px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
-                  <div class="mc-slot-box">
-                    <div class="mc-item-icon">
-                      <img id="adminPreviewImg" src="${getMinecraftItemUrl('DIAMOND')}" />
+                <div style="display:flex; align-items:center; gap:12px; background:rgba(0,0,0,0.3); padding:12px; border-radius:8px; border:1px solid var(--border-subtle);">
+                  <div class="mc-slot-box" style="width:44px; height:44px;">
+                    <div class="mc-item-icon" style="width:32px; height:32px;">
+                      <img id="adminPreviewImg" src="${getMinecraftItemUrl('DIAMOND')}" onerror="handleImageError(this, 'DIAMOND')" />
                     </div>
                   </div>
-                  <div>
-                    <div id="adminPreviewName" style="font-weight:700; color:#fff;">DIAMOND</div>
-                    <div style="font-size:0.72rem; color:var(--text-dim);">Previsualisation Texture HD</div>
+                  <span id="adminPreviewName" style="font-weight:700; color:#fff;">DIAMOND</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                  <div class="form-group">
+                    <label class="form-label">Prix Achat Base ($)</label>
+                    <input type="number" step="0.1" id="newBuyPrice" class="input-field" value="10.0" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Prix Vente Base ($)</label>
+                    <input type="number" step="0.1" id="newSellPrice" class="input-field" value="3.0" required />
                   </div>
                 </div>
 
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                  <div>
-                    <label class="form-label">Prix Achat ($)</label>
-                    <input type="number" id="adminBuyInput" class="form-input" value="10.0" step="0.5" oninput="calculateMargin()" />
+                  <div class="form-group">
+                    <label class="form-label">Stock Cible</label>
+                    <input type="number" id="newTargetStock" class="input-field" value="1000" required />
                   </div>
-                  <div>
-                    <label class="form-label">Prix Vente ($)</label>
-                    <input type="number" id="adminSellInput" class="form-input" value="3.0" step="0.5" oninput="calculateMargin()" />
+                  <div class="form-group">
+                    <label class="form-label">Stock Actuel</label>
+                    <input type="number" id="newStock" class="input-field" value="1000" required />
                   </div>
                 </div>
 
-                <div style="background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.2); padding:10px; border-radius:var(--radius-sm);">
-                  <div style="font-size:0.72rem; color:var(--text-muted);">Marge serveur calculee :</div>
-                  <div id="adminMarginDisplay" style="font-size:1.1rem; font-weight:700; color:var(--accent-blue);">70.0% de marge (Ratio 3.3x)</div>
-                </div>
-
-                <div>
-                  <label class="form-label">Stock d'Equilibre Cible</label>
-                  <input type="number" id="adminTargetStock" class="form-input" value="1000" />
-                </div>
-
-                <button class="drawer-action-btn buy" onclick="submitAdminNewItem()">
-                  Inserer dans ${activeCatObj.displayName}
-                </button>
-              </div>
+                <button type="submit" class="drawer-action-btn buy" style="width:100%; padding:12px; font-weight:700; margin-top:10px;">Creer cet Objet</button>
+              </form>
             `}
           </div>
         </div>

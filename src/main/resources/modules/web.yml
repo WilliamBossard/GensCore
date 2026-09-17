@@ -11,6 +11,8 @@ web:
   force_lang: ""
   # Server IP to display in the Web Panel
   server_ip: "localhost"
+  # Maximum number of deposit slots a player can use via /web deposit (like a chest = 27)
+  deposit_limit: 27
   # The text displayed on the public landing page of the Web Panel
   public_features_text: |-
     Welcome to the server!

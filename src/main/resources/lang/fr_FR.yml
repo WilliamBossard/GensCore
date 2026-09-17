@@ -52,6 +52,9 @@ webcommand:
   msg_6: "{prefix}<red>Usage: /web deposit | withdraw"
   msg_7: "{prefix}<red>Erreur lors du chargement des récompenses."
   msg_8: "{prefix}<green>Objet récupéré !"
+  msg_9: "{prefix}<red>Votre inventaire de dépôt est plein ! ({current}/{max} slots utilisés). Vendez ou récupérez des objets avant d'en déposer de nouveaux."
+  msg_10: "{prefix}<green>Objet empilé avec votre dépôt existant : <white>x{amount} {material}</white> !"
+  msg_11: "{prefix}<green>Objet déposé : <white>x{amount} {material}</white>. Retrouvez-le sur le panel web (onglet Mes Objets Déposes) !"
 auctionhousemodule:
   msg_1: "{prefix}<red>Le module Hôtel de ventes est désactivé."
   msg_2: "{prefix}<red>Le prix doit être supérieur à 0."

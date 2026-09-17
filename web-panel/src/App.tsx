@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import './i18n';
-import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, Shield, ToggleLeft, ToggleRight, FileText, Target, Gamepad2, Users, UserX, Gavel, Mic, MicOff, MessageSquare, Menu, X, Search } from 'lucide-react';
+import { Lock, ShoppingCart, Settings, LogOut, Package, Plus, Trash2, Shield, ToggleLeft, ToggleRight, FileText, Target, Gamepad2, Users, UserX, Gavel, Mic, MicOff, MessageSquare, Menu, X, Search, TrendingUp, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { PlayerLogin, PlayerDashboard } from './PlayerPortal';
 import { Docs } from './Docs';
@@ -62,11 +62,8 @@ function getPlayerAvatarUrl(name: string, size: number = 64): string {
   return `${API_URL}/head/${encodeURIComponent(name)}/${size}`;
 }
 
-export function getMinecraftItemUrl(material: string): string {
-  if (!material) return '';
-  const clean = material.toLowerCase();
-  return `https://raw.githubusercontent.com/PrismarineJS/minecraft-assets/master/data/default/items/${clean}.png`;
-}
+import { getMinecraftItemUrl, handleMinecraftImageError } from './minecraftTextures';
+export { getMinecraftItemUrl, handleMinecraftImageError };
 
 const BUKKIT_MATERIALS = [
   "DIAMOND", "DIAMOND_BLOCK", "DIAMOND_SWORD", "DIAMOND_PICKAXE", "DIAMOND_AXE", "DIAMOND_SHOVEL", "DIAMOND_HOE", 
@@ -1049,32 +1046,6 @@ function AdminShop({ password }: { password: string }) {
     }
   };
 
-  const applyBulkCategoryPrice = async (factor: number) => {
-    const activeCat = categories.find(c => c.id === activeCatId);
-    if (!activeCat || !activeCat.items || activeCat.items.length === 0) return;
-    if (!confirm(`Appliquer une modification de ${(factor > 1 ? '+' : '')}${Math.round((factor - 1) * 100)}% sur tous les prix de la categorie "${activeCat.displayName}" ?`)) return;
-
-    for (const item of activeCat.items) {
-      const newBuy = parseFloat((item.baseBuyPrice * factor).toFixed(2));
-      const newSell = parseFloat((item.baseSellPrice * factor).toFixed(2));
-      await fetch(`${API_URL}/admin/shop/item`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-        body: JSON.stringify({
-          categoryId: activeCatId,
-          material: item.material,
-          baseBuyPrice: newBuy,
-          baseSellPrice: newSell,
-          targetStock: item.targetStock,
-          isCommand: item.isCommand,
-          commandToExecute: item.commandToExecute,
-          isEnabled: item.isEnabled !== false
-        })
-      });
-    }
-    showStatus(`Prix de la categorie modifies avec succes !`, 'success');
-    fetchShop();
-  };
 
   const handleAutocomplete = (text: string) => {
     setFormMat(text);
@@ -1172,7 +1143,7 @@ function AdminShop({ password }: { password: string }) {
               >
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                   <div className="mc-item-icon" style={{width: '24px', height: '24px'}}>
-                    <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                    <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
                   </div>
                   <span style={{fontWeight: 600, fontSize: '0.88rem'}}>{c.displayName}</span>
                 </div>
@@ -1197,14 +1168,12 @@ function AdminShop({ password }: { password: string }) {
           <div className="admin-panel-header" style={{flexWrap: 'wrap', gap: '10px'}}>
             <div>
               <span style={{fontWeight: 700, fontSize: '1rem'}}>Objets : {activeCat?.displayName} ({filteredItems.length})</span>
-              <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Cliquez sur un objet pour charger sa fiche complete</div>
+              <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Cliquez sur un objet pour afficher et modifier sa fiche complete</div>
             </div>
             <div style={{display: 'flex', gap: '6px'}}>
-              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => applyBulkCategoryPrice(1.10)}>+10% Prix</button>
-              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => applyBulkCategoryPrice(0.90)}>-10% Prix</button>
               <button 
                 className="multiplier-btn" 
-                style={{padding: '4px 10px', fontSize: '0.75rem', background: 'var(--accent)', color: 'white'}}
+                style={{padding: '6px 12px', fontSize: '0.8rem', background: 'var(--accent)', color: 'white', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px'}}
                 onClick={() => {
                   setInspectorMode('create');
                   setFormMat('DIAMOND');
@@ -1217,7 +1186,7 @@ function AdminShop({ password }: { password: string }) {
                   setFormCommand('');
                 }}
               >
-                <Plus size={14}/> Nouvel Item
+                <Plus size={15}/> Ajouter un objet
               </button>
             </div>
           </div>
@@ -1235,7 +1204,7 @@ function AdminShop({ password }: { password: string }) {
             </div>
           </div>
 
-          <div style={{padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '620px', overflowY: 'auto'}}>
+          <div style={{padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '620px', overflowY: 'auto'}}>
             {filteredItems.map(item => {
               const isSel = selectedMaterial === item.material && inspectorMode === 'edit';
               const isEnabled = item.isEnabled !== false;
@@ -1244,75 +1213,49 @@ function AdminShop({ password }: { password: string }) {
                   key={item.material}
                   className={`admin-item-row ${isSel ? 'selected' : ''}`}
                   onClick={() => loadItemToForm(item)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    background: isSel ? 'rgba(59, 130, 246, 0.15)' : 'rgba(255,255,255,0.02)',
+                    border: isSel ? '1px solid var(--accent)' : '1px solid var(--card-border)',
+                    transition: 'all 0.15s ease'
+                  }}
                 >
-                  <div className="mc-slot-box" style={{width: '40px', height: '40px'}}>
-                    <div className="mc-item-icon" style={{width: '30px', height: '30px'}}>
-                      <img src={getMinecraftItemUrl(item.material)} alt={item.material} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                  <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                    <div className="mc-slot-box" style={{width: '38px', height: '38px'}}>
+                      <div className="mc-item-icon" style={{width: '28px', height: '28px'}}>
+                        <img src={getMinecraftItemUrl(item.material)} alt={item.material} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                        <span style={{fontWeight: 700, fontSize: '0.9rem', color: 'white'}}>{item.material.replace(/_/g, ' ')}</span>
+                        <span style={{fontSize: '0.65rem', fontWeight: 700, padding: '1px 6px', borderRadius: '3px', background: isEnabled ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: isEnabled ? '#10b981' : '#ef4444'}}>
+                          {isEnabled ? 'ACTIF' : 'MASQUE'}
+                        </span>
+                      </div>
+                      <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Stock : {item.stock} / {item.targetStock}</div>
                     </div>
                   </div>
-                  <div>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                      <span style={{fontWeight: 700, fontSize: '0.9rem', color: 'white'}}>{item.material}</span>
-                      <span style={{fontSize: '0.65rem', fontWeight: 700, padding: '1px 5px', borderRadius: '3px', background: isEnabled ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: isEnabled ? '#10b981' : '#ef4444'}}>
-                        {isEnabled ? 'ACTIF' : 'MASQUE'}
-                      </span>
-                    </div>
-                    <div style={{fontSize: '0.72rem', color: 'var(--text-muted)'}}>Stock : {item.stock} / Cible : {item.targetStock}</div>
-                  </div>
-                  <div onClick={e => e.stopPropagation()}>
-                    <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Achat</span>
-                    <input 
-                      type="number" 
-                      step="0.1" 
-                      className="inline-editable-cell" 
-                      defaultValue={item.baseBuyPrice} 
-                      onBlur={e => {
-                        const val = parseFloat(e.target.value);
-                        if (!isNaN(val) && val !== item.baseBuyPrice) {
-                          fetch(`${API_URL}/admin/shop/item`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-                            body: JSON.stringify({ categoryId: activeCat?.id, ...item, baseBuyPrice: val })
-                          }).then(() => fetchShop());
-                        }
-                      }}
-                    />
-                  </div>
-                  <div onClick={e => e.stopPropagation()}>
-                    <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Vente</span>
-                    <input 
-                      type="number" 
-                      step="0.1" 
-                      className="inline-editable-cell" 
-                      defaultValue={item.baseSellPrice} 
-                      onBlur={e => {
-                        const val = parseFloat(e.target.value);
-                        if (!isNaN(val) && val !== item.baseSellPrice) {
-                          fetch(`${API_URL}/admin/shop/item`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json; charset=utf-8', 'Authorization': `Bearer ${password}` },
-                            body: JSON.stringify({ categoryId: activeCat?.id, ...item, baseSellPrice: val })
-                          }).then(() => fetchShop());
-                        }
-                      }}
-                    />
-                  </div>
-                  <div style={{textAlign: 'right'}} onClick={e => e.stopPropagation()}>
-                    <button 
-                      className="wallet-reset-btn" 
-                      style={{color: 'var(--danger)', marginLeft: 'auto'}} 
-                      onClick={() => deleteItem(activeCat.id, item.material)} 
-                      title="Supprimer cet item"
-                    >
-                      <Trash2 size={16}/>
-                    </button>
+
+                  <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                    <span style={{fontSize: '0.8rem', padding: '4px 8px', borderRadius: '4px', background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent)', fontWeight: 600}}>
+                      Achat: {item.baseBuyPrice.toFixed(1)} $
+                    </span>
+                    <span style={{fontSize: '0.8rem', padding: '4px 8px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontWeight: 600}}>
+                      Vente: {item.baseSellPrice.toFixed(1)} $
+                    </span>
                   </div>
                 </div>
               );
             })}
             {filteredItems.length === 0 && (
               <div style={{textAlign: 'center', padding: '40px', color: 'var(--text-muted)'}}>
-                Aucun objet trouve. Cliquez sur "+ Nouvel Item" pour ajouter.
+                Aucun objet trouve. Cliquez sur "+ Ajouter un objet" pour en creer un.
               </div>
             )}
           </div>
@@ -1326,16 +1269,12 @@ function AdminShop({ password }: { password: string }) {
                 {inspectorMode === 'edit' ? `Fiche : ${formMat}` : 'Ajouter un Nouvel Objet'}
               </span>
               <div style={{fontSize: '0.72rem', color: 'var(--accent)'}}>
-                {inspectorMode === 'edit' ? 'Modification de la fiche' : 'Autocompletion 300+ Bukkit'}
+                {inspectorMode === 'edit' ? 'Modification de la fiche complete' : 'Catalogue Minecraft Bukkit'}
               </div>
             </div>
-            {inspectorMode === 'edit' ? (
-              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => setInspectorMode('create')}>
-                <Plus size={14}/> Nouveau
-              </button>
-            ) : (
-              <button className="multiplier-btn" style={{padding: '4px 8px', fontSize: '0.75rem'}} onClick={() => setInspectorMode('edit')}>
-                Retour Fiche
+            {inspectorMode === 'create' && (
+              <button className="multiplier-btn" style={{padding: '4px 10px', fontSize: '0.75rem'}} onClick={() => setInspectorMode('edit')}>
+                Annuler
               </button>
             )}
           </div>
@@ -1357,7 +1296,7 @@ function AdminShop({ password }: { password: string }) {
                     {autocompleteResults.map(mat => (
                       <div key={mat} className="autocomplete-item" onClick={() => selectBukkit(mat)}>
                         <div className="mc-item-icon" style={{width: '20px', height: '20px'}}>
-                          <img src={getMinecraftItemUrl(mat)} alt={mat} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                          <img src={getMinecraftItemUrl(mat)} alt={mat} onError={handleMinecraftImageError} />
                         </div>
                         <span>{mat}</span>
                       </div>
@@ -1369,7 +1308,7 @@ function AdminShop({ password }: { password: string }) {
               <div style={{display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(0,0,0,0.3)', padding: '14px', borderRadius: '10px', border: '1px solid var(--card-border)'}}>
                 <div className="mc-slot-box" style={{width: '54px', height: '54px'}}>
                   <div className="mc-item-icon" style={{width: '40px', height: '40px'}}>
-                    <img src={getMinecraftItemUrl(formMat)} alt={formMat} />
+                    <img src={getMinecraftItemUrl(formMat)} alt={formMat} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
                   </div>
                 </div>
                 <div>
@@ -1479,6 +1418,34 @@ function AdminShop({ password }: { password: string }) {
             <button type="submit" className="login-button" style={{padding: '12px', fontWeight: 700}}>
               {inspectorMode === 'edit' ? 'Enregistrer les Modifications' : `Ajouter a ${activeCat?.displayName}`}
             </button>
+
+            {inspectorMode === 'edit' && activeCat && (
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (confirm(`Voulez-vous vraiment retirer ${formMat} de la categorie ${activeCat.displayName} ?`)) {
+                    deleteItem(activeCat.id, formMat);
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  color: '#ef4444',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Trash2 size={15} /> Supprimer cet objet de la boutique
+              </button>
+            )}
           </form>
         </div>
       </div>
@@ -1499,6 +1466,69 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
   const [drawerMode, setDrawerMode] = useState<'buy' | 'sell'>('buy');
   const [drawerQuantity, setDrawerQuantity] = useState(1);
 
+  // Objets deposes via /web deposit
+  const [depositedItems, setDepositedItems] = useState<any[]>([]);
+  const [loadingDeposited, setLoadingDeposited] = useState(false);
+  const [actionNotice, setActionNotice] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
+  const [qtyModal, setQtyModal] = useState<{
+    open: boolean;
+    item: any | null;
+    action: 'sell' | 'withdraw';
+    quantity: number;
+  }>({
+    open: false,
+    item: null,
+    action: 'sell',
+    quantity: 1
+  });
+
+  const openQtyModal = (item: any, action: 'sell' | 'withdraw') => {
+    setQtyModal({
+      open: true,
+      item,
+      action,
+      quantity: item.amount || 1
+    });
+  };
+
+  const showActionNotice = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setActionNotice({ text, type });
+    setTimeout(() => setActionNotice(null), 6000);
+  };
+
+  const getPlayerData = () => {
+    try {
+      const saved = localStorage.getItem('gens_player_data');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  };
+
+  const fetchDeposited = () => {
+    const p = getPlayerData();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json; charset=utf-8' };
+    let url = `${API_URL}/shop/deposited`;
+    if (p) {
+      if (p.token) headers['Authorization'] = `Bearer ${p.token}`;
+      if (p.uuid) {
+        headers['X-Player-UUID'] = p.uuid;
+        url += `?uuid=${p.uuid}`;
+      }
+    }
+    setLoadingDeposited(true);
+    fetch(url, { headers })
+      .then(res => res.json())
+      .then(data => {
+        setDepositedItems(Array.isArray(data) ? data : []);
+        setLoadingDeposited(false);
+      })
+      .catch(() => {
+        setDepositedItems([]);
+        setLoadingDeposited(false);
+      });
+  };
+
   useEffect(() => {
     if (isEnabled === false) {
       setLoading(false);
@@ -1511,7 +1541,113 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    fetchDeposited();
   }, [isEnabled]);
+
+  const handleSellDeposited = async (item: any, quantity?: number) => {
+    const qty = quantity && quantity > 0 ? quantity : item.amount;
+    const p = getPlayerData();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json; charset=utf-8' };
+    if (p) {
+      if (p.token) headers['Authorization'] = `Bearer ${p.token}`;
+      if (p.uuid) headers['X-Player-UUID'] = p.uuid;
+    }
+
+    setIsProcessingAction(true);
+    try {
+      const res = await fetch(`${API_URL}/shop/sell-deposited`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          betId: item.betId || item.id,
+          material: item.material,
+          quantity: qty
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const gain = data.earned !== undefined ? data.earned : data.gain !== undefined ? data.gain : 0;
+        showActionNotice(`Vente réussie ! +${gain.toFixed(2)} $ ont été ajoutés à votre solde en jeu.`, 'success');
+        fetchDeposited();
+        fetch(`${API_URL}/shop/categories`).then(r => r.json()).then(d => setCategories(d || []));
+      } else {
+        showActionNotice(data.error || 'Erreur lors de la vente de l\'objet.', 'error');
+      }
+    } catch (err) {
+      showActionNotice('Erreur réseau lors de la transaction.', 'error');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleBuyItem = async () => {
+    if (!selectedItem) return;
+    const p = getPlayerData();
+    if (!p || !p.uuid) {
+      showActionNotice('Veuillez vous connecter à votre espace joueur pour acheter.', 'error');
+      return;
+    }
+    const headers: Record<string, string> = { 'Content-Type': 'application/json; charset=utf-8' };
+    if (p.token) headers['Authorization'] = `Bearer ${p.token}`;
+    if (p.uuid) headers['X-Player-UUID'] = p.uuid;
+
+    setIsProcessingAction(true);
+    try {
+      const res = await fetch(`${API_URL}/shop/buy`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          material: selectedItem.material,
+          quantity: drawerQuantity
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showActionNotice(`Achat effectué (${data.totalCost ? data.totalCost.toFixed(2) : '0.00'} $) ! Objets livrés en jeu (ou conservés pour votre prochaine connexion).`, 'success');
+        fetch(`${API_URL}/shop/categories`).then(r => r.json()).then(d => setCategories(d || []));
+      } else {
+        showActionNotice(data.error || 'Solde insuffisant ou transaction refusée.', 'error');
+      }
+    } catch (err) {
+      showActionNotice('Erreur réseau lors de l\'achat.', 'error');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleWithdrawDeposited = async (item: any, quantity?: number) => {
+    const qty = quantity && quantity > 0 ? quantity : item.amount;
+    const p = getPlayerData();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json; charset=utf-8' };
+    if (p) {
+      if (p.token) headers['Authorization'] = `Bearer ${p.token}`;
+      if (p.uuid) headers['X-Player-UUID'] = p.uuid;
+    }
+
+    setIsProcessingAction(true);
+    try {
+      const res = await fetch(`${API_URL}/shop/withdraw-deposited`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          betId: item.betId || item.id,
+          quantity: qty
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showActionNotice(`Objet restitué ! ${item.material} (x${qty}) a été transféré vers votre inventaire en jeu (ou sera livré à votre reconnexion).`, 'success');
+        fetchDeposited();
+      } else {
+        showActionNotice(data.error || 'Erreur lors de la récupération de l\'objet.', 'error');
+      }
+    } catch (err) {
+      showActionNotice('Erreur réseau lors de la récupération.', 'error');
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
 
   const openItemDrawer = (item: ShopItem) => {
     setSelectedItem(item);
@@ -1549,7 +1685,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 
   if (loading) return <div className="loading">{t('web.public.shop.loading')}</div>;
 
-  // Filtrage des catégories et items
+  // Filtrage des categories et items
   const allItems: ShopItem[] = categories.flatMap(c => c.items || []);
   let displayItems = activeCatId === 'all' ? allItems : (categories.find(c => c.id === activeCatId)?.items || []);
   displayItems = displayItems.filter(i => i.isEnabled !== false);
@@ -1564,6 +1700,33 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 
   return (
     <div>
+      {/* NOTICE TOAST / NOTIFICATION D'ACTION */}
+      {actionNotice && (
+        <div style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 9999,
+          padding: '14px 20px',
+          borderRadius: '10px',
+          fontWeight: 600,
+          fontSize: '0.9rem',
+          maxWidth: '420px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+          background: actionNotice.type === 'success' ? '#065f46' : actionNotice.type === 'error' ? '#991b1b' : '#1e3a8a',
+          border: `1px solid ${actionNotice.type === 'success' ? '#10b981' : actionNotice.type === 'error' ? '#ef4444' : '#3b82f6'}`,
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span>{actionNotice.text}</span>
+          <button onClick={() => setActionNotice(null)} style={{background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', marginLeft: 'auto'}}>
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <div className="client-hero" style={{padding: '2rem 0'}}>
         <h2>{t('web.public.shop.title')}</h2>
         <p>{t('web.public.shop.subtitle')}</p>
@@ -1578,6 +1741,27 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
           >
             Tous ({allItems.length})
           </button>
+
+          <button 
+            className={`multiplier-btn ${activeCatId === 'deposited' ? 'selected' : ''}`}
+            onClick={() => { setActiveCatId('deposited'); fetchDeposited(); }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: activeCatId === 'deposited' ? 'linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2))' : undefined,
+              borderColor: activeCatId === 'deposited' ? '#10b981' : undefined
+            }}
+          >
+            <Package size={16} color="#10b981" />
+            <span style={{fontWeight: 600}}>Mes Objets Deposes (/web deposit)</span>
+            {depositedItems.length > 0 && (
+              <span style={{fontSize: '0.72rem', background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '10px', fontWeight: 'bold'}}>
+                {depositedItems.length}
+              </span>
+            )}
+          </button>
+
           {categories.map(c => (
             <button 
               key={c.id} 
@@ -1586,7 +1770,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
               style={{display: 'flex', alignItems: 'center', gap: '6px'}}
             >
               <div className="mc-item-icon" style={{width: '18px', height: '18px'}}>
-                <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} onError={(e: any) => e.currentTarget.style.display = 'none'} />
+                <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
               </div>
               <span>{c.displayName}</span>
               <span style={{fontSize: '0.72rem', opacity: 0.7}}>({c.items?.length || 0})</span>
@@ -1606,72 +1790,205 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
         </div>
       </div>
 
-      {/* GRILLE D'ITEMS */}
-      <div className="shop-grid">
-        {displayItems.map(item => {
-          const buyPrice = item.currentBuyPrice || item.baseBuyPrice;
-          const sellPrice = item.currentSellPrice || item.baseSellPrice;
-          const targetStock = item.targetStock || 1000;
-          const currentStock = item.stock || 0;
-          const stockRatio = Math.min(100, Math.round((currentStock / targetStock) * 100));
-          const stockClass = stockRatio > 80 ? 'stock-high' : stockRatio > 40 ? 'stock-medium' : 'stock-low';
-
-          return (
-            <div key={item.material} className="shop-card" onClick={() => openItemDrawer(item)}>
-              <div style={{display: 'flex', alignItems: 'flex-start', gap: '14px'}}>
-                <div className="mc-slot-box">
-                  <div className="mc-item-icon">
-                    <img src={getMinecraftItemUrl(item.material)} alt={item.material} onError={(e: any) => e.currentTarget.style.display = 'none'} />
-                  </div>
-                </div>
-                <div style={{flex: 1, minWidth: 0}}>
-                  <div style={{fontWeight: 700, fontSize: '1rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
-                    {item.material.replace(/_/g, ' ')}
-                  </div>
-                  <div style={{fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace'}}>{item.material}</div>
-                  {item.isCommand && (
-                    <span style={{fontSize: '0.68rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', display: 'inline-block', marginTop: '4px'}}>
-                      Commande
-                    </span>
-                  )}
-                </div>
+      {/* VUE SPECIFIQUE : OBJETS DEPOSES (/web deposit) */}
+      {activeCatId === 'deposited' ? (
+        <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+          {/* BANDEAU ET COMPTEUR DE SLOTS (27 SLOTS MAX - COMME UN COFFRE) */}
+          <div style={{background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '16px 20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px'}}>
+              <div style={{display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 700, fontSize: '1.05rem', color: '#10b981'}}>
+                <Package size={20} /> Vos Objets Déposés via /web deposit
               </div>
-
-              <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
-                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)'}}>
-                  <span>Stock : {currentStock}</span>
-                  <span>Cible : {targetStock} ({stockRatio}%)</span>
-                </div>
-                <div className="stock-gauge-bar">
-                  <div className={`stock-gauge-fill ${stockClass}`} style={{width: `${stockRatio}%`, height: '100%'}}></div>
-                </div>
-              </div>
-
-              <div className="price-row">
-                <div>
-                  <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Achat</span>
-                  <span style={{fontWeight: 700, color: '#10b981', fontSize: '1.05rem'}}>{buyPrice.toFixed(2)} $</span>
-                </div>
-                <div>
-                  <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Vente</span>
-                  {sellPrice > 0 ? (
-                    <span style={{fontWeight: 700, color: '#ef4444', fontSize: '1.05rem'}}>{sellPrice.toFixed(2)} $</span>
-                  ) : (
-                    <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Non revendable</span>
-                  )}
-                </div>
+              <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', fontWeight: 600}}>
+                <span style={{color: 'var(--text-muted)'}}>Capacité de stockage :</span>
+                <span style={{
+                  padding: '3px 10px',
+                  borderRadius: '12px',
+                  background: depositedItems.length >= 27 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.15)',
+                  color: depositedItems.length >= 27 ? '#ef4444' : '#10b981',
+                  border: `1px solid ${depositedItems.length >= 27 ? '#ef4444' : 'rgba(16,185,129,0.3)'}`,
+                  fontWeight: 700
+                }}>
+                  {depositedItems.length} / 27 slots {depositedItems.length >= 27 ? '(Plein !)' : '(Coffre)'}
+                </span>
               </div>
             </div>
-          );
-        })}
-        {displayItems.length === 0 && (
-          <div style={{gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: 'var(--text-muted)'}}>
-            Aucun objet correspondant dans cette categorie.
-          </div>
-        )}
-      </div>
 
-      {/* TIROIR LATÉRAL D'ACHAT / VENTE RAPIDE */}
+            {/* BARRE DE PROGRESSION DES SLOTS */}
+            <div style={{background: 'rgba(0,0,0,0.35)', borderRadius: '6px', height: '8px', overflow: 'hidden'}}>
+              <div style={{
+                height: '100%',
+                width: `${Math.min(100, Math.round((depositedItems.length / 27) * 100))}%`,
+                background: depositedItems.length >= 27 ? '#ef4444' : depositedItems.length >= 20 ? '#f59e0b' : '#10b981',
+                transition: 'width 0.3s ease'
+              }}></div>
+            </div>
+
+            <div style={{fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.5'}}>
+              Ces objets sont stockés dans votre réserve web (limite : 27 slots d'un coffre Minecraft). Les objets identiques et empilables se fusionnent automatiquement pour économiser la place !
+              <span style={{display: 'block', marginTop: '4px', fontStyle: 'italic'}}>
+                Pour récupérer un objet directement dans votre inventaire en jeu, cliquez sur <strong>Récupérer</strong> ou tapez <strong style={{color: '#60a5fa'}}>/web withdraw</strong> en jeu.
+              </span>
+            </div>
+          </div>
+
+          {loadingDeposited ? (
+            <div className="loading">Chargement de vos objets déposés...</div>
+          ) : depositedItems.length === 0 ? (
+            <div style={{textAlign: 'center', padding: '60px 20px', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid var(--card-border)'}}>
+              <Package size={48} style={{opacity: 0.3, marginBottom: '12px', color: 'var(--accent)'}} />
+              <h3 style={{color: 'white', marginBottom: '8px'}}>Aucun objet déposé en réserve</h3>
+              <p style={{color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '500px', margin: '0 auto 16px auto'}}>
+                Prenez un bloc ou un objet en main sur le serveur Minecraft et tapez la commande <code style={{color: '#60a5fa', fontWeight: 700}}>/web deposit</code> pour le déposer et pouvoir le vendre depuis cette page !
+              </p>
+            </div>
+          ) : (
+            <div className="shop-grid">
+              {depositedItems.map(item => {
+                const sellPrice = item.currentSellPrice || item.baseSellPrice || 0;
+                const totalGain = sellPrice * item.amount;
+                const canSell = sellPrice > 0;
+
+                return (
+                  <div key={item.betId || item.material} className="shop-card" style={{border: '1px solid rgba(16, 185, 129, 0.3)'}}>
+                    <div style={{display: 'flex', alignItems: 'flex-start', gap: '14px'}}>
+                      <div className="mc-slot-box">
+                        <div className="mc-item-icon">
+                          <img src={getMinecraftItemUrl(item.material)} alt={item.material} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
+                        </div>
+                      </div>
+                      <div style={{flex: 1, minWidth: 0}}>
+                        <div style={{fontWeight: 700, fontSize: '1rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                          {item.material.replace(/_/g, ' ')}
+                        </div>
+                        <div style={{fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace'}}>{item.material}</div>
+                        <span style={{fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: 'rgba(16,185,129,0.15)', color: '#10b981', display: 'inline-block', marginTop: '6px'}}>
+                          Quantité : x{item.amount}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="price-row" style={{marginTop: '12px'}}>
+                      <div>
+                        <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Cours actuel</span>
+                        <span style={{fontWeight: 700, color: '#10b981', fontSize: '1rem'}}>{sellPrice.toFixed(2)} $ /u</span>
+                      </div>
+                      <div>
+                        <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Gain total</span>
+                        <span style={{fontWeight: 700, color: '#10b981', fontSize: '1.05rem'}}>{totalGain.toFixed(2)} $</span>
+                      </div>
+                    </div>
+
+                    <div style={{display: 'flex', gap: '8px', marginTop: '12px'}}>
+                      <button 
+                        className="login-button" 
+                        style={{
+                          flex: 1,
+                          padding: '10px',
+                          background: canSell ? '#10b981' : 'rgba(255,255,255,0.1)',
+                          borderColor: canSell ? '#10b981' : 'transparent',
+                          cursor: canSell ? 'pointer' : 'not-allowed',
+                          opacity: canSell ? 1 : 0.5,
+                          fontWeight: 700,
+                          fontSize: '0.82rem'
+                        }}
+                        disabled={!canSell || isProcessingAction}
+                        onClick={() => openQtyModal(item, 'sell')}
+                      >
+                        {canSell ? `Vendre (x${item.amount})` : 'Non racheté'}
+                      </button>
+                      <button
+                        className="login-button"
+                        style={{
+                          flex: 1,
+                          padding: '10px',
+                          background: 'rgba(59, 130, 246, 0.15)',
+                          borderColor: 'rgba(59, 130, 246, 0.5)',
+                          color: '#93c5fd',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          fontSize: '0.82rem'
+                        }}
+                        disabled={isProcessingAction}
+                        onClick={() => openQtyModal(item, 'withdraw')}
+                      >
+                        Récupérer en jeu
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* GRILLE D'ITEMS DU SHOP REGULIER */
+        <div className="shop-grid">
+          {displayItems.map(item => {
+            const buyPrice = item.currentBuyPrice || item.baseBuyPrice;
+            const sellPrice = item.currentSellPrice || item.baseSellPrice;
+            const targetStock = item.targetStock || 1000;
+            const currentStock = item.stock || 0;
+            const stockRatio = Math.min(100, Math.round((currentStock / targetStock) * 100));
+            const stockClass = stockRatio > 80 ? 'stock-high' : stockRatio > 40 ? 'stock-medium' : 'stock-low';
+
+            return (
+              <div key={item.material} className="shop-card" onClick={() => openItemDrawer(item)}>
+                <div style={{display: 'flex', alignItems: 'flex-start', gap: '14px'}}>
+                  <div className="mc-slot-box">
+                    <div className="mc-item-icon">
+                      <img src={getMinecraftItemUrl(item.material)} alt={item.material} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
+                    </div>
+                  </div>
+                  <div style={{flex: 1, minWidth: 0}}>
+                    <div style={{fontWeight: 700, fontSize: '1rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                      {item.material.replace(/_/g, ' ')}
+                    </div>
+                    <div style={{fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'monospace'}}>{item.material}</div>
+                    {item.isCommand && (
+                      <span style={{fontSize: '0.68rem', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', background: 'rgba(245,158,11,0.15)', color: '#f59e0b', display: 'inline-block', marginTop: '4px'}}>
+                        Commande
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
+                  <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-muted)'}}>
+                    <span>Stock : {currentStock}</span>
+                    <span>Cible : {targetStock} ({stockRatio}%)</span>
+                  </div>
+                  <div className="stock-gauge-bar">
+                    <div className={`stock-gauge-fill ${stockClass}`} style={{width: `${stockRatio}%`, height: '100%'}}></div>
+                  </div>
+                </div>
+
+                <div className="price-row">
+                  <div>
+                    <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Achat</span>
+                    <span style={{fontWeight: 700, color: '#10b981', fontSize: '1.05rem'}}>{buyPrice.toFixed(2)} $</span>
+                  </div>
+                  <div>
+                    <span style={{fontSize: '0.68rem', textTransform: 'uppercase', color: 'var(--text-muted)', display: 'block'}}>Vente</span>
+                    {sellPrice > 0 ? (
+                      <span style={{fontWeight: 700, color: '#ef4444', fontSize: '1.05rem'}}>{sellPrice.toFixed(2)} $</span>
+                    ) : (
+                      <span style={{fontSize: '0.8rem', color: 'var(--text-muted)'}}>Non revendable</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {displayItems.length === 0 && (
+            <div style={{gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: 'var(--text-muted)'}}>
+              Aucun objet correspondant dans cette categorie.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TIROIR LATERAL D'ACHAT / VENTE RAPIDE */}
       <div className={`drawer-overlay ${drawerOpen ? 'open' : ''}`} onClick={() => setDrawerOpen(false)}></div>
       <aside className={`drawer-panel ${drawerOpen ? 'open' : ''}`}>
         {selectedItem && (
@@ -1689,7 +2006,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
               <div style={{display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '12px', border: '1px solid var(--card-border)'}}>
                 <div className="mc-slot-box" style={{width: '60px', height: '60px'}}>
                   <div className="mc-item-icon" style={{width: '44px', height: '44px'}}>
-                    <img src={getMinecraftItemUrl(selectedItem.material)} alt={selectedItem.material} />
+                    <img src={getMinecraftItemUrl(selectedItem.material)} alt={selectedItem.material} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
                   </div>
                 </div>
                 <div>
@@ -1743,57 +2060,360 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
                 </div>
               </div>
 
-              {/* MULTIPLICATEURS DE QUANTITE */}
-              <div>
-                <span className="form-label">Quantite Rapide</span>
-                <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px'}}>
-                  <button className={`multiplier-btn ${drawerQuantity === 1 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(1)}>x1</button>
-                  <button className={`multiplier-btn ${drawerQuantity === 16 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(16)}>x16</button>
-                  <button className={`multiplier-btn ${drawerQuantity === 32 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(32)}>x32</button>
-                  <button className={`multiplier-btn ${drawerQuantity === 64 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(64)}>x64</button>
-                  <button className="multiplier-btn" onClick={() => setDrawerQuantity(Math.min(selectedItem.stock || 64, 576))}>Max</button>
-                </div>
-              </div>
+              {drawerMode === 'buy' ? (
+                <>
+                  {/* MULTIPLICATEURS DE QUANTITE */}
+                  <div>
+                    <span className="form-label">Quantite Rapide</span>
+                    <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px'}}>
+                      <button className={`multiplier-btn ${drawerQuantity === 1 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(1)}>x1</button>
+                      <button className={`multiplier-btn ${drawerQuantity === 16 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(16)}>x16</button>
+                      <button className={`multiplier-btn ${drawerQuantity === 32 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(32)}>x32</button>
+                      <button className={`multiplier-btn ${drawerQuantity === 64 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(64)}>x64</button>
+                      <button className="multiplier-btn" onClick={() => setDrawerQuantity(Math.min(selectedItem.stock || 64, 576))}>Max</button>
+                    </div>
+                  </div>
 
-              {/* CURSEUR DE QUANTITÉ */}
-              <div>
-                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px'}}>
-                  <span style={{color: 'var(--text-muted)'}}>Ajuster la quantite :</span>
-                  <span style={{fontWeight: 700, color: 'white'}}>{drawerQuantity} unites</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="256" 
-                  value={drawerQuantity} 
-                  onChange={e => setDrawerQuantity(parseInt(e.target.value))} 
-                  style={{width: '100%', accentColor: 'var(--accent)'}} 
-                />
-              </div>
+                  {/* CURSEUR DE QUANTITE */}
+                  <div>
+                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px'}}>
+                      <span style={{color: 'var(--text-muted)'}}>Ajuster la quantite :</span>
+                      <span style={{fontWeight: 700, color: 'white'}}>{drawerQuantity} unites</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="1" 
+                      max="256" 
+                      value={drawerQuantity} 
+                      onChange={e => setDrawerQuantity(parseInt(e.target.value))} 
+                      style={{width: '100%', accentColor: 'var(--accent)'}} 
+                    />
+                  </div>
 
-              {/* SYNTHÈSE */}
-              <div style={{background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px'}}>
-                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
-                  <span>Prix unitaire :</span>
-                  <span style={{fontWeight: 600, color: 'white'}}>{unitPrice.toFixed(2)} $</span>
-                </div>
-                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
-                  <span>Quantite :</span>
-                  <span style={{fontWeight: 600, color: 'white'}}>x{drawerQuantity}</span>
-                </div>
-                <div style={{borderTop: '1px solid var(--card-border)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.15rem', color: 'white'}}>
-                  <span>Total :</span>
-                  <span style={{color: drawerMode === 'buy' ? '#10b981' : '#ef4444'}}>{totalCost.toFixed(2)} $</span>
-                </div>
-              </div>
+                  {/* SYNTHESE */}
+                  <div style={{background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                      <span>Prix unitaire :</span>
+                      <span style={{fontWeight: 600, color: 'white'}}>{unitPrice.toFixed(2)} $</span>
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                      <span>Quantite :</span>
+                      <span style={{fontWeight: 600, color: 'white'}}>x{drawerQuantity}</span>
+                    </div>
+                    <div style={{borderTop: '1px solid var(--card-border)', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.15rem', color: 'white'}}>
+                      <span>Total :</span>
+                      <span style={{color: '#10b981'}}>{totalCost.toFixed(2)} $</span>
+                    </div>
+                  </div>
 
-              <div style={{textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)'}}>
-                Utilisez la commande in-game <code style={{color: 'var(--accent)'}}>/shop</code> pour echanger directement vos items dans Minecraft.
-              </div>
+                  <button 
+                    className="login-button" 
+                    style={{padding: '12px', fontWeight: 700, background: '#10b981', borderColor: '#10b981'}}
+                    disabled={isProcessingAction}
+                    onClick={handleBuyItem}
+                  >
+                    {isProcessingAction ? 'Traitement en cours...' : `Acheter maintenant (${totalCost.toFixed(2)} $)`}
+                  </button>
+                  <div style={{fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center'}}>
+                    Distribution directe si vous etes en ligne, ou automatique a votre prochaine reconnexion.
+                  </div>
+                </>
+              ) : (
+                /* MODE VENTE */
+                <div style={{display: 'flex', flexDirection: 'column', gap: '14px'}}>
+                  {(() => {
+                    const depositedForThis = depositedItems.filter(d => d.material === selectedItem.material);
+                    const totalDepositedCount = depositedForThis.reduce((acc, d) => acc + (d.amount || 0), 0);
+                    const sellUnitPrice = selectedItem.currentSellPrice || selectedItem.baseSellPrice || 0;
+                    const canSellThis = sellUnitPrice > 0;
+                    const clampedSellQty = Math.max(1, Math.min(drawerQuantity, totalDepositedCount || 1));
+                    const totalGain = sellUnitPrice * clampedSellQty;
+
+                    if (totalDepositedCount > 0) {
+                      return (
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '14px'}}>
+                          <div style={{background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '14px 16px', borderRadius: '10px'}}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px'}}>
+                              <span style={{fontWeight: 700, color: '#10b981', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                                <Package size={16} /> Objets en réserve (/web deposit)
+                              </span>
+                              <span style={{background: '#10b981', color: 'white', fontWeight: 700, fontSize: '0.75rem', padding: '2px 8px', borderRadius: '10px'}}>
+                                {totalDepositedCount} disponible{totalDepositedCount > 1 ? 's' : ''}
+                              </span>
+                            </div>
+                            <div style={{fontSize: '0.82rem', color: 'var(--text-muted)'}}>
+                              Vous possédez <strong style={{color: 'white'}}>{totalDepositedCount}</strong> unité(s) de cet objet en réserve.
+                            </div>
+                          </div>
+
+                          {/* SÉLECTEUR DE QUANTITÉ POUR LA VENTE */}
+                          <div>
+                            <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '6px'}}>
+                              <span style={{color: 'var(--text-muted)'}}>Quantité à traiter :</span>
+                              <span style={{fontWeight: 700, color: 'white'}}>{clampedSellQty} / {totalDepositedCount} unités</span>
+                            </div>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', marginBottom: '10px'}}>
+                              <button className={`multiplier-btn ${clampedSellQty === 1 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(1)}>x1</button>
+                              {totalDepositedCount >= 16 ? (
+                                <button className={`multiplier-btn ${clampedSellQty === 16 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(16)}>x16</button>
+                              ) : <button className="multiplier-btn" disabled style={{opacity: 0.3}}>x16</button>}
+                              {totalDepositedCount >= 32 ? (
+                                <button className={`multiplier-btn ${clampedSellQty === 32 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(32)}>x32</button>
+                              ) : <button className="multiplier-btn" disabled style={{opacity: 0.3}}>x32</button>}
+                              {totalDepositedCount >= 64 ? (
+                                <button className={`multiplier-btn ${clampedSellQty === 64 ? 'selected' : ''}`} onClick={() => setDrawerQuantity(64)}>x64</button>
+                              ) : <button className="multiplier-btn" disabled style={{opacity: 0.3}}>x64</button>}
+                              <button className={`multiplier-btn ${clampedSellQty === totalDepositedCount ? 'selected' : ''}`} onClick={() => setDrawerQuantity(totalDepositedCount)}>Max</button>
+                            </div>
+                            <input 
+                              type="range" 
+                              min="1" 
+                              max={totalDepositedCount} 
+                              value={clampedSellQty} 
+                              onChange={e => setDrawerQuantity(parseInt(e.target.value) || 1)} 
+                              style={{width: '100%', accentColor: '#10b981'}} 
+                            />
+                          </div>
+
+                          {/* SYNTHÈSE DE TRANSACTION */}
+                          <div style={{background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                              <span>Cours de rachat :</span>
+                              <span style={{fontWeight: 600, color: 'white'}}>{sellUnitPrice.toFixed(2)} $ /u</span>
+                            </div>
+                            <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-muted)'}}>
+                              <span>Quantité sélectionnée :</span>
+                              <span style={{fontWeight: 600, color: 'white'}}>x{clampedSellQty}</span>
+                            </div>
+                            <div style={{borderTop: '1px solid var(--card-border)', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.05rem', color: 'white'}}>
+                              <span>Gain estimé :</span>
+                              <span style={{color: '#10b981'}}>+{totalGain.toFixed(2)} $</span>
+                            </div>
+                          </div>
+
+                          {/* BOUTONS D'ACTION */}
+                          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+                            <button 
+                              className="login-button"
+                              style={{
+                                width: '100%', 
+                                background: canSellThis ? '#10b981' : 'rgba(255,255,255,0.1)', 
+                                borderColor: canSellThis ? '#10b981' : 'transparent', 
+                                padding: '12px', 
+                                fontWeight: 700, 
+                                fontSize: '0.88rem',
+                                cursor: canSellThis ? 'pointer' : 'not-allowed',
+                                opacity: canSellThis ? 1 : 0.5
+                              }}
+                              disabled={!canSellThis || isProcessingAction}
+                              onClick={() => {
+                                if (depositedForThis.length > 0) {
+                                  handleSellDeposited(depositedForThis[0], clampedSellQty);
+                                }
+                              }}
+                            >
+                              {isProcessingAction ? 'Transaction en cours...' : canSellThis ? `Vendre ${clampedSellQty} unité(s) (+${totalGain.toFixed(2)} $)` : 'Non racheté par la boutique'}
+                            </button>
+                            <button
+                              className="login-button"
+                              style={{
+                                width: '100%', 
+                                background: 'rgba(59,130,246,0.15)', 
+                                borderColor: 'rgba(59,130,246,0.5)', 
+                                color: '#93c5fd', 
+                                padding: '12px', 
+                                fontWeight: 700, 
+                                fontSize: '0.88rem',
+                                cursor: 'pointer'
+                              }}
+                              disabled={isProcessingAction}
+                              onClick={() => {
+                                if (depositedForThis.length > 0) {
+                                  handleWithdrawDeposited(depositedForThis[0], clampedSellQty);
+                                }
+                              }}
+                            >
+                              {isProcessingAction ? 'Traitement...' : `Récupérer ${clampedSellQty} unité(s) en jeu`}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    // Si 0 déposé pour cet item
+                    return (
+                      <div style={{background: 'rgba(245, 158, 11, 0.08)', border: '1px solid rgba(245, 158, 11, 0.25)', padding: '14px', borderRadius: '10px'}}>
+                        <div style={{display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 700, color: '#f59e0b', fontSize: '0.92rem', marginBottom: '6px'}}>
+                          <AlertTriangle size={18} /> Aucun objet déposé en réserve
+                        </div>
+                        <div style={{fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: '1.5'}}>
+                          Vous ne possédez aucun <strong style={{color: 'white'}}>{selectedItem.material}</strong> dans votre réserve web (0 disponible).
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div style={{background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.25)', padding: '14px', borderRadius: '10px'}}>
+                    <div style={{fontWeight: 700, color: 'var(--accent)', fontSize: '0.92rem', marginBottom: '6px'}}>
+                      Comment vendre cet objet en ligne ?
+                    </div>
+                    <ol style={{margin: '0', paddingLeft: '18px', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: '1.5'}}>
+                      <li>Connectez-vous sur le serveur Minecraft.</li>
+                      <li>Prenez l'objet en main et tapez la commande : <code style={{color: '#60a5fa', fontWeight: 700}}>/web deposit</code></li>
+                      <li>Revenez ici ou ouvrez l'onglet <strong style={{color: 'white'}}>Mes Objets Déposés</strong> pour le vendre en ligne d'un simple clic !</li>
+                    </ol>
+                    <div style={{marginTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic'}}>
+                      Astuce : pour récupérer vos objets déposés non vendus en jeu, tapez <code style={{color: '#60a5fa'}}>/web withdraw</code>.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </>
         )}
       </aside>
+
+      {/* MODALE DE SÉLECTION DE QUANTITÉ POUR VENTE / RÉCUPÉRATION */}
+      {qtyModal.open && qtyModal.item && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.75)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9998,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }} onClick={() => setQtyModal(prev => ({ ...prev, open: false }))}>
+          <div style={{
+            background: '#161922',
+            border: '1px solid var(--card-border)',
+            borderRadius: '14px',
+            padding: '24px',
+            maxWidth: '460px',
+            width: '100%',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.6)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+              <div style={{fontWeight: 700, fontSize: '1.1rem', color: 'white', display: 'flex', alignItems: 'center', gap: '8px'}}>
+                {qtyModal.action === 'sell' ? (
+                  <>
+                    <TrendingUp size={20} color="#10b981" />
+                    <span>Vendre des objets déposés</span>
+                  </>
+                ) : (
+                  <>
+                    <Package size={20} color="#3b82f6" />
+                    <span>Récupérer des objets en jeu</span>
+                  </>
+                )}
+              </div>
+              <button onClick={() => setQtyModal(prev => ({ ...prev, open: false }))} style={{background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer'}}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* ITEM BANNER */}
+            <div style={{display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(0,0,0,0.3)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--card-border)'}}>
+              <div className="mc-slot-box" style={{width: '48px', height: '48px'}}>
+                <div className="mc-item-icon" style={{width: '36px', height: '36px'}}>
+                  <img src={getMinecraftItemUrl(qtyModal.item.material)} alt={qtyModal.item.material} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
+                </div>
+              </div>
+              <div style={{flex: 1}}>
+                <div style={{fontWeight: 700, fontSize: '1rem', color: 'white'}}>{qtyModal.item.material.replace(/_/g, ' ')}</div>
+                <div style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>
+                  Total en réserve : <strong style={{color: '#10b981'}}>x{qtyModal.item.amount}</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* SÉLECTEUR DE QUANTITÉ */}
+            <div>
+              <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '8px'}}>
+                <span style={{color: 'var(--text-muted)'}}>Quantité à {qtyModal.action === 'sell' ? 'vendre' : 'récupérer'} :</span>
+                <span style={{fontWeight: 700, color: 'white', fontSize: '1rem'}}>{qtyModal.quantity} / {qtyModal.item.amount}</span>
+              </div>
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', marginBottom: '12px'}}>
+                <button className={`multiplier-btn ${qtyModal.quantity === 1 ? 'selected' : ''}`} onClick={() => setQtyModal(prev => ({ ...prev, quantity: 1 }))}>x1</button>
+                {qtyModal.item.amount >= 16 ? (
+                  <button className={`multiplier-btn ${qtyModal.quantity === 16 ? 'selected' : ''}`} onClick={() => setQtyModal(prev => ({ ...prev, quantity: 16 }))}>x16</button>
+                ) : <button className="multiplier-btn" disabled style={{opacity: 0.3}}>x16</button>}
+                {qtyModal.item.amount >= 32 ? (
+                  <button className={`multiplier-btn ${qtyModal.quantity === 32 ? 'selected' : ''}`} onClick={() => setQtyModal(prev => ({ ...prev, quantity: 32 }))}>x32</button>
+                ) : <button className="multiplier-btn" disabled style={{opacity: 0.3}}>x32</button>}
+                {qtyModal.item.amount >= 64 ? (
+                  <button className={`multiplier-btn ${qtyModal.quantity === 64 ? 'selected' : ''}`} onClick={() => setQtyModal(prev => ({ ...prev, quantity: 64 }))}>x64</button>
+                ) : <button className="multiplier-btn" disabled style={{opacity: 0.3}}>x64</button>}
+                <button className={`multiplier-btn ${qtyModal.quantity === qtyModal.item.amount ? 'selected' : ''}`} onClick={() => setQtyModal(prev => ({ ...prev, quantity: prev.item.amount }))}>Max</button>
+              </div>
+              <input 
+                type="range" 
+                min="1" 
+                max={qtyModal.item.amount} 
+                value={qtyModal.quantity} 
+                onChange={e => setQtyModal(prev => ({ ...prev, quantity: Math.max(1, Math.min(parseInt(e.target.value) || 1, prev.item.amount)) }))} 
+                style={{width: '100%', accentColor: qtyModal.action === 'sell' ? '#10b981' : '#3b82f6'}} 
+              />
+            </div>
+
+            {/* SYNTHÈSE SI VENTE */}
+            {qtyModal.action === 'sell' && (
+              <div style={{background: 'rgba(0,0,0,0.3)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '6px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', color: 'var(--text-muted)'}}>
+                  <span>Cours actuel :</span>
+                  <span style={{fontWeight: 600, color: 'white'}}>{(qtyModal.item.currentSellPrice || qtyModal.item.baseSellPrice || 0).toFixed(2)} $ /u</span>
+                </div>
+                <div style={{borderTop: '1px solid var(--card-border)', paddingTop: '6px', display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1rem', color: 'white'}}>
+                  <span>Gain total :</span>
+                  <span style={{color: '#10b981'}}>+{((qtyModal.item.currentSellPrice || qtyModal.item.baseSellPrice || 0) * qtyModal.quantity).toFixed(2)} $</span>
+                </div>
+              </div>
+            )}
+
+            {/* BOUTONS D'ACTION DE LA MODALE */}
+            <div style={{display: 'flex', gap: '10px', marginTop: '4px'}}>
+              <button 
+                className="multiplier-btn" 
+                style={{flex: 1, padding: '12px', background: 'rgba(255,255,255,0.05)', color: 'white'}}
+                onClick={() => setQtyModal(prev => ({ ...prev, open: false }))}
+              >
+                Annuler
+              </button>
+              <button 
+                className="login-button" 
+                style={{
+                  flex: 2, 
+                  padding: '12px', 
+                  fontWeight: 700, 
+                  background: qtyModal.action === 'sell' ? '#10b981' : '#2563eb', 
+                  borderColor: qtyModal.action === 'sell' ? '#10b981' : '#2563eb'
+                }}
+                disabled={isProcessingAction}
+                onClick={() => {
+                  const it = qtyModal.item;
+                  const q = qtyModal.quantity;
+                  setQtyModal(prev => ({ ...prev, open: false }));
+                  if (qtyModal.action === 'sell') {
+                    handleSellDeposited(it, q);
+                  } else {
+                    handleWithdrawDeposited(it, q);
+                  }
+                }}
+              >
+                {qtyModal.action === 'sell' ? `Confirmer la vente (x${qtyModal.quantity})` : `Confirmer le retrait (x${qtyModal.quantity})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1894,7 +2514,7 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
               <div style={{display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid var(--card-border)'}}>
                 <div className="mc-slot-box" style={{width: '50px', height: '50px'}}>
                   <div className="mc-item-icon" style={{width: '36px', height: '36px'}}>
-                    <img src={getMinecraftItemUrl(item.material || 'STONE')} alt={item.material} />
+                    <img src={getMinecraftItemUrl(item.material || 'STONE')} alt={item.material} loading="lazy" decoding="async" />
                   </div>
                 </div>
                 <div style={{flex: 1, minWidth: 0}}>
