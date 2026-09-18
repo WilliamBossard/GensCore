@@ -41,14 +41,23 @@ Toutes les commandes de GensCore sont enregistrées de façon asynchrone via le 
 ---
 
 ## Guildes & Équipes (Teams)
+Système complet de clans avec trésorerie partagée, claims territoriaux par chunks, intégration BlueMap et améliorations permanentes.
 
 | Commande | Arguments | Permission | Défaut | Description |
 |---|---|---|---|---|
 | `/team` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu de gestion de guilde. *(Aliases : `/guild`, `/guilde`, `/teams`)* |
 | `/team create` | `<nom>` | *Aucune* | Tout le monde | Fonde une nouvelle guilde (16 caractères max). |
-| `/team invite` | `<joueur>` | *Aucune* | Tout le monde | Invite un joueur à rejoindre votre guilde. |
+| `/team invite` | `<joueur>` | *Aucune* | Tout le monde | Invite un joueur à rejoindre votre guilde (chef uniquement). |
 | `/team accept` | *Aucun* | *Aucune* | Tout le monde | Accepte une invitation en attente. |
 | `/team quest` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu des quêtes communautaires de guilde. |
+| `/team upgrades` | *Aucun* | *Aucune* | Tout le monde | Ouvre la boutique d'améliorations de guilde. |
+| `/team deposit` | `<montant>` | *Aucune* | Tout le monde | Dépose de l'argent dans la banque de guilde (si Économie active). |
+| `/team depositxp` | `<niveaux>` | *Aucune* | Tout le monde | Dépose des niveaux d'XP dans la banque (alternative si Économie désactivée). |
+| `/team withdraw` | `<montant>` | *Aucune* | Chef | Retire de l'argent de la banque de guilde (chef uniquement). |
+| `/team withdrawxp` | `<niveaux>` | *Aucune* | Chef | Retire des niveaux d'XP de la banque de guilde (chef uniquement). |
+| `/team claim` | *Aucun* | *Aucune* | Chef | Revendique le chunk actuel pour la guilde. Financé strictement par la banque. |
+| `/team unclaim` | *Aucun* | *Aucune* | Chef | Libère le chunk revendiqué et le rend au monde sauvage. |
+| `/team color` | `<hex>` | *Aucune* | Chef | Définit la couleur du territoire de guilde sur BlueMap (ex: `#3498db`). |
 
 ---
 

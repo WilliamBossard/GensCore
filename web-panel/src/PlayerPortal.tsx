@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package, Gem, Crown, Coins, XCircle, Gift } from 'lucide-react';
+import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package, Gem, Crown, Coins, XCircle, Gift, Users, Landmark, Flag, Sparkles, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Route, Routes, Link, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
@@ -718,6 +718,531 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
   );
 }
 
+export function PlayerTeamSection({ token }: { token: string }) {
+  const { t } = useTranslation();
+  const [team, setTeam] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [customColor, setCustomColor] = useState('#2ecc71');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [feedback, setFeedback] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+
+  const fetchTeam = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/player/team`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setTeam(data);
+        if (data.color) setCustomColor(data.color);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeam();
+  }, [token]);
+
+  const handleDeposit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!depositAmount || isNaN(Number(depositAmount)) || Number(depositAmount) <= 0) return;
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      const type = team?.isEconomyEnabled ? 'money' : 'xp';
+      const res = await fetch(`${API_URL}/player/team/deposit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ amount: Number(depositAmount), type })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ text: t('web.common.success') || 'Depot effectue avec succes.', type: 'success' });
+        setDepositAmount('');
+        fetchTeam();
+      } else {
+        setFeedback({ text: data.error || t('web.common.error'), type: 'error' });
+      }
+    } catch (err) {
+      setFeedback({ text: t('web.auth.network_error') || 'Erreur reseau.', type: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!withdrawAmount || isNaN(Number(withdrawAmount)) || Number(withdrawAmount) <= 0) return;
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      const type = team?.isEconomyEnabled ? 'money' : 'xp';
+      const res = await fetch(`${API_URL}/player/team/withdraw`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ amount: Number(withdrawAmount), type })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ text: t('web.common.success') || 'Retrait effectue avec succes.', type: 'success' });
+        setWithdrawAmount('');
+        fetchTeam();
+      } else {
+        setFeedback({ text: data.error || t('web.common.error'), type: 'error' });
+      }
+    } catch (err) {
+      setFeedback({ text: t('web.auth.network_error') || 'Erreur reseau.', type: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUpgrade = async (perkId: string) => {
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`${API_URL}/player/team/upgrade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ perkId })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ text: t('web.common.success') || 'Amelioration debloquee avec succes via la banque.', type: 'success' });
+        fetchTeam();
+      } else {
+        setFeedback({ text: data.error || t('web.common.error'), type: 'error' });
+      }
+    } catch (err) {
+      setFeedback({ text: t('web.auth.network_error') || 'Erreur reseau.', type: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSaveColor = async () => {
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`${API_URL}/player/team/color`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ color: customColor })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ text: t('web.common.success') || 'Couleur mise a jour sur BlueMap.', type: 'success' });
+        fetchTeam();
+      } else {
+        setFeedback({ text: data.error || t('web.common.error'), type: 'error' });
+      }
+    } catch (err) {
+      setFeedback({ text: t('web.auth.network_error') || 'Erreur reseau.', type: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="loading" style={{padding: '3rem'}}>{t('web.public.loading') || 'Chargement...'}</div>;
+  }
+
+  if (!team || !team.hasTeam) {
+    return (
+      <div className="dashboard-content" style={{padding: '2rem'}}>
+        <div className="admin-card" style={{maxWidth: '700px', margin: '2rem auto', textAlign: 'center', padding: '3rem 2rem'}}>
+          <div style={{width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem'}}>
+            <Users size={32} color="var(--accent)" />
+          </div>
+          <h2 style={{fontSize: '1.8rem', marginBottom: '1rem'}}>{t('web.team.no_team_title') || 'Aucune Guilde Active'}</h2>
+          <p style={{color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1.05rem', marginBottom: '1.5rem'}}>
+            {t('web.team.no_team_desc') || "Vous ne faites actuellement partie d'aucune guilde. Creez-en une en jeu avec /team create <nom> ou demandez a vos amis de vous recruter !"}
+          </p>
+          <div style={{background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '1rem', display: 'inline-block'}}>
+            <code style={{color: 'var(--accent)', fontWeight: 'bold'}}>/team create &lt;nom&gt;</code>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const isEco = team.isEconomyEnabled;
+  const isLeader = team.isLeader;
+  const upgrades = team.upgrades || {};
+
+  const perksConfig = [
+    {
+      id: 'MEMBERS',
+      title: t('web.team.perk_members_name') || 'Membres Max',
+      desc: t('web.team.perk_members_desc') || 'Augmente la capacite maximale de joueurs dans votre guilde.',
+      curLvl: upgrades['MEMBERS'] || 0,
+      maxLvl: 3,
+      currentStat: `${team.maxMembers} membres`,
+      nextStat: (upgrades['MEMBERS'] || 0) < 3 ? `${5 + ((upgrades['MEMBERS'] || 0) + 1) * 3} membres` : null,
+      costMoney: [5000, 15000, 35000][upgrades['MEMBERS'] || 0] ?? -1,
+      costXp: [25, 45, 70][upgrades['MEMBERS'] || 0] ?? -1,
+    },
+    {
+      id: 'CLAIMS',
+      title: t('web.team.perk_claims_name') || 'Territoire Etendu',
+      desc: t('web.team.perk_claims_desc') || 'Augmente le nombre maximum de chunks revendicables.',
+      curLvl: upgrades['CLAIMS'] || 0,
+      maxLvl: 4,
+      currentStat: `${team.maxClaims} chunks`,
+      nextStat: (upgrades['CLAIMS'] || 0) < 4 ? `${4 + ((upgrades['CLAIMS'] || 0) + 1) * 4} chunks` : null,
+      costMoney: [4000, 10000, 20000, 40000][upgrades['CLAIMS'] || 0] ?? -1,
+      costXp: [20, 35, 55, 80][upgrades['CLAIMS'] || 0] ?? -1,
+    },
+    {
+      id: 'JOBS',
+      title: t('web.team.perk_jobs_name') || 'Bonus Metiers',
+      desc: t('web.team.perk_jobs_desc') || "Multiplicateur d'experience sur tous les metiers des membres.",
+      curLvl: upgrades['JOBS'] || 0,
+      maxLvl: 3,
+      currentStat: `${((team.jobsXpMultiplier || 1.0) * 100 - 100).toFixed(0)}% bonus`,
+      nextStat: (upgrades['JOBS'] || 0) < 3 ? `+${(((upgrades['JOBS'] || 0) + 1) * 5)}% bonus` : null,
+      costMoney: [10000, 25000, 50000][upgrades['JOBS'] || 0] ?? -1,
+      costXp: [30, 50, 80][upgrades['JOBS'] || 0] ?? -1,
+    },
+    {
+      id: 'AH_TAX',
+      title: t('web.team.perk_ah_name') || 'Reduction Taxe HDV',
+      desc: t('web.team.perk_ah_desc') || "Reduit la taxe de vente sur l'Hotel des Ventes.",
+      curLvl: upgrades['AH_TAX'] || 0,
+      maxLvl: 2,
+      currentStat: `-${((team.ahTaxReduction || 0) * 100).toFixed(0)}% taxe`,
+      nextStat: (upgrades['AH_TAX'] || 0) < 2 ? `-${(((upgrades['AH_TAX'] || 0) + 1) * 25)}% taxe` : null,
+      costMoney: [8000, 20000][upgrades['AH_TAX'] || 0] ?? -1,
+      costXp: [30, 55][upgrades['AH_TAX'] || 0] ?? -1,
+    },
+    {
+      id: 'QUESTS',
+      title: t('web.team.perk_quests_name') || 'Bonus Quetes Coop',
+      desc: t('web.team.perk_quests_desc') || 'Multiplicateur de points gagnes lors des quetes hebdo de guilde.',
+      curLvl: upgrades['QUESTS'] || 0,
+      maxLvl: 2,
+      currentStat: `${(team.questPointsMultiplier || 1.0).toFixed(2)}x points`,
+      nextStat: (upgrades['QUESTS'] || 0) < 2 ? `${(1.0 + ((upgrades['QUESTS'] || 0) + 1) * 0.10).toFixed(2)}x points` : null,
+      costMoney: [12000, 30000][upgrades['QUESTS'] || 0] ?? -1,
+      costXp: [35, 60][upgrades['QUESTS'] || 0] ?? -1,
+    }
+  ];
+
+  return (
+    <div className="dashboard-content" style={{padding: '2rem'}}>
+      {/* Header Guilde */}
+      <div className="admin-card" style={{marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '1.2rem'}}>
+          <div style={{
+            width: '56px', height: '56px', borderRadius: '12px',
+            background: team.color || '#2ecc71', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: `0 0 20px ${(team.color || '#2ecc71')}66`
+          }}>
+            <Shield size={32} color="#ffffff" />
+          </div>
+          <div>
+            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+              <h1 style={{margin: 0, fontSize: '1.8rem'}}>{team.name}</h1>
+              <span style={{
+                background: isLeader ? 'rgba(234, 179, 8, 0.2)' : 'rgba(148, 163, 184, 0.2)',
+                color: isLeader ? '#eab308' : '#94a3b8',
+                border: `1px solid ${isLeader ? 'rgba(234, 179, 8, 0.4)' : 'rgba(148, 163, 184, 0.3)'}`,
+                padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'
+              }}>
+                {isLeader ? (t('web.team.role_leader') || 'Chef de Guilde') : (t('web.team.role_member') || 'Membre')}
+              </span>
+            </div>
+            <p style={{color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem'}}>
+              {t('web.team.subtitle') || 'Gerez votre equipe, votre tresorerie et vos ameliorations'}
+            </p>
+          </div>
+        </div>
+        <button onClick={fetchTeam} className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-main)', cursor: 'pointer'}}>
+          <RefreshCw size={16} /> {t('web.wallet.refresh') || 'Actualiser'}
+        </button>
+      </div>
+
+      {feedback && (
+        <div style={{
+          padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem',
+          background: feedback.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${feedback.type === 'success' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          color: feedback.type === 'success' ? '#10b981' : '#ef4444',
+          display: 'flex', alignItems: 'center', gap: '10px'
+        }}>
+          {feedback.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+          <span>{feedback.text}</span>
+        </div>
+      )}
+
+      {/* Grille Principale */}
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: '1.5rem', marginBottom: '2rem'}}>
+        {/* Carte Banque */}
+        <div className="admin-card">
+          <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem'}}>
+            <Landmark size={24} color="var(--accent)" />
+            <h3 style={{margin: 0}}>{t('web.team.bank_title') || 'Banque de Guilde'}</h3>
+          </div>
+          <p style={{color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem'}}>
+            {t('web.team.bank_desc') || "Tous les achats de territoires et d'ameliorations sont obligatoirement preleves sur cette reserve commune."}
+          </p>
+
+          <div style={{background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '1.2rem', marginBottom: '1.5rem', textAlign: 'center'}}>
+            <span style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px'}}>
+              {isEco ? 'Solde Bancaire Commun ($)' : 'Reserve d\'Experience Commune (XP)'}
+            </span>
+            <span style={{fontSize: '2rem', fontWeight: 'bold', color: isEco ? '#f59e0b' : '#10b981'}}>
+              {isEco ? `${Number(team.bankBalance || 0).toFixed(2)} $` : `${team.bankXp || 0} Niveaux XP`}
+            </span>
+          </div>
+
+          {/* Formulaire Depot */}
+          <form onSubmit={handleDeposit} style={{marginBottom: '1rem'}}>
+            <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px'}}>
+              {isEco ? 'Deposer des dollars dans la banque :' : 'Deposer des niveaux d\'XP (joueur connecte) :'}
+            </label>
+            <div style={{display: 'flex', gap: '10px'}}>
+              <input
+                type="number"
+                min="1"
+                step={isEco ? '0.01' : '1'}
+                placeholder={isEco ? 'Montant en $' : 'Niveaux d\'XP'}
+                value={depositAmount}
+                onChange={e => setDepositAmount(e.target.value)}
+                className="login-input"
+                style={{margin: 0, flex: 1}}
+              />
+              <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: 'var(--accent)'}}>
+                {t('web.team.deposit_btn') || 'Deposer'}
+              </button>
+            </div>
+          </form>
+
+          {/* Formulaire Retrait (Leader Only) */}
+          {isLeader ? (
+            <form onSubmit={handleWithdraw}>
+              <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px'}}>
+                {isEco ? 'Retirer des fonds vers votre solde :' : 'Retirer des niveaux d\'XP vers votre joueur :'}
+              </label>
+              <div style={{display: 'flex', gap: '10px'}}>
+                <input
+                  type="number"
+                  min="1"
+                  step={isEco ? '0.01' : '1'}
+                  placeholder={isEco ? 'Montant en $' : 'Niveaux d\'XP'}
+                  value={withdrawAmount}
+                  onChange={e => setWithdrawAmount(e.target.value)}
+                  className="login-input"
+                  style={{margin: 0, flex: 1}}
+                />
+                <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: '#3b82f6'}}>
+                  {t('web.team.withdraw_btn') || 'Retirer'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: '0.5rem 0 0 0'}}>
+              {t('web.team.withdraw_leader_only') || 'Seul le chef de guilde peut retirer des fonds.'}
+            </p>
+          )}
+        </div>
+
+        {/* Carte Territoire & Claims */}
+        <div className="admin-card">
+          <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem'}}>
+            <Flag size={24} color="#3b82f6" />
+            <h3 style={{margin: 0}}>{t('web.team.territory_title') || 'Territoire & Claims (BlueMap)'}</h3>
+          </div>
+          <p style={{color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem'}}>
+            {t('web.team.territory_desc') || 'Vos chunks proteges sur le serveur et visibles en temps reel sur la carte.'}
+          </p>
+
+          <div style={{marginBottom: '1.5rem'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '8px'}}>
+              <span>{t('web.team.claims_count', { current: team.currentClaims || 0, max: team.maxClaims || 4 }) || `Chunks possedes : ${team.currentClaims || 0} / ${team.maxClaims || 4}`}</span>
+              <span style={{fontWeight: 'bold', color: 'var(--accent)'}}>
+                {Math.round(((team.currentClaims || 0) / (team.maxClaims || 4)) * 100)}%
+              </span>
+            </div>
+            <div style={{height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '5px', overflow: 'hidden'}}>
+              <div style={{
+                height: '100%',
+                width: `${Math.min(100, Math.round(((team.currentClaims || 0) / (team.maxClaims || 4)) * 100))}%`,
+                background: team.color || '#2ecc71',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+            <span style={{fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginTop: '6px'}}>
+              {isEco ? 'Cout par claim : 1500.00 $ (preleve sur la banque)' : 'Cout par chunk : 10 Niveaux XP (preleve sur la banque)'}
+            </span>
+          </div>
+
+          <div style={{borderTop: '1px solid var(--card-border)', paddingTop: '1.2rem'}}>
+            <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px'}}>
+              {t('web.team.color_label') || 'Couleur de la Guilde sur BlueMap :'}
+            </label>
+            <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+              <input
+                type="color"
+                value={customColor}
+                onChange={e => setCustomColor(e.target.value)}
+                disabled={!isLeader}
+                style={{width: '44px', height: '44px', padding: '2px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: isLeader ? 'pointer' : 'not-allowed', background: 'transparent'}}
+              />
+              <input
+                type="text"
+                value={customColor}
+                onChange={e => setCustomColor(e.target.value)}
+                disabled={!isLeader}
+                className="login-input"
+                style={{margin: 0, maxWidth: '120px', fontFamily: 'monospace'}}
+              />
+              {isLeader && (
+                <button onClick={handleSaveColor} disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: 'var(--card-bg)', border: '1px solid var(--card-border)'}}>
+                  {t('web.team.color_save_btn') || 'Enregistrer'}
+                </button>
+              )}
+            </div>
+            {!isLeader && (
+              <span style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', display: 'block', marginTop: '6px'}}>
+                Seul le chef de guilde peut modifier la couleur de territoire.
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Boutique des Améliorations de Guilde */}
+      <div className="admin-card" style={{marginBottom: '2rem'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem'}}>
+          <Sparkles size={24} color="#f59e0b" />
+          <h3 style={{margin: 0}}>{t('web.team.upgrades_title') || 'Ameliorations de Guilde'}</h3>
+        </div>
+        <p style={{color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem'}}>
+          {t('web.team.upgrades_desc') || 'Achetez des bonus permanents pour votre guilde grace aux fonds de votre banque.'}
+        </p>
+
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.2rem'}}>
+          {perksConfig.map(p => {
+            const isMax = p.curLvl >= p.maxLvl;
+            const cost = isEco ? p.costMoney : p.costXp;
+            const hasFunds = isEco ? (team.bankBalance >= cost) : (team.bankXp >= cost);
+
+            return (
+              <div key={p.id} style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: `1px solid ${isMax ? 'rgba(16, 185, 129, 0.4)' : 'var(--card-border)'}`,
+                borderRadius: '10px', padding: '1.2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+              }}>
+                <div>
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                    <h4 style={{margin: 0, fontSize: '1.05rem'}}>{p.title}</h4>
+                    <span style={{
+                      padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold',
+                      background: isMax ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
+                      color: isMax ? '#10b981' : '#3b82f6',
+                      border: `1px solid ${isMax ? 'rgba(16, 185, 129, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`
+                    }}>
+                      {isMax ? (t('web.team.level_max') || 'NIVEAU MAX') : (t('web.team.level_label', { current: p.curLvl, max: p.maxLvl }) || `Niveau ${p.curLvl}/${p.maxLvl}`)}
+                    </span>
+                  </div>
+                  <p style={{fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', minHeight: '38px'}}>
+                    {p.desc}
+                  </p>
+
+                  <div style={{background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.85rem'}}>
+                    <div style={{color: '#94a3b8', marginBottom: '4px'}}>
+                      Bonus actuel : <strong style={{color: 'white'}}>{p.currentStat}</strong>
+                    </div>
+                    {!isMax && p.nextStat && (
+                      <div style={{color: 'var(--accent)'}}>
+                        Prochain niveau : <strong>{p.nextStat}</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  {!isMax ? (
+                    <div>
+                      <div style={{fontSize: '0.85rem', color: hasFunds ? 'var(--text-muted)' : '#ef4444', marginBottom: '8px'}}>
+                        {isEco ? `Cout : ${cost} $ (banque)` : `Cout : ${cost} Niveaux XP (banque)`}
+                      </div>
+                      {isLeader ? (
+                        <button
+                          onClick={() => handleUpgrade(p.id)}
+                          disabled={actionLoading || !hasFunds}
+                          className="login-button"
+                          style={{
+                            margin: 0, width: '100%', padding: '10px', fontSize: '0.9rem',
+                            background: !hasFunds ? 'var(--card-bg)' : 'linear-gradient(to right, #3b82f6, #2563eb)',
+                            color: !hasFunds ? 'var(--text-muted)' : 'white'
+                          }}
+                        >
+                          {t('web.team.buy_perk_btn') || 'Debloquer le niveau'}
+                        </button>
+                      ) : (
+                        <div style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center'}}>
+                          Reserve au chef de guilde
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{textAlign: 'center', padding: '8px', color: '#10b981', fontWeight: 'bold', fontSize: '0.9rem'}}>
+                      Amelioration Maximale Atteinte
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Membres de la Guilde */}
+      <div className="admin-card">
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem'}}>
+          <Users size={24} color="var(--accent)" />
+          <h3 style={{margin: 0}}>{t('web.team.members_title') || 'Membres de la Guilde'} ({team.members?.length || 0} / {team.maxMembers || 5})</h3>
+        </div>
+
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))', gap: '1rem'}}>
+          {(team.members || []).map((m: any) => (
+            <div key={m.uuid} style={{
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px',
+              background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: '10px'
+            }}>
+              <img
+                src={getPlayerAvatarUrl(m.username, 48)}
+                alt={m.username}
+                style={{width: '40px', height: '40px', borderRadius: '8px'}}
+              />
+              <div style={{overflow: 'hidden'}}>
+                <div style={{fontWeight: 'bold', fontSize: '0.95rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>
+                  {m.username}
+                </div>
+                <span style={{
+                  fontSize: '0.75rem', fontWeight: 'bold',
+                  color: m.isLeader ? '#eab308' : '#94a3b8'
+                }}>
+                  {m.isLeader ? (t('web.team.role_leader') || 'Chef') : (t('web.team.role_member') || 'Membre')}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onLogout: () => void }) {
   const { t } = useTranslation();
   const location = useLocation();
@@ -784,6 +1309,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
         <nav className="admin-nav" style={{marginTop: '1.5rem'}}>
           <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.shop')}</Link>
           <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
+          <Link to="/dashboard/team" className={location.pathname === '/dashboard/team' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Users size={18}/> {t('web.nav.team') || 'Ma Guilde'}</Link>
           {isModuleEnabled('bluemap') && <Link to="/dashboard/map" className={location.pathname === '/dashboard/map' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Map size={18}/> {t('web.nav.map')}</Link>}
           <Link to="/dashboard/stats" className={location.pathname === '/dashboard/stats' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><BarChart2 size={18}/> {t('web.nav.stats')}</Link>
           {areGamesAvailable() && (
@@ -812,6 +1338,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
         <Routes>
           <Route index element={<ClientShop isEnabled={isModuleEnabled('DynamicShop')} />} />
           <Route path="ah" element={<ClientAh isEnabled={isModuleEnabled('AuctionHouse')} />} />
+          <Route path="team" element={<PlayerTeamSection token={playerData.token} />} />
           <Route path="quests" element={<ClientQuests isEnabled={isModuleEnabled('Quests')} />} />
           <Route path="jobs" element={<ClientJobs />} />
           <Route path="map" element={<ClientMap />} />

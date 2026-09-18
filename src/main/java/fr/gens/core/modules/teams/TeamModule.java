@@ -14,6 +14,8 @@ public class TeamModule implements Module {
     
     private fr.gens.core.database.TeamDAO teamDAO;
 
+    private TeamClaimListener teamClaimListener;
+
     public TeamModule(CorePlugin plugin) {
         this.plugin = plugin;
     }
@@ -55,6 +57,12 @@ public class TeamModule implements Module {
 
         teamCommand = new TeamCommand(plugin, teamGui, this);
         Bukkit.getPluginManager().registerEvents(teamListener, plugin);
+
+        if (plugin.getTeamManager() != null && plugin.getTeamManager().getClaimManager() != null) {
+            teamClaimListener = new TeamClaimListener(plugin, plugin.getTeamManager().getClaimManager());
+            Bukkit.getPluginManager().registerEvents(teamClaimListener, plugin);
+        }
+
         plugin.getLangManager().sendConsoleMessage("teammodule.log_1");
     }
 
@@ -70,6 +78,9 @@ public class TeamModule implements Module {
         enabled = false;
         if (teamListener != null) {
             org.bukkit.event.HandlerList.unregisterAll(teamListener);
+        }
+        if (teamClaimListener != null) {
+            org.bukkit.event.HandlerList.unregisterAll(teamClaimListener);
         }
         plugin.getLangManager().sendConsoleMessage("teammodule.log_2");
     }

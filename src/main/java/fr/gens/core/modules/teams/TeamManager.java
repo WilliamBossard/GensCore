@@ -12,9 +12,11 @@ public class TeamManager {
     private final Map<Integer, TeamData> teamsById = new ConcurrentHashMap<>();
     private final Map<UUID, TeamData> teamsByPlayer = new ConcurrentHashMap<>();
     private final java.util.Set<String> teamNames = ConcurrentHashMap.newKeySet();
+    private final TeamClaimManager claimManager;
 
     public TeamManager(CorePlugin plugin) {
         this.plugin = plugin;
+        this.claimManager = new TeamClaimManager(plugin);
         loadTeams();
     }
 
@@ -25,8 +27,13 @@ public class TeamManager {
             for (TeamData t : teamsById.values()) {
                 teamNames.add(t.getName().toLowerCase());
             }
+            module.getTeamDAO().loadClaims(this.claimManager.getClaimsMap());
         }
-        plugin.getLogger().info("Loaded " + teamsById.size() + " teams in memory.");
+        plugin.getLogger().info("Loaded " + teamsById.size() + " teams and " + claimManager.getClaimsMap().size() + " claims in memory.");
+    }
+
+    public TeamClaimManager getClaimManager() {
+        return claimManager;
     }
 
     public TeamData getTeam(int id) {
@@ -108,6 +115,7 @@ public class TeamManager {
     }
 
     public void disbandTeam(TeamData team) {
+        claimManager.removeAllTeamClaims(team.getTeamId());
         for (UUID uuid : team.getMembers()) {
             teamsByPlayer.remove(uuid);
             removeMemberFromDatabase(uuid);
@@ -117,6 +125,7 @@ public class TeamManager {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
             plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                module.getTeamDAO().removeAllTeamClaims(team.getTeamId());
                 module.getTeamDAO().disbandTeam(team.getTeamId());
             });
         }
@@ -150,6 +159,117 @@ public class TeamManager {
     public java.util.List<java.util.Map<String, Object>> getAllTeamStats() {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         return module != null ? module.getTeamDAO().getAllTeamStats(plugin.getTeamQuestManager()) : java.util.Collections.emptyList();
+    }
+
+    public boolean buyPerk(TeamData team, String perkId) {
+        if (team == null || perkId == null) return false;
+        perkId = perkId.toUpperCase();
+        int currentLvl = team.getUpgradeLevel(perkId);
+
+        fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+        boolean isEcoEnabled = (eco != null && eco.isEnabled());
+
+        double costMoney = getPerkCostMoney(perkId, currentLvl + 1);
+        int costXp = getPerkCostXp(perkId, currentLvl + 1);
+
+        if (costMoney < 0 || costXp < 0) return false; // Niveau max atteint
+
+        if (isEcoEnabled) {
+            if (team.getBankBalance() < costMoney) return false;
+            if (!team.withdrawBankBalance(costMoney)) return false;
+        } else {
+            if (team.getBankXp() < costXp) return false;
+            if (!team.withdrawBankXp(costXp)) return false;
+        }
+
+        team.setUpgradeLevel(perkId, currentLvl + 1);
+
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            final String pId = perkId;
+            final int nextLvl = currentLvl + 1;
+            plugin.getFoliaLib().getScheduler().runAsync(t -> {
+                module.getTeamDAO().saveUpgrade(team.getTeamId(), pId, nextLvl);
+                module.getTeamDAO().saveTeamBank(team);
+            });
+        }
+        return true;
+    }
+
+    public static double getPerkCostMoney(String perkId, int targetLevel) {
+        switch (perkId.toUpperCase()) {
+            case "MEMBERS":
+                if (targetLevel == 1) return 5000.0;
+                if (targetLevel == 2) return 15000.0;
+                if (targetLevel == 3) return 35000.0;
+                return -1;
+            case "CLAIMS":
+                if (targetLevel == 1) return 4000.0;
+                if (targetLevel == 2) return 10000.0;
+                if (targetLevel == 3) return 20000.0;
+                if (targetLevel == 4) return 40000.0;
+                return -1;
+            case "JOBS":
+                if (targetLevel == 1) return 10000.0;
+                if (targetLevel == 2) return 25000.0;
+                if (targetLevel == 3) return 50000.0;
+                return -1;
+            case "AH_TAX":
+                if (targetLevel == 1) return 8000.0;
+                if (targetLevel == 2) return 20000.0;
+                return -1;
+            case "QUESTS":
+                if (targetLevel == 1) return 12000.0;
+                if (targetLevel == 2) return 30000.0;
+                return -1;
+            default:
+                return -1;
+        }
+    }
+
+    public static int getPerkCostXp(String perkId, int targetLevel) {
+        switch (perkId.toUpperCase()) {
+            case "MEMBERS":
+                if (targetLevel == 1) return 25;
+                if (targetLevel == 2) return 45;
+                if (targetLevel == 3) return 70;
+                return -1;
+            case "CLAIMS":
+                if (targetLevel == 1) return 20;
+                if (targetLevel == 2) return 35;
+                if (targetLevel == 3) return 55;
+                if (targetLevel == 4) return 80;
+                return -1;
+            case "JOBS":
+                if (targetLevel == 1) return 30;
+                if (targetLevel == 2) return 50;
+                if (targetLevel == 3) return 80;
+                return -1;
+            case "AH_TAX":
+                if (targetLevel == 1) return 30;
+                if (targetLevel == 2) return 55;
+                return -1;
+            case "QUESTS":
+                if (targetLevel == 1) return 35;
+                if (targetLevel == 2) return 60;
+                return -1;
+            default:
+                return -1;
+        }
+    }
+
+    public void saveBankAsync(TeamData team) {
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            plugin.getFoliaLib().getScheduler().runAsync(t -> module.getTeamDAO().saveTeamBank(team));
+        }
+    }
+
+    public void saveColorAsync(TeamData team) {
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            plugin.getFoliaLib().getScheduler().runAsync(t -> module.getTeamDAO().saveTeamColor(team));
+        }
     }
 }
 

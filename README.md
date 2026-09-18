@@ -11,10 +11,10 @@
 
 This plugin is modular and manages the following server aspects:
 * **Economy & Jobs:** Money management (`/money`, `/pay`) and job progression.
-* **Guilds (Teams):** Guild creation, invitation, and management (`/team`, `/guild`, `/guilde`).
+* **Guilds & Claims (Teams):** Full guild system (`/team`) featuring shared treasury bank ($ or XP levels), Folia-ready territory chunk protection, live BlueMap markers with custom colors, 5 purchasable team perks, and complete web management.
 * **Quests & Statistics:** Daily quests and global player statistics.
 * **Web Panel & BlueMap:** A fully responsive Web administration panel for PC and Mobile with BlueMap integration, running via Javalin.
-* **Discord Bot:** Full synchronization with Discord via the JDA API. Includes auto-deleting `!link` commands for account linking, server status (🟢/🔴), and rich embeds.
+* **Discord Bot:** Full synchronization with Discord via the JDA API. Includes auto-deleting `!link` commands for account linking, server status (ONLINE/OFFLINE), and rich embeds.
 * **Cross-play Support:** Integrated support for Bedrock players via Geyser and Floodgate (custom placeholders and Bedrock-specific prefixes).
 * **Moderation:** Basic commands (`/mute`, `/ban`, `/freeze`, `/openinv`).
 * **Survival Utilities:** Essential commands like `/spawn`, `/sethome`, `/back`, `/tpa`, `/ec`.

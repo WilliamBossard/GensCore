@@ -48,6 +48,34 @@ public class TeamListener implements Listener {
                 return;
             }
 
+            if (item.getType() == Material.NETHER_STAR) {
+                teamGui.openTeamUpgradesGui(player, team);
+                return;
+            }
+
+            if (item.getType() == Material.GRASS_BLOCK) {
+                if (isLeader) {
+                    player.closeInventory();
+                    player.performCommand("team claim");
+                } else {
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut revendiquer un territoire."));
+                }
+                return;
+            }
+
+            if (item.getType() == Material.GOLD_INGOT || item.getType() == Material.EXPERIENCE_BOTTLE) {
+                fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+                boolean isEco = (ecoMod != null && ecoMod.isEnabled());
+                if (isEco) {
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <gold>" + String.format("%.2f", team.getBankBalance()) + " $"));
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team deposit <montant><gray> pour alimenter la banque."));
+                } else {
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <yellow>" + team.getBankXp() + " Niveaux d'XP"));
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team depositxp <niveaux><gray> pour alimenter la banque."));
+                }
+                return;
+            }
+
             if (item.getType() == Material.REPEATER && isLeader) {
                 team.setAutoLock(!team.isAutoLock());
                 // Refresh
@@ -84,6 +112,69 @@ public class TeamListener implements Listener {
     }
 
     @EventHandler
+    public void onUpgradesGuiClick(InventoryClickEvent event) {
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamUpgradesGuiHolder ||
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Améliorations de Guilde")) {
+            if (event.getClickedInventory() == null) return;
+            if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
+                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+
+            event.setCancelled(true);
+            if (!(event.getWhoClicked() instanceof Player)) return;
+            Player player = (Player) event.getWhoClicked();
+            ItemStack item = event.getCurrentItem();
+            if (item == null || item.getType() == Material.AIR || item.getType() == Material.BLACK_STAINED_GLASS_PANE) return;
+
+            TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+            if (team == null) return;
+            boolean isLeader = team.getLeaderUuid().equals(player.getUniqueId());
+
+            if (item.getType() == Material.ARROW) {
+                teamGui.openTeamGui(player);
+                return;
+            }
+
+            String perkKey = null;
+            String perkLabel = "";
+            int slot = event.getSlot();
+            if (slot == 11) {
+                perkKey = "MEMBERS";
+                perkLabel = "Membres Max";
+            } else if (slot == 12) {
+                perkKey = "CLAIMS";
+                perkLabel = "Territoire Étendu";
+            } else if (slot == 13) {
+                perkKey = "JOBS";
+                perkLabel = "Bonus Métiers";
+            } else if (slot == 14) {
+                perkKey = "AH_TAX";
+                perkLabel = "Réduction Taxe HDV";
+            } else if (slot == 15) {
+                perkKey = "QUESTS";
+                perkLabel = "Bonus Quêtes Coop";
+            }
+
+            if (perkKey != null) {
+                if (!isLeader) {
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut acheter des améliorations."));
+                    return;
+                }
+                boolean bought = plugin.getTeamManager().buyPerk(team, perkKey);
+                if (bought) {
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Amélioration " + perkLabel + " achetée avec succès via la banque de guilde !"));
+                } else {
+                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Fonds insuffisants dans la banque de guilde ou niveau max déjà atteint."));
+                }
+                teamGui.openTeamUpgradesGui(player, team);
+            }
+        }
+    }
+
+    @EventHandler
     public void onQuestGuiClick(InventoryClickEvent event) {
         if (event.getInventory().getHolder() instanceof TeamGui.TeamQuestGuiHolder ||
             net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde")) {
@@ -103,8 +194,10 @@ public class TeamListener implements Listener {
     public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
         if (event.getInventory().getHolder() instanceof TeamGui.TeamGuiHolder ||
             event.getInventory().getHolder() instanceof TeamGui.TeamQuestGuiHolder ||
+            event.getInventory().getHolder() instanceof TeamGui.TeamUpgradesGuiHolder ||
             net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Guilde : ") ||
-            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde")) {
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde") ||
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Améliorations de Guilde")) {
             event.setCancelled(true);
         }
     }

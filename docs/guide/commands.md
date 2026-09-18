@@ -41,14 +41,23 @@ All commands in GensCore are parsed asynchronously through the **Cloud Command F
 ---
 
 ## Guilds & Teams
+Comprehensive clan system with shared treasury, territorial chunk claims, BlueMap integration, and permanent team perks.
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
 | `/team` | *None* | *None* | Everyone | Opens the Guild management GUI. *(Aliases: `/guild`, `/guilde`, `/teams`)* |
 | `/team create` | `<name>` | *None* | Everyone | Creates a new guild (max 16 characters). |
-| `/team invite` | `<player>` | *None* | Everyone | Invites a player to join your guild. |
+| `/team invite` | `<player>` | *None* | Everyone | Invites a player to join your guild (leader only). |
 | `/team accept` | *None* | *None* | Everyone | Accepts a pending guild invite. |
 | `/team quest` | *None* | *None* | Everyone | Opens the shared guild quest menu. |
+| `/team upgrades` | *None* | *None* | Everyone | Opens the guild upgrades shop menu. |
+| `/team deposit` | `<amount>` | *None* | Everyone | Deposits dollars into the guild bank (when Economy is active). |
+| `/team depositxp` | `<levels>` | *None* | Everyone | Deposits XP levels into the guild bank (alternative when Economy is disabled). |
+| `/team withdraw` | `<amount>` | *None* | Leader | Withdraws dollars from the guild bank (leader only). |
+| `/team withdrawxp` | `<levels>` | *None* | Leader | Withdraws XP levels from the guild bank (leader only). |
+| `/team claim` | *None* | *None* | Leader | Claims current chunk for the guild. Strictly funded from the guild bank. |
+| `/team unclaim` | *None* | *None* | Leader | Releases the current chunk claim back to the wild. |
+| `/team color` | `<hex>` | *None* | Leader | Sets guild territory color on BlueMap (e.g. `#3498db`). |
 
 ---
 

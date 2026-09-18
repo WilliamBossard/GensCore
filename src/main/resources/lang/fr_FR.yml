@@ -22,6 +22,14 @@ home:
   invalid_reward: "{prefix}<red>Erreur lors de la distribution de votre récompense (objet invalide).</red>"
 guild:
   reward_received: "{prefix}<green>Vous avez recu votre recompense materielle de guilde !</green>"
+  bank_deposit_money: "{prefix}<green><player> a depose <yellow><amount> $</yellow> dans la banque de guilde !</green>"
+  bank_deposit_xp: "{prefix}<green><player> a depose <aqua><levels> niveaux d'XP</aqua> dans la banque de guilde !</green>"
+  bank_withdraw_money: "{prefix}<gold><player> a retire <yellow><amount> $</yellow> de la banque de guilde.</gold>"
+  bank_withdraw_xp: "{prefix}<gold><player> a retire <aqua><levels> niveaux d'XP</aqua> de la banque de guilde.</gold>"
+  claim_success: "{prefix}<green><player> a revendique ce chunk pour la guilde !</green>"
+  unclaim_success: "{prefix}<green><player> a libere un territoire de guilde.</green>"
+  color_updated: "{prefix}<green>La couleur de territoire de la guilde a ete modifiee en <white><color></white> !</green>"
+  upgrade_success: "{prefix}<green>Amelioration <perk> debloquee avec succes via la banque de guilde !</green>"
 db:
   pool_init: "<green>[Base de données] Pool HikariCP (SQLite) initialisé !</green>"
   pool_error: "<red>[Base de données] Erreur lors de l'initialisation du pool HikariCP !</red>"

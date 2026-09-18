@@ -518,6 +518,298 @@ public class WebPlayerAPI implements Listener {
 
             ctx.json(Map.of("success", true, "message", rewardMessage, "prizeIndex", wonIndex));
         });
+
+        // --- GUILD / TEAM REST ENDPOINTS ---
+
+        get("/api/player/team", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.json(Map.of("hasTeam", false));
+                return;
+            }
+
+            fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+            boolean ecoEnabled = (ecoMod != null && ecoMod.isEnabled());
+
+            fr.gens.core.modules.teams.TeamClaimManager claimMgr = plugin.getTeamManager().getClaimManager();
+            int currentClaims = claimMgr != null ? claimMgr.getClaimsCount(team.getTeamId()) : 0;
+
+            List<Map<String, Object>> membersList = new ArrayList<>();
+            for (UUID mUuid : team.getMembers()) {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(mUuid);
+                String name = op.getName() != null ? op.getName() : webDAO.getPlayerUsernameByUuid(mUuid);
+                if (name == null) name = "Inconnu";
+                boolean isLeader = team.getLeaderUuid().equals(mUuid);
+                membersList.add(Map.of(
+                    "uuid", mUuid.toString(),
+                    "username", name,
+                    "isLeader", isLeader
+                ));
+            }
+
+            Map<String, Object> teamInfo = new HashMap<>();
+            teamInfo.put("hasTeam", true);
+            teamInfo.put("teamId", team.getTeamId());
+            teamInfo.put("name", team.getName());
+            teamInfo.put("leaderUuid", team.getLeaderUuid().toString());
+            teamInfo.put("isLeader", team.getLeaderUuid().equals(playerUuid));
+            teamInfo.put("bankBalance", team.getBankBalance());
+            teamInfo.put("bankXp", team.getBankXp());
+            teamInfo.put("color", team.getColor());
+            teamInfo.put("isEconomyEnabled", ecoEnabled);
+            teamInfo.put("currentClaims", currentClaims);
+            teamInfo.put("maxClaims", team.getMaxClaims());
+            teamInfo.put("maxMembers", team.getMaxMembers());
+            teamInfo.put("jobsXpMultiplier", team.getJobsXpMultiplier());
+            teamInfo.put("ahTaxReduction", team.getAhTaxReduction());
+            teamInfo.put("questPointsMultiplier", team.getQuestPointsMultiplier());
+            teamInfo.put("upgrades", team.getUpgrades());
+            teamInfo.put("members", membersList);
+
+            ctx.json(teamInfo);
+        });
+
+        post("/api/player/team/deposit", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            TeamDepositRequest req = ctx.bodyAsClass(TeamDepositRequest.class);
+            fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+            boolean ecoEnabled = (ecoMod != null && ecoMod.isEnabled());
+
+            if ("xp".equalsIgnoreCase(req.type)) {
+                int levels = (int) Math.floor(req.amount);
+                if (levels <= 0) {
+                    ctx.status(400).json(Map.of("error", "Montant d'XP invalide."));
+                    return;
+                }
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP == null || !onlineP.isOnline()) {
+                    ctx.status(400).json(Map.of("error", "Vous devez etre connecte en jeu pour deposer vos niveaux d'XP."));
+                    return;
+                }
+                if (onlineP.getLevel() < levels) {
+                    ctx.status(400).json(Map.of("error", "Niveau d'XP insuffisant (actuel : " + onlineP.getLevel() + ")."));
+                    return;
+                }
+                plugin.getFoliaLib().getScheduler().runAtEntity(onlineP, task -> {
+                    if (onlineP.getLevel() >= levels) {
+                        onlineP.setLevel(onlineP.getLevel() - levels);
+                        team.addBankXp(levels);
+                        plugin.getTeamManager().saveBankAsync(team);
+                        onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez depose <yellow>" + levels + " niveaux d'XP<green> dans la banque de guilde."));
+                    }
+                });
+                ctx.json(Map.of("success", true, "bankXp", team.getBankXp() + levels));
+                return;
+            } else {
+                if (!ecoEnabled) {
+                    ctx.status(400).json(Map.of("error", "L'economie est desactivee sur ce serveur. Utilisez l'XP."));
+                    return;
+                }
+                double amount = req.amount;
+                if (amount <= 0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
+                    ctx.status(400).json(Map.of("error", "Montant d'argent invalide."));
+                    return;
+                }
+                if (ecoMod.getBalance(playerUuid) < amount) {
+                    ctx.status(400).json(Map.of("error", "Solde personnel insuffisant."));
+                    return;
+                }
+                ecoMod.takeMoney(playerUuid, amount);
+                team.addBankBalance(amount);
+                plugin.getTeamManager().saveBankAsync(team);
+
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP != null && onlineP.isOnline()) {
+                    onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez depose <gold>" + String.format("%.2f", amount) + " $<green> dans la banque de guilde."));
+                }
+                ctx.json(Map.of("success", true, "bankBalance", team.getBankBalance()));
+                return;
+            }
+        });
+
+        post("/api/player/team/withdraw", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.getLeaderUuid().equals(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seul le chef de guilde peut retirer des fonds de la banque."));
+                return;
+            }
+
+            TeamDepositRequest req = ctx.bodyAsClass(TeamDepositRequest.class);
+            fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+            boolean ecoEnabled = (ecoMod != null && ecoMod.isEnabled());
+
+            if ("xp".equalsIgnoreCase(req.type)) {
+                int levels = (int) Math.floor(req.amount);
+                if (levels <= 0) {
+                    ctx.status(400).json(Map.of("error", "Montant d'XP invalide."));
+                    return;
+                }
+                if (team.getBankXp() < levels) {
+                    ctx.status(400).json(Map.of("error", "Solde XP de la banque insuffisant."));
+                    return;
+                }
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP == null || !onlineP.isOnline()) {
+                    ctx.status(400).json(Map.of("error", "Vous devez etre connecte en jeu pour recevoir vos niveaux d'XP."));
+                    return;
+                }
+                boolean withdrawn = team.withdrawBankXp(levels);
+                if (!withdrawn) {
+                    ctx.status(400).json(Map.of("error", "Echec du retrait d'XP."));
+                    return;
+                }
+                plugin.getFoliaLib().getScheduler().runAtEntity(onlineP, task -> {
+                    onlineP.setLevel(onlineP.getLevel() + levels);
+                    onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez retire <yellow>" + levels + " niveaux d'XP<green> de la banque de guilde."));
+                });
+                plugin.getTeamManager().saveBankAsync(team);
+                ctx.json(Map.of("success", true, "bankXp", team.getBankXp()));
+                return;
+            } else {
+                if (!ecoEnabled) {
+                    ctx.status(400).json(Map.of("error", "L'economie est desactivee sur ce serveur. Utilisez l'XP."));
+                    return;
+                }
+                double amount = req.amount;
+                if (amount <= 0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
+                    ctx.status(400).json(Map.of("error", "Montant d'argent invalide."));
+                    return;
+                }
+                if (team.getBankBalance() < amount) {
+                    ctx.status(400).json(Map.of("error", "Solde d'argent de la banque insuffisant."));
+                    return;
+                }
+                boolean withdrawn = team.withdrawBankBalance(amount);
+                if (!withdrawn) {
+                    ctx.status(400).json(Map.of("error", "Echec du retrait."));
+                    return;
+                }
+                ecoMod.addMoney(playerUuid, amount);
+                plugin.getTeamManager().saveBankAsync(team);
+
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP != null && onlineP.isOnline()) {
+                    onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez retire <gold>" + String.format("%.2f", amount) + " $<green> de la banque de guilde."));
+                }
+                ctx.json(Map.of("success", true, "bankBalance", team.getBankBalance()));
+                return;
+            }
+        });
+
+        post("/api/player/team/upgrade", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.getLeaderUuid().equals(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seul le chef de guilde peut acheter des ameliorations."));
+                return;
+            }
+
+            TeamUpgradeRequest req = ctx.bodyAsClass(TeamUpgradeRequest.class);
+            if (req.perkId == null || req.perkId.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Identifiant d'amelioration manquant."));
+                return;
+            }
+
+            boolean success = plugin.getTeamManager().buyPerk(team, req.perkId);
+            if (success) {
+                ctx.json(Map.of(
+                    "success", true,
+                    "perkId", req.perkId.toUpperCase(),
+                    "newLevel", team.getUpgradeLevel(req.perkId),
+                    "bankBalance", team.getBankBalance(),
+                    "bankXp", team.getBankXp()
+                ));
+            } else {
+                ctx.status(400).json(Map.of("error", "Fonds insuffisants dans la banque de guilde ou niveau maximum deja atteint."));
+            }
+        });
+
+        post("/api/player/team/color", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.getLeaderUuid().equals(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seul le chef de guilde peut modifier la couleur de la guilde."));
+                return;
+            }
+
+            TeamColorRequest req = ctx.bodyAsClass(TeamColorRequest.class);
+            if (req.color == null || !req.color.matches("^#([A-Fa-f0-9]{6})$")) {
+                ctx.status(400).json(Map.of("error", "Format de couleur invalide (attendu : #RRGGBB)."));
+                return;
+            }
+
+            team.setColor(req.color);
+            plugin.getTeamManager().saveColorAsync(team);
+
+            fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+            if (bm != null) {
+                bm.updateAllTeamTerritories();
+            }
+
+            ctx.json(Map.of("success", true, "color", team.getColor()));
+        });
+
+        get("/api/public/claims", ctx -> {
+            fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+            if (bm != null) {
+                ctx.json(bm.getClaimsMapData());
+            } else {
+                ctx.json(List.of());
+            }
+        });
     }
 
     private List<WheelReward> getActiveWheelRewards() {
@@ -599,6 +891,22 @@ public class WebPlayerAPI implements Listener {
                 e.printStackTrace();
             }
         });
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TeamDepositRequest {
+        public double amount;
+        public String type; // "money" or "xp"
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TeamUpgradeRequest {
+        public String perkId;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TeamColorRequest {
+        public String color;
     }
 }
 

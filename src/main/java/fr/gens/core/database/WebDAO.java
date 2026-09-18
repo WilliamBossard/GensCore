@@ -153,6 +153,20 @@ public class WebDAO {
         return null;
     }
 
+    public String getPlayerUsernameByUuid(UUID uuid) {
+        if (uuid == null) return null;
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT username FROM player_profiles WHERE uuid = ?")) {
+            pstmt.setString(1, uuid.toString());
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("username");
+                }
+            }
+        } catch (Exception e) {}
+        return null;
+    }
+
     public double getPlayerBalance(String uuidStr) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
              PreparedStatement pstmt = conn.prepareStatement("SELECT balance FROM players_economy WHERE uuid = ?")) {

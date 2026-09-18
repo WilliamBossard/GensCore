@@ -198,6 +198,48 @@ web:
     new: NOUVEAU
     shop: Boutique Dynamique
     stats: Mes Statistiques
+    team: Ma Guilde
+  team:
+    title: Gestion de Guilde
+    subtitle: Gérez votre équipe, votre trésorerie et vos améliorations
+    no_team_title: Aucune Guilde
+    no_team_desc: Vous ne faites actuellement partie d'aucune guilde. Créez-en une en jeu avec /team create <nom> ou rejoignez des alliés !
+    role_leader: Chef de Guilde
+    role_member: Membre
+    bank_title: Banque de Guilde
+    bank_desc: Tous les achats de territoires et d'améliorations sont obligatoirement prélevés sur cette réserve commune.
+    bank_balance_money: "Solde Bancaire : {amount} $"
+    bank_balance_xp: "Solde XP : {amount} Niveaux d'XP"
+    deposit_btn: Déposer
+    withdraw_btn: Retirer
+    deposit_money_placeholder: Montant en $
+    deposit_xp_placeholder: Niveaux d'XP
+    withdraw_leader_only: Seul le chef de guilde peut retirer des fonds.
+    territory_title: Territoire & Claims (BlueMap)
+    territory_desc: Vos chunks protégés sur le serveur et visibles en temps réel sur la carte.
+    claims_count: "Chunks possédés : {current} / {max}"
+    claim_cost_money: "Coût par claim : 1500.00 $ (prélevé sur la banque)"
+    claim_cost_xp: "Coût par chunk : 10 Niveaux d'XP (prélevé sur la banque)"
+    color_label: Couleur de la Guilde sur BlueMap
+    color_save_btn: Sauvegarder la couleur
+    upgrades_title: Améliorations de Guilde
+    upgrades_desc: Achetez des bonus permanents pour votre guilde grâce aux fonds de votre banque.
+    perk_members_name: Membres Max
+    perk_members_desc: Augmente la capacité maximale de joueurs dans votre guilde.
+    perk_claims_name: Territoire Étendu
+    perk_claims_desc: Augmente le nombre maximum de chunks revendicables.
+    perk_jobs_name: Bonus Métiers
+    perk_jobs_desc: Multiplicateur d'expérience sur tous les métiers des membres.
+    perk_ah_name: Réduction Taxe HDV
+    perk_ah_desc: Réduit la taxe de vente sur l'Hôtel des Ventes pour tous les membres.
+    perk_quests_name: Bonus Quêtes Coop
+    perk_quests_desc: Multiplicateur de points gagnés lors des quêtes hebdomadaires de guilde.
+    level_label: "Niveau {current} / {max}"
+    level_max: NIVEAU MAX
+    buy_perk_btn: Acheter le niveau supérieur
+    cost_label_money: "Coût : {cost} $ (banque)"
+    cost_label_xp: "Coût : {cost} Niveaux XP (banque)"
+    members_title: Membres de la Guilde
   public:
     admin_access: Accès Administrateur
     ah:

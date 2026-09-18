@@ -85,5 +85,19 @@ Probabilité configurable pour les monstres et les joueurs vaincus de laisser to
 
 ---
 
+## 11. Guildes, Claims & Trésorerie Partagée
+Un écosystème de guilde complet, compatible Folia multi-thread et crossplay Bedrock :
+- **Trésorerie Partagée (Banque de Guilde) :** Les membres peuvent déposer des dollars (`/team deposit <montant>`) ou des niveaux d'expérience (`/team depositxp <niveaux>`). Lorsque le module d'économie est désactivé, toutes les opérations financières et les améliorations basculent automatiquement sur les niveaux d'XP. Les chefs peuvent effectuer des retraits via `/team withdraw` ou `/team withdrawxp`.
+- **Claims de Territoire ($16 \times 16$ Chunks) :** Les guildes revendiquent des chunks via `/team claim`. Tout claim est strictement financé par le solde de la banque de guilde (1 500 $ ou 10 niveaux d'XP par chunk). Le système garantit une protection absolue contre la casse et pose de blocs, l'ouverture de conteneurs, les interactions, les dégâts aux entités et le grief par pistons depuis les chunks sauvages adjacents.
+- **Améliorations de Guilde (Team Perks) :** 5 arbres de bonus permanents financés exclusivement par la banque de guilde :
+  1. *Membres Max :* +2 places de membres par niveau (jusqu'au palier 5 / +10 places).
+  2. *Territoire Étendu :* +4 chunks revendiquables par niveau (jusqu'au palier 5 / +20 chunks).
+  3. *Boost Métiers (XP & Argent) :* +5% de gains de métiers par niveau (jusqu'au palier 5 / +25%).
+  4. *Réduction Taxe HDV :* -1% de taxe de vente par niveau (jusqu'au palier 5 / -5%).
+  5. *Boost Quêtes Coop :* +6% de récompenses de quêtes communautaires par niveau (jusqu'au palier 5 / +30%).
+- **Intégration Temps Réel BlueMap :** Tous les claims de guilde sont dessinés sur la carte 3D BlueMap avec une couleur hexadécimale personnalisable via `/team color <#hex>` ou le Panel Web.
+
+---
+
 ## Liste Complète des Modules (28)
 `UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.

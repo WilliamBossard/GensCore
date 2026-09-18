@@ -85,5 +85,19 @@ Configurable chance for mobs and defeated players to drop their heads with authe
 
 ---
 
+## 11. Guilds, Claims & Shared Treasury
+A complete clan ecosystem supporting Folia multi-threading and Bedrock crossplay:
+- **Shared Treasury (Guild Bank):** Guild members deposit dollars (`/team deposit <amount>`) or XP levels (`/team depositxp <levels>`). When the Economy module is disabled, all transactions and perk upgrades automatically switch to player XP levels. Guild leaders can withdraw funds via `/team withdraw` or `/team withdrawxp`.
+- **Territory Claims ($16 \times 16$ Chunks):** Guilds claim chunks via `/team claim`. Claims are strictly purchased using the guild bank balance ($1500 or 10 XP levels per chunk). Includes full protection against block breaking, placing, container access, interaction, entity damage, and piston griefing from neighboring wild chunks.
+- **Team Perks (Guild Upgrades):** 5 tiered perks purchased strictly from guild treasury:
+  1. *Max Members:* +2 slots per tier (up to tier 5 / +10 slots).
+  2. *Extended Territory:* +4 claimable chunks per tier (up to tier 5 / +20 chunks).
+  3. *Jobs XP & Dollar Boost:* +5% jobs rewards per tier (up to tier 5 / +25%).
+  4. *Auction House Tax Reduction:* -1% tax per tier (up to tier 5 / -5%).
+  5. *Co-op Quest Boost:* +6% quest rewards per tier (up to tier 5 / +30%).
+- **BlueMap Live Integration:** All guild claims render seamlessly on 3D BlueMap with customized hex colors configured via `/team color <#hex>` or the Web Panel.
+
+---
+
 ## Complete Module List (28)
 `UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.
