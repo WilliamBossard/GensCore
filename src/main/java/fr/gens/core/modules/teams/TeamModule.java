@@ -60,10 +60,8 @@ public class TeamModule implements Module {
         teamCommand = new TeamCommand(plugin, teamGui, this);
         Bukkit.getPluginManager().registerEvents(teamListener, plugin);
 
-        if (plugin.getTeamManager() != null && plugin.getTeamManager().getClaimManager() != null) {
-            teamClaimListener = new TeamClaimListener(plugin, plugin.getTeamManager().getClaimManager());
-            Bukkit.getPluginManager().registerEvents(teamClaimListener, plugin);
-        }
+        teamClaimListener = new TeamClaimListener(plugin);
+        Bukkit.getPluginManager().registerEvents(teamClaimListener, plugin);
 
         plugin.getLangManager().sendConsoleMessage("teammodule.log_1");
     }

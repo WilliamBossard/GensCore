@@ -97,11 +97,14 @@ public class TeamManager {
         });
     }
 
-    public void addMember(TeamData team, UUID newMember) {
-        if (getPlayerTeam(newMember) != null) return;
+    public boolean addMember(TeamData team, UUID newMember) {
+        if (team == null || newMember == null) return false;
+        if (getPlayerTeam(newMember) != null) return false;
+        if (team.getMembers().size() >= team.getMaxMembers()) return false;
         addMemberToDatabase(team.getTeamId(), newMember);
         team.addMember(newMember);
         teamsByPlayer.put(newMember, team);
+        return true;
     }
 
     public void removeMember(TeamData team, UUID member) {

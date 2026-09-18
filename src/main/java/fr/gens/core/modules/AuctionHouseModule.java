@@ -246,9 +246,16 @@ public class AuctionHouseModule implements Module {
                             plugin.getFoliaLib().getScheduler().runAsync((t2) -> {
                                 if (deleteFromDb(ahItem.id)) { // Achat confirmé
                                     double taxRate = plugin.getConfigManager().getConfig("modules/economy.yml").getDouble("ah.tax_percentage", 0.0) / 100.0;
+                                    UUID sellerUuid = UUID.fromString(ahItem.sellerUuid);
+                                    if (plugin.getTeamManager() != null) {
+                                        fr.gens.core.modules.teams.TeamData sellerTeam = plugin.getTeamManager().getPlayerTeam(sellerUuid);
+                                        if (sellerTeam != null) {
+                                            taxRate = taxRate * Math.max(0.0, 1.0 - sellerTeam.getAhTaxReduction());
+                                        }
+                                    }
                                     double taxAmount = ahItem.price * taxRate;
                                     double sellerProfit = ahItem.price - taxAmount;
-                                    eco.giveMoney(UUID.fromString(ahItem.sellerUuid), sellerProfit);
+                                    eco.giveMoney(sellerUuid, sellerProfit);
                                     
                                     // Notifier le vendeur sur son thread d'entité s'il est en ligne
                                     Player seller = Bukkit.getPlayer(UUID.fromString(ahItem.sellerUuid));

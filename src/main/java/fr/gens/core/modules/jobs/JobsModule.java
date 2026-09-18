@@ -189,6 +189,15 @@ public class JobsModule implements Module, Listener {
         if (!hasJob(player.getUniqueId(), type)) return;
         
         UUID uuid = player.getUniqueId();
+        
+        // Multiplicateur de guilde (Perk JOBS)
+        if (plugin.getTeamManager() != null) {
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
+            if (team != null) {
+                amount *= team.getJobsXpMultiplier();
+            }
+        }
+
         double currentXp = getXp(uuid, type);
         int currentLevel = getLevel(uuid, type);
         

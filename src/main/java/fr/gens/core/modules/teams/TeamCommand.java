@@ -89,6 +89,12 @@ public class TeamCommand {
             plugin.getLangManager().sendMessage(player, "teamcommand.msg_5");
             return;
         }
+        if (team.getMembers().size() >= team.getMaxMembers()) {
+            player.sendMessage(plugin.getLangManager().get("teamclaims.msg_max_members",
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("current", String.valueOf(team.getMembers().size())),
+                    net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("max", String.valueOf(team.getMaxMembers()))));
+            return;
+        }
         Player target = Bukkit.getPlayer(targetName);
         if (target == null) {
             plugin.getLangManager().sendMessage(player, "teamcommand.msg_7");
@@ -122,8 +128,18 @@ public class TeamCommand {
         }
         TeamData leaderTeam = plugin.getTeamManager().getPlayerTeam(leaderUuid);
         if (leaderTeam != null) {
-            plugin.getTeamManager().addMember(leaderTeam, player.getUniqueId());
-            leaderTeam.broadcast("<yellow>" + player.getName() + " <green>a rejoint la guilde !");
+            if (leaderTeam.getMembers().size() >= leaderTeam.getMaxMembers()) {
+                player.sendMessage(plugin.getLangManager().get("teamclaims.msg_target_max_members",
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("max", String.valueOf(leaderTeam.getMaxMembers()))));
+                invites.remove(player.getUniqueId());
+                return;
+            }
+            if (plugin.getTeamManager().addMember(leaderTeam, player.getUniqueId())) {
+                leaderTeam.broadcast("<yellow>" + player.getName() + " <green>a rejoint la guilde !");
+            } else {
+                player.sendMessage(plugin.getLangManager().get("teamclaims.msg_target_max_members",
+                        net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("max", String.valueOf(leaderTeam.getMaxMembers()))));
+            }
         } else {
             plugin.getLangManager().sendMessage(player, "teamcommand.msg_12");
         }

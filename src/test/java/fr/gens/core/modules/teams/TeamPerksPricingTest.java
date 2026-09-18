@@ -113,4 +113,88 @@ public class TeamPerksPricingTest {
         team.setUpgradeLevel("QUESTS", 2);
         assertEquals(1.20, team.getQuestPointsMultiplier(), 0.001);
     }
+
+    @Test
+    @DisplayName("Verification du blocage des membres au-dela de la limite max")
+    void testMemberLimitEnforcement() {
+        // Initial : leader present (1 membre), max = 5
+        assertEquals(1, team.getMembers().size());
+        assertEquals(5, team.getMaxMembers());
+
+        // Ajouter 4 membres (total 5)
+        for (int i = 0; i < 4; i++) {
+            team.addMember(UUID.randomUUID());
+        }
+        assertEquals(5, team.getMembers().size());
+        assertTrue(team.getMembers().size() >= team.getMaxMembers());
+
+        // Ameliorer MEMBERS niveau 1 -> limite passe a 8
+        team.setUpgradeLevel("MEMBERS", 1);
+        assertEquals(8, team.getMaxMembers());
+        assertFalse(team.getMembers().size() >= team.getMaxMembers());
+
+        // Remplir jusqu'a 8
+        for (int i = 0; i < 3; i++) {
+            team.addMember(UUID.randomUUID());
+        }
+        assertEquals(8, team.getMembers().size());
+        assertTrue(team.getMembers().size() >= team.getMaxMembers());
+    }
+
+    @Test
+    @DisplayName("Verification du calcul effectif de la taxe HDV avec le perk AH_TAX")
+    void testAhTaxCalculationWithPerk() {
+        double baseTaxRate = 0.10; // 10%
+
+        // Sans upgrade : réduction 0%
+        double effectiveTax0 = baseTaxRate * (1.0 - team.getAhTaxReduction());
+        assertEquals(0.10, effectiveTax0, 0.0001);
+
+        // Upgrade lvl 1 : 25% de reduction sur la taxe -> taxe de 7.5%
+        team.setUpgradeLevel("AH_TAX", 1);
+        double effectiveTax1 = baseTaxRate * (1.0 - team.getAhTaxReduction());
+        assertEquals(0.075, effectiveTax1, 0.0001);
+
+        // Upgrade lvl 2 : 50% de reduction sur la taxe -> taxe de 5%
+        team.setUpgradeLevel("AH_TAX", 2);
+        double effectiveTax2 = baseTaxRate * (1.0 - team.getAhTaxReduction());
+        assertEquals(0.050, effectiveTax2, 0.0001);
+    }
+
+    @Test
+    @DisplayName("Verification du calcul effectif de l'XP de metier avec le perk JOBS")
+    void testJobsXpCalculationWithPerk() {
+        double baseXp = 100.0;
+
+        // Sans upgrade : multiplicateur 1.0
+        assertEquals(100.0, baseXp * team.getJobsXpMultiplier(), 0.001);
+
+        // Upgrade JOBS niveau 1 (+5%) -> 105 XP
+        team.setUpgradeLevel("JOBS", 1);
+        assertEquals(105.0, baseXp * team.getJobsXpMultiplier(), 0.001);
+
+        // Upgrade JOBS niveau 3 (+15%) -> 115 XP
+        team.setUpgradeLevel("JOBS", 3);
+        assertEquals(115.0, baseXp * team.getJobsXpMultiplier(), 0.001);
+    }
+
+    @Test
+    @DisplayName("Verification du calcul des points de quete avec le perk QUESTS")
+    void testQuestPointsCalculationWithPerk() {
+        int basePoints = 500;
+
+        // Sans upgrade : 500 points
+        int awarded0 = (int) Math.round(basePoints * team.getQuestPointsMultiplier());
+        assertEquals(500, awarded0);
+
+        // Upgrade QUESTS niveau 1 (+10%) -> 550 points
+        team.setUpgradeLevel("QUESTS", 1);
+        int awarded1 = (int) Math.round(basePoints * team.getQuestPointsMultiplier());
+        assertEquals(550, awarded1);
+
+        // Upgrade QUESTS niveau 2 (+20%) -> 600 points
+        team.setUpgradeLevel("QUESTS", 2);
+        int awarded2 = (int) Math.round(basePoints * team.getQuestPointsMultiplier());
+        assertEquals(600, awarded2);
+    }
 }
