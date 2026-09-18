@@ -179,7 +179,6 @@ public class TeamListener implements Listener {
 
             TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
             if (team == null) return;
-            boolean isLeader = team.getLeaderUuid().equals(player.getUniqueId());
 
             if (item.getType() == Material.ARROW) {
                 teamGui.openTeamGui(player);
@@ -267,7 +266,6 @@ public class TeamListener implements Listener {
 
             TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
             if (team == null) return;
-            boolean isLeader = team.getLeaderUuid().equals(player.getUniqueId());
 
             if (item.getType() == Material.ARROW) {
                 teamGui.openTeamGui(player);
