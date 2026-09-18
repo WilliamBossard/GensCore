@@ -39,7 +39,7 @@ Accessible sur : `http://<ip-de-votre-serveur>:8080`
   - **Trésorerie Partagée :** Visualisez le solde et effectuez des dépôts/retraits d'argent ou de niveaux d'XP depuis le web. Si le module Économie est désactivé, les devises monétaires sont masquées et remplacées automatiquement par les niveaux d'XP.
   - **Territoire & BlueMap :** Consultez le nombre de chunks revendiqués, le quota maximal, le lien direct vers le territoire sur BlueMap, et personnalisez la couleur d'affichage via un sélecteur hexadécimal.
   - **Boutique des Améliorations de Guilde :** Achetez les 5 arbres de bonus de guilde directement depuis le navigateur. Les achats sont validés et débités strictement sur la trésorerie de guilde.
-  - **Membres & Rôles :** Visualisez la liste des membres, le badge de chef de guilde et la date d'adhésion.
+  - **Membres & Rôles :** Visualisez tous les membres de la faction avec leurs badges de rôle (`★ Chef`, `♦ Admin`, `Membre`). Les chefs peuvent promouvoir un membre au rang d'Admin ou le rétrograder en 1 clic. Les chefs et administrateurs peuvent expulser des membres directement depuis l'interface web via des modales de confirmation.
 - **Historique des Quêtes sur 7 Jours :** Graphique vectoriel SVG suivant les quêtes accomplies sur la semaine.
 - **Historique Financier :** Consultation des 5 dernières transactions économiques.
 - **Moteur de Têtes & Avatars (`/api/head/{nom}/{taille}`) :** Génération d'avatars 3D haute résolution pour les joueurs Java et Bedrock.

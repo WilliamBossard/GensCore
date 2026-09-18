@@ -41,23 +41,28 @@ Toutes les commandes de GensCore sont enregistrées de façon asynchrone via le 
 ---
 
 ## Guildes & Équipes (Teams)
-Système complet de clans avec trésorerie partagée, claims territoriaux par chunks, intégration BlueMap et améliorations permanentes.
+Système complet de clans avec trésorerie partagée ($ ou XP), revendication territoriale anti-grief par chunks ($16 \times 16$), notifications à l'écran, synchronisation BlueMap en temps réel, hiérarchie de rôles (Chef, Admin, Membre) et améliorations permanentes.
 
 | Commande | Arguments | Permission | Défaut | Description |
 |---|---|---|---|---|
-| `/team` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu de gestion de guilde. *(Aliases : `/guild`, `/guilde`, `/teams`)* |
+| `/team` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu interactif de gestion de guilde. *(Aliases : `/guild`, `/guilde`, `/teams`)* |
 | `/team create` | `<nom>` | *Aucune* | Tout le monde | Fonde une nouvelle guilde (16 caractères max). |
-| `/team invite` | `<joueur>` | *Aucune* | Tout le monde | Invite un joueur à rejoindre votre guilde (chef uniquement). |
+| `/team invite` | `<joueur>` | *Aucune* | Admin / Chef | Invite un joueur à rejoindre votre guilde. |
 | `/team accept` | *Aucun* | *Aucune* | Tout le monde | Accepte une invitation en attente. |
+| `/team kick` | `<joueur>` | *Aucune* | Admin / Chef | Expulse un membre de la guilde (les Admins ne peuvent pas expulser le Chef ni d'autres Admins). |
+| `/team promote` | `<joueur>` | *Aucune* | Chef | Promeut un membre au rang d'Administrateur (`ADMIN`). |
+| `/team demote` | `<joueur>` | *Aucune* | Chef | Rétrograde un Administrateur au rang de Membre classique. |
+| `/team leave` | *Aucun* | *Aucune* | Membre / Admin | Quitte la guilde actuelle (le Chef doit dissoudre la guilde). |
+| `/team disband` | *Aucun* | *Aucune* | Chef | Dissout définitivement la guilde et libère tous ses territoires. |
 | `/team quest` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu des quêtes communautaires de guilde. |
 | `/team upgrades` | *Aucun* | *Aucune* | Tout le monde | Ouvre la boutique d'améliorations de guilde. |
 | `/team deposit` | `<montant>` | *Aucune* | Tout le monde | Dépose de l'argent dans la banque de guilde (si Économie active). |
-| `/team depositxp` | `<niveaux>` | *Aucune* | Tout le monde | Dépose des niveaux d'XP dans la banque (alternative si Économie désactivée). |
-| `/team withdraw` | `<montant>` | *Aucune* | Chef | Retire de l'argent de la banque de guilde (chef uniquement). |
-| `/team withdrawxp` | `<niveaux>` | *Aucune* | Chef | Retire des niveaux d'XP de la banque de guilde (chef uniquement). |
-| `/team claim` | *Aucun* | *Aucune* | Chef | Revendique le chunk actuel pour la guilde. Financé strictement par la banque. |
-| `/team unclaim` | *Aucun* | *Aucune* | Chef | Libère le chunk revendiqué et le rend au monde sauvage. |
-| `/team color` | `<hex>` | *Aucune* | Chef | Définit la couleur du territoire de guilde sur BlueMap (ex: `#3498db`). |
+| `/team depositxp` | `<niveaux>` | *Aucune* | Tout le monde | Dépose des niveaux d'XP dans la banque (si Économie désactivée). |
+| `/team withdraw` | `<montant>` | *Aucune* | Admin / Chef | Retire de l'argent de la banque de guilde. |
+| `/team withdrawxp` | `<niveaux>` | *Aucune* | Admin / Chef | Retire des niveaux d'XP de la banque de guilde. |
+| `/team claim` | *Aucun* | *Aucune* | Admin / Chef | Revendique le chunk actuel ($16 \times 16$). Financé strictement par la banque de guilde. |
+| `/team unclaim` | *Aucun* | *Aucune* | Admin / Chef | Libère le chunk revendiqué et le rend au monde sauvage. |
+| `/team color` | `<hex>` | *Aucune* | Admin / Chef | Définit la couleur du territoire de guilde sur BlueMap (ex: `#3498db`). |
 
 ---
 

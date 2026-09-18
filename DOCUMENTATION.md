@@ -536,7 +536,7 @@ Accessible to everyday players at `http://<your-server-ip>:8080`:
   - **Shared Bank Interface:** Deposit or withdraw funds directly from the web browser. Automatically switches to player XP levels if server economy is disabled.
   - **BlueMap Territory Control:** Real-time claim usage indicator ($X/Y$ chunks) and live hexadecimal color picker for instant BlueMap territory styling.
   - **Perks Shop:** Purchase permanent guild upgrades (Members capacity, Claims, Jobs boost, AH tax reduction, Coop Quests multiplier) funded strictly by the shared bank.
-  - **Roster Overview:** View all guild members with their avatar and leader/member role status.
+  - **Roster & Role Administration:** View all guild members with badges (`★ Chef`, `♦ Admin`, `Membre`). Leaders can promote members to Admin or demote them back; Leaders and Admins can kick members with confirmation modals directly from the browser.
 - **Avatar Engine (`/api/head/{name}/{size}`):** High-speed 3D head and avatar rendering supporting both Java skins and Bedrock Floodgate avatars.
 
 ---

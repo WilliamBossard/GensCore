@@ -87,14 +87,21 @@ Configurable chance for mobs and defeated players to drop their heads with authe
 
 ## 11. Guilds, Claims & Shared Treasury
 A complete clan ecosystem supporting Folia multi-threading and Bedrock crossplay:
-- **Shared Treasury (Guild Bank):** Guild members deposit dollars (`/team deposit <amount>`) or XP levels (`/team depositxp <levels>`). When the Economy module is disabled, all transactions and perk upgrades automatically switch to player XP levels. Guild leaders can withdraw funds via `/team withdraw` or `/team withdrawxp`.
-- **Territory Claims ($16 \times 16$ Chunks):** Guilds claim chunks via `/team claim`. Claims are strictly purchased using the guild bank balance ($1500 or 10 XP levels per chunk). Includes full protection against block breaking, placing, container access, interaction, entity damage, and piston griefing from neighboring wild chunks.
-- **Team Perks (Guild Upgrades):** 5 tiered perks purchased strictly from guild treasury:
-  1. *Max Members:* +2 slots per tier (up to tier 5 / +10 slots).
-  2. *Extended Territory:* +4 claimable chunks per tier (up to tier 5 / +20 chunks).
-  3. *Jobs XP & Dollar Boost:* +5% jobs rewards per tier (up to tier 5 / +25%).
-  4. *Auction House Tax Reduction:* -1% tax per tier (up to tier 5 / -5%).
-  5. *Co-op Quest Boost:* +6% quest rewards per tier (up to tier 5 / +30%).
+- **Hierarchy & Roles (Leader, Admin, Member):**
+  - **Leader (`LEADER`):** Full ownership, admin promotions/demotions, disbanding the guild, treasury withdrawals, and territory claims.
+  - **Administrator (`ADMIN`):** Co-management powers: invitations, kicking regular members, treasury withdrawals, land claims/unclaims, BlueMap color styling, and perk purchases.
+  - **Member (`MEMBER`):** Depositing funds & XP, participating in weekly co-op quests, and accessing guild-locked storage containers.
+  - *In-Game & Web Management:* In-game `/team` interface (left-click to promote/demote, right-click to kick) and Player Web Portal with confirmation modals.
+- **Shared Treasury (Guild Bank):** Guild members deposit dollars (`/team deposit <amount>`) or XP levels (`/team depositxp <levels>`). When the Economy module is disabled, all transactions and perk upgrades automatically switch to player XP levels. Leaders and Admins can withdraw funds via `/team withdraw` or `/team withdrawxp`.
+- **Territory Claims ($16 \times 16$ Chunks):** Guilds claim chunks via `/team claim`. Claims are strictly purchased using the guild bank balance ($1500 or 10 XP levels per chunk).
+  - *Comprehensive Anti-Grief:* Total protection against block breaking/placing, opening containers (chests, barrels, furnaces, hoppers, shulkers), redstone interactions (doors, trapdoors, buttons, levers), entity/livestock damage, and piston griefing across chunk borders.
+  - *On-Screen Boundary Notifications:* Animated Title and Subtitle with an immersive chime sound displayed when a player enters claimed guild territory.
+- **Team Perks (Active Guild Upgrades):** 5 tiered perks purchased strictly from guild treasury:
+  1. *Max Members (Tiers 1 to 3):* 8, 11, and 14 max members (base 5).
+  2. *Extended Territory (Tiers 1 to 4):* 8, 12, 16, and 20 max claimed chunks (base 4).
+  3. *Jobs Boost (Tiers 1 to 3):* +5%, +10%, and +15% jobs XP bonus for online members.
+  4. *Auction House Tax Reduction (Tiers 1 to 2):* -25% and -50% tax cut on sales commission.
+  5. *Co-op Quest Boost (Tiers 1 to 2):* +10% and +20% guild quest progress points.
 - **BlueMap Live Integration:** All guild claims render seamlessly on 3D BlueMap with customized hex colors configured via `/team color <#hex>` or the Web Panel.
 
 ---

@@ -27,6 +27,8 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | **Sync Bannissements** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Synchronisation SQLite ⟷ `banned-players.json` natif |
 | **Crossplay Bedrock (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Blindé</span> | Capture des `Throwable` et isolation Cumulus/Floodgate face aux changements de bytecode 26.3 |
 | **Validation Folia Régionale** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Élimination de `isPrimaryThread`, callbacks de téléportation asynchrone et décomposition cross-region |
+| **Système de Guildes & Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Anti-grief total, titres frontaliers écran, rôles Admin, gestion web et BlueMap |
+| **Nouvelles Améliorations de Guilde** | <span style="color: #3b82f6; font-weight: 700;">Planifié</span> | Foyer de Guilde, Aura de Territoire, Intérêts Bancaires, Boost Spawners, Coffre-fort |
 
 ---
 
@@ -50,15 +52,29 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 * **Problème identifié :** Lors de l'initialisation de `PaperCommandManager`, la bibliothèque sous-jacente Cloud Framework invoquait une classe de réflexion interne (`ItemStackParser$ModernParser`) cherchant les méthodes `asBukkitCopy` et `asCraftMirror` sur les classes internes NMS de Mojang, dont la signature a évolué en 26.3, provoquant un `ExceptionInInitializerError`.
 * **Solution apportée :** Remplacement ciblé de la classe `ItemStackParser` dans les sources compilées avec un mécanisme de détection sécurisé et un repli automatique vers `LegacyParser` (100% Bukkit API standard sans injection NMS). Le plugin démarre désormais sans la moindre erreur sur Paper 26.3.
 
+### 5. Système de Guildes, Territoires (Claims) & Rôles Administrateur
+* **Hiérarchie et délégation :** Implémentation complète du rôle **Administrateur (`ADMIN`)** en complément du **Chef (`LEADER`)** et des **Membres (`MEMBER`)**. Les administrateurs peuvent inviter, expulser des membres réguliers, revendiquer des claims, effectuer des retraits bancaires et acheter des améliorations.
+* **Sécurité territoriale & Anti-Grief :** Protection absolue des chunks revendiqués ($16 \times 16$). Blocage de la casse/pose, accès coffres/barils/fours/shulkers/entonnoirs, interactions redstone (portes, boutons, leviers), dégâts aux entités passives/porte-armures et interdiction des pistons traversant les bordures.
+* **Affichage frontalier immersif :** Envoi d'un Titre et Sous-titre animés à l'écran du joueur avec effet sonore lorsqu'il pénètre dans un territoire revendiqué par une guilde.
+* **Gestion complète Portail Web :** Interface de gestion en ligne permettant de promouvoir des administrateurs, rétrograder ou expulser des membres (avec modale de confirmation), personnaliser la couleur BlueMap en temps réel et acheter des améliorations d'équipe.
+* **Auto-mise à jour du Panel Web :** Détection automatique au démarrage des versions plus récentes d'assets web dans le JAR pour une extraction transparente dans `plugins/GensCore/web/`.
+
 ---
 
 ## Ce qui est en cours de travail
 
-### 1. Suivi des mises à jour GeyserMC & Floodgate
+### 1. Nouvelles Améliorations de Guilde (En cours d'implémentation)
+* **Foyer de Guilde (`GUILD_HOME`) :** Point de téléportation partagé avec réduction progressive du délai de téléportation et du cooldown.
+* **Aura de Territoire (`TERRITORY_BUFF`) :** Effets de potions passifs au sein des claims (Régénération, Vitesse, Célérité).
+* **Intérêts Bancaires Journaliers (`BANK_INTEREST`) :** Dividendes passifs calculés sur le solde de la trésorerie de guilde chaque 24 heures réelles.
+* **Surcadençage des Spawners (`SPAWNER_EFFICIENCY`) :** Vitesse de spawn et taux de drops augmentés pour les générateurs installés en territoire de guilde.
+* **Coffre-fort Virtuel Partagé (`GUILD_VAULT`) :** Inventaire sécurisé partagé (9 à 54 slots) accessible in-game et via le portail web.
+
+### 2. Suivi des mises à jour GeyserMC & Floodgate
 * Geyser a mis à disposition un build compatible avec le protocole réseau 26.3 (`2.11.3-SNAPSHOT`).
 * Floodgate fonctionne sans mise à jour immédiate obligatoire pour la vérification des clés de chiffrement Bedrock, mais des tests de validation approfondis sur les formulaires Cumulus et la transmission des skins sont en cours de réalisation.
 
-### 2. Validation continue des 28 modules intégrés
+### 3. Validation continue des 28 modules intégrés
 * Tests d'intégration progressifs de chaque module sous Paper 26.3 :
   - Métiers & Économie (Jobs, Shop, Auction House)
   - Sécurité & Anti-Exploit (Verrouillage coffres/shulkers, anti-duplication)
@@ -71,20 +87,28 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 
 ```mermaid
 flowchart LR
-    A[Build Paper 26.3 Alpha 8] --> B[Shop 319 Items & Quêtes]
-    B --> C[Tests de charge & Stabilisation dev]
+    A[Paper 26.3 Alpha 16] --> B[Guildes & Claims 2.0]
+    B --> C[Upgrades Guilde & Tests de charge]
     C --> D[Release Candidate Paper 26.3]
     D --> E[Merge sur main & Release v1.1.0]
 ```
 
-1. **Phase 1 (Actuelle) :** Stabilisation sur la branche `dev` avec Paper 26.3 Build 16-alpha et boutique complète.
-2. **Phase 2 :** Validation des tests de stress (50+ joueurs simulés avec profilage Spark).
-3. **Phase 3 :** Sortie de la Release Candidate (RC) Paper 26.3.
-4. **Phase 4 :** Fusion sur la branche `main` et publication du package officiel GensCore v1.1.0.
+1. **Phase 1 (Actuelle) :** Système de Guildes 2.0 terminé (Claims anti-grief, BlueMap, rôles Admin, portail web).
+2. **Phase 2 :** Intégration des nouvelles améliorations de guilde (Foyer, Aura, Intérêts, Spawners, Coffre-fort).
+3. **Phase 3 :** Tests de charge et validation Folia multi-régions (50+ joueurs avec Spark).
+4. **Phase 4 :** Sortie de la Release Candidate (RC) Paper 26.3.
+5. **Phase 5 :** Fusion sur la branche `main` et publication du package officiel GensCore v1.1.0.
 
 ---
 
 ## Historique des patchs récents
+
+### Patch 26.3-alpha.18 (18 Septembre 2026)
+- **Rôles & Hiérarchie de Guilde :** Ajout complet du rôle `ADMIN` dans la base SQLite (`genscore_team_members.role`), commandes `/team promote`, `/team demote`, `/team kick`, `/team leave`, `/team disband` et interaction dans l'interface `/team` (clic gauche promote/demote, clic droit kick).
+- **Protection Anti-Grief Complète des Claims :** Sécurisation totale des parcelles de guilde contre la casse/pose, ouverture de coffres, barils, fours, shulkers, entonnoirs, redstone, attaques d'animaux/porte-armures et pistons inter-chunks.
+- **Titres Écran Frontaliers :** Envoi d'un titre et sous-titre traduits avec effet sonore lors du franchissement des frontières d'un territoire revendiqué.
+- **Portail Web Guilde Étendu :** Nouveaux boutons d'administration des membres (promotion Admin, rétrogradation, expulsion avec modale de confirmation), gestion en ligne de la trésorerie ($/XP), personnalisation de la couleur BlueMap et achats d'upgrades.
+- **Auto-Sync Assets Web :** Mise à jour automatique des assets web de `plugins/GensCore/web/` dès l'installation d'une nouvelle version du JAR sans nécessiter de suppression manuelle.
 
 ### Patch 26.3-alpha.17 (18 Septembre 2026)
 - **Garde-fou Anti-Arbitrage Boutique :** Harmonisation de l'exposant d'inflation dynamique dans `ShopItem` avec `GLOBAL_INFLATION_EXPONENT` et instauration d'un plafond de marge strict interdisant au prix de vente de dépasser 75% du prix d'achat, éliminant tout risque de boucle infinie de duplication de monnaie.

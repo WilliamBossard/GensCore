@@ -87,14 +87,21 @@ Probabilité configurable pour les monstres et les joueurs vaincus de laisser to
 
 ## 11. Guildes, Claims & Trésorerie Partagée
 Un écosystème de guilde complet, compatible Folia multi-thread et crossplay Bedrock :
-- **Trésorerie Partagée (Banque de Guilde) :** Les membres peuvent déposer des dollars (`/team deposit <montant>`) ou des niveaux d'expérience (`/team depositxp <niveaux>`). Lorsque le module d'économie est désactivé, toutes les opérations financières et les améliorations basculent automatiquement sur les niveaux d'XP. Les chefs peuvent effectuer des retraits via `/team withdraw` ou `/team withdrawxp`.
-- **Claims de Territoire ($16 \times 16$ Chunks) :** Les guildes revendiquent des chunks via `/team claim`. Tout claim est strictement financé par le solde de la banque de guilde (1 500 $ ou 10 niveaux d'XP par chunk). Le système garantit une protection absolue contre la casse et pose de blocs, l'ouverture de conteneurs, les interactions, les dégâts aux entités et le grief par pistons depuis les chunks sauvages adjacents.
-- **Améliorations de Guilde (Team Perks) :** 5 arbres de bonus permanents financés exclusivement par la banque de guilde :
-  1. *Membres Max :* +2 places de membres par niveau (jusqu'au palier 5 / +10 places).
-  2. *Territoire Étendu :* +4 chunks revendiquables par niveau (jusqu'au palier 5 / +20 chunks).
-  3. *Boost Métiers (XP & Argent) :* +5% de gains de métiers par niveau (jusqu'au palier 5 / +25%).
-  4. *Réduction Taxe HDV :* -1% de taxe de vente par niveau (jusqu'au palier 5 / -5%).
-  5. *Boost Quêtes Coop :* +6% de récompenses de quêtes communautaires par niveau (jusqu'au palier 5 / +30%).
+- **Hiérarchie & Rôles (Chef, Admin, Membre) :**
+  - **Chef (`LEADER`) :** Contrôle absolu, promotion/rétrogradation d'admins, dissolution de la guilde, retraits bancaires et claims.
+  - **Administrateur (`ADMIN`) :** Cogestion complète : invitations, expulsion de membres réguliers, retraits bancaires, claims/unclaims de territoire, personnalisation BlueMap et achat d'améliorations.
+  - **Membre (`MEMBER`) :** Dépôt d'argent et d'XP, participation aux quêtes coopératives et accès aux coffres de guilde verrouillés.
+  - *Gestion In-Game & Web :* Gestion via l'interface `/team` (clic gauche pour promouvoir/rétrograder, clic droit pour expulser) et depuis le portail web joueur avec fenêtres de confirmation.
+- **Trésorerie Partagée (Banque de Guilde) :** Les membres déposent des dollars (`/team deposit <montant>`) ou des niveaux d'expérience (`/team depositxp <niveaux>`). Lorsque le module d'économie est désactivé, toutes les opérations financières basculent automatiquement et exclusivement sur les niveaux d'expérience. Les chefs et administrateurs effectuent les retraits via `/team withdraw` ou `/team withdrawxp`.
+- **Claims de Territoire ($16 \times 16$ Chunks) :** Les guildes revendiquent des parcelles via `/team claim`. Tout claim est strictement financé par le solde de la banque de guilde (1 500 $ ou 10 niveaux d'XP par chunk).
+  - *Anti-Grief Intégral :* Protection absolue contre la casse et pose de blocs, ouverture de coffres/barils/fours/shulkers, interactions redstone (portes, trappes, boutons, leviers), dégâts aux entités/animaux/porte-armures, et grief par pistons depuis l'extérieur.
+  - *Notifications Frontalières :* Titre et sous-titre animés avec effet sonore immersif affichés sur l'écran du joueur lorsqu'il pénètre sur le territoire d'une guilde.
+- **Améliorations de Guilde Actives (Team Perks) :** 5 arbres de bonus permanents financés exclusivement par la banque de guilde :
+  1. *Membres Max (Niveaux 1 à 3) :* De 5 à 8, 11 et 14 membres maximum.
+  2. *Territoire Étendu (Niveaux 1 à 4) :* De 4 à 8, 12, 16 et 20 chunks revendiquables.
+  3. *Boost Métiers (Niveaux 1 à 3) :* +5%, +10% et +15% de gains d'expérience de métiers pour tous les membres en ligne.
+  4. *Réduction Taxe HDV (Niveaux 1 à 2) :* -25% et -50% sur la commission de vente à l'Hôtel des Ventes.
+  5. *Boost Quêtes Coop (Niveaux 1 à 2) :* +10% et +20% de points de quêtes de guilde.
 - **Intégration Temps Réel BlueMap :** Tous les claims de guilde sont dessinés sur la carte 3D BlueMap avec une couleur hexadécimale personnalisable via `/team color <#hex>` ou le Panel Web.
 
 ---

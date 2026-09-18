@@ -27,6 +27,8 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | **Banlist Synchronization** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Full bidirectional sync between SQLite and native `banned-players.json` |
 | **Bedrock Cross-Play (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Hardened</span> | Catching `Throwable` across Cumulus forms & skin API against 26.3 linkage mismatches |
 | **Folia Regional Threading** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Eliminated `isPrimaryThread` exceptions, added async teleport callbacks & cross-region decay |
+| **Guilds & Territory Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Comprehensive anti-grief, on-screen boundary titles, Admin roles, web portal, BlueMap |
+| **Upcoming Guild Upgrades** | <span style="color: #3b82f6; font-weight: 700;">Planned</span> | Guild Home Warp, Territory Buffs, Bank Interest, Spawner Boost, Virtual Shared Vault |
 
 ---
 
@@ -50,15 +52,29 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 * **Identified Cause:** During `PaperCommandManager` initialization, the shaded Cloud Command Framework eagerly invoked reflection on Mojang NMS classes (`ItemStackParser$ModernParser`) looking for `asBukkitCopy` and `asCraftMirror` methods. Minecraft 26.3 internal refactorings caused this to throw `ExceptionInInitializerError`.
 * **Resolution:** Replaced `ItemStackParser` with a resilient implementation featuring safe fallback detection to `LegacyParser` (100% standard Bukkit API without any fragile NMS reflection). GensCore now starts instantaneously on Paper 26.3.
 
+### 5. Guilds, Territory Claims & Administrator Roles
+* **Hierarchy & Delegation:** Fully implemented the **Administrator (`ADMIN`)** role alongside the **Leader (`LEADER`)** and **Members (`MEMBER`)**. Admins can invite, kick regular members, claim/unclaim chunks, withdraw treasury funds, and purchase team upgrades.
+* **Territory Security & Anti-Grief:** Bulletproof protection across claimed chunks ($16 \times 16$). Prevents block breaking/placing, opening containers (chests, barrels, furnaces, hoppers, shulkers), redstone interactions (doors, buttons, levers), livestock/armor stand damage, and piston griefing across borders.
+* **On-Screen Boundary Alerts:** Sends an animated Title and Subtitle with sound effect to players when they enter or cross claimed guild borders.
+* **Full Web Portal Management:** Browser dashboard allowing leaders to promote/demote admins and kick members (with safety modal), manage shared funds ($ / XP), adjust live BlueMap hex colors, and purchase guild upgrades.
+* **Auto-Sync Web Panel Assets:** Automatic startup verification of newer web assets inside the JAR, seamlessly updating `plugins/GensCore/web/` without manual file deletion.
+
 ---
 
 ## In-Progress Efforts
 
-### 1. GeyserMC & Floodgate Monitoring
+### 1. Upcoming Guild Upgrades (In Development)
+* **Guild Home Warp (`GUILD_HOME`):** Shared teleportation point with tiered warmup and cooldown reductions.
+* **Territory Buffs (`TERRITORY_BUFF`):** Passive potion effects inside claimed chunks (Regeneration, Speed, Haste).
+* **Daily Bank Interest (`BANK_INTEREST`):** Passive interest percentage yielded to the guild treasury every 24 real-world hours.
+* **Spawner Overclocking (`SPAWNER_EFFICIENCY`):** Spawn speed and drop multiplier boosts for custom spawners placed inside claimed chunks.
+* **Virtual Shared Vault (`GUILD_VAULT`):** Secure communal storage inventory (9 to 54 slots) accessible in-game and via the web portal.
+
+### 2. GeyserMC & Floodgate Monitoring
 * GeyserMC has rolled out initial 26.3 protocol updates (`2.11.3-SNAPSHOT`).
 * Floodgate Bedrock authentication and Cumulus form dialogs are undergoing compatibility validation to ensure seamless crossplay without requiring manual re-encryption key regeneration.
 
-### 2. Full Regression Testing across 28 Modules
+### 3. Full Regression Testing across 28 Modules
 * Systematic validation of all core modules running under Paper 26.3:
   - Economy & Jobs (Dynamic pricing shop, Player Auction House)
   - Security & Anti-Exploit (Shulker protection, container locks)
@@ -71,20 +87,28 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 
 ```mermaid
 flowchart LR
-    A[Paper 26.3 Alpha 8] --> B[Shop 319 Items & Quests]
-    B --> C[Stress Testing & dev Stabilization]
+    A[Paper 26.3 Alpha 16] --> B[Guilds & Claims 2.0]
+    B --> C[Guild Upgrades & Stress Testing]
     C --> D[Paper 26.3 Release Candidate]
     D --> E[Merge to main & v1.1.0 Release]
 ```
 
-1. **Phase 1 (Current):** Stabilization on the `dev` branch on Paper 26.3 Build 16-alpha with complete shop.
-2. **Phase 2:** High-concurrency stress testing (50+ simulated players with Spark profiling).
-3. **Phase 3:** Paper 26.3 Release Candidate (RC) release verification.
-4. **Phase 4:** Merge `dev` into `main` and publish the official GensCore v1.1.0 distribution.
+1. **Phase 1 (Current):** Guilds 2.0 completed (Anti-grief claims, BlueMap, Admin roles, web portal).
+2. **Phase 2:** Implement the new guild perks (Home Warp, Territory Buffs, Bank Interest, Spawners, Shared Vault).
+3. **Phase 3:** High-concurrency stress testing (50+ simulated players with Spark profiling).
+4. **Phase 4:** Paper 26.3 Release Candidate (RC) release verification.
+5. **Phase 5:** Merge `dev` into `main` and publish official GensCore v1.1.0 distribution.
 
 ---
 
 ## Recent Patch Notes
+
+### Patch 26.3-alpha.18 (September 18, 2026)
+- **Guild Roles & Hierarchy:** Added full `ADMIN` role in SQLite database (`genscore_team_members.role`), commands `/team promote`, `/team demote`, `/team kick`, `/team leave`, `/team disband` and in-game GUI interactions (left-click promote/demote, right-click kick).
+- **Bulletproof Claim Anti-Grief:** Complete chunk protection against block break/place, container access (chests, barrels, furnaces, shulkers, hoppers), redstone interactions, entity/livestock damage, and piston crossing.
+- **Boundary Screen Titles:** Player screen titles and sound effects displayed upon crossing into claimed territory.
+- **Expanded Guild Web Portal:** Real-time member cards with role badges, promotion/demotion, kick with confirmation modal, treasury management ($/XP), BlueMap color picker, and upgrade purchases.
+- **Web Asset Auto-Sync:** Compares JAR web assets on startup and auto-extracts updates into `plugins/GensCore/web/`.
 
 ### Patch 26.3-alpha.17 (September 18, 2026)
 - **Shop Anti-Arbitrage Guard:** Harmonized dynamic inflation exponent in `ShopItem` with `GLOBAL_INFLATION_EXPONENT` and implemented a strict 75% max sell-to-buy price cap, eliminating circular infinite currency arbitrage.
