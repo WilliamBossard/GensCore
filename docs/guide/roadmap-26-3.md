@@ -86,6 +86,14 @@ flowchart LR
 
 ## Recent Patch Notes
 
+### Patch 26.3-alpha.17 (September 18, 2026)
+- **Shop Anti-Arbitrage Guard:** Harmonized dynamic inflation exponent in `ShopItem` with `GLOBAL_INFLATION_EXPONENT` and implemented a strict 75% max sell-to-buy price cap, eliminating circular infinite currency arbitrage.
+- **Float Exploit Hardening:** Enforced `Double.isFinite()` validation on all economy and marketplace inputs (`/pay`, `/eco`, `/ah sell`) to block `NaN` and `Infinity` corruption exploits.
+- **Economy Write-Behind Batching:** Replaced isolated asynchronous SQLite writes in `EconomyModule` with a batched *Write-Behind Cache* (`flushDirtyBalances()` every 10 seconds), preventing out-of-order database state regressions.
+- **Thread-Safe Loot Handling:** Synchronized player `YamlConfiguration` instances in `LootManager` to eliminate race conditions and corrupted files during concurrent async saves on Folia.
+- **Non-blocking Discord Shutdown:** Replaced rigid `Thread.sleep(1500)` in `DiscordModule` with `jda.awaitShutdown(Duration.ofMillis(1500))` and graceful fallback to `shutdownNow()`.
+- **Expanded Automated Test Suite:** Integrated JUnit 5 (`junit-jupiter:5.12.0`) and Maven Surefire, deploying a comprehensive test suite of 38 unit tests covering shop anti-arbitrage, economy number validation, Base64 item serialization, Bedrock form sanitization, crafting quest batch yield calculation, Web Casino Monte-Carlo simulation (84% RTP), BCrypt security authentication, and SQLite in-memory batching with a 100% pass rate (38/38 tests).
+
 ### Patch 26.3-alpha.16 (September 18, 2026)
 - **Paper API:** Upgraded to `26.3.build.16-alpha` (latest official PaperMC release).
 - **Player Balance Wallet:** Added live balance card directly in the sidebar under player profile with instant debit/credit animations (`+`/`-`) and on-click sync.

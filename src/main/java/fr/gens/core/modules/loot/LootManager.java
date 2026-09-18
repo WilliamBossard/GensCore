@@ -164,19 +164,21 @@ public class LootManager {
         FileConfiguration config = getPlayerConfig(uuid);
         String key = locToString(loc);
         
-        if (config.contains(key + ".items")) {
-            List<?> list = config.getList(key + ".items");
-            if (list != null) {
-                ItemStack[] items = new ItemStack[list.size()];
-                for (int i = 0; i < list.size(); i++) {
-                    Object obj = list.get(i);
-                    if (obj instanceof ItemStack) {
-                        items[i] = (ItemStack) obj;
-                    } else {
-                        items[i] = null;
+        synchronized (config) {
+            if (config.contains(key + ".items")) {
+                List<?> list = config.getList(key + ".items");
+                if (list != null) {
+                    ItemStack[] items = new ItemStack[list.size()];
+                    for (int i = 0; i < list.size(); i++) {
+                        Object obj = list.get(i);
+                        if (obj instanceof ItemStack) {
+                            items[i] = (ItemStack) obj;
+                        } else {
+                            items[i] = null;
+                        }
                     }
+                    return items;
                 }
-                return items;
             }
         }
         return null;
@@ -187,34 +189,26 @@ public class LootManager {
         FileConfiguration config = getPlayerConfig(uuid);
         String key = locToString(loc);
         
-        // Vérifier si l'inventaire est complètement vide, on peut nettoyer pour alléger
-        boolean isEmpty = true;
-        for (ItemStack item : items) {
-            if (item != null && !item.getType().isAir()) {
-                isEmpty = false;
-                break;
-            }
+        synchronized (config) {
+            config.set(key + ".items", java.util.Arrays.asList(items));
         }
-
-        if (isEmpty) {
-            // Optionnel : on peut garder un tableau vide ou juste null
-            // Dans LootrPlugin, ils sauvegardent des tableaux remplis de null
-        }
-
-        config.set(key + ".items", java.util.Arrays.asList(items));
 
         plugin.getFoliaLib().getScheduler().runAsync(task -> {
-            try {
-                config.save(file);
-            } catch (IOException e) {
-                e.printStackTrace();
+            synchronized (config) {
+                try {
+                    config.save(file);
+                } catch (IOException e) {
+                    plugin.getLogger().warning("[LootManager] Erreur lors de la sauvegarde du loot : " + e.getMessage());
+                }
             }
         });
     }
 
     public boolean hasPlayerLooted(UUID uuid, Location loc) {
         FileConfiguration config = getPlayerConfig(uuid);
-        return config.contains(locToString(loc));
+        synchronized (config) {
+            return config.contains(locToString(loc));
+        }
     }
 
     public static class LootChestData {

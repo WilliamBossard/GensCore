@@ -169,10 +169,14 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
             jda.shutdown();
             
             try {
-                // Attente pour laisser le temps à JDA de déconnecter ses WebSockets proprement
+                // Attente non bloquante pour laisser le temps à JDA de déconnecter ses WebSockets proprement
                 // afin d'éviter l'erreur "zip file closed" lors de la fermeture du serveur.
-                Thread.sleep(1500);
-            } catch (InterruptedException ignored) {}
+                if (!jda.awaitShutdown(java.time.Duration.ofMillis(1500))) {
+                    jda.shutdownNow();
+                }
+            } catch (InterruptedException ignored) {
+                jda.shutdownNow();
+            }
             
             jda = null;
         }

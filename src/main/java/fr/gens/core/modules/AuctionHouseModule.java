@@ -93,7 +93,7 @@ public class AuctionHouseModule implements Module {
             return;
         }
 
-        if (price <= 0) {
+        if (!Double.isFinite(price) || price <= 0) {
             plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_2");
             return;
         }

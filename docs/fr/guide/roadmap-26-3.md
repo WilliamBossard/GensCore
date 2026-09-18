@@ -86,6 +86,14 @@ flowchart LR
 
 ## Historique des patchs récents
 
+### Patch 26.3-alpha.17 (18 Septembre 2026)
+- **Garde-fou Anti-Arbitrage Boutique :** Harmonisation de l'exposant d'inflation dynamique dans `ShopItem` avec `GLOBAL_INFLATION_EXPONENT` et instauration d'un plafond de marge strict interdisant au prix de vente de dépasser 75% du prix d'achat, éliminant tout risque de boucle infinie de duplication de monnaie.
+- **Sécurisation des Nombres Flottants :** Validation systématique avec `Double.isFinite()` sur les commandes d'économie et d'hôtel des ventes (`/pay`, `/eco`, `/ah sell`) bloquant les injections de charges utiles `NaN` et `Infinity`.
+- **Write-Behind Cache SQLite (Économie) :** Remplacement des micro-écritures asynchrones isolées par une sauvegarde groupée périodique par lots (`flushDirtyBalances()` toutes les 10 secondes), prévenant les régressions d'état désordonnées en base de données.
+- **Thread-Safety du Module Loot :** Synchronisation des instances `YamlConfiguration` dans `LootManager` pour éliminer les corruptions de fichiers lors de sauvegardes asynchrones concurrentes sur Folia.
+- **Arrêt JDA Non Bloquant :** Remplacement du délai figé `Thread.sleep(1500)` dans `DiscordModule` par `jda.awaitShutdown(Duration.ofMillis(1500))` avec bascule gracieuse sur `shutdownNow()`.
+- **Suite de Tests Automatisés Élargie :** Intégration de JUnit 5 (`junit-jupiter:5.12.0`) et Surefire, avec déploiement d'une suite complète de 38 tests unitaires couvrant l'anti-arbitrage du shop, la validation financière, la sérialisation Base64, l'assainissement des formulaires Bedrock, le calcul de batch des quêtes de craft, la simulation Monte-Carlo du Casino Web (RTP 84%), l'authentification BCrypt et la persistance SQLite par lots avec un taux de réussite de 100% (38/38).
+
 ### Patch 26.3-alpha.16 (18 Septembre 2026)
 - **API Paper :** Mise à niveau vers `26.3.build.16-alpha` (dernière build officielle PaperMC).
 - **Porte-monnaie & Solde en direct :** Intégration d'un widget de solde d'argent en temps réel sous le profil joueur (sidebar) avec animations de variation (crédit vert `+XX.XX $` et débit rouge `-XX.XX $`) et rafraîchissement au clic.

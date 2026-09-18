@@ -71,9 +71,13 @@ public class ShopItem {
 
     public double getCurrentSellPrice() {
         if (sellPrice <= 0) return 0;
-        if (stock == 0) return sellPrice * 2;
-        double ratio = (double) targetStock / stock;
-        return sellPrice * Math.pow(ratio, 0.5);
+        if (stock <= 0) return sellPrice * 2;
+        double ratio = (double) targetStock / Math.max(1, stock);
+        double exponent = fr.gens.core.modules.shop.ShopModule.GLOBAL_INFLATION_EXPONENT;
+        double dynamicSell = sellPrice * Math.pow(ratio, exponent);
+        // Sécurité anti-arbitrage : le prix de vente ne doit jamais dépasser 75% du prix d'achat effectif
+        double maxSellAllowed = getCurrentBuyPrice() * 0.75;
+        return Math.min(dynamicSell, maxSellAllowed);
     }
 }
 

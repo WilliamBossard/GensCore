@@ -10,7 +10,7 @@ import java.util.List;
 
 public class BedrockFormManager {
 
-    private static String clean(String text) {
+    public static String clean(String text) {
         if (text == null) return null;
         text = text.replaceAll("[\\uE000-\\uF8FF]", "");
         text = text.replaceAll("(?i)<bold>", "");

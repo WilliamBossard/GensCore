@@ -36,6 +36,10 @@ public class EconomyModule implements Module, Listener {
         }
     });
     
+    // Write-Behind Cache pour SQLite : ensemble des UUID dont le solde en mémoire a été modifié
+    private final java.util.Set<UUID> dirtyBalances = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private com.tcoded.folialib.wrapper.task.WrappedTask autoSaveTask = null;
+    
     private fr.gens.core.database.EconomyDAO economyDAO;
 
     public EconomyModule(CorePlugin plugin) {
@@ -89,6 +93,11 @@ public class EconomyModule implements Module, Listener {
             plugin.getLangManager().sendConsoleMessage("economymodule.log_1");
         }
         
+        // Write-Behind Cache : sauvegarde périodique par lots des soldes modifiés (toutes les 10 secondes = 200 ticks)
+        this.autoSaveTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> {
+            flushDirtyBalances();
+        }, 200L, 200L);
+        
         plugin.getLangManager().sendConsoleMessage("economymodule.log_2");
     }
 
@@ -96,6 +105,11 @@ public class EconomyModule implements Module, Listener {
     public void disable() {
         enabled = false;
         org.bukkit.event.HandlerList.unregisterAll(this);
+        if (this.autoSaveTask != null) {
+            this.autoSaveTask.cancel();
+            this.autoSaveTask = null;
+        }
+        flushDirtyBalances();
         saveBalances();
         plugin.getLangManager().sendConsoleMessage("economymodule.log_3");
     }
@@ -185,27 +199,46 @@ public class EconomyModule implements Module, Listener {
         this.economyDAO.savePlayerBalance(uuid, balance);
     }
 
+    public void flushDirtyBalances() {
+        if (dirtyBalances.isEmpty() || this.economyDAO == null) return;
+        java.util.Set<UUID> toFlush = new java.util.HashSet<>(dirtyBalances);
+        dirtyBalances.removeAll(toFlush);
+        Map<UUID, Double> batch = new HashMap<>();
+        for (UUID uuid : toFlush) {
+            if (balances.containsKey(uuid)) {
+                batch.put(uuid, balances.get(uuid));
+            } else if (offlineCache.containsKey(uuid)) {
+                batch.put(uuid, offlineCache.get(uuid));
+            }
+        }
+        if (!batch.isEmpty()) {
+            this.economyDAO.saveBalancesBatch(batch);
+        }
+    }
+
     public void setBalance(UUID uuid, double amount) {
+        if (!Double.isFinite(amount)) return;
         if (balances.containsKey(uuid)) {
             balances.put(uuid, amount);
         } else {
             offlineCache.put(uuid, amount);
         }
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, amount));
+        dirtyBalances.add(uuid);
     }
 
     public void addMoney(UUID uuid, double amount) {
+        if (!Double.isFinite(amount) || amount <= 0) return;
         if (balances.containsKey(uuid)) {
             balances.compute(uuid, (k, current) -> {
                 double newBal = (current == null ? getBalance(uuid) : current) + amount;
-                plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                dirtyBalances.add(uuid);
                 return newBal;
             });
         } else {
             synchronized (offlineCache) {
                 double current = getBalance(uuid);
                 offlineCache.put(uuid, current + amount);
-                plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, current + amount));
+                dirtyBalances.add(uuid);
             }
         }
     }
@@ -219,15 +252,15 @@ public class EconomyModule implements Module, Listener {
     }
     
     public boolean takeMoneyAtomic(UUID uuid, double amount) {
+        if (!Double.isFinite(amount) || amount <= 0) return false;
         if (balances.containsKey(uuid)) {
             java.util.concurrent.atomic.AtomicBoolean success = new java.util.concurrent.atomic.AtomicBoolean(false);
             balances.compute(uuid, (k, current) -> {
                 double bal = (current == null ? getBalance(uuid) : current);
                 if (bal >= amount) {
                     success.set(true);
-                    double newBal = bal - amount;
-                    plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
-                    return newBal;
+                    dirtyBalances.add(uuid);
+                    return bal - amount;
                 }
                 return bal;
             });
@@ -238,7 +271,7 @@ public class EconomyModule implements Module, Listener {
                 if (bal >= amount) {
                     double newBal = bal - amount;
                     offlineCache.put(uuid, newBal);
-                    plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> savePlayerBalance(uuid, newBal));
+                    dirtyBalances.add(uuid);
                     return true;
                 }
                 return false;
@@ -247,6 +280,7 @@ public class EconomyModule implements Module, Listener {
     }
 
     public void setMoney(UUID uuid, double amount) {
+        if (!Double.isFinite(amount)) return;
         setBalance(uuid, Math.max(0, amount));
     }
 
@@ -322,7 +356,7 @@ public class EconomyModule implements Module, Listener {
                 plugin.getLangManager().sendMessage(p, "error.player_offline");
                 return;
             }
-            if (amount <= 0) {
+            if (!Double.isFinite(amount) || amount <= 0) {
                 plugin.getLangManager().sendMessage(p, "error.invalid_amount");
                 return;
             }
@@ -349,6 +383,10 @@ public class EconomyModule implements Module, Listener {
     public void executeEco(CommandSender sender, @Argument(value = "action", description = "L'action à effectuer") EcoAction actionEnum, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName, @Argument(value = "amount", description = "Le montant") double amount) {
         if (!enabled) return;
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+            if (!Double.isFinite(amount) || amount < 0) {
+                sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Montant invalide (doit être un nombre valide et positif).</red>"));
+                return;
+            }
             OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
             String tName = target.getName() != null ? target.getName() : "Inconnu";
             String action = actionEnum.name();
