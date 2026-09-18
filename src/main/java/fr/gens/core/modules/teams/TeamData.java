@@ -1,5 +1,6 @@
 package fr.gens.core.modules.teams;
 
+import fr.gens.core.utils.PlaceholderUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -174,7 +175,7 @@ public class TeamData {
         for (UUID uuid : members) {
             Player p = Bukkit.getPlayer(uuid);
             if (p != null && p.isOnline()) {
-                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>[<aqua>Team " + name + "<dark_gray>] <gray>" + message));
+                p.sendMessage(PlaceholderUtils.parseToComponent("<dark_gray>[<aqua>Team " + name + "<dark_gray>] <gray>" + message));
             }
         }
     }

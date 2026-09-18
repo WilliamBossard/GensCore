@@ -1,6 +1,10 @@
 package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
+import fr.gens.core.utils.BedrockFormManager;
+import fr.gens.core.utils.FloodgateUtil;
+import fr.gens.core.utils.PlaceholderUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -32,45 +36,45 @@ public class TeamGui {
 
         boolean isLeader = team.getLeaderUuid().equals(player.getUniqueId());
 
-        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+        if (FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
             fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
             boolean ecoEnabled = (ecoMod != null && ecoMod.isEnabled());
             TeamClaimManager claimMgr = plugin.getTeamManager().getClaimManager();
             int currentClaims = claimMgr != null ? claimMgr.getClaimsCount(team.getTeamId()) : 0;
 
-            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+            java.util.List<BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
 
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§6Améliorations de Guilde\n§r§8Bonus permanents", org.bukkit.Material.NETHER_STAR, p -> {
+            buttons.add(new BedrockFormManager.BedrockButton("§6Améliorations de Guilde\n§r§8Bonus permanents", org.bukkit.Material.NETHER_STAR, p -> {
                 openTeamUpgradesGui(p, team);
             }));
 
             String bankSub = ecoEnabled ? String.format("%.2f $", team.getBankBalance()) : team.getBankXp() + " Niveaux XP";
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aBanque de Guilde\n§r§8Solde: " + bankSub, ecoEnabled ? org.bukkit.Material.GOLD_INGOT : org.bukkit.Material.EXPERIENCE_BOTTLE, p -> {
-                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <yellow>" + bankSub));
+            buttons.add(new BedrockFormManager.BedrockButton("§aBanque de Guilde\n§r§8Solde: " + bankSub, ecoEnabled ? org.bukkit.Material.GOLD_INGOT : org.bukkit.Material.EXPERIENCE_BOTTLE, p -> {
+                p.sendMessage(PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <yellow>" + bankSub));
                 if (ecoEnabled) {
-                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Déposer : <yellow>/team deposit <montant>"));
+                    p.sendMessage(PlaceholderUtils.parseToComponent("<gray>Déposer : <yellow>/team deposit <montant>"));
                     if (isLeader) {
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Retirer : <yellow>/team withdraw <montant>"));
+                        p.sendMessage(PlaceholderUtils.parseToComponent("<gray>Retirer : <yellow>/team withdraw <montant>"));
                     }
                 } else {
-                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Déposer : <yellow>/team depositxp <niveaux>"));
+                    p.sendMessage(PlaceholderUtils.parseToComponent("<gray>Déposer : <yellow>/team depositxp <niveaux>"));
                     if (isLeader) {
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Retirer : <yellow>/team withdrawxp <niveaux>"));
+                        p.sendMessage(PlaceholderUtils.parseToComponent("<gray>Retirer : <yellow>/team withdrawxp <niveaux>"));
                     }
                 }
             }));
 
             String claimCost = ecoEnabled ? (TeamClaimManager.CLAIM_COST_MONEY + " $") : (TeamClaimManager.CLAIM_COST_XP + " XP");
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§9Revendiquer ce Chunk\n§r§8" + currentClaims + "/" + team.getMaxClaims() + " (" + claimCost + ")", org.bukkit.Material.GRASS_BLOCK, p -> {
+            buttons.add(new BedrockFormManager.BedrockButton("§9Revendiquer ce Chunk\n§r§8" + currentClaims + "/" + team.getMaxClaims() + " (" + claimCost + ")", org.bukkit.Material.GRASS_BLOCK, p -> {
                 p.performCommand("team claim");
             }));
 
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§bQuêtes de Guilde\n§r§8Défis en coop", org.bukkit.Material.ENCHANTED_BOOK, p -> {
+            buttons.add(new BedrockFormManager.BedrockButton("§bQuêtes de Guilde\n§r§8Défis en coop", org.bukkit.Material.ENCHANTED_BOOK, p -> {
                 p.performCommand("team quest");
             }));
 
             if (isLeader) {
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§aAuto-verrouillage\n§r§8" + (team.isAutoLock() ? "ACTIVÉ" : "DÉSACTIVÉ"), org.bukkit.Material.REPEATER, p -> {
+                buttons.add(new BedrockFormManager.BedrockButton("§aAuto-verrouillage\n§r§8" + (team.isAutoLock() ? "ACTIVÉ" : "DÉSACTIVÉ"), org.bukkit.Material.REPEATER, p -> {
                     team.setAutoLock(!team.isAutoLock());
                     openTeamGui(p);
                 }));
@@ -82,16 +86,16 @@ public class TeamGui {
                 String pName = op.getName() != null ? op.getName() : "Inconnu";
                 fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
                 String headUrl = (skinModule != null) ? skinModule.getHeadUrl(memberUuid, pName) : "https://minotar.net/helm/Steve/64.png";
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§e" + pName + "\n§r" + role, headUrl, p -> {
+                buttons.add(new BedrockFormManager.BedrockButton("§e" + pName + "\n§r" + role, headUrl, p -> {
                     if (isLeader && !team.getLeaderUuid().equals(memberUuid)) {
                         team.removeMember(memberUuid);
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Joueur expulsé de l'équipe."));
+                        p.sendMessage(PlaceholderUtils.parseToComponent("<green>Joueur expulsé de l'équipe."));
                         openTeamGui(p);
                     }
                 }));
             }
 
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cQuitter / Dissoudre\n§r§8Attention !", org.bukkit.Material.BARRIER, p -> {
+            buttons.add(new BedrockFormManager.BedrockButton("§cQuitter / Dissoudre\n§r§8Attention !", org.bukkit.Material.BARRIER, p -> {
                 if (isLeader) {
                     plugin.getLangManager().sendMessage(p, "teamlistener.msg_1");
                     plugin.getTeamManager().disbandTeam(team);
@@ -103,18 +107,18 @@ public class TeamGui {
                 }
             }));
 
-            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Guilde: " + team.getName(), "Gérez votre équipe :", buttons);
+            BedrockFormManager.openSimpleForm(player, "Guilde: " + team.getName(), "Gérez votre équipe :", buttons);
             return;
         }
 
         TeamGuiHolder holder = new TeamGuiHolder();
-        Inventory inv = Bukkit.createInventory(holder, 45, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<dark_gray>Guilde : " + team.getName()));
+        Inventory inv = Bukkit.createInventory(holder, 45, PlaceholderUtils.parseToComponent("<dark_gray>Guilde : " + team.getName()));
         holder.setInventory(inv);
 
         // Ligne de décor
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
+        glassMeta.displayName(PlaceholderUtils.parseToComponent(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < 9; i++) inv.setItem(i, glass);
         for (int i = 37; i < 44; i++) inv.setItem(i, glass);
@@ -122,26 +126,26 @@ public class TeamGui {
         // Bouton Quêtes
         ItemStack quests = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta qmeta = quests.getItemMeta();
-        qmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<aqua>Quêtes de Guilde"));
+        qmeta.displayName(PlaceholderUtils.parseToComponent("<aqua>Quêtes de Guilde"));
         List<String> qlore = new ArrayList<>();
         qlore.add("<gray>Accomplissez des défis en coopération");
         qlore.add("<gray>pour gagner des Points de Guilde !");
         qlore.add("");
         qlore.add("<yellow>Clic pour ouvrir");
-        qmeta.lore(java.util.Optional.ofNullable(qlore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+        qmeta.lore(parseLore(qlore));
         quests.setItemMeta(qmeta);
         inv.setItem(36, quests);
 
         // Bouton Améliorations de Guilde
         ItemStack upgrades = new ItemStack(Material.NETHER_STAR);
         ItemMeta upgMeta = upgrades.getItemMeta();
-        upgMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Améliorations de Guilde"));
+        upgMeta.displayName(PlaceholderUtils.parseToComponent("<gold><bold>Améliorations de Guilde"));
         List<String> upgLore = new ArrayList<>();
         upgLore.add("<gray>Débloquez des bonus permanents pour votre guilde !");
         upgLore.add("<gray>Capacité, claims, bonus métiers, taxe HDV et quêtes.");
         upgLore.add("");
         upgLore.add("<yellow>Clic pour ouvrir le menu des améliorations");
-        upgMeta.lore(java.util.Optional.ofNullable(upgLore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+        upgMeta.lore(parseLore(upgLore));
         upgrades.setItemMeta(upgMeta);
         inv.setItem(37, upgrades);
 
@@ -150,7 +154,7 @@ public class TeamGui {
         boolean isEco = (eco != null && eco.isEnabled());
         ItemStack bank = new ItemStack(isEco ? Material.GOLD_INGOT : Material.EXPERIENCE_BOTTLE);
         ItemMeta bankMeta = bank.getItemMeta();
-        bankMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green><bold>Banque de Guilde"));
+        bankMeta.displayName(PlaceholderUtils.parseToComponent("<green><bold>Banque de Guilde"));
         List<String> bankLore = new ArrayList<>();
         if (isEco) {
             bankLore.add("<gray>Solde actuel : <gold>" + String.format("%.2f", team.getBankBalance()) + " $");
@@ -167,7 +171,7 @@ public class TeamGui {
         }
         bankLore.add("");
         bankLore.add("<dark_gray>Tous les achats de guilde sont prélevés ici.");
-        bankMeta.lore(java.util.Optional.ofNullable(bankLore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+        bankMeta.lore(parseLore(bankLore));
         bank.setItemMeta(bankMeta);
         inv.setItem(38, bank);
 
@@ -177,7 +181,7 @@ public class TeamGui {
         int maxClaims = team.getMaxClaims();
         ItemStack claimItem = new ItemStack(Material.GRASS_BLOCK);
         ItemMeta claimItemMeta = claimItem.getItemMeta();
-        claimItemMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Territoire de Guilde"));
+        claimItemMeta.displayName(PlaceholderUtils.parseToComponent("<blue><bold>Territoire de Guilde"));
         List<String> claimLore = new ArrayList<>();
         claimLore.add("<gray>Chunks revendiqués : <white>" + currentClaims + " / " + maxClaims);
         if (isEco) {
@@ -191,7 +195,7 @@ public class TeamGui {
         } else {
             claimLore.add("<gray>Seul le chef de guilde peut revendiquer un chunk.");
         }
-        claimItemMeta.lore(java.util.Optional.ofNullable(claimLore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+        claimItemMeta.lore(parseLore(claimLore));
         claimItem.setItemMeta(claimItemMeta);
         inv.setItem(39, claimItem);
 
@@ -203,7 +207,7 @@ public class TeamGui {
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
             meta.setPlayerProfile(op.getPlayerProfile());
-            meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>" + (op.getName() != null ? op.getName() : "Joueur Inconnu")));
+            meta.displayName(PlaceholderUtils.parseToComponent("<yellow>" + (op.getName() != null ? op.getName() : "Joueur Inconnu")));
             List<String> lore = new ArrayList<>();
             if (team.getLeaderUuid().equals(memberUuid)) {
                 lore.add("<gold> Chef de Guilde");
@@ -214,7 +218,7 @@ public class TeamGui {
                     lore.add("<red>Clic droit pour exclure");
                 }
             }
-            meta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+            meta.lore(parseLore(lore));
             head.setItemMeta(meta);
 
             inv.setItem(slot++, head);
@@ -225,14 +229,14 @@ public class TeamGui {
         if (isLeader) {
             ItemStack settings = new ItemStack(Material.REPEATER);
             ItemMeta smeta = settings.getItemMeta();
-            smeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<aqua>Paramètres de Verrouillage"));
+            smeta.displayName(PlaceholderUtils.parseToComponent("<aqua>Paramètres de Verrouillage"));
             List<String> slore = new ArrayList<>();
             slore.add("<gray>Auto-verrouiller les coffres posés");
             slore.add("<gray>pour les membres de l'équipe :");
             slore.add(team.isAutoLock() ? "<green><bold>ACTIVÉ" : "<red><bold>DÉSACTIVÉ");
             slore.add("");
             slore.add("<yellow>Clic pour changer");
-            smeta.lore(java.util.Optional.ofNullable(slore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+            smeta.lore(parseLore(slore));
             settings.setItemMeta(smeta);
             inv.setItem(40, settings);
         }
@@ -240,7 +244,7 @@ public class TeamGui {
         // Quitter la team
         ItemStack leave = new ItemStack(Material.BARRIER);
         ItemMeta lmeta = leave.getItemMeta();
-        lmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Quitter la guilde"));
+        lmeta.displayName(PlaceholderUtils.parseToComponent("<red>Quitter la guilde"));
         leave.setItemMeta(lmeta);
         inv.setItem(44, leave);
 
@@ -250,40 +254,40 @@ public class TeamGui {
     public void openTeamQuestGui(Player player, TeamData team) {
         fr.gens.core.modules.teams.TeamQuestManager tqm = plugin.getTeamQuestManager();
         if (tqm == null) {
-            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Quêtes de guilde indisponibles."));
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Quêtes de guilde indisponibles."));
             return;
         }
 
-        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
-            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+        if (FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
             int progress = tqm.getProgress(team.getTeamId());
             int goal = tqm.getGoal();
             String status = progress >= goal ? "§2[TERMINÉE]" : "Progression: " + progress + " / " + goal;
             
             String btnText = "§6Quête Hebdomadaire\n" + status;
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, Material.NETHER_STAR, p -> openTeamQuestGui(p, team)));
+            buttons.add(new BedrockFormManager.BedrockButton(btnText, Material.NETHER_STAR, p -> openTeamQuestGui(p, team)));
             
             String ptsText = "§ePoints de Guilde\n§8Hebdo: " + team.getWeeklyPoints() + " | Total: " + team.getTotalPoints();
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(ptsText, Material.SUNFLOWER, p -> openTeamQuestGui(p, team)));
+            buttons.add(new BedrockFormManager.BedrockButton(ptsText, Material.SUNFLOWER, p -> openTeamQuestGui(p, team)));
             
-            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Quête de Guilde", "Objectif actuel :\n" + tqm.getDesc(), buttons);
+            BedrockFormManager.openSimpleForm(player, "Quête de Guilde", "Objectif actuel :\n" + tqm.getDesc(), buttons);
             return;
         }
 
         TeamQuestGuiHolder holder = new TeamQuestGuiHolder();
-        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(holder, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<blue><bold>Quête de Guilde"));
+        org.bukkit.inventory.Inventory inv = org.bukkit.Bukkit.createInventory(holder, 27, PlaceholderUtils.parseToComponent("<blue><bold>Quête de Guilde"));
         holder.setInventory(inv);
         
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
+        glassMeta.displayName(PlaceholderUtils.parseToComponent(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
         
         if (tqm != null) {
             ItemStack questItem = new ItemStack(Material.NETHER_STAR);
             org.bukkit.inventory.meta.ItemMeta qmeta = questItem.getItemMeta();
-            qmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Quête Hebdomadaire"));
+            qmeta.displayName(PlaceholderUtils.parseToComponent("<gold><bold>Quête Hebdomadaire"));
             java.util.List<String> lore = new java.util.ArrayList<>();
             lore.add("<gray>" + tqm.getDesc());
             lore.add("");
@@ -294,18 +298,18 @@ public class TeamGui {
             } else {
                 lore.add("<yellow>Progression: <white>" + progress + " <yellow>/ <white>" + goal);
             }
-            qmeta.lore(java.util.Optional.ofNullable(lore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+            qmeta.lore(parseLore(lore));
             questItem.setItemMeta(qmeta);
             inv.setItem(13, questItem);
             
             // Add points info
             ItemStack pointsItem = new ItemStack(Material.SUNFLOWER);
             org.bukkit.inventory.meta.ItemMeta pmeta = pointsItem.getItemMeta();
-            pmeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Points de Guilde"));
+            pmeta.displayName(PlaceholderUtils.parseToComponent("<yellow>Points de Guilde"));
             java.util.List<String> plore = new java.util.ArrayList<>();
             plore.add("<gray>Hebdomadaire : <white>" + team.getWeeklyPoints());
             plore.add("<gray>Total : <white>" + team.getTotalPoints());
-            pmeta.lore(java.util.Optional.ofNullable(plore).orElse(java.util.Collections.emptyList()).stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent((String)s)).collect(java.util.stream.Collectors.toList()));
+            pmeta.lore(parseLore(plore));
             pointsItem.setItemMeta(pmeta);
             inv.setItem(22, pointsItem);
         }
@@ -319,8 +323,8 @@ public class TeamGui {
         fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
         boolean isEco = (ecoMod != null && ecoMod.isEnabled());
 
-        if (fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
-            java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
+        if (FloodgateUtil.isBedrockPlayer(player.getUniqueId())) {
+            java.util.List<BedrockFormManager.BedrockButton> buttons = new java.util.ArrayList<>();
 
             String[] perkKeys = {"MEMBERS", "CLAIMS", "JOBS", "AH_TAX", "QUESTS"};
             String[] perkNames = {"Membres Max", "Territoire Étendu", "Bonus Métiers", "Réduction Taxe HDV", "Bonus Quêtes Coop"};
@@ -341,41 +345,41 @@ public class TeamGui {
                 String costStr = isMax ? "MAX" : (isEco ? (costM + " $") : (costX + " XP"));
                 String btnText = "§6" + pName + " [Niv. " + curLvl + "/" + maxLvl + "]\n§r§8Coût: " + costStr;
 
-                buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton(btnText, icon, p -> {
+                buttons.add(new BedrockFormManager.BedrockButton(btnText, icon, p -> {
                     if (isMax) {
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Cette amélioration est déjà au niveau maximum."));
+                        p.sendMessage(PlaceholderUtils.parseToComponent("<yellow>Cette amélioration est déjà au niveau maximum."));
                         openTeamUpgradesGui(p, team);
                         return;
                     }
                     if (!isLeader) {
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut acheter des améliorations."));
+                        p.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut acheter des améliorations."));
                         openTeamUpgradesGui(p, team);
                         return;
                     }
                     boolean bought = plugin.getTeamManager().buyPerk(team, pKey);
                     if (bought) {
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Amélioration " + pName + " achetée avec succès via la banque de guilde !"));
+                        p.sendMessage(PlaceholderUtils.parseToComponent("<green>Amélioration " + pName + " achetée avec succès via la banque de guilde !"));
                     } else {
-                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Fonds insuffisants dans la banque de guilde !"));
+                        p.sendMessage(PlaceholderUtils.parseToComponent("<red>Fonds insuffisants dans la banque de guilde !"));
                     }
                     openTeamUpgradesGui(p, team);
                 }));
             }
 
-            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cRetour\n§r§8Menu de guilde", Material.BARRIER, this::openTeamGui));
+            buttons.add(new BedrockFormManager.BedrockButton("§cRetour\n§r§8Menu de guilde", Material.BARRIER, this::openTeamGui));
 
             String bankStr = isEco ? String.format("%.2f $", team.getBankBalance()) : (team.getBankXp() + " Niveaux XP");
-            fr.gens.core.utils.BedrockFormManager.openSimpleForm(player, "Améliorations de Guilde", "Banque de Guilde : " + bankStr + "\nSélectionnez une amélioration à débloquer :", buttons);
+            BedrockFormManager.openSimpleForm(player, "Améliorations de Guilde", "Banque de Guilde : " + bankStr + "\nSélectionnez une amélioration à débloquer :", buttons);
             return;
         }
 
         TeamUpgradesGuiHolder holder = new TeamUpgradesGuiHolder();
-        Inventory inv = Bukkit.createInventory(holder, 27, fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Améliorations de Guilde"));
+        Inventory inv = Bukkit.createInventory(holder, 27, PlaceholderUtils.parseToComponent("<gold><bold>Améliorations de Guilde"));
         holder.setInventory(inv);
 
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent(" "));
+        glassMeta.displayName(PlaceholderUtils.parseToComponent(" "));
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
 
@@ -406,7 +410,7 @@ public class TeamGui {
 
         ItemStack back = new ItemStack(Material.ARROW);
         ItemMeta bMeta = back.getItemMeta();
-        bMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Retour au menu de guilde"));
+        bMeta.displayName(PlaceholderUtils.parseToComponent("<red>Retour au menu de guilde"));
         back.setItemMeta(bMeta);
         inv.setItem(22, back);
 
@@ -417,7 +421,7 @@ public class TeamGui {
                                    String currentEffect, String nextEffect, TeamData team, boolean isEco, boolean isLeader) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>" + perkName + " <yellow>[Niv. " + curLvl + "/" + maxLvl + "]"));
+        meta.displayName(PlaceholderUtils.parseToComponent("<gold><bold>" + perkName + " <yellow>[Niv. " + curLvl + "/" + maxLvl + "]"));
         List<String> lore = new ArrayList<>();
         lore.add(currentEffect);
         lore.add("");
@@ -443,9 +447,20 @@ public class TeamGui {
                 lore.add("<red>Seul le chef de guilde peut acheter");
             }
         }
-        meta.lore(lore.stream().map(s -> fr.gens.core.utils.PlaceholderUtils.parseToComponent(s)).collect(java.util.stream.Collectors.toList()));
+        meta.lore(parseLore(lore));
         item.setItemMeta(meta);
         return item;
+    }
+
+    private List<Component> parseLore(List<String> lore) {
+        if (lore == null || lore.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<Component> components = new ArrayList<>(lore.size());
+        for (String line : lore) {
+            components.add(PlaceholderUtils.parseToComponent(line));
+        }
+        return components;
     }
 
     public static class TeamGuiHolder implements org.bukkit.inventory.InventoryHolder {

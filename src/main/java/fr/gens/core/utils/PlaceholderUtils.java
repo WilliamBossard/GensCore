@@ -1,5 +1,5 @@
 package fr.gens.core.utils;
-// Refreshing for IDE
+// Refreshing for IDE 
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.EconomyModule;
@@ -21,51 +21,56 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
-
 public class PlaceholderUtils {
 
     public static Component parseToComponent(String text) {
-        if (text == null) return Component.empty();
-        
+        if (text == null)
+            return Component.empty();
+
         String processed = text.replace("§", "&");
-        
-        // Convertir les couleurs hex legacy (&x&r&r&g&g&b&b) et (&#rrggbb) en MiniMessage
-        processed = processed.replaceAll("&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
+
+        // Convertir les couleurs hex legacy (&x&r&r&g&g&b&b) et (&#rrggbb) en
+        // MiniMessage
+        processed = processed.replaceAll(
+                "&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])",
+                "<#$1$2$3$4$5$6>");
         processed = processed.replaceAll("&#([0-9a-fA-F]{6})", "<#$1>");
-        
+
         // Convertir tous les codes legacy (&a, &l, etc.) en balises MiniMessage
         String mmString = processed
-            .replace("&0", "<black>")
-            .replace("&1", "<dark_blue>")
-            .replace("&2", "<dark_green>")
-            .replace("&3", "<dark_aqua>")
-            .replace("&4", "<dark_red>")
-            .replace("&5", "<dark_purple>")
-            .replace("&6", "<gold>")
-            .replace("&7", "<gray>")
-            .replace("&8", "<dark_gray>")
-            .replace("&9", "<blue>")
-            .replace("&a", "<green>")
-            .replace("&b", "<aqua>")
-            .replace("&c", "<red>")
-            .replace("&d", "<light_purple>")
-            .replace("&e", "<yellow>")
-            .replace("&f", "<white>")
-            .replace("&k", "<obfuscated>")
-            .replace("&l", "<bold>")
-            .replace("&m", "<strikethrough>")
-            .replace("&n", "<underlined>")
-            .replace("&o", "<italic>")
-            .replace("&r", "<reset>");
-            
+                .replace("&0", "<black>")
+                .replace("&1", "<dark_blue>")
+                .replace("&2", "<dark_green>")
+                .replace("&3", "<dark_aqua>")
+                .replace("&4", "<dark_red>")
+                .replace("&5", "<dark_purple>")
+                .replace("&6", "<gold>")
+                .replace("&7", "<gray>")
+                .replace("&8", "<dark_gray>")
+                .replace("&9", "<blue>")
+                .replace("&a", "<green>")
+                .replace("&b", "<aqua>")
+                .replace("&c", "<red>")
+                .replace("&d", "<light_purple>")
+                .replace("&e", "<yellow>")
+                .replace("&f", "<white>")
+                .replace("&k", "<obfuscated>")
+                .replace("&l", "<bold>")
+                .replace("&m", "<strikethrough>")
+                .replace("&n", "<underlined>")
+                .replace("&o", "<italic>")
+                .replace("&r", "<reset>");
+
         return MiniMessage.miniMessage().deserialize("<!italic>" + mmString);
     }
 
     /**
-     * Parse une string (contenant potentiellement des codes legacy ou MiniMessage) et applique les placeholders.
+     * Parse une string (contenant potentiellement des codes legacy ou MiniMessage)
+     * et applique les placeholders.
      */
     public static Component setPlaceholdersComponent(CorePlugin plugin, Player p, String text) {
-        if (text == null || p == null) return Component.empty();
+        if (text == null || p == null)
+            return Component.empty();
 
         List<TagResolver> resolvers = new ArrayList<>();
 
@@ -77,7 +82,8 @@ public class PlaceholderUtils {
 
         // Quests
         if (text.contains("quest")) {
-            fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin.getModuleManager().getModule("quests");
+            fr.gens.core.modules.quests.QuestModule questModule = (fr.gens.core.modules.quests.QuestModule) plugin
+                    .getModuleManager().getModule("quests");
             int completedQuests = 0;
             if (questModule != null) {
                 fr.gens.core.modules.quests.PlayerQuestData qData = questModule.getPlayerData(p.getUniqueId());
@@ -110,14 +116,16 @@ public class PlaceholderUtils {
         if (text.contains("staff")) {
             int staffCount = 0;
             for (Player online : Bukkit.getOnlinePlayers()) {
-                if (online == null) continue;
-                if (online.hasPermission("group.owner") || online.hasPermission("group.admin") || online.hasPermission("group.mod") || online.hasPermission("group.helper")) {
+                if (online == null)
+                    continue;
+                if (online.hasPermission("group.owner") || online.hasPermission("group.admin")
+                        || online.hasPermission("group.mod") || online.hasPermission("group.helper")) {
                     staffCount++;
                 }
             }
             resolvers.add(Placeholder.parsed("staff", String.valueOf(staffCount)));
         }
-        
+
         if (text.contains("mem_")) {
             long maxMemory = Runtime.getRuntime().maxMemory() / 1048576;
             long usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576;
@@ -132,14 +140,16 @@ public class PlaceholderUtils {
         // Discord
         if (text.contains("discord")) {
             boolean linked = p.hasPermission("genscore.discord.linked");
-            String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien" : "<yellow><bold>🔗 <red>Discord non lié ! <aqua>/linktuto";
+            String discordStatus = linked ? "<gray>Le Discord: <aqua>discord.gg/gensbien"
+                    : "<yellow><bold>🔗 <red>Discord non lié ! <aqua>/linktuto";
             resolvers.add(Placeholder.component("discord_status", parseToComponent(discordStatus)));
             String discordName = linked ? "Compte Lié" : "Non lié";
             resolvers.add(Placeholder.parsed("discord_name", discordName));
         }
 
         // Statistics
-        if (text.contains("hours_played") || text.contains("playtime") || text.contains("player_kills") || text.contains("mob_kills") || text.contains("deaths")) {
+        if (text.contains("hours_played") || text.contains("playtime") || text.contains("player_kills")
+                || text.contains("mob_kills") || text.contains("deaths")) {
             try {
                 int ticks = p.getStatistic(Statistic.PLAY_ONE_MINUTE);
                 int totalMinutes = ticks / 1200;
@@ -147,10 +157,12 @@ public class PlaceholderUtils {
                 int minutes = totalMinutes % 60;
                 resolvers.add(Placeholder.parsed("hours_played", String.valueOf(ticks / 72000)));
                 resolvers.add(Placeholder.parsed("playtime", hours + "h" + String.format("%02d", minutes) + "m"));
-                resolvers.add(Placeholder.parsed("player_kills", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS))));
+                resolvers.add(
+                        Placeholder.parsed("player_kills", String.valueOf(p.getStatistic(Statistic.PLAYER_KILLS))));
                 resolvers.add(Placeholder.parsed("mob_kills", String.valueOf(p.getStatistic(Statistic.MOB_KILLS))));
                 resolvers.add(Placeholder.parsed("deaths", String.valueOf(p.getStatistic(Statistic.DEATHS))));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         // First join date
@@ -164,7 +176,8 @@ public class PlaceholderUtils {
                 } else {
                     resolvers.add(Placeholder.parsed("first_join", "Inconnu"));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         // LuckPerms
@@ -185,7 +198,8 @@ public class PlaceholderUtils {
                     if (prefix != null && !prefix.trim().isEmpty()) {
                         resolvers.add(Placeholder.component("prefix", parseToComponent(prefix)));
                     } else if (groupName != null) {
-                        resolvers.add(Placeholder.component("prefix", parseToComponent("<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1))));
+                        resolvers.add(Placeholder.component("prefix", parseToComponent(
+                                "<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1))));
                     } else {
                         resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
                     }
@@ -199,7 +213,8 @@ public class PlaceholderUtils {
             }
         }
 
-        // Before passing to MiniMessage, convert Legacy variables (%) to MiniMessage Tags (<>)
+        // Before passing to MiniMessage, convert Legacy variables (%) to MiniMessage
+        // Tags (<>)
         String mmText = text.replace("§", "&");
         if (mmText.indexOf('%') != -1) {
             mmText = mmText
@@ -230,11 +245,14 @@ public class PlaceholderUtils {
             mmText = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, mmText);
         }
 
-        // Convertir également les codes couleurs legacy introduits par PAPI en MiniMessage
+        // Convertir également les codes couleurs legacy introduits par PAPI en
+        // MiniMessage
         if (mmText.indexOf('&') != -1) {
-            mmText = mmText.replaceAll("&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])", "<#$1$2$3$4$5$6>");
+            mmText = mmText.replaceAll(
+                    "&x&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])&([0-9a-fA-F])",
+                    "<#$1$2$3$4$5$6>");
             mmText = mmText.replaceAll("&#([0-9a-fA-F]{6})", "<#$1>");
-            
+
             mmText = mmText
                     .replace("&0", "<black>")
                     .replace("&1", "<dark_blue>")

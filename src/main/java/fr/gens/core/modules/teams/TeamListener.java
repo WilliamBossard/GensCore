@@ -1,6 +1,7 @@
 package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
+import fr.gens.core.utils.PlaceholderUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -58,7 +59,7 @@ public class TeamListener implements Listener {
                     player.closeInventory();
                     player.performCommand("team claim");
                 } else {
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut revendiquer un territoire."));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut revendiquer un territoire."));
                 }
                 return;
             }
@@ -67,11 +68,11 @@ public class TeamListener implements Listener {
                 fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
                 boolean isEco = (ecoMod != null && ecoMod.isEnabled());
                 if (isEco) {
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <gold>" + String.format("%.2f", team.getBankBalance()) + " $"));
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team deposit <montant><gray> pour alimenter la banque."));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <gold>" + String.format("%.2f", team.getBankBalance()) + " $"));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team deposit <montant><gray> pour alimenter la banque."));
                 } else {
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <yellow>" + team.getBankXp() + " Niveaux d'XP"));
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team depositxp <niveaux><gray> pour alimenter la banque."));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <yellow>" + team.getBankXp() + " Niveaux d'XP"));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team depositxp <niveaux><gray> pour alimenter la banque."));
                 }
                 return;
             }
@@ -160,14 +161,14 @@ public class TeamListener implements Listener {
 
             if (perkKey != null) {
                 if (!isLeader) {
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut acheter des améliorations."));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut acheter des améliorations."));
                     return;
                 }
                 boolean bought = plugin.getTeamManager().buyPerk(team, perkKey);
                 if (bought) {
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Amélioration " + perkLabel + " achetée avec succès via la banque de guilde !"));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<green>Amélioration " + perkLabel + " achetée avec succès via la banque de guilde !"));
                 } else {
-                    player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Fonds insuffisants dans la banque de guilde ou niveau max déjà atteint."));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Fonds insuffisants dans la banque de guilde ou niveau max déjà atteint."));
                 }
                 teamGui.openTeamUpgradesGui(player, team);
             }

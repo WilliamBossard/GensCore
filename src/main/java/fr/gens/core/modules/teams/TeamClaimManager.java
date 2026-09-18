@@ -2,7 +2,6 @@ package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
 import org.bukkit.Chunk;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;

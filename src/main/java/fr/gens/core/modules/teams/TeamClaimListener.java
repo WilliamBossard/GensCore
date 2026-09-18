@@ -1,6 +1,7 @@
 package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
+import fr.gens.core.utils.PlaceholderUtils;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
@@ -54,7 +55,7 @@ public class TeamClaimListener implements Listener {
         TeamData team = plugin.getTeamManager().getTeam(teamId);
         String teamName = (team != null) ? team.getName() : "Inconnue";
 
-        player.sendActionBar(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Territoire protege par la guilde <yellow>" + teamName + "</yellow>.</red>"));
+        player.sendActionBar(PlaceholderUtils.parseToComponent("<red>Territoire protege par la guilde <yellow>" + teamName + "</yellow>.</red>"));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
