@@ -1066,7 +1066,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
 
           <div style={{marginBottom: '1.5rem'}}>
             <div style={{display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '8px'}}>
-              <span>{t('web.team.claims_count', { current: team.currentClaims || 0, max: team.maxClaims || 4 }) || `Chunks possedes : ${team.currentClaims || 0} / ${team.maxClaims || 4}`}</span>
+              <span>{String(t('web.team.claims_count', { current: team.currentClaims || 0, max: team.maxClaims || 4 }) || `Chunks possedes : ${team.currentClaims || 0} / ${team.maxClaims || 4}`)
+                .replace('{current}', String(team.currentClaims || 0))
+                .replace('{max}', String(team.maxClaims || 4))}</span>
               <span style={{fontWeight: 'bold', color: 'var(--accent)'}}>
                 {Math.round(((team.currentClaims || 0) / (team.maxClaims || 4)) * 100)}%
               </span>
@@ -1150,7 +1152,11 @@ export function PlayerTeamSection({ token }: { token: string }) {
                       color: isMax ? '#10b981' : '#3b82f6',
                       border: `1px solid ${isMax ? 'rgba(16, 185, 129, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`
                     }}>
-                      {isMax ? (t('web.team.level_max') || 'NIVEAU MAX') : (t('web.team.level_label', { current: p.curLvl, max: p.maxLvl }) || `Niveau ${p.curLvl}/${p.maxLvl}`)}
+                      {isMax ? (t('web.team.level_max') || 'NIVEAU MAX') : (
+                        String(t('web.team.level_label', { current: p.curLvl, max: p.maxLvl }) || `Niveau ${p.curLvl}/${p.maxLvl}`)
+                          .replace('{current}', String(p.curLvl))
+                          .replace('{max}', String(p.maxLvl))
+                      )}
                     </span>
                   </div>
                   <p style={{fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1rem', minHeight: '38px'}}>

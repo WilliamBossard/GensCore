@@ -202,8 +202,8 @@ web:
     role_member: Member
     bank_title: Guild Bank
     bank_desc: All claims and upgrade purchases are strictly funded through this shared treasury.
-    bank_balance_money: "Bank Balance: {amount} $"
-    bank_balance_xp: "Bank XP: {amount} XP Levels"
+    bank_balance_money: "Bank Balance: {{amount}} $"
+    bank_balance_xp: "Bank XP: {{amount}} XP Levels"
     deposit_btn: Deposit
     withdraw_btn: Withdraw
     deposit_money_placeholder: Amount in $
@@ -211,7 +211,7 @@ web:
     withdraw_leader_only: Only the guild leader can withdraw funds.
     territory_title: Territory & Claims (BlueMap)
     territory_desc: Your protected chunks on the server, visible live on the world map.
-    claims_count: "Owned Chunks: {current} / {max}"
+    claims_count: "Owned Chunks: {{current}} / {{max}}"
     claim_cost_money: "Cost per claim: 1500.00 $ (guild bank)"
     claim_cost_xp: "Cost per claim: 10 XP Levels (guild bank)"
     color_label: Guild Color on BlueMap
@@ -228,11 +228,11 @@ web:
     perk_ah_desc: Reduces the Auction House sale tax for all guild members.
     perk_quests_name: Coop Quests Bonus
     perk_quests_desc: Points multiplier for weekly cooperative guild quests.
-    level_label: "Level {current} / {max}"
+    level_label: "Level {{current}} / {{max}}"
     level_max: MAX LEVEL
     buy_perk_btn: Buy Next Level
-    cost_label_money: "Cost: {cost} $ (bank)"
-    cost_label_xp: "Cost: {cost} XP Levels (bank)"
+    cost_label_money: "Cost: {{cost}} $ (bank)"
+    cost_label_xp: "Cost: {{cost}} XP Levels (bank)"
     members_title: Guild Members
   public:
     admin_access: Administrator Access
@@ -396,8 +396,8 @@ web:
       qty_available: "Available:"
       slots_used: "slots used"
       slots_full: "Deposit inventory full"
-      sell_partial: "Sell {qty} unit(s)"
-      withdraw_partial: "Retrieve {qty} unit(s) in-game"
+      sell_partial: "Sell {{qty}} unit(s)"
+      withdraw_partial: "Retrieve {{qty}} unit(s) in-game"
     stats:
       balance: Bank Balance
       best_team: Best Guild

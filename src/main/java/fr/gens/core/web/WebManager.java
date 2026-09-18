@@ -76,6 +76,10 @@ public class WebManager {
             Object value = section.get(key);
             if (value instanceof org.bukkit.configuration.ConfigurationSection) {
                 map.put(key, convertToMap((org.bukkit.configuration.ConfigurationSection) value));
+            } else if (value instanceof String) {
+                String str = (String) value;
+                str = str.replaceAll("(?<!\\{)\\{([a-zA-Z0-9_]+)\\}(?!\\})", "{{$1}}");
+                map.put(key, str);
             } else {
                 map.put(key, value);
             }

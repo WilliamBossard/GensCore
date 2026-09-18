@@ -208,8 +208,8 @@ web:
     role_member: Membre
     bank_title: Banque de Guilde
     bank_desc: Tous les achats de territoires et d'améliorations sont obligatoirement prélevés sur cette réserve commune.
-    bank_balance_money: "Solde Bancaire : {amount} $"
-    bank_balance_xp: "Solde XP : {amount} Niveaux d'XP"
+    bank_balance_money: "Solde Bancaire : {{amount}} $"
+    bank_balance_xp: "Solde XP : {{amount}} Niveaux d'XP"
     deposit_btn: Déposer
     withdraw_btn: Retirer
     deposit_money_placeholder: Montant en $
@@ -217,7 +217,7 @@ web:
     withdraw_leader_only: Seul le chef de guilde peut retirer des fonds.
     territory_title: Territoire & Claims (BlueMap)
     territory_desc: Vos chunks protégés sur le serveur et visibles en temps réel sur la carte.
-    claims_count: "Chunks possédés : {current} / {max}"
+    claims_count: "Chunks possédés : {{current}} / {{max}}"
     claim_cost_money: "Coût par claim : 1500.00 $ (prélevé sur la banque)"
     claim_cost_xp: "Coût par chunk : 10 Niveaux d'XP (prélevé sur la banque)"
     color_label: Couleur de la Guilde sur BlueMap
@@ -234,11 +234,11 @@ web:
     perk_ah_desc: Réduit la taxe de vente sur l'Hôtel des Ventes pour tous les membres.
     perk_quests_name: Bonus Quêtes Coop
     perk_quests_desc: Multiplicateur de points gagnés lors des quêtes hebdomadaires de guilde.
-    level_label: "Niveau {current} / {max}"
+    level_label: "Niveau {{current}} / {{max}}"
     level_max: NIVEAU MAX
     buy_perk_btn: Acheter le niveau supérieur
-    cost_label_money: "Coût : {cost} $ (banque)"
-    cost_label_xp: "Coût : {cost} Niveaux XP (banque)"
+    cost_label_money: "Coût : {{cost}} $ (banque)"
+    cost_label_xp: "Coût : {{cost}} Niveaux XP (banque)"
     members_title: Membres de la Guilde
   public:
     admin_access: Accès Administrateur
@@ -366,8 +366,8 @@ web:
       qty_available: "Disponible :"
       slots_used: "slots utilisés"
       slots_full: "Inventaire de dépôt plein"
-      sell_partial: "Vendre {qty} unité(s)"
-      withdraw_partial: "Récupérer {qty} unité(s) en jeu"
+      sell_partial: "Vendre {{qty}} unité(s)"
+      withdraw_partial: "Récupérer {{qty}} unité(s) en jeu"
     stats:
       balance: Solde Bancaire
       best_team: Meilleure Guilde
