@@ -42,11 +42,24 @@ public class BlueMapModule implements Module, Listener {
         if (!plugin.isEnabled()) return;
 
         if (Bukkit.getPluginManager().isPluginEnabled("BlueMap")) {
+            registerBlueMapListener();
             plugin.getFoliaLib().getScheduler().runLater((t2) -> {
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap start");
                 plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_1");
                 updateAllTeamTerritories();
             }, 40L);
+        }
+    }
+
+    private void registerBlueMapListener() {
+        try {
+            Class<?> apiClass = Class.forName("de.bluecolored.bluemap.api.BlueMapAPI");
+            java.lang.reflect.Method onEnableMethod = apiClass.getMethod("onEnable", java.util.function.Consumer.class);
+            onEnableMethod.invoke(null, (java.util.function.Consumer<Object>) api -> {
+                plugin.getLogger().info("[BlueMap] API active détectée, synchronisation des territoires de guildes...");
+                refreshBlueMapMarkers(api);
+            });
+        } catch (Throwable ignored) {
         }
     }
 
@@ -69,17 +82,19 @@ public class BlueMapModule implements Module, Listener {
 
         plugin.getFoliaLib().getScheduler().runAsync(task -> {
             try {
-                // Utilisation reflechie de l'API BlueMap pour garantir une compatibilite sans dependance statique
                 Class<?> apiClass = Class.forName("de.bluecolored.bluemap.api.BlueMapAPI");
-                Object apiInstance = apiClass.getMethod("getInstance").invoke(null);
-                if (apiInstance == null) return;
-
-                // Enregistre ou rafraichit les markers
-                refreshBlueMapMarkers(apiInstance);
+                Object optInstance = apiClass.getMethod("getInstance").invoke(null);
+                if (optInstance instanceof java.util.Optional) {
+                    java.util.Optional<?> opt = (java.util.Optional<?>) optInstance;
+                    if (!opt.isPresent()) return;
+                    refreshBlueMapMarkers(opt.get());
+                } else if (optInstance != null) {
+                    refreshBlueMapMarkers(optInstance);
+                }
             } catch (ClassNotFoundException e) {
                 // BlueMap API non disponible en runtime
             } catch (Exception e) {
-                plugin.getLogger().log(Level.FINE, "Erreur lors de la mise a jour des marqueurs BlueMap", e);
+                plugin.getLogger().log(Level.WARNING, "[BlueMap] Erreur lors de la mise à jour des marqueurs", e);
             }
         });
     }
@@ -90,28 +105,122 @@ public class BlueMapModule implements Module, Listener {
             if (claimMgr == null) return;
 
             Map<String, Integer> claims = claimMgr.getClaimsMap();
-            if (claims.isEmpty()) return;
 
-            // Iterer les maps de BlueMap et y injecter le MarkerSet
+            Class<?> markerSetClass = Class.forName("de.bluecolored.bluemap.api.markers.MarkerSet");
+            Class<?> extrudeMarkerClass = Class.forName("de.bluecolored.bluemap.api.markers.ExtrudeMarker");
+            Class<?> shapeClass = Class.forName("de.bluecolored.bluemap.api.math.Shape");
+            Class<?> colorClass = Class.forName("de.bluecolored.bluemap.api.math.Color");
+
+            java.lang.reflect.Constructor<?> colorStrConstructor = colorClass.getConstructor(String.class);
+            java.lang.reflect.Constructor<?> colorRgbaConstructor = colorClass.getConstructor(int.class, int.class, int.class, float.class);
+            java.lang.reflect.Method createRectMethod = shapeClass.getMethod("createRect", double.class, double.class, double.class, double.class);
+
+            // Iterer les maps de BlueMap et y injecter les markers
             Iterable<?> maps = (Iterable<?>) apiInstance.getClass().getMethod("getMaps").invoke(apiInstance);
             for (Object map : maps) {
+                String mapId = (String) map.getClass().getMethod("getId").invoke(map);
+                String mapWorldId = "";
+                try {
+                    Object blueMapWorld = map.getClass().getMethod("getWorld").invoke(map);
+                    if (blueMapWorld != null) {
+                        mapWorldId = (String) blueMapWorld.getClass().getMethod("getId").invoke(blueMapWorld);
+                    }
+                } catch (Exception ignored) {}
+
                 Object markerSets = map.getClass().getMethod("getMarkerSets").invoke(map);
                 if (markerSets instanceof Map) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> setsMap = (Map<String, Object>) markerSets;
                     
-                    Class<?> markerSetClass = Class.forName("de.bluecolored.bluemap.api.markers.MarkerSet");
                     Object markerSet = setsMap.get("genscore_claims");
                     if (markerSet == null) {
-                        markerSet = markerSetClass.getMethod("builder").invoke(null);
-                        markerSet = markerSet.getClass().getMethod("label", String.class).invoke(markerSet, "Territoires de Guildes");
-                        markerSet = markerSet.getClass().getMethod("build").invoke(markerSet);
+                        Object setBuilder = markerSetClass.getMethod("builder").invoke(null);
+                        setBuilder.getClass().getMethod("label", String.class).invoke(setBuilder, "Territoires de Guildes");
+                        setBuilder.getClass().getMethod("defaultHidden", boolean.class).invoke(setBuilder, false);
+                        setBuilder.getClass().getMethod("toggleable", boolean.class).invoke(setBuilder, true);
+                        markerSet = setBuilder.getClass().getMethod("build").invoke(setBuilder);
                         setsMap.put("genscore_claims", markerSet);
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> markers = (Map<String, Object>) markerSetClass.getMethod("getMarkers").invoke(markerSet);
+                    markers.clear(); // Reinitialiser pour supprimer les chunks libérés
+
+                    for (Map.Entry<String, Integer> entry : claims.entrySet()) {
+                        String[] parts = entry.getKey().split(":");
+                        if (parts.length != 3) continue;
+
+                        String chunkWorld = parts[0];
+                        int cx = Integer.parseInt(parts[1]);
+                        int cz = Integer.parseInt(parts[2]);
+                        int teamId = entry.getValue();
+
+                        String cw = chunkWorld.toLowerCase();
+                        String mw = mapWorldId.toLowerCase();
+                        String mi = mapId.toLowerCase();
+
+                        boolean worldMatches = mw.isEmpty()
+                            || mw.equals(cw)
+                            || mw.contains(cw)
+                            || mi.equals(cw)
+                            || mi.contains(cw)
+                            || (cw.equals("world") && (mw.contains("overworld") || mi.contains("overworld")))
+                            || (cw.contains("nether") && (mw.contains("nether") || mi.contains("nether")))
+                            || ((cw.contains("the_end") || cw.contains("end")) && (mw.contains("end") || mi.contains("end")));
+
+                        if (!worldMatches) continue;
+
+                        TeamData team = plugin.getTeamManager().getTeam(teamId);
+                        if (team == null) continue;
+
+                        String hexColor = team.getColor();
+                        if (hexColor == null || !hexColor.startsWith("#") || hexColor.length() != 7) {
+                            hexColor = "#2ecc71"; // Couleur verte par defaut
+                        }
+
+                        // Construction des couleurs de bordure et de remplissage
+                        Object lineColor = colorStrConstructor.newInstance(hexColor);
+                        int r = (int) colorClass.getMethod("getRed").invoke(lineColor);
+                        int g = (int) colorClass.getMethod("getGreen").invoke(lineColor);
+                        int b = (int) colorClass.getMethod("getBlue").invoke(lineColor);
+                        Object fillColor = colorRgbaConstructor.newInstance(r, g, b, 0.35f);
+
+                        double minX = cx * 16.0;
+                        double minZ = cz * 16.0;
+                        double maxX = minX + 16.0;
+                        double maxZ = minZ + 16.0;
+
+                        Object shape = createRectMethod.invoke(null, minX, minZ, maxX, maxZ);
+
+                        Object markerBuilder = extrudeMarkerClass.getMethod("builder").invoke(null);
+                        markerBuilder.getClass().getMethod("label", String.class).invoke(markerBuilder, "Guilde : " + team.getName());
+                        markerBuilder.getClass().getMethod("detail", String.class).invoke(markerBuilder,
+                            "<div style='font-family: sans-serif; padding: 6px; min-width: 160px;'>" +
+                            "<b style='font-size: 15px; color:" + hexColor + ";'>" + team.getName() + "</b><br>" +
+                            "<span style='color: #aaa; font-size: 12px;'>Territoire revendiqué</span><br>" +
+                            "<span style='font-size: 12px;'>Chunk: [" + cx + ", " + cz + "]</span><br>" +
+                            "<span style='font-size: 11px; color: #888;'>X: " + (int)minX + ".." + (int)maxX + " | Z: " + (int)minZ + ".." + (int)maxZ + "</span>" +
+                            "</div>"
+                        );
+                        markerBuilder.getClass().getMethod("shape", shapeClass, float.class, float.class).invoke(markerBuilder, shape, -64f, 320f);
+                        markerBuilder.getClass().getMethod("lineColor", colorClass).invoke(markerBuilder, lineColor);
+                        markerBuilder.getClass().getMethod("fillColor", colorClass).invoke(markerBuilder, fillColor);
+                        markerBuilder.getClass().getMethod("lineWidth", int.class).invoke(markerBuilder, 2);
+                        markerBuilder.getClass().getMethod("depthTestEnabled", boolean.class).invoke(markerBuilder, false);
+                        try {
+                            markerBuilder.getClass().getMethod("centerPosition").invoke(markerBuilder);
+                        } catch (Exception ignored) {}
+
+                        Object marker = markerBuilder.getClass().getMethod("build").invoke(markerBuilder);
+                        markers.put("claim_" + chunkWorld + "_" + cx + "_" + cz, marker);
+                    }
+                    if (!markers.isEmpty()) {
+                        plugin.getLogger().info("[BlueMap] " + markers.size() + " territoire(s) synchronisé(s) sur la carte '" + mapId + "'.");
                     }
                 }
             }
-        } catch (Exception ignored) {
-            // Silencieux si versions d'API differentes
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "[BlueMap] Erreur lors du rendu des territoires", e);
         }
     }
 

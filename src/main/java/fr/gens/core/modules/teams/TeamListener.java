@@ -1,17 +1,24 @@
 package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
+import fr.gens.core.modules.BlueMapModule;
+import fr.gens.core.modules.EconomyModule;
 import fr.gens.core.utils.PlaceholderUtils;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.UUID;
-
 
 public class TeamListener implements Listener {
     private final CorePlugin plugin;
@@ -24,16 +31,16 @@ public class TeamListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (event.getInventory().getHolder() instanceof TeamGui.TeamGuiHolder ||
-            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Guilde : ")) {
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamGuiHolder || title.startsWith("Guilde : ")) {
             if (event.getClickedInventory() == null) return;
             if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
-                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     event.setCancelled(true);
                 }
                 return;
             }
-            
+
             event.setCancelled(true);
             if (!(event.getWhoClicked() instanceof Player)) return;
             Player player = (Player) event.getWhoClicked();
@@ -54,6 +61,15 @@ public class TeamListener implements Listener {
                 return;
             }
 
+            if (item.getType() == Material.PAINTING) {
+                if (isLeader) {
+                    teamGui.openTeamColorGui(player, team);
+                } else {
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut modifier la couleur BlueMap."));
+                }
+                return;
+            }
+
             if (item.getType() == Material.GRASS_BLOCK) {
                 if (isLeader) {
                     player.closeInventory();
@@ -65,21 +81,26 @@ public class TeamListener implements Listener {
             }
 
             if (item.getType() == Material.GOLD_INGOT || item.getType() == Material.EXPERIENCE_BOTTLE) {
-                fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+                EconomyModule ecoMod = (EconomyModule) plugin.getModuleManager().getModule("economy");
                 boolean isEco = (ecoMod != null && ecoMod.isEnabled());
                 if (isEco) {
                     player.sendMessage(PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <gold>" + String.format("%.2f", team.getBankBalance()) + " $"));
                     player.sendMessage(PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team deposit <montant><gray> pour alimenter la banque."));
+                    if (isLeader) {
+                        player.sendMessage(PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team withdraw <montant><gray> pour retirer des fonds."));
+                    }
                 } else {
                     player.sendMessage(PlaceholderUtils.parseToComponent("<green>[Guilde] Solde de la banque : <yellow>" + team.getBankXp() + " Niveaux d'XP"));
                     player.sendMessage(PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team depositxp <niveaux><gray> pour alimenter la banque."));
+                    if (isLeader) {
+                        player.sendMessage(PlaceholderUtils.parseToComponent("<gray>Utilisez <yellow>/team withdrawxp <niveaux><gray> pour retirer des niveaux."));
+                    }
                 }
                 return;
             }
 
             if (item.getType() == Material.REPEATER && isLeader) {
                 team.setAutoLock(!team.isAutoLock());
-                // Refresh
                 teamGui.openTeamGui(player);
                 return;
             }
@@ -97,7 +118,7 @@ public class TeamListener implements Listener {
             }
 
             if (item.getType() == Material.PLAYER_HEAD && isLeader) {
-                if (event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT || event.getClick() == org.bukkit.event.inventory.ClickType.SHIFT_RIGHT) {
+                if (event.getClick() == ClickType.RIGHT || event.getClick() == ClickType.SHIFT_RIGHT) {
                     SkullMeta meta = (SkullMeta) item.getItemMeta();
                     if (meta.getOwningPlayer() != null) {
                         UUID targetUuid = meta.getOwningPlayer().getUniqueId();
@@ -114,11 +135,11 @@ public class TeamListener implements Listener {
 
     @EventHandler
     public void onUpgradesGuiClick(InventoryClickEvent event) {
-        if (event.getInventory().getHolder() instanceof TeamGui.TeamUpgradesGuiHolder ||
-            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Améliorations de Guilde")) {
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamUpgradesGuiHolder || title.equals("Améliorations de Guilde")) {
             if (event.getClickedInventory() == null) return;
             if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
-                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     event.setCancelled(true);
                 }
                 return;
@@ -177,35 +198,94 @@ public class TeamListener implements Listener {
 
     @EventHandler
     public void onQuestGuiClick(InventoryClickEvent event) {
-        if (event.getInventory().getHolder() instanceof TeamGui.TeamQuestGuiHolder ||
-            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde")) {
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamQuestGuiHolder || title.contains("Quêtes de Guilde") || title.contains("Quête")) {
             if (event.getClickedInventory() == null) return;
             if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
-                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     event.setCancelled(true);
                 }
                 return;
             }
-            
+
             event.setCancelled(true);
+            if (!(event.getWhoClicked() instanceof Player)) return;
+            Player player = (Player) event.getWhoClicked();
+            ItemStack item = event.getCurrentItem();
+            if (item == null) return;
+
+            if (item.getType() == Material.ARROW) {
+                teamGui.openTeamGui(player);
+            }
         }
     }
 
     @EventHandler
-    public void onInventoryDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+    public void onColorGuiClick(InventoryClickEvent event) {
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
+        if (event.getInventory().getHolder() instanceof TeamGui.TeamColorGuiHolder || title.contains("Couleur BlueMap")) {
+            if (event.getClickedInventory() == null) return;
+            if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
+                if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+                    event.setCancelled(true);
+                }
+                return;
+            }
+
+            event.setCancelled(true);
+            if (!(event.getWhoClicked() instanceof Player)) return;
+            Player player = (Player) event.getWhoClicked();
+            ItemStack item = event.getCurrentItem();
+            if (item == null || item.getType() == Material.AIR || item.getType() == Material.BLACK_STAINED_GLASS_PANE || item.getType() == Material.PAINTING) return;
+
+            TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+            if (team == null) return;
+            boolean isLeader = team.getLeaderUuid().equals(player.getUniqueId());
+
+            if (item.getType() == Material.ARROW) {
+                teamGui.openTeamGui(player);
+                return;
+            }
+
+            if (!isLeader) {
+                player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut modifier la couleur du territoire."));
+                return;
+            }
+
+            for (TeamGui.ColorEntry entry : TeamGui.getColorPalette()) {
+                if (entry.material == item.getType()) {
+                    team.setColor(entry.hex);
+                    plugin.getTeamManager().saveColorAsync(team);
+                    BlueMapModule bmm = (BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+                    if (bmm != null && bmm.isEnabled()) {
+                        bmm.updateAllTeamTerritories();
+                    }
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<green>Couleur de territoire mise à jour : <yellow>" + entry.hex));
+                    teamGui.openTeamGui(player);
+                    return;
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        String title = PlainTextComponentSerializer.plainText().serialize(event.getView().title());
         if (event.getInventory().getHolder() instanceof TeamGui.TeamGuiHolder ||
             event.getInventory().getHolder() instanceof TeamGui.TeamQuestGuiHolder ||
             event.getInventory().getHolder() instanceof TeamGui.TeamUpgradesGuiHolder ||
-            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).startsWith("Guilde : ") ||
-            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Quête de Guilde") ||
-            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(event.getView().title()).equals("Améliorations de Guilde")) {
+            event.getInventory().getHolder() instanceof TeamGui.TeamColorGuiHolder ||
+            title.startsWith("Guilde : ") ||
+            title.contains("Quêtes de Guilde") ||
+            title.contains("Quête") ||
+            title.contains("Améliorations de Guilde") ||
+            title.contains("Couleur BlueMap")) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
-    public void onPlayerJoin(org.bukkit.event.player.PlayerJoinEvent event) {
-        // Process pending rewards for the player asynchronously to avoid lagging main thread
+    public void onPlayerJoin(PlayerJoinEvent event) {
         plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
             TeamModule module = (TeamModule) plugin.getModuleManager().getModule("teams");
             if (module != null) {
@@ -215,13 +295,10 @@ public class TeamListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerQuit(org.bukkit.event.player.PlayerQuitEvent event) {
+    public void onPlayerQuit(PlayerQuitEvent event) {
         TeamModule module = (TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null && module.getTeamCommand() != null) {
             module.getTeamCommand().removeInvite(event.getPlayer().getUniqueId());
         }
     }
 }
-
-
-

@@ -377,6 +377,11 @@ public class TeamCommand {
         team.setColor(color);
         plugin.getTeamManager().saveColorAsync(team);
 
+        fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+        if (bm != null && bm.isEnabled()) {
+            bm.updateAllTeamTerritories();
+        }
+
         team.broadcast("<green>La couleur de territoire de la guilde a ete modifiee en <white>" + color + "</white> !");
     }
 

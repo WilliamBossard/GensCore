@@ -156,6 +156,7 @@ public class TeamClaimManager {
         }
 
         claims.put(key, team.getTeamId());
+        notifyBlueMap();
         return ClaimResult.SUCCESS;
     }
 
@@ -183,16 +184,26 @@ public class TeamClaimManager {
         }
 
         claims.remove(key);
+        notifyBlueMap();
         return UnclaimResult.SUCCESS;
     }
 
     public void removeAllTeamClaims(int teamId) {
         claims.entrySet().removeIf(entry -> entry.getValue() != null && entry.getValue() == teamId);
+        notifyBlueMap();
     }
 
     public void loadClaims(Map<String, Integer> loadedClaims) {
         claims.clear();
         claims.putAll(loadedClaims);
+        notifyBlueMap();
+    }
+
+    private void notifyBlueMap() {
+        fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+        if (bm != null && bm.isEnabled()) {
+            bm.updateAllTeamTerritories();
+        }
     }
 
     public static class ClaimPos {
