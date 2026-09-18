@@ -1,6 +1,5 @@
 package fr.gens.core.modules.teams;
 
-import org.bukkit.Material;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
