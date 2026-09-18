@@ -280,10 +280,8 @@ web:
             (<code>/ah</code>).
           title: Économie & Boutique Dynamique
         guilds:
-          desc: Créez votre propre Guilde (<code>/team</code>) et invitez vos amis.
-            Ensemble, participez à la quête hebdomadaire pour gagner des récompenses
-            exclusives et monter en haut du classement global !
-          title: Guildes & Quêtes Hebdomadaires
+          desc: Fondez votre Guilde (<code>/team</code>), recrutez des membres et nommez des <strong>Admins</strong> pour cogérer votre faction. Revendiquez vos territoires (<strong>Claims</strong>) avec protection anti-grief totale (blocs, coffres, pistons, entités) et affichage du nom de guilde à l'écran. Profitez d'une trésorerie commune ($ / XP), d'un affichage BlueMap avec couleur personnalisable, et achetez des <strong>améliorations de guilde</strong> (membres, claims, bonus métiers, réduction de taxe HDV) directement en jeu ou sur le portail web !
+          title: Guildes, Territoires & Trésorerie
         jobs:
           desc: Progressez dans vos métiers (<code>/jobs</code>) pour devenir le meilleur
             artisan du serveur. De plus, vous avez la capacité de récupérer les <strong>Spawners</strong>

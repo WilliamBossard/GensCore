@@ -100,56 +100,92 @@ Player-to-player marketplace with expiration timers, listing limits, and automat
 ---
 
 ### Guilds & Teams
-Comprehensive guild and clan management system with shared treasury, chunk claim territorial protections, BlueMap marker synchronization, in-game perks, and integrated web portal control.
+Comprehensive guild and clan management system with shared treasury, chunk claim territorial protections, on-screen boundary notifications, BlueMap marker synchronization, role hierarchy (Leader, Admin, Member), in-game perks, and integrated web portal control.
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
 | `/team` | *None* | *None* | Everyone | Opens the interactive Guild Management GUI. *(Aliases: `/guild`, `/guilde`, `/teams`)* |
 | `/team create` | `<name>` | *None* | Everyone | Creates a new guild with the sender as leader (max 16 characters). |
-| `/team invite` | `<player>` | *None* | Everyone | Invites a player to join your guild (leader only). |
+| `/team invite` | `<player>` | *None* | Admin / Leader | Invites a player to join your guild. |
 | `/team accept` | *None* | *None* | Everyone | Accepts a pending guild invitation. |
+| `/team kick` | `<player>` | *None* | Admin / Leader | Kicks a member from the guild (Admins cannot kick the Leader or other Admins). |
+| `/team promote` | `<player>` | *None* | Leader | Promotes a guild member to Administrator (`ADMIN`). |
+| `/team demote` | `<player>` | *None* | Leader | Demotes an Administrator back to regular Member (`MEMBER`). |
+| `/team leave` | *None* | *None* | Member / Admin | Leaves your current guild (Leaders must disband or transfer leadership first). |
+| `/team disband` | *None* | *None* | Leader | Permanently disbands the guild and unclaims all territory. |
 | `/team quest` | *None* | *None* | Everyone | Opens the shared Guild Quests progression menu. |
 | `/team upgrades` | *None* | *None* | Everyone | Opens the Guild Upgrades shop GUI. |
 | `/team deposit` | `<amount>` | *None* | Everyone | Deposits dollars into the guild bank (when Economy is active). |
 | `/team depositxp` | `<levels>` | *None* | Everyone | Deposits XP levels into the guild bank (alternative when Economy is disabled). |
-| `/team withdraw` | `<amount>` | *None* | Leader | Withdraws dollars from the guild bank into personal balance (leader only). |
-| `/team withdrawxp` | `<levels>` | *None* | Leader | Withdraws XP levels from the guild bank to the leader (leader only). |
-| `/team claim` | *None* | *None* | Leader | Claims the current chunk ($16 \times 16$) for the guild. Strictly funded from the guild bank. |
-| `/team unclaim` | *None* | *None* | Leader | Releases the current chunk claim back to the wild. |
-| `/team color` | `<hex>` | *None* | Leader | Sets the guild territory color for BlueMap rendering (e.g. `#3498db`). |
+| `/team withdraw` | `<amount>` | *None* | Admin / Leader | Withdraws dollars from the guild bank into personal balance. |
+| `/team withdrawxp` | `<levels>` | *None* | Admin / Leader | Withdraws XP levels from the guild bank into player levels. |
+| `/team claim` | *None* | *None* | Admin / Leader | Claims the current chunk ($16 \times 16$) for the guild. Strictly funded from the guild bank. |
+| `/team unclaim` | *None* | *None* | Admin / Leader | Releases the current chunk claim back to the wild. |
+| `/team color` | `<hex>` | *None* | Admin / Leader | Sets the guild territory color for BlueMap rendering (e.g. `#3498db`). |
+
+#### Guild Hierarchy & Role Permissions
+GensCore implements a 3-tier hierarchy system for guild security and co-management:
+
+| Permission / Action | Chef (`LEADER`) | Admin (`ADMIN`) | Membre (`MEMBER`) |
+|---|:---:|:---:|:---:|
+| Disband Guild (`/team disband`) | ✅ | ❌ | ❌ |
+| Promote / Demote Admins | ✅ | ❌ | ❌ |
+| Kick Members | ✅ (Any) | ✅ (Regular Members only) | ❌ |
+| Invite Players (`/team invite`) | ✅ | ✅ | ❌ |
+| Claim / Unclaim Territory | ✅ | ✅ | ❌ |
+| Change BlueMap Color (`/team color`) | ✅ | ✅ | ❌ |
+| Purchase Upgrades (`/team upgrades`) | ✅ | ✅ | ❌ |
+| Withdraw Bank Funds / XP | ✅ | ✅ | ❌ |
+| Deposit Bank Funds / XP | ✅ | ✅ | ✅ |
+| Access Guild-Locked Chests (`/lock guild`) | ✅ | ✅ | ✅ |
+| Build / Interact in Guild Claims | ✅ | ✅ | ✅ |
+| Participate in Guild Quests | ✅ | ✅ | ✅ |
+
+- **Management via In-Game GUI (`/team`):**
+  - Clicking on a member's player head in the Guild GUI allows quick role actions:
+    - **Left-Click:** Promote to Admin or Demote to Member (Leader only).
+    - **Right-Click:** Kick the player from the guild (with role validation).
+- **Management via Web Player Portal:**
+  - Guild leaders and admins can log into the server Web Portal (`/portal` or via website) and access the **Guilde** tab.
+  - View real-time treasury balances, manage members (Promote, Demote, Kick with confirmation modal), adjust the BlueMap territory color using an intuitive color picker, and purchase guild upgrades in a single click.
+
+#### Territory Claims & Anti-Grief Protection
+- **Comprehensive Anti-Grief Shield:** Unaffiliated players cannot break blocks, place blocks, open chests/barrels/shulker boxes, use hoppers/furnaces, or interact with redstone mechanisms (doors, trapdoors, buttons, levers) in claimed chunks.
+- **Entity & Livestock Protection:** Armor stands, item frames, paintings, villagers, and passive animals within claimed chunks cannot be damaged or altered by non-members.
+- **Anti-Piston Boundary Safeguard:** Pistons cannot push or pull blocks across chunk boundaries into or out of guild territory.
+- **On-Screen Border Notifications:**
+  - When crossing into a claimed guild territory, players receive an animated Title and Subtitle on their screen displaying the guild's name and protection status, accompanied by an immersive chime sound effect.
+- **Claim Limits & Base Costs:**
+  - Base claim limit: 4 chunks ($16 \times 16$, expandable up to 20 chunks via the `EXTENDED_TERRITORY` upgrade).
+  - Cost per claim: $1500.00 (Economy ON) or 10 XP Levels (Economy OFF), charged strictly to the shared guild bank.
+- **BlueMap Live Visualization:** All claimed chunks are rendered in real time on the interactive BlueMap web layer using the hex color chosen by the guild leaders.
 
 #### Guild Shared Treasury (Bank)
 - **Economy-Aware Currency Duality:**
   - When `EconomyModule` is enabled: Treasury transactions use in-game currency ($).
-  - When `EconomyModule` is disabled: Treasury automatically switches to player Experience (XP levels). The web portal dynamically hides currency inputs and replaces them with XP levels.
-- **Strict Treasury Funding Rule:** All land claims and guild perk upgrades must be funded directly and exclusively from the guild bank. Direct player purchases are prohibited to ensure cooperative teamwork.
-
-#### Territory Claims & Anti-Grief Protection
-- **Chunk Protection Matrix:** Unaffiliated players cannot break blocks, place blocks, open chests, access containers, or trigger redstone mechanisms in claimed chunks.
-- **Entity & Armor Stand Security:** Armor stands, item frames, and peaceful animals are protected against non-member attacks.
-- **Anti-Piston Security:** Blocks pushed or retracted by pistons across chunk boundaries into or out of guild claims are automatically blocked.
-- **Claim Limits & Base Costs:**
-  - Base limit: 4 chunks (expandable up to 20 chunks via the `CLAIMS` upgrade).
-  - Cost per claim: $1500.00 (Economy ON) or 10 XP Levels (Economy OFF), charged strictly to the guild bank.
-- **BlueMap Live Visualization:** All claimed chunks are tracked and displayed on the interactive BlueMap layer with the custom hexadecimal color selected by the guild leader.
+  - When `EconomyModule` is disabled: Treasury automatically switches to player Experience (XP levels). The web portal and in-game GUIs dynamically hide currency inputs and display XP levels.
+- **Strict Treasury Funding Rule:** All land claims and guild perk upgrades must be funded directly and exclusively from the guild bank. Direct player purchases are prohibited to ensure collaborative teamwork.
 
 #### Guild Perks & Upgrades System
 Guilds can unlock 5 permanent team-wide upgrades paid through the guild bank:
 1. **MAX_MEMBERS (Levels 1 to 3):**
    - Base: 5 members.
-   - Formula: `5 + (level * 3)` -> 8, 11, 14 members.
+   - Formula: `5 + (level * 3)` -> 8, 11, 14 members max.
    - Pricing ($ / XP): Level 1: $5,000 (25 XP), Level 2: $15,000 (45 XP), Level 3: $35,000 (70 XP).
 2. **EXTENDED_TERRITORY (Levels 1 to 4):**
    - Base: 4 claims.
-   - Formula: `4 + (level * 4)` -> 8, 12, 16, 20 chunks.
+   - Formula: `4 + (level * 4)` -> 8, 12, 16, 20 chunks max.
    - Pricing ($ / XP): Level 1: $4,000 (20 XP), Level 2: $10,000 (35 XP), Level 3: $20,000 (55 XP), Level 4: $40,000 (80 XP).
 3. **JOBS_BOOST (Levels 1 to 3):**
+   - Grants a permanent job experience multiplier to all online guild members.
    - Formula: `+5%` XP per level (`1.05x`, `1.10x`, `1.15x`).
    - Pricing ($ / XP): Level 1: $10,000 (30 XP), Level 2: $25,000 (50 XP), Level 3: $50,000 (80 XP).
 4. **AH_TAX_REDUCTION (Levels 1 to 2):**
+   - Reduces the sales commission tax when selling items on the Auction House (`/ah`).
    - Formula: `-25%` tax reduction per level (Level 1: -25%, Level 2: -50% tax).
    - Pricing ($ / XP): Level 1: $8,000 (30 XP), Level 2: $20,000 (55 XP).
 5. **COOP_QUESTS_BOOST (Levels 1 to 2):**
+   - Boosts the points and contribution earned towards weekly guild quests.
    - Formula: `+10%` guild quest points per level (`1.10x`, `1.20x`).
    - Pricing ($ / XP): Level 1: $12,000 (35 XP), Level 2: $30,000 (60 XP).
 

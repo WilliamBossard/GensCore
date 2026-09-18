@@ -273,10 +273,8 @@ web:
             items to other players via the Auction House (<code>/ah</code>).
           title: Economy & Dynamic Shop
         guilds:
-          desc: Create your own Guild (<code>/team</code>) and invite your friends.
-            Together, participate in the weekly quest to earn exclusive rewards and
-            climb to the top of the global leaderboard!
-          title: Guilds & Weekly Quests
+          desc: Found your Guild (<code>/team</code>), recruit members and appoint <strong>Admins</strong> to co-manage your faction. Claim your territories (<strong>Claims</strong>) with comprehensive anti-grief protection (blocks, containers, pistons, entities) and custom on-screen boundary titles. Enjoy a shared treasury ($ / XP), live BlueMap rendering with custom colors, and purchase <strong>guild upgrades</strong> (member slots, claim expansion, jobs boost, AH tax reduction) in-game or directly from the web portal!
+          title: Guilds, Territories & Treasury
         jobs:
           desc: Progress in your jobs (<code>/jobs</code>) to become the best craftsman
             on the server. Plus, you have the ability to retrieve <strong>Spawners</strong>
