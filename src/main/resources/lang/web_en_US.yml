@@ -199,6 +199,7 @@ web:
     no_team_title: No Guild
     no_team_desc: You are currently not part of any guild. Create one in-game using /team create <name> or join your allies!
     role_leader: Guild Leader
+    role_admin: Administrator
     role_member: Member
     bank_title: Guild Bank
     bank_desc: All claims and upgrade purchases are strictly funded through this shared treasury.
@@ -209,6 +210,7 @@ web:
     deposit_money_placeholder: Amount in $
     deposit_xp_placeholder: XP Levels
     withdraw_leader_only: Only the guild leader can withdraw funds.
+    withdraw_admin_only: Only the leader and administrators can withdraw funds.
     territory_title: Territory & Claims (BlueMap)
     territory_desc: Your protected chunks on the server, visible live on the world map.
     claims_count: "Owned Chunks: {{current}} / {{max}}"
@@ -234,6 +236,9 @@ web:
     cost_label_money: "Cost: {{cost}} $ (bank)"
     cost_label_xp: "Cost: {{cost}} XP Levels (bank)"
     members_title: Guild Members
+    promote_btn: Promote Admin
+    demote_btn: Demote
+    kick_btn: Kick
   public:
     admin_access: Administrator Access
     ah:

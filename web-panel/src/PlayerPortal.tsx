@@ -1123,7 +1123,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
             </form>
           ) : (
             <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: '0.5rem 0 0 0'}}>
-              {t('web.team.withdraw_admin_only') || 'Seuls le chef et les administrateurs peuvent retirer des fonds.'}
+              {t('web.team.withdraw_admin_only', 'Seuls le chef et les administrateurs peuvent retirer des fonds.')}
             </p>
           )}
         </div>
@@ -1319,7 +1319,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                         fontSize: '0.75rem', fontWeight: 'bold',
                         color: m.isLeader ? '#eab308' : m.isAdmin ? '#3b82f6' : '#94a3b8'
                       }}>
-                        {m.isLeader ? '★ Chef' : m.isAdmin ? '♦ Admin' : 'Membre'}
+                        {m.isLeader ? `★ ${t('web.team.role_leader', 'Chef')}` : m.isAdmin ? `♦ ${t('web.team.role_admin', 'Admin')}` : t('web.team.role_member', 'Membre')}
                       </span>
                     </div>
                   </div>
@@ -1339,7 +1339,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
                         }}
                       >
-                        <UserCheck size={14} /> Nommer Admin
+                        <UserCheck size={14} /> {t('web.team.promote_btn', 'Nommer Admin')}
                       </button>
                     )}
                     {canDemote && (
@@ -1354,7 +1354,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
                         }}
                       >
-                        <UserMinus size={14} /> Retrograder
+                        <UserMinus size={14} /> {t('web.team.demote_btn', 'Rétrograder')}
                       </button>
                     )}
                     {canKick && (
@@ -1369,7 +1369,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
                         }}
                       >
-                        <UserX size={14} /> Expulser
+                        <UserX size={14} /> {t('web.team.kick_btn', 'Expulser')}
                       </button>
                     )}
                   </div>

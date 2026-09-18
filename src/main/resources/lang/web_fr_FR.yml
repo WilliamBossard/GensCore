@@ -205,6 +205,7 @@ web:
     no_team_title: Aucune Guilde
     no_team_desc: Vous ne faites actuellement partie d'aucune guilde. Créez-en une en jeu avec /team create <nom> ou rejoignez des alliés !
     role_leader: Chef de Guilde
+    role_admin: Administrateur
     role_member: Membre
     bank_title: Banque de Guilde
     bank_desc: Tous les achats de territoires et d'améliorations sont obligatoirement prélevés sur cette réserve commune.
@@ -215,6 +216,7 @@ web:
     deposit_money_placeholder: Montant en $
     deposit_xp_placeholder: Niveaux d'XP
     withdraw_leader_only: Seul le chef de guilde peut retirer des fonds.
+    withdraw_admin_only: Seuls le chef et les administrateurs peuvent retirer des fonds.
     territory_title: Territoire & Claims (BlueMap)
     territory_desc: Vos chunks protégés sur le serveur et visibles en temps réel sur la carte.
     claims_count: "Chunks possédés : {{current}} / {{max}}"
@@ -240,6 +242,9 @@ web:
     cost_label_money: "Coût : {{cost}} $ (banque)"
     cost_label_xp: "Coût : {{cost}} Niveaux XP (banque)"
     members_title: Membres de la Guilde
+    promote_btn: Nommer Admin
+    demote_btn: Rétrograder
+    kick_btn: Expulser
   public:
     admin_access: Accès Administrateur
     ah:
