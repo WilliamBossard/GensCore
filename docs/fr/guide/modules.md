@@ -102,6 +102,7 @@ Un écosystème de guilde complet, compatible Folia multi-thread et crossplay Be
   3. *Boost Métiers (Niveaux 1 à 3) :* +5%, +10% et +15% de gains d'expérience de métiers pour tous les membres en ligne.
   4. *Réduction Taxe HDV (Niveaux 1 à 2) :* -25% et -50% sur la commission de vente à l'Hôtel des Ventes.
   5. *Boost Quêtes Coop (Niveaux 1 à 2) :* +10% et +20% de points de quêtes de guilde.
+- **Améliorations en Cours de Développement :** 5 nouveaux arbres d'upgrades sont en cours d'intégration : *Foyer de Guilde* (`/team home`), *Aura de Territoire* (buffs de zone), *Intérêts Bancaires Journaliers*, *Surcadençage des Spawners* et *Coffre-fort Virtuel Partagé* (`/team vault`).
 - **Intégration Temps Réel BlueMap :** Tous les claims de guilde sont dessinés sur la carte 3D BlueMap avec une couleur hexadécimale personnalisable via `/team color <#hex>` ou le Panel Web.
 
 ---

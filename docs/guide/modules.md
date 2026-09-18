@@ -102,6 +102,7 @@ A complete clan ecosystem supporting Folia multi-threading and Bedrock crossplay
   3. *Jobs Boost (Tiers 1 to 3):* +5%, +10%, and +15% jobs XP bonus for online members.
   4. *Auction House Tax Reduction (Tiers 1 to 2):* -25% and -50% tax cut on sales commission.
   5. *Co-op Quest Boost (Tiers 1 to 2):* +10% and +20% guild quest progress points.
+- **Upcoming Perks (In Development):** 5 additional upgrade trees are currently being added: *Guild Home Warp* (`/team home`), *Territory Buffs* (AoE effects in claims), *Daily Bank Interest*, *Spawner Overclocking*, and *Virtual Shared Vault* (`/team vault`).
 - **BlueMap Live Integration:** All guild claims render seamlessly on 3D BlueMap with customized hex colors configured via `/team color <#hex>` or the Web Panel.
 
 ---

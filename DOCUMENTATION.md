@@ -189,6 +189,21 @@ Guilds can unlock 5 permanent team-wide upgrades paid through the guild bank:
    - Formula: `+10%` guild quest points per level (`1.10x`, `1.20x`).
    - Pricing ($ / XP): Level 1: $12,000 (35 XP), Level 2: $30,000 (60 XP).
 
+#### Planned Guild Upgrades (In Development)
+The following 5 additional guild upgrades are scheduled for rollout:
+1. **GUILD_HOME (Levels 1 to 3):**
+   - Shared guild teleportation waypoint (`/team sethome` and `/team home`).
+   - Upgrades reduce teleportation warmup delay (5s down to instant in claims) and cooldown timer (15m down to 1m).
+2. **TERRITORY_BUFF (Levels 1 to 3):**
+   - Area-of-effect passive buffs for all guild members located within claimed chunks.
+   - Level 1: Passive Regeneration I and slow Saturation. Level 2: Speed I inside claims. Level 3: Haste I inside claims.
+3. **BANK_INTEREST (Levels 1 to 2):**
+   - Yields passive interest dividends directly into the shared bank treasury every 24 real-world hours based on the balance (with safety anti-inflation caps).
+4. **SPAWNER_EFFICIENCY (Levels 1 to 2):**
+   - Boosts custom spawners placed within the guild's claimed chunks: +15% to +30% spawn frequency and bonus mob drop rates.
+5. **GUILD_VAULT (Levels 1 to 3):**
+   - Secure communal virtual chest accessible via `/team vault` and through the Player Web Portal (1 to 6 rows, 9 to 54 slots).
+
 ---
 
 ### Jobs & Professions
