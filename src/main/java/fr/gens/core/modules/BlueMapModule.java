@@ -101,6 +101,7 @@ public class BlueMapModule implements Module, Listener {
 
     private void refreshBlueMapMarkers(Object apiInstance) {
         try {
+            if (plugin.getTeamManager() == null) return;
             TeamClaimManager claimMgr = plugin.getTeamManager().getClaimManager();
             if (claimMgr == null) return;
 
@@ -136,8 +137,8 @@ public class BlueMapModule implements Module, Listener {
                     if (markerSet == null) {
                         Object setBuilder = markerSetClass.getMethod("builder").invoke(null);
                         setBuilder.getClass().getMethod("label", String.class).invoke(setBuilder, "Territoires de Guildes");
-                        setBuilder.getClass().getMethod("defaultHidden", boolean.class).invoke(setBuilder, false);
-                        setBuilder.getClass().getMethod("toggleable", boolean.class).invoke(setBuilder, true);
+                        invokeBoolean(setBuilder, "defaultHidden", false);
+                        invokeBoolean(setBuilder, "toggleable", true);
                         markerSet = setBuilder.getClass().getMethod("build").invoke(setBuilder);
                         setsMap.put("genscore_claims", markerSet);
                     }
@@ -202,11 +203,11 @@ public class BlueMapModule implements Module, Listener {
                             "<span style='font-size: 11px; color: #888;'>X: " + (int)minX + ".." + (int)maxX + " | Z: " + (int)minZ + ".." + (int)maxZ + "</span>" +
                             "</div>"
                         );
-                        markerBuilder.getClass().getMethod("shape", shapeClass, float.class, float.class).invoke(markerBuilder, shape, -64f, 320f);
+                        invokeShape(markerBuilder, shape, shapeClass);
                         markerBuilder.getClass().getMethod("lineColor", colorClass).invoke(markerBuilder, lineColor);
                         markerBuilder.getClass().getMethod("fillColor", colorClass).invoke(markerBuilder, fillColor);
-                        markerBuilder.getClass().getMethod("lineWidth", int.class).invoke(markerBuilder, 2);
-                        markerBuilder.getClass().getMethod("depthTestEnabled", boolean.class).invoke(markerBuilder, false);
+                        invokeInt(markerBuilder, "lineWidth", 2);
+                        invokeBoolean(markerBuilder, "depthTestEnabled", false);
                         try {
                             markerBuilder.getClass().getMethod("centerPosition").invoke(markerBuilder);
                         } catch (Exception ignored) {}
@@ -222,6 +223,41 @@ public class BlueMapModule implements Module, Listener {
         } catch (Exception e) {
             plugin.getLogger().log(Level.WARNING, "[BlueMap] Erreur lors du rendu des territoires", e);
         }
+    }
+
+    private void invokeBoolean(Object target, String methodName, boolean value) {
+        try {
+            target.getClass().getMethod(methodName, Boolean.class).invoke(target, Boolean.valueOf(value));
+            return;
+        } catch (NoSuchMethodException ignored) {
+            try {
+                target.getClass().getMethod(methodName, boolean.class).invoke(target, value);
+            } catch (Exception ignored2) {}
+        } catch (Exception ignored) {}
+    }
+
+    private void invokeInt(Object target, String methodName, int value) {
+        try {
+            target.getClass().getMethod(methodName, Integer.class).invoke(target, Integer.valueOf(value));
+            return;
+        } catch (NoSuchMethodException ignored) {
+            try {
+                target.getClass().getMethod(methodName, int.class).invoke(target, value);
+            } catch (Exception ignored2) {}
+        } catch (Exception ignored) {}
+    }
+
+    private void invokeShape(Object markerBuilder, Object shape, Class<?> shapeClass) {
+        try {
+            markerBuilder.getClass().getMethod("shape", shapeClass, float.class, float.class)
+                    .invoke(markerBuilder, shape, -64f, 320f);
+            return;
+        } catch (NoSuchMethodException ignored) {
+            try {
+                markerBuilder.getClass().getMethod("shape", shapeClass, double.class, double.class)
+                        .invoke(markerBuilder, shape, -64.0, 320.0);
+            } catch (Exception ignored2) {}
+        } catch (Exception ignored) {}
     }
 
     /**

@@ -82,6 +82,12 @@ public class CorePlugin extends JavaPlugin {
         // 3. Initialiser les managers dependants des modules (comme TeamManager)
         this.teamManager = new TeamManager(this);
         this.teamQuestManager = new TeamQuestManager(this);
+
+        // Synchroniser BlueMap des que TeamManager et ses claims sont en memoire
+        fr.gens.core.modules.BlueMapModule bmm = (fr.gens.core.modules.BlueMapModule) this.moduleManager.getModule("bluemap");
+        if (bmm != null && bmm.isEnabled()) {
+            bmm.updateAllTeamTerritories();
+        }
         
         // Demande à chaque module d'enregistrer ses commandes
         for (fr.gens.core.modules.Module module : this.moduleManager.getModules()) {
