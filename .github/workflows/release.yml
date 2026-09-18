@@ -116,7 +116,7 @@ jobs:
           body: |
             ## 📦 GensCore ${{ steps.meta.outputs.version }}
 
-            **Compatibilité :** Minecraft 26.3 (Compilé avec Paper 26.3.build.6-alpha · Compatible Paper & Folia 26.3 et versions antérieures) · Java 25+
+            **Compatibilité :** Minecraft 26.3 (Compilé avec Paper 26.3.build.16-alpha · Compatible Paper & Folia 26.3) · Java 25+
 
             > Les notes de changements sont générées automatiquement depuis les commits.
             > Pour une release manuelle détaillée, éditez ce brouillon avant de le publier.

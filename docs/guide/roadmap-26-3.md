@@ -3,7 +3,7 @@
 Follow real-time progress, newly deployed improvements, and the transition roadmap of **GensCore** towards **Minecraft 26.3** and **Java 25 LTS**.
 
 ::: info Project Status
-- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 8+)
+- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 16+)
 - **Runtime Environment:** Java 25 LTS
 - **Active Working Branch:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 - **Stability:** Advanced functional Alpha in testing & staging
@@ -16,7 +16,7 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | Component | Status | Details |
 | :--- | :---: | :--- |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Compiled with `--release 25` flag and verified on Temurin JVM 25 |
-| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.8-alpha` |
+| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.16-alpha` |
 | **Craft Quests (Torches & Bulk Crafting)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Accurate shift-click batch size tracking and vanilla yield multiplier |
 | **Comprehensive Shop (319 Items & Potions)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | 7 balanced categories (25-35% margin), SQLite auto-seeding & GUI pagination |
 | **Web Minigames Remaster & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Slot machine RTP calibrated to 84%, 3D animated CoinFlip, real-time admin switches |
@@ -77,7 +77,7 @@ flowchart LR
     D --> E[Merge to main & v1.1.0 Release]
 ```
 
-1. **Phase 1 (Current):** Stabilization on the `dev` branch on Paper 26.3 Build 8-alpha with complete shop.
+1. **Phase 1 (Current):** Stabilization on the `dev` branch on Paper 26.3 Build 16-alpha with complete shop.
 2. **Phase 2:** High-concurrency stress testing (50+ simulated players with Spark profiling).
 3. **Phase 3:** Paper 26.3 Release Candidate (RC) release verification.
 4. **Phase 4:** Merge `dev` into `main` and publish the official GensCore v1.1.0 distribution.
@@ -85,6 +85,13 @@ flowchart LR
 ---
 
 ## Recent Patch Notes
+
+### Patch 26.3-alpha.16 (September 18, 2026)
+- **Paper API:** Upgraded to `26.3.build.16-alpha` (latest official PaperMC release).
+- **Player Balance Wallet:** Added live balance card directly in the sidebar under player profile with instant debit/credit animations (`+`/`-`) and on-click sync.
+- **Shop Balance Security:** Real-time post-purchase balance calculation in shop drawer with warning alert and automatic purchase blocking when funds are insufficient.
+- **100% 26.3 Texture Coverage:** Full asset mapping for all 1,815 Minecraft 26.3 materials (Vanilla spears, Poplar wood set, 16 cushions, shelf mushroom, straw bed, copper blocks) with resilient fallback chains.
+- **CI/CD Release Workflow:** Updated GitHub release pipeline to target `Paper 26.3.build.16-alpha`.
 
 ### Patch 26.3-alpha.8 (September 17, 2026)
 - **Paper API:** Bumped to `26.3.build.8-alpha`.
