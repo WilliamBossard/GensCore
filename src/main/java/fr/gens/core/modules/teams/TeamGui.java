@@ -79,15 +79,40 @@ public class TeamGui {
 
             for (UUID memberUuid : team.getMembers()) {
                 OfflinePlayer op = Bukkit.getOfflinePlayer(memberUuid);
-                String role = team.getLeaderUuid().equals(memberUuid) ? "§6Chef" : "§7Membre";
+                String role = team.getLeaderUuid().equals(memberUuid) ? "§6Chef" : (team.isAdmin(memberUuid) ? "§bAdmin" : "§7Membre");
                 String pName = op.getName() != null ? op.getName() : "Inconnu";
                 BedrockSkinModule skinModule = (BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
                 String headUrl = (skinModule != null) ? skinModule.getHeadUrl(memberUuid, pName) : "https://minotar.net/helm/Steve/64.png";
                 buttons.add(new BedrockFormManager.BedrockButton("§e" + pName + "\n§r" + role, headUrl, p -> {
                     if (isLeader && !team.getLeaderUuid().equals(memberUuid)) {
-                        team.removeMember(memberUuid);
-                        p.sendMessage(PlaceholderUtils.parseToComponent("<green>Joueur expulsé de l'équipe."));
-                        openTeamGui(p);
+                        List<BedrockFormManager.BedrockButton> memberActions = new ArrayList<>();
+                        if (team.isAdmin(memberUuid)) {
+                            memberActions.add(new BedrockFormManager.BedrockButton("§eRétrograder en Membre", Material.IRON_INGOT, p2 -> {
+                                plugin.getTeamManager().demoteAdmin(team, memberUuid);
+                                p2.sendMessage(PlaceholderUtils.parseToComponent("<yellow>" + pName + " a été rétrogradé au rang de Membre."));
+                                openTeamGui(p2);
+                            }));
+                        } else {
+                            memberActions.add(new BedrockFormManager.BedrockButton("§aPromouvoir Administrateur", Material.GOLD_INGOT, p2 -> {
+                                plugin.getTeamManager().promoteAdmin(team, memberUuid);
+                                p2.sendMessage(PlaceholderUtils.parseToComponent("<green>" + pName + " a été promu Administrateur de la guilde !"));
+                                openTeamGui(p2);
+                            }));
+                        }
+                        memberActions.add(new BedrockFormManager.BedrockButton("§cExpulser de la Guilde", Material.BARRIER, p2 -> {
+                            plugin.getTeamManager().removeMember(team, memberUuid);
+                            p2.sendMessage(PlaceholderUtils.parseToComponent("<red>" + pName + " a été exclu de la guilde."));
+                            openTeamGui(p2);
+                        }));
+                        BedrockFormManager.openSimpleForm(p, "Gérer : " + pName, "Rang actuel : " + role, memberActions);
+                    } else if (team.isAdmin(p.getUniqueId()) && team.canManageMembers(p.getUniqueId(), memberUuid)) {
+                        List<BedrockFormManager.BedrockButton> memberActions = new ArrayList<>();
+                        memberActions.add(new BedrockFormManager.BedrockButton("§cExpulser de la Guilde", Material.BARRIER, p2 -> {
+                            plugin.getTeamManager().removeMember(team, memberUuid);
+                            p2.sendMessage(PlaceholderUtils.parseToComponent("<red>" + pName + " a été exclu de la guilde."));
+                            openTeamGui(p2);
+                        }));
+                        BedrockFormManager.openSimpleForm(p, "Gérer : " + pName, "Rang actuel : " + role, memberActions);
                     }
                 }));
             }
@@ -156,11 +181,22 @@ public class TeamGui {
             List<String> lore = new ArrayList<>();
             if (team.getLeaderUuid().equals(memberUuid)) {
                 lore.add("<gold>★ Chef de Guilde");
+            } else if (team.isAdmin(memberUuid)) {
+                lore.add("<aqua>♦ Administrateur");
+                if (isLeader) {
+                    lore.add("");
+                    lore.add("<yellow>Clic gauche pour rétrograder en Membre");
+                    lore.add("<red>Clic droit pour exclure de la guilde");
+                }
             } else {
                 lore.add("<gray>Membre");
                 if (isLeader) {
                     lore.add("");
-                    lore.add("<red>Clic droit pour exclure");
+                    lore.add("<green>Clic gauche pour promouvoir Administrateur");
+                    lore.add("<red>Clic droit pour exclure de la guilde");
+                } else if (team.isAdmin(player.getUniqueId())) {
+                    lore.add("");
+                    lore.add("<red>Clic droit pour exclure de la guilde");
                 }
             }
             meta.lore(parseLore(lore));
@@ -199,16 +235,17 @@ public class TeamGui {
         ItemMeta bankMeta = bank.getItemMeta();
         bankMeta.displayName(PlaceholderUtils.parseToComponent("<green><bold>Banque de Guilde"));
         List<String> bankLore = new ArrayList<>();
+        boolean canManage = team.isAdminOrLeader(player.getUniqueId());
         if (ecoEnabled) {
             bankLore.add("<gray>Solde actuel : <gold>" + String.format("%.2f", team.getBankBalance()) + " $");
             bankLore.add("<gray>Utilisez <yellow>/team deposit <montant><gray> pour déposer.");
-            if (isLeader) {
+            if (canManage) {
                 bankLore.add("<gray>Utilisez <yellow>/team withdraw <montant><gray> pour retirer.");
             }
         } else {
             bankLore.add("<gray>Solde actuel : <green>" + team.getBankXp() + " Niveaux d'XP");
             bankLore.add("<gray>Utilisez <yellow>/team depositxp <niveaux><gray> pour déposer.");
-            if (isLeader) {
+            if (canManage) {
                 bankLore.add("<gray>Utilisez <yellow>/team withdrawxp <niveaux><gray> pour retirer.");
             }
         }
@@ -229,16 +266,16 @@ public class TeamGui {
             claimLore.add("<gray>Coût par chunk : <green>" + TeamClaimManager.CLAIM_COST_XP + " Niveaux XP <gray>(banque)");
         }
         claimLore.add("");
-        if (isLeader) {
+        if (canManage) {
             claimLore.add("<yellow>Clic pour revendiquer le chunk actuel (/team claim)");
         } else {
-            claimLore.add("<gray>Seul le chef de guilde peut revendiquer un chunk.");
+            claimLore.add("<gray>Seuls le chef et les administrateurs peuvent revendiquer.");
         }
         claimItemMeta.lore(parseLore(claimLore));
         claimItem.setItemMeta(claimItemMeta);
 
-        if (isLeader) {
-            // Disposition chef de guilde (7 boutons bien répartis sur la rangée inférieure)
+        if (canManage) {
+            // Disposition chef et administrateurs
             inv.setItem(37, quests);
             inv.setItem(38, upgrades);
             inv.setItem(39, bank);
@@ -272,18 +309,30 @@ public class TeamGui {
             settings.setItemMeta(smeta);
             inv.setItem(42, settings);
 
-            // Dissoudre
-            ItemStack leave = new ItemStack(Material.BARRIER);
-            ItemMeta lmeta = leave.getItemMeta();
-            lmeta.displayName(PlaceholderUtils.parseToComponent("<red><bold>Dissoudre la guilde"));
-            List<String> llore = new ArrayList<>();
-            llore.add("<gray>Supprime définitivement votre guilde.");
-            llore.add("<dark_red>Action irréversible !");
-            lmeta.lore(parseLore(llore));
-            leave.setItemMeta(lmeta);
-            inv.setItem(44, leave);
+            if (isLeader) {
+                // Dissoudre (Leader uniquement)
+                ItemStack leave = new ItemStack(Material.BARRIER);
+                ItemMeta lmeta = leave.getItemMeta();
+                lmeta.displayName(PlaceholderUtils.parseToComponent("<red><bold>Dissoudre la guilde"));
+                List<String> llore = new ArrayList<>();
+                llore.add("<gray>Supprime définitivement votre guilde.");
+                llore.add("<dark_red>Action irréversible !");
+                lmeta.lore(parseLore(llore));
+                leave.setItemMeta(lmeta);
+                inv.setItem(44, leave);
+            } else {
+                // Quitter la guilde (Admin)
+                ItemStack leave = new ItemStack(Material.BARRIER);
+                ItemMeta lmeta = leave.getItemMeta();
+                lmeta.displayName(PlaceholderUtils.parseToComponent("<red><bold>Quitter la guilde"));
+                List<String> llore = new ArrayList<>();
+                llore.add("<gray>Quitter cette guilde.");
+                lmeta.lore(parseLore(llore));
+                leave.setItemMeta(lmeta);
+                inv.setItem(44, leave);
+            }
         } else {
-            // Disposition membre régulier (4 boutons centrés)
+            // Disposition membre régulier
             inv.setItem(38, quests);
             inv.setItem(39, upgrades);
             inv.setItem(40, bank);
@@ -294,10 +343,9 @@ public class TeamGui {
             ItemMeta lmeta = leave.getItemMeta();
             lmeta.displayName(PlaceholderUtils.parseToComponent("<red><bold>Quitter la guilde"));
             List<String> llore = new ArrayList<>();
-            llore.add("<gray>Quitter cette équipe.");
+            llore.add("<gray>Quitter cette guilde.");
             lmeta.lore(parseLore(llore));
             leave.setItemMeta(lmeta);
-            inv.setItem(44, leave);
         }
 
         plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> player.openInventory(inv));

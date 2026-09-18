@@ -99,7 +99,7 @@ public class TeamClaimManager {
     }
 
     public ClaimResult claimChunk(Player player, TeamData team, Chunk chunk) {
-        if (!team.getLeaderUuid().equals(player.getUniqueId())) {
+        if (!team.isAdminOrLeader(player.getUniqueId())) {
             return ClaimResult.NOT_LEADER;
         }
 
@@ -161,7 +161,7 @@ public class TeamClaimManager {
     }
 
     public UnclaimResult unclaimChunk(Player player, TeamData team, Chunk chunk) {
-        if (!team.getLeaderUuid().equals(player.getUniqueId())) {
+        if (!team.isAdminOrLeader(player.getUniqueId())) {
             return UnclaimResult.NOT_LEADER;
         }
 

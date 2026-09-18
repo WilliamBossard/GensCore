@@ -85,8 +85,8 @@ public class TeamCommand {
         if (!module.isEnabled()) return;
         TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
         
-        if (team == null || !team.getLeaderUuid().equals(player.getUniqueId())) {
-            plugin.getLangManager().sendMessage(player, "teamcommand.msg_5");
+        if (team == null || !team.isAdminOrLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs de la guilde peuvent inviter des joueurs.</red>"));
             return;
         }
         if (team.getMembers().size() >= team.getMaxMembers()) {
@@ -234,8 +234,8 @@ public class TeamCommand {
             return;
         }
 
-        if (!team.getLeaderUuid().equals(player.getUniqueId())) {
-            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut retirer des fonds de la banque.</red>"));
+        if (!team.isAdminOrLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs de la guilde peuvent retirer des fonds de la banque.</red>"));
             return;
         }
 
@@ -273,8 +273,8 @@ public class TeamCommand {
             return;
         }
 
-        if (!team.getLeaderUuid().equals(player.getUniqueId())) {
-            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut retirer de l'XP de la banque.</red>"));
+        if (!team.isAdminOrLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs de la guilde peuvent retirer de l'XP de la banque.</red>"));
             return;
         }
 
@@ -379,8 +379,8 @@ public class TeamCommand {
             return;
         }
 
-        if (!team.getLeaderUuid().equals(player.getUniqueId())) {
-            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut modifier la couleur de territoire.</red>"));
+        if (!team.isAdminOrLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs de la guilde peuvent modifier la couleur de territoire.</red>"));
             return;
         }
 
@@ -399,6 +399,201 @@ public class TeamCommand {
         }
 
         team.broadcast("<green>La couleur de territoire de la guilde a ete modifiee en <white>" + color + "</white> !");
+    }
+
+    @Command("team kick <target>")
+    public void executeTeamKick(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur a exclure") String targetName) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde.</red>"));
+            return;
+        }
+
+        if (!team.isAdminOrLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs peuvent exclure des membres.</red>"));
+            return;
+        }
+
+        UUID targetUuid = null;
+        String actualName = targetName;
+        for (UUID mUuid : team.getMembers()) {
+            org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(mUuid);
+            if (op.getName() != null && op.getName().equalsIgnoreCase(targetName)) {
+                targetUuid = mUuid;
+                actualName = op.getName();
+                break;
+            }
+        }
+
+        if (targetUuid == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Ce joueur ne fait pas partie de votre guilde.</red>"));
+            return;
+        }
+
+        if (team.isLeader(targetUuid)) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous ne pouvez pas exclure le chef de guilde !</red>"));
+            return;
+        }
+
+        if (!team.canManageMembers(player.getUniqueId(), targetUuid)) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas les droits suffisants pour exclure cet administrateur.</red>"));
+            return;
+        }
+
+        plugin.getTeamManager().removeMember(team, targetUuid);
+        team.broadcast("<red><bold>" + actualName + "</bold> a ete exclu de la guilde par <yellow>" + player.getName() + "</yellow>.");
+
+        Player targetPlayer = Bukkit.getPlayer(targetUuid);
+        if (targetPlayer != null && targetPlayer.isOnline()) {
+            targetPlayer.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous avez ete exclu de la guilde " + team.getName() + ".</red>"));
+        }
+    }
+
+    @Command("team promote <target>")
+    public void executeTeamPromote(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le membre a promouvoir") String targetName) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde.</red>"));
+            return;
+        }
+
+        if (!team.isLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut nommer des administrateurs.</red>"));
+            return;
+        }
+
+        UUID targetUuid = null;
+        String actualName = targetName;
+        for (UUID mUuid : team.getMembers()) {
+            org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(mUuid);
+            if (op.getName() != null && op.getName().equalsIgnoreCase(targetName)) {
+                targetUuid = mUuid;
+                actualName = op.getName();
+                break;
+            }
+        }
+
+        if (targetUuid == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Ce joueur ne fait pas partie de votre guilde.</red>"));
+            return;
+        }
+
+        if (team.isLeader(targetUuid)) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous etes deja le chef de la guilde !</red>"));
+            return;
+        }
+
+        if (team.isAdmin(targetUuid)) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<yellow>" + actualName + " est deja administrateur de la guilde.</yellow>"));
+            return;
+        }
+
+        plugin.getTeamManager().promoteAdmin(team, targetUuid);
+        team.broadcast("<gold><bold>" + actualName + "</bold> a ete promu <aqua>Administrateur</aqua> de la guilde par <yellow>" + player.getName() + "</yellow> !");
+
+        Player targetPlayer = Bukkit.getPlayer(targetUuid);
+        if (targetPlayer != null && targetPlayer.isOnline()) {
+            targetPlayer.sendMessage(PlaceholderUtils.parseToComponent("<green><bold>Felicitation !</bold> Vous etes desormais Administrateur de la guilde.</green>"));
+        }
+    }
+
+    @Command("team demote <target>")
+    public void executeTeamDemote(org.bukkit.command.CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "L'administrateur a retrograder") String targetName) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde.</red>"));
+            return;
+        }
+
+        if (!team.isLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut retrograder des administrateurs.</red>"));
+            return;
+        }
+
+        UUID targetUuid = null;
+        String actualName = targetName;
+        for (UUID mUuid : team.getMembers()) {
+            org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(mUuid);
+            if (op.getName() != null && op.getName().equalsIgnoreCase(targetName)) {
+                targetUuid = mUuid;
+                actualName = op.getName();
+                break;
+            }
+        }
+
+        if (targetUuid == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Ce joueur ne fait pas partie de votre guilde.</red>"));
+            return;
+        }
+
+        if (!team.isAdmin(targetUuid)) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<yellow>" + actualName + " n'est pas administrateur de la guilde.</yellow>"));
+            return;
+        }
+
+        plugin.getTeamManager().demoteAdmin(team, targetUuid);
+        team.broadcast("<yellow>" + actualName + "</yellow> a ete retrograde au rang de <gray>Membre</gray> par <gold>" + player.getName() + "</gold>.");
+
+        Player targetPlayer = Bukkit.getPlayer(targetUuid);
+        if (targetPlayer != null && targetPlayer.isOnline()) {
+            targetPlayer.sendMessage(PlaceholderUtils.parseToComponent("<yellow>Vous n'etes plus administrateur de la guilde.</yellow>"));
+        }
+    }
+
+    @Command("team disband")
+    public void executeTeamDisband(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde.</red>"));
+            return;
+        }
+
+        if (!team.isLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut dissoudre la guilde. Les administrateurs ne peuvent pas detruire la guilde.</red>"));
+            return;
+        }
+
+        String teamName = team.getName();
+        plugin.getTeamManager().disbandTeam(team);
+        player.sendMessage(PlaceholderUtils.parseToComponent("<red>Votre guilde " + teamName + " a ete dissoute.</red>"));
+    }
+
+    @Command("team leave")
+    public void executeTeamLeave(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde.</red>"));
+            return;
+        }
+
+        if (team.isLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Le chef ne peut pas quitter sa propre guilde ! Utilisez /team disband pour la dissoudre.</red>"));
+            return;
+        }
+
+        plugin.getTeamManager().removeMember(team, player.getUniqueId());
+        player.sendMessage(PlaceholderUtils.parseToComponent("<yellow>Vous avez quitte la guilde " + team.getName() + ".</yellow>"));
+        team.broadcast("<yellow>" + player.getName() + " a quitte la guilde.");
     }
 
     public void removeInvite(UUID uuid) {

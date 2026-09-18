@@ -21,6 +21,7 @@ public class TeamData {
     private int bankXp;
     private String color;
     private final java.util.Map<String, Integer> upgrades;
+    private final java.util.Set<UUID> admins;
 
     public TeamData(int teamId, String name, UUID leaderUuid) {
         this.teamId = teamId;
@@ -28,6 +29,7 @@ public class TeamData {
         this.leaderUuid = leaderUuid;
         this.members = new ArrayList<>();
         this.members.add(leaderUuid);
+        this.admins = java.util.concurrent.ConcurrentHashMap.newKeySet();
         this.autoLock = true;
         this.weeklyPoints = 0;
         this.totalPoints = 0;
@@ -50,9 +52,57 @@ public class TeamData {
             members.add(uuid);
         }
     }
-    public void removeMember(UUID uuid) { members.remove(uuid); }
+    public void removeMember(UUID uuid) {
+        members.remove(uuid);
+        admins.remove(uuid);
+    }
     
     public boolean hasMember(UUID uuid) { return members.contains(uuid); }
+
+    public boolean isLeader(UUID uuid) {
+        return uuid != null && leaderUuid != null && leaderUuid.equals(uuid);
+    }
+
+    public boolean isAdmin(UUID uuid) {
+        return uuid != null && admins.contains(uuid);
+    }
+
+    public boolean isAdminOrLeader(UUID uuid) {
+        return isLeader(uuid) || isAdmin(uuid);
+    }
+
+    public boolean canManageMembers(UUID requester, UUID target) {
+        if (requester == null || target == null) return false;
+        if (requester.equals(target)) return false;
+        if (isLeader(target)) return false;
+        if (isLeader(requester)) return true;
+        if (isAdmin(requester)) {
+            return !isAdmin(target);
+        }
+        return false;
+    }
+
+    public void promoteAdmin(UUID uuid) {
+        if (uuid != null && hasMember(uuid) && !isLeader(uuid)) {
+            admins.add(uuid);
+        }
+    }
+
+    public void demoteAdmin(UUID uuid) {
+        if (uuid != null) {
+            admins.remove(uuid);
+        }
+    }
+
+    public java.util.Set<UUID> getAdmins() {
+        return java.util.Collections.unmodifiableSet(admins);
+    }
+
+    public String getRoleName(UUID uuid) {
+        if (isLeader(uuid)) return "LEADER";
+        if (isAdmin(uuid)) return "ADMIN";
+        return "MEMBER";
+    }
 
     public boolean isAutoLock() { return autoLock; }
     public void setAutoLock(boolean autoLock) { this.autoLock = autoLock; }

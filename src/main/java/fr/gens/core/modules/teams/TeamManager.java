@@ -134,6 +134,28 @@ public class TeamManager {
         }
     }
 
+    public void promoteAdmin(TeamData team, UUID member) {
+        if (team == null || member == null) return;
+        team.promoteAdmin(member);
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                module.getTeamDAO().updateMemberRole(team.getTeamId(), member, "ADMIN");
+            });
+        }
+    }
+
+    public void demoteAdmin(TeamData team, UUID member) {
+        if (team == null || member == null) return;
+        team.demoteAdmin(member);
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                module.getTeamDAO().updateMemberRole(team.getTeamId(), member, "MEMBER");
+            });
+        }
+    }
+
     private void addMemberToDatabase(int teamId, UUID member) {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {

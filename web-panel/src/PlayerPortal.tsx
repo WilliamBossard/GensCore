@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package, Gem, Crown, Coins, XCircle, Gift, Users, Landmark, Flag, Sparkles, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Shield, Target, ShoppingCart, Map, BarChart2, Gamepad2, LogOut, Menu, X, Clock, Swords, Skull, TrendingUp, History, Pickaxe, Package, Gem, Crown, Coins, XCircle, Gift, Users, Landmark, Flag, Sparkles, CheckCircle2, AlertCircle, RefreshCw, UserCheck, UserMinus, UserX } from 'lucide-react';
 import { Route, Routes, Link, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
@@ -850,6 +850,78 @@ export function PlayerTeamSection({ token }: { token: string }) {
     }
   };
 
+  const handlePromote = async (targetUuid: string, targetName: string) => {
+    if (!window.confirm(`Voulez-vous promouvoir ${targetName} au rang d'Administrateur de la guilde ?`)) return;
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`${API_URL}/player/team/promote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ uuid: targetUuid })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ text: `${targetName} est désormais Administrateur de la guilde.`, type: 'success' });
+        fetchTeam();
+      } else {
+        setFeedback({ text: data.error || t('web.common.error'), type: 'error' });
+      }
+    } catch (err) {
+      setFeedback({ text: t('web.auth.network_error') || 'Erreur reseau.', type: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDemote = async (targetUuid: string, targetName: string) => {
+    if (!window.confirm(`Voulez-vous retrograder ${targetName} au rang de Membre ?`)) return;
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`${API_URL}/player/team/demote`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ uuid: targetUuid })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ text: `${targetName} a été rétrogradé au rang de Membre.`, type: 'success' });
+        fetchTeam();
+      } else {
+        setFeedback({ text: data.error || t('web.common.error'), type: 'error' });
+      }
+    } catch (err) {
+      setFeedback({ text: t('web.auth.network_error') || 'Erreur reseau.', type: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleKick = async (targetUuid: string, targetName: string) => {
+    if (!window.confirm(`Etes-vous sur de vouloir expulser ${targetName} de la guilde ?`)) return;
+    setActionLoading(true);
+    setFeedback(null);
+    try {
+      const res = await fetch(`${API_URL}/player/team/kick`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ uuid: targetUuid })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFeedback({ text: `${targetName} a été exclu de la guilde.`, type: 'success' });
+        fetchTeam();
+      } else {
+        setFeedback({ text: data.error || t('web.common.error'), type: 'error' });
+      }
+    } catch (err) {
+      setFeedback({ text: t('web.auth.network_error') || 'Erreur reseau.', type: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="loading" style={{padding: '3rem'}}>{t('web.public.loading') || 'Chargement...'}</div>;
   }
@@ -875,6 +947,8 @@ export function PlayerTeamSection({ token }: { token: string }) {
 
   const isEco = team.isEconomyEnabled;
   const isLeader = team.isLeader;
+  const isAdmin = team.isAdmin;
+  const canManage = team.canManage ?? (isLeader || isAdmin);
   const upgrades = team.upgrades || {};
 
   const perksConfig = [
@@ -951,12 +1025,12 @@ export function PlayerTeamSection({ token }: { token: string }) {
             <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
               <h1 style={{margin: 0, fontSize: '1.8rem'}}>{team.name}</h1>
               <span style={{
-                background: isLeader ? 'rgba(234, 179, 8, 0.2)' : 'rgba(148, 163, 184, 0.2)',
-                color: isLeader ? '#eab308' : '#94a3b8',
-                border: `1px solid ${isLeader ? 'rgba(234, 179, 8, 0.4)' : 'rgba(148, 163, 184, 0.3)'}`,
+                background: isLeader ? 'rgba(234, 179, 8, 0.2)' : isAdmin ? 'rgba(59, 130, 246, 0.2)' : 'rgba(148, 163, 184, 0.2)',
+                color: isLeader ? '#eab308' : isAdmin ? '#3b82f6' : '#94a3b8',
+                border: `1px solid ${isLeader ? 'rgba(234, 179, 8, 0.4)' : isAdmin ? 'rgba(59, 130, 246, 0.4)' : 'rgba(148, 163, 184, 0.3)'}`,
                 padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'
               }}>
-                {isLeader ? (t('web.team.role_leader') || 'Chef de Guilde') : (t('web.team.role_member') || 'Membre')}
+                {isLeader ? (t('web.team.role_leader') || 'Chef de Guilde') : isAdmin ? (t('web.team.role_admin') || 'Administrateur') : (t('web.team.role_member') || 'Membre')}
               </span>
             </div>
             <p style={{color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem'}}>
@@ -1025,8 +1099,8 @@ export function PlayerTeamSection({ token }: { token: string }) {
             </div>
           </form>
 
-          {/* Formulaire Retrait (Leader Only) */}
-          {isLeader ? (
+          {/* Formulaire Retrait (Leader & Admin) */}
+          {canManage ? (
             <form onSubmit={handleWithdraw}>
               <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px'}}>
                 {isEco ? 'Retirer des fonds vers votre solde :' : 'Retirer des niveaux d\'XP vers votre joueur :'}
@@ -1049,7 +1123,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
             </form>
           ) : (
             <p style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', margin: '0.5rem 0 0 0'}}>
-              {t('web.team.withdraw_leader_only') || 'Seul le chef de guilde peut retirer des fonds.'}
+              {t('web.team.withdraw_admin_only') || 'Seuls le chef et les administrateurs peuvent retirer des fonds.'}
             </p>
           )}
         </div>
@@ -1095,26 +1169,26 @@ export function PlayerTeamSection({ token }: { token: string }) {
                 type="color"
                 value={customColor}
                 onChange={e => setCustomColor(e.target.value)}
-                disabled={!isLeader}
-                style={{width: '44px', height: '44px', padding: '2px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: isLeader ? 'pointer' : 'not-allowed', background: 'transparent'}}
+                disabled={!canManage}
+                style={{width: '44px', height: '44px', padding: '2px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: canManage ? 'pointer' : 'not-allowed', background: 'transparent'}}
               />
               <input
                 type="text"
                 value={customColor}
                 onChange={e => setCustomColor(e.target.value)}
-                disabled={!isLeader}
+                disabled={!canManage}
                 className="login-input"
                 style={{margin: 0, maxWidth: '120px', fontFamily: 'monospace'}}
               />
-              {isLeader && (
+              {canManage && (
                 <button onClick={handleSaveColor} disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: 'var(--card-bg)', border: '1px solid var(--card-border)'}}>
                   {t('web.team.color_save_btn') || 'Enregistrer'}
                 </button>
               )}
             </div>
-            {!isLeader && (
+            {!canManage && (
               <span style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', display: 'block', marginTop: '6px'}}>
-                Seul le chef de guilde peut modifier la couleur de territoire.
+                Seuls le chef et les administrateurs peuvent modifier la couleur de territoire.
               </span>
             )}
           </div>
@@ -1181,7 +1255,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                       <div style={{fontSize: '0.85rem', color: hasFunds ? 'var(--text-muted)' : '#ef4444', marginBottom: '8px'}}>
                         {isEco ? `Cout : ${cost} $ (banque)` : `Cout : ${cost} Niveaux XP (banque)`}
                       </div>
-                      {isLeader ? (
+                      {canManage ? (
                         <button
                           onClick={() => handleUpgrade(p.id)}
                           disabled={actionLoading || !hasFunds}
@@ -1196,7 +1270,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                         </button>
                       ) : (
                         <div style={{fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center'}}>
-                          Reserve au chef de guilde
+                          Reserve au chef et aux administrateurs
                         </div>
                       )}
                     </div>
@@ -1219,30 +1293,90 @@ export function PlayerTeamSection({ token }: { token: string }) {
           <h3 style={{margin: 0}}>{t('web.team.members_title') || 'Membres de la Guilde'} ({team.members?.length || 0} / {team.maxMembers || 5})</h3>
         </div>
 
-        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 220px), 1fr))', gap: '1rem'}}>
-          {(team.members || []).map((m: any) => (
-            <div key={m.uuid} style={{
-              display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px',
-              background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: '10px'
-            }}>
-              <img
-                src={getPlayerAvatarUrl(m.username, 48)}
-                alt={m.username}
-                style={{width: '40px', height: '40px', borderRadius: '8px'}}
-              />
-              <div style={{overflow: 'hidden'}}>
-                <div style={{fontWeight: 'bold', fontSize: '0.95rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>
-                  {m.username}
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1rem'}}>
+          {(team.members || []).map((m: any) => {
+            const canKick = (isLeader && !m.isLeader) || (isAdmin && !m.isLeader && !m.isAdmin);
+            const canPromote = isLeader && !m.isLeader && !m.isAdmin;
+            const canDemote = isLeader && !m.isLeader && m.isAdmin;
+
+            return (
+              <div key={m.uuid} style={{
+                display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 14px',
+                background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: '10px'
+              }}>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden'}}>
+                    <img
+                      src={getPlayerAvatarUrl(m.username, 48)}
+                      alt={m.username}
+                      style={{width: '40px', height: '40px', borderRadius: '8px', flexShrink: 0}}
+                    />
+                    <div style={{overflow: 'hidden'}}>
+                      <div style={{fontWeight: 'bold', fontSize: '0.95rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap'}}>
+                        {m.username}
+                      </div>
+                      <span style={{
+                        fontSize: '0.75rem', fontWeight: 'bold',
+                        color: m.isLeader ? '#eab308' : m.isAdmin ? '#3b82f6' : '#94a3b8'
+                      }}>
+                        {m.isLeader ? '★ Chef' : m.isAdmin ? '♦ Admin' : 'Membre'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span style={{
-                  fontSize: '0.75rem', fontWeight: 'bold',
-                  color: m.isLeader ? '#eab308' : '#94a3b8'
-                }}>
-                  {m.isLeader ? (t('web.team.role_leader') || 'Chef') : (t('web.team.role_member') || 'Membre')}
-                </span>
+
+                {(canPromote || canDemote || canKick) && (
+                  <div style={{display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px', marginTop: '2px'}}>
+                    {canPromote && (
+                      <button
+                        onClick={() => handlePromote(m.uuid, m.username)}
+                        disabled={actionLoading}
+                        title="Promouvoir au rang d'Administrateur"
+                        style={{
+                          flex: 1, padding: '6px 10px', fontSize: '0.75rem', fontWeight: 'bold',
+                          background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa',
+                          border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '6px', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
+                        }}
+                      >
+                        <UserCheck size={14} /> Nommer Admin
+                      </button>
+                    )}
+                    {canDemote && (
+                      <button
+                        onClick={() => handleDemote(m.uuid, m.username)}
+                        disabled={actionLoading}
+                        title="Retrograder au rang de Membre"
+                        style={{
+                          flex: 1, padding: '6px 10px', fontSize: '0.75rem', fontWeight: 'bold',
+                          background: 'rgba(234, 179, 8, 0.15)', color: '#facc15',
+                          border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '6px', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
+                        }}
+                      >
+                        <UserMinus size={14} /> Retrograder
+                      </button>
+                    )}
+                    {canKick && (
+                      <button
+                        onClick={() => handleKick(m.uuid, m.username)}
+                        disabled={actionLoading}
+                        title="Expulser de la guilde"
+                        style={{
+                          padding: '6px 10px', fontSize: '0.75rem', fontWeight: 'bold',
+                          background: 'rgba(239, 68, 68, 0.15)', color: '#f87171',
+                          border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
+                        }}
+                      >
+                        <UserX size={14} /> Expulser
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

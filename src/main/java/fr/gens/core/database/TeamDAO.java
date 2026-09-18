@@ -71,6 +71,7 @@ public class TeamDAO {
             plugin.getDatabaseManager().addColumnIfNotExists("genscore_teams", "bank_balance", "DOUBLE DEFAULT 0.0");
             plugin.getDatabaseManager().addColumnIfNotExists("genscore_teams", "bank_xp", "INTEGER DEFAULT 0");
             plugin.getDatabaseManager().addColumnIfNotExists("genscore_teams", "color", "VARCHAR(7) DEFAULT '#2ecc71'");
+            plugin.getDatabaseManager().addColumnIfNotExists("genscore_team_members", "role", "VARCHAR(16) DEFAULT 'MEMBER'");
 
             // Table des claims territoriaux de guilde
             stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_claims (" +
@@ -192,6 +193,12 @@ public class TeamDAO {
                         if (team != null) {
                             UUID memberUuid = UUID.fromString(uuidStr);
                             team.addMember(memberUuid);
+                            try {
+                                String role = rs.getString("role");
+                                if ("ADMIN".equalsIgnoreCase(role)) {
+                                    team.promoteAdmin(memberUuid);
+                                }
+                            } catch (Exception ignored) {}
                             teamsByPlayer.put(memberUuid, team);
                         }
                     }
@@ -275,6 +282,18 @@ public class TeamDAO {
              PreparedStatement stmt = conn.prepareStatement("INSERT INTO genscore_team_members (team_id, player_uuid) VALUES (?, ?)")) {
             stmt.setInt(1, teamId);
             stmt.setString(2, member.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateMemberRole(int teamId, UUID member, String role) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("UPDATE genscore_team_members SET role = ? WHERE team_id = ? AND player_uuid = ?")) {
+            stmt.setString(1, role);
+            stmt.setInt(2, teamId);
+            stmt.setString(3, member.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

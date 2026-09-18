@@ -70,12 +70,14 @@ public class TeamListener implements Listener {
                 return;
             }
 
+            boolean canManage = team.isAdminOrLeader(player.getUniqueId());
+
             if (item.getType() == Material.GRASS_BLOCK) {
-                if (isLeader) {
+                if (canManage) {
                     player.closeInventory();
                     player.performCommand("team claim");
                 } else {
-                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut revendiquer un territoire."));
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs peuvent revendiquer un territoire."));
                 }
                 return;
             }
@@ -99,7 +101,7 @@ public class TeamListener implements Listener {
                 return;
             }
 
-            if (item.getType() == Material.REPEATER && isLeader) {
+            if (item.getType() == Material.REPEATER && canManage) {
                 team.setAutoLock(!team.isAutoLock());
                 teamGui.openTeamGui(player);
                 return;
@@ -117,15 +119,39 @@ public class TeamListener implements Listener {
                 return;
             }
 
-            if (item.getType() == Material.PLAYER_HEAD && isLeader) {
-                if (event.getClick() == ClickType.RIGHT || event.getClick() == ClickType.SHIFT_RIGHT) {
-                    SkullMeta meta = (SkullMeta) item.getItemMeta();
-                    if (meta.getOwningPlayer() != null) {
-                        UUID targetUuid = meta.getOwningPlayer().getUniqueId();
-                        if (!targetUuid.equals(player.getUniqueId())) {
-                            plugin.getTeamManager().removeMember(team, targetUuid);
-                            plugin.getLangManager().sendMessage(player, "teamlistener.msg_3");
-                            teamGui.openTeamGui(player);
+            if (item.getType() == Material.PLAYER_HEAD) {
+                SkullMeta meta = (SkullMeta) item.getItemMeta();
+                if (meta != null && meta.getOwningPlayer() != null) {
+                    UUID targetUuid = meta.getOwningPlayer().getUniqueId();
+                    String targetName = meta.getOwningPlayer().getName() != null ? meta.getOwningPlayer().getName() : "ce joueur";
+                    if (isLeader) {
+                        if (event.getClick() == ClickType.LEFT) {
+                            if (!targetUuid.equals(player.getUniqueId())) {
+                                if (team.isAdmin(targetUuid)) {
+                                    plugin.getTeamManager().demoteAdmin(team, targetUuid);
+                                    player.sendMessage(PlaceholderUtils.parseToComponent("<yellow>" + targetName + " a été rétrogradé au rang de Membre."));
+                                } else {
+                                    plugin.getTeamManager().promoteAdmin(team, targetUuid);
+                                    player.sendMessage(PlaceholderUtils.parseToComponent("<green>" + targetName + " a été promu Administrateur de la guilde !"));
+                                }
+                                teamGui.openTeamGui(player);
+                            }
+                        } else if (event.getClick() == ClickType.RIGHT || event.getClick() == ClickType.SHIFT_RIGHT) {
+                            if (team.canManageMembers(player.getUniqueId(), targetUuid)) {
+                                plugin.getTeamManager().removeMember(team, targetUuid);
+                                plugin.getLangManager().sendMessage(player, "teamlistener.msg_3");
+                                teamGui.openTeamGui(player);
+                            }
+                        }
+                    } else if (team.isAdmin(player.getUniqueId())) {
+                        if (event.getClick() == ClickType.RIGHT || event.getClick() == ClickType.SHIFT_RIGHT) {
+                            if (team.canManageMembers(player.getUniqueId(), targetUuid)) {
+                                plugin.getTeamManager().removeMember(team, targetUuid);
+                                plugin.getLangManager().sendMessage(player, "teamlistener.msg_3");
+                                teamGui.openTeamGui(player);
+                            } else {
+                                player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous ne pouvez pas exclure ce joueur."));
+                            }
                         }
                     }
                 }
@@ -181,8 +207,9 @@ public class TeamListener implements Listener {
             }
 
             if (perkKey != null) {
-                if (!isLeader) {
-                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut acheter des améliorations."));
+                boolean canManagePerk = team.isAdminOrLeader(player.getUniqueId());
+                if (!canManagePerk) {
+                    player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs peuvent acheter des améliorations."));
                     return;
                 }
                 boolean bought = plugin.getTeamManager().buyPerk(team, perkKey);
@@ -247,8 +274,9 @@ public class TeamListener implements Listener {
                 return;
             }
 
-            if (!isLeader) {
-                player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seul le chef de guilde peut modifier la couleur du territoire."));
+            boolean canManageColor = team.isAdminOrLeader(player.getUniqueId());
+            if (!canManageColor) {
+                player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs peuvent modifier la couleur du territoire."));
                 return;
             }
 
