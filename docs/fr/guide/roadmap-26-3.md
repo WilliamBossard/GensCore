@@ -3,7 +3,7 @@
 Suivez en temps réel l'avancée des travaux, les améliorations apportées et la feuille de route de **GensCore** pour **Minecraft 26.3** et **Java 25 LTS**.
 
 ::: info Statut du Projet
-- **Version cible :** Minecraft 26.3 (Paper Build Alpha 16+)
+- **Version cible :** Minecraft 26.3 (Paper Build Alpha 19+)
 - **Environnement d'exécution :** Java 25 LTS
 - **Branche de travail active :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 - **Stabilité :** Alpha fonctionnelle avancée en environnement de production / test
@@ -16,7 +16,7 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | Composant | Statut | Détails |
 | :--- | :---: | :--- |
 | **Compatibilité Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Compilé avec le flag `--release 25` et tests JVM réussis |
-| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.16-alpha` |
+| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.19-alpha` |
 | **Quêtes de Craft (Torches & Multi-craft)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Prise en compte exacte du rendement unitaire vanilla et du shift-click |
 | **Boutique Complète (319 Objets & Potions)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | 7 catégories, prix équilibrés (marge 25-35%), auto-seeding SQLite & pagination |
 | **Remaster Mini-Jeux Web & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | RTP Casino ramené à 84%, nouveau jeu CoinFlip 3D, switch admin en direct |
@@ -141,7 +141,13 @@ flowchart LR
 - **Write-Behind Cache SQLite (Économie) :** Remplacement des micro-écritures asynchrones isolées par une sauvegarde groupée périodique par lots (`flushDirtyBalances()` toutes les 10 secondes), prévenant les régressions d'état désordonnées en base de données.
 - **Thread-Safety du Module Loot :** Synchronisation des instances `YamlConfiguration` dans `LootManager` pour éliminer les corruptions de fichiers lors de sauvegardes asynchrones concurrentes sur Folia.
 - **Arrêt JDA Non Bloquant :** Remplacement du délai figé `Thread.sleep(1500)` dans `DiscordModule` par `jda.awaitShutdown(Duration.ofMillis(1500))` avec bascule gracieuse sur `shutdownNow()`.
-- **Suite de Tests Automatisés Élargie :** Intégration de JUnit 5 (`junit-jupiter:5.12.0`) et Surefire, avec déploiement d'une suite complète de 38 tests unitaires couvrant l'anti-arbitrage du shop, la validation financière, la sérialisation Base64, l'assainissement des formulaires Bedrock, le calcul de batch des quêtes de craft, la simulation Monte-Carlo du Casino Web (RTP 84%), l'authentification BCrypt et la persistance SQLite par lots avec un taux de réussite de 100% (38/38).
+- **Suite de Tests Automatisés Élargie :** Intégration de JUnit 5 (`junit-jupiter:5.12.0`) et Surefire, avec déploiement d'une suite complète de 55 tests unitaires couvrant l'ensemble des modules critiques avec un taux de réussite de 100% (55/55).
+
+### Patch 26.3-alpha.19 (19 Septembre 2026)
+- **API Paper :** Mise à niveau vers `26.3.build.19-alpha` (dernière build officielle PaperMC).
+- **Module Bonus de Quêtes Solo & Améliorations de Guilde :** Déploiement de 58 améliorations d'équipe et 11 bonus de quêtes individuelles avec progression temps réel (barres de progression animées, double condition quêtes et dollars, synchronisation WebPanel et GUI in-game).
+- **Suite de Tests Automatisés :** Extension à 55 tests unitaires JUnit 5 validant la logique métier, l'anti-grief et la persistance.
+- **Workflow CI/CD :** Pipeline GitHub Actions adapté pour cibler Paper `26.3.build.19-alpha` et l'exécution systématique des 55 tests unitaires avant packaging.
 
 ### Patch 26.3-alpha.16 (18 Septembre 2026)
 - **API Paper :** Mise à niveau vers `26.3.build.16-alpha` (dernière build officielle PaperMC).
