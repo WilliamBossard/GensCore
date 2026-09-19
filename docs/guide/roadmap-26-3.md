@@ -29,6 +29,7 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | **Folia Regional Threading** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Eliminated `isPrimaryThread` exceptions, added async teleport callbacks & cross-region decay |
 | **Guilds & Territory Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Comprehensive anti-grief, on-screen boundary titles, Admin roles, web portal, BlueMap |
 | **Upcoming Guild Upgrades** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Guild Home Warp, Anti-Abuse Territory Buffs, 24h Bank Interest, Spawner Boost, Shared Vault |
+| **Solo Quest Perks Module** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | 29th autonomous module (`solo_perks`), 11 perks (free milestones & major masteries), instant On/Off, GUI & Web sync |
 
 ---
 
@@ -111,6 +112,15 @@ flowchart LR
 ---
 
 ## Recent Patch Notes
+
+### Patch 26.3-alpha.20 (September 19, 2026)
+- **Solo Quest Perks Module (SoloPerkModule):** 29th autonomous GensCore module (`solo_perks`), runtime toggleable in-game (`/module solo_perks <on|off>`) or through the admin web dashboard.
+- **Two-Tier Progression:**
+  - *Free Milestone Perks:* 6 advantages unlocked automatically or on click by reaching lifetime completed quest thresholds (5, 15, 30, 50, 75, 100 quests): Free Reroll, Extra Home, Celestial Stride, Jobs Wisdom, Instant Teleport, Endless Feast (/feed with 15-minute cooldown without VIP rank).
+  - *Major Solo Masteries:* 5 masteries requiring a quest milestone AND payment in dollars ($) or XP levels: Item Magnet, Double Harvest, Portable Workbench (/craft & /workbench), Auto-Smelt, Soul Preservation (50% XP saved on death).
+- **Instant On/Off Toggles:** Magnet (`/magnet`) and Auto-Smelt (`/autosmelt`) switchable at any time via commands, in-game `/perks` GUI, or the Web Portal.
+- **Player Web Portal (/dashboard/perks):** Dedicated page featuring global quest progress bar, quest counters, mastery purchase buttons, and live toggle switches backed by real-time SQLite synchronization.
+- **Zero Emojis:** Strictly textual, clean, and professional design without any emojis.
 
 ### Patch 26.3-alpha.19 (September 19, 2026)
 - **Guild Perks Phase 2:** Deployed all 5 remaining permanent guild upgrades (`GUILD_HOME`, `TERRITORY_BUFF`, `BANK_INTEREST`, `SPAWNER_EFFICIENCY`, `GUILD_VAULT`).

@@ -21,10 +21,16 @@ public class TeleportUtil {
     public static void teleportWithCooldown(CorePlugin plugin, Player player, Location target, String destinationName, String bypassPermission) {
         int cooldownSeconds = plugin.getStorageManager().getConfig().getInt("teleport-cooldown", 3);
 
+        fr.gens.core.modules.perks.SoloPerkModule perkModule = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+        if (perkModule != null && perkModule.isEnabled() && perkModule.getManager().hasPerk(player.getUniqueId(), fr.gens.core.modules.perks.SoloPerkType.WARMUP_REDUCTION)) {
+            cooldownSeconds = Math.max(1, cooldownSeconds / 2);
+        }
+
+        final int finalCooldown = cooldownSeconds;
         plugin.getFoliaLib().getScheduler().runAtEntity(player, (t) -> {
             cancelPendingTeleport(player.getUniqueId());
 
-            if (cooldownSeconds <= 0 || player.hasPermission(bypassPermission) || player.hasPermission("genscore.bypass.cooldown.all")) {
+            if (finalCooldown <= 0 || player.hasPermission(bypassPermission) || player.hasPermission("genscore.bypass.cooldown.all")) {
                 player.teleportAsync(target).thenAccept(success -> {
                     if (Boolean.TRUE.equals(success)) {
                         player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Téléportation à " + destinationName + " réussie !</green>"));
@@ -36,9 +42,9 @@ public class TeleportUtil {
             }
 
             Location startLoc = player.getLocation();
-            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold>Téléportation dans " + cooldownSeconds + " secondes. Ne bougez pas !</gold>"));
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold>Téléportation dans " + finalCooldown + " secondes. Ne bougez pas !</gold>"));
 
-            java.util.concurrent.atomic.AtomicInteger timeLeft = new java.util.concurrent.atomic.AtomicInteger(cooldownSeconds);
+            java.util.concurrent.atomic.AtomicInteger timeLeft = new java.util.concurrent.atomic.AtomicInteger(finalCooldown);
 
             plugin.getFoliaLib().getScheduler().runAtEntityTimer(player, (wrappedTask) -> {
                 activeTeleports.put(player.getUniqueId(), wrappedTask);

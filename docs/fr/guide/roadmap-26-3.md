@@ -29,6 +29,7 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | **Validation Folia Régionale** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Élimination de `isPrimaryThread`, callbacks de téléportation asynchrone et décomposition cross-region |
 | **Système de Guildes & Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Anti-grief total, titres frontaliers écran, rôles Admin, gestion web et BlueMap |
 | **Nouvelles Améliorations de Guilde** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Foyer de Guilde, Aura territoriale anti-abus, Intérêts 24h, Spawners et Coffre virtuel |
+| **Module de Bonus de Quêtes Solo** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | 29ème module autonome (`solo_perks`), 11 bonus (paliers gratuits & maîtrises majeures), On/Off instantané, GUI & synchronisation Web |
 
 ---
 
@@ -111,6 +112,15 @@ flowchart LR
 ---
 
 ## Historique des patchs récents
+
+### Patch 26.3-alpha.20 (19 Septembre 2026)
+- **Module de Bonus Personnels de Quêtes (SoloPerkModule) :** 29ème module autonome de GensCore (`solo_perks`), activable et désactivable à chaud en jeu (`/module solo_perks <on|off>`) ou via le panel web admin.
+- **Progression sur Deux Paliers :**
+  - *Paliers Gratuits de Quêtes :* 6 avantages débloqués par paliers de quêtes accomplies à vie (5, 15, 30, 50, 75, 100 quêtes) : Relance Gratuite, Foyer Additionnel, Foulée Céleste, Savoir des Métiers, Téléportation Instantanée, Festin Infini (/feed avec 15 minutes de recharge sans grade VIP requis).
+  - *Maîtrises Majeures Personnelles :* 5 maîtrises puissantes conditionnées par un palier de quêtes et un paiement en dollars ($) ou niveaux XP (quand l'économie est coupée) : Aimant de Collecte, Double Récolte, Établi Portatif (/craft et /workbench), Fonte Instantanée (Auto-Smelt), Préservation d'Âme (50% de l'XP sauvé à la mort).
+- **Interrupteurs On/Off Instantanés :** Aimant (`/magnet`) et Fonte Instantanée (`/autosmelt`) commutables en direct via commandes dédiées, GUI `/perks` ou commutateurs sur le web.
+- **Portail Web Joueur (/dashboard/perks) :** Page dédiée avec barre de progression globale, compteurs de quêtes, achat de maîtrises et commutateurs On/Off en direct avec synchronisation SQLite temps réel.
+- **Zéro Émoji :** Conception rigoureusement textuelle et professionnelle sans aucun émoji.
 
 ### Patch 26.3-alpha.19 (19 Septembre 2026)
 - **Améliorations de Guilde Phase 2 :** Déploiement des 5 nouveaux arbres d'upgrades permanents (`GUILD_HOME`, `TERRITORY_BUFF`, `BANK_INTEREST`, `SPAWNER_EFFICIENCY`, `GUILD_VAULT`).

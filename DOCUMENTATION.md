@@ -13,6 +13,7 @@ Welcome to the official documentation for **GensCore**, the all-in-one survival/
    - [Guilds & Teams](#guilds--teams)
    - [Jobs & Professions](#jobs--professions)
    - [Daily Quests](#daily-quests)
+   - [Solo Perks & Quest Masteries](#solo-perks--quest-masteries)
    - [Teleportation & Navigation](#teleportation--navigation)
    - [Container Security & Lock Protection](#container-security--lock-protection)
    - [Custom Spawners & Stacking](#custom-spawners--stacking)
@@ -260,6 +261,32 @@ A revolving quest system providing daily objectives with rewards.
 
 - **Quest Rerolls:** Players with `genscore.quests.reroll` can right-click an objective in the GUI to reroll it.
 - **Admin Reset:** Admins with `genscore.quests.admin` can force-reroll all active quests.
+
+---
+
+### Solo Perks & Quest Masteries
+Individual progression system rewarding lifetime completed quests with permanent advantages and major masteries. Fully managed in-game via chest GUI (`/perks`) or on the Player Web Portal (`/dashboard/perks`).
+
+| Command | Arguments | Permission | Default | Description |
+|---|---|---|---|---|
+| `/perks` | *None* | *None* | Everyone | Opens the Solo Quest Perks GUI. *(Aliases: `/bonus`, `/passe`)* |
+| `/autosmelt` | *None* | *None* | Everyone | Toggles instant raw ore smelting On/Off (requires Auto-Smelt mastery). |
+| `/magnet` | *None* | *None* | Everyone | Toggles 5-block item attraction magnet On/Off (requires Magnet mastery). |
+
+#### Two-Tier Progression Mechanics:
+1. **Free Milestone Perks (Paliers Gratuits):**
+   - **Free Reroll (5 quests):** 1 additional free daily quest reroll (`/quest reroll`).
+   - **Extra Home (15 quests):** +1 additional personal waypoint usable with `/sethome`.
+   - **Celestial Stride (30 quests):** Permanent Speed I effect out of combat.
+   - **Jobs Wisdom (50 quests):** Permanent +5% multiplier on all jobs XP gains.
+   - **Instant Teleport (75 quests):** Halves all teleport warmup delays.
+   - **Endless Feast (100 quests):** Unlocks `/feed` command with 15-minute cooldown without VIP rank.
+2. **Major Solo Masteries (Maîtrises Majeures Payantes):**
+   - **Item Magnet (25 quests, $15,000 / 30 XP):** Magnetically draws items within 5 blocks directly to the player. Can be toggled On/Off (`/magnet`, `/perks` GUI, or Web).
+   - **Double Harvest (40 quests, $35,000 / 55 XP):** 5% chance to double ore and log drops.
+   - **Portable Workbench (50 quests, $20,000 / 40 XP):** Unlocks instant access to `/craft` and `/workbench` everywhere.
+   - **Auto-Smelt (80 quests, $60,000 / 80 XP):** Automatically smelts mined raw ores into refined ingots. Can be toggled On/Off (`/autosmelt`, `/perks` GUI, or Web).
+   - **Soul Preservation (100 quests, $100,000 / 120 XP):** Retains 50% of experience levels upon death.
 
 ---
 
@@ -579,7 +606,12 @@ Accessible to everyday players at `http://<your-server-ip>:8080`:
   - **Shared Bank Interface:** Deposit or withdraw funds directly from the web browser. Automatically switches to player XP levels if server economy is disabled.
   - **BlueMap Territory Control:** Real-time claim usage indicator ($X/Y$ chunks) and live hexadecimal color picker for instant BlueMap territory styling.
   - **Perks Shop:** Purchase permanent guild upgrades (Members capacity, Claims, Jobs boost, AH tax reduction, Coop Quests multiplier) funded strictly by the shared bank.
-  - **Roster & Role Administration:** View all guild members with badges (`★ Chef`, `♦ Admin`, `Membre`). Leaders can promote members to Admin or demote them back; Leaders and Admins can kick members with confirmation modals directly from the browser.
+  - **Roster & Role Administration:** View all guild members with badges (`Chef`, `Admin`, `Membre`). Leaders can promote members to Admin or demote them back; Leaders and Admins can kick members with confirmation modals directly from the browser.
+- **Player Perks Portal (`/dashboard/perks`):**
+  - **Lifetime Quest Tracker:** Global progress bar tracking completed daily quests towards the 100-quest milestone.
+  - **Free Milestone Perks:** Claim unlocked rewards upon reaching thresholds (Free Rerolls, Extra Homes, Speed Boost, Jobs XP multiplier, Warmup reduction, /feed access).
+  - **Major Masteries Shop:** Acquire high-tier masteries with funds or XP levels (Item Magnet, Double Drop, Portable Workbench, Auto-Smelt, Soul Preservation).
+  - **Live Toggle Switches:** Toggle active masteries (Item Magnet, Auto-Smelt) On or Off in real-time with instant SQLite and in-game state synchronization.
 - **Avatar Engine (`/api/head/{name}/{size}`):** High-speed 3D head and avatar rendering supporting both Java skins and Bedrock Floodgate avatars.
 
 ---

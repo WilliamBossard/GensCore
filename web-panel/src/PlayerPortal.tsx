@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ClientShop, ClientAh, ClientQuests, ClientMap } from './App';
 import { ClientJobs } from './ClientJobs';
 import { PlayerBalanceWidget } from './PlayerBalanceWidget';
+import { PlayerPerksSection } from './PlayerPerksSection';
 
 const API_URL = '/api';
 
@@ -1377,7 +1378,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                         fontSize: '0.75rem', fontWeight: 'bold',
                         color: m.isLeader ? '#eab308' : m.isAdmin ? '#3b82f6' : '#94a3b8'
                       }}>
-                        {m.isLeader ? `★ ${t('web.team.role_leader', 'Chef')}` : m.isAdmin ? `♦ ${t('web.team.role_admin', 'Admin')}` : t('web.team.role_member', 'Membre')}
+                        {m.isLeader ? t('web.team.role_leader', 'Chef') : m.isAdmin ? t('web.team.role_admin', 'Admin') : t('web.team.role_member', 'Membre')}
                       </span>
                     </div>
                   </div>
@@ -1516,6 +1517,11 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
             </Link>
           )}
           <Link to="/dashboard/jobs" className={location.pathname === '/dashboard/jobs' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Target size={18}/> {t('web.nav.jobs')}</Link>
+          {isModuleEnabled('solo_perks') && (
+            <Link to="/dashboard/perks" className={location.pathname === '/dashboard/perks' ? 'active' : ''} onClick={() => setSidebarOpen(false)}>
+              <Sparkles size={18}/> {t('web.nav.perks') || 'Bonus de Quêtes'}
+            </Link>
+          )}
           
           {playerData.isOp && (
             <div style={{marginTop: '2rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem'}}>
@@ -1541,6 +1547,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           <Route path="jobs" element={<ClientJobs />} />
           <Route path="map" element={<ClientMap />} />
           <Route path="stats" element={<PlayerStats uuid={playerData.uuid} isEcoEnabled={isModuleEnabled('Economy')} />} />
+          <Route path="perks" element={<PlayerPerksSection token={playerData.token} uuid={playerData.uuid} isEnabled={isModuleEnabled('solo_perks')} />} />
           <Route path="games" element={areGamesAvailable() ? <PlayerGames uuid={playerData.uuid} token={playerData.token} isEnabled={true} /> : <Navigate to="/dashboard" replace />} />
         </Routes>
       </main>

@@ -90,6 +90,17 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 ---
 
+## Solo Quest Perks
+Individual progression system rewarding lifetime completed quests with permanent advantages and major masteries. Viewable and manageable in-game or via the Player Web Portal.
+
+| Command | Arguments | Permission | Default | Description |
+|---|---|---|---|---|
+| `/perks` | *None* | *None* | Everyone | Opens the Solo Quest Perks GUI. *(Aliases: `/bonus`, `/passe`)* |
+| `/autosmelt` | *None* | *None* | Everyone | Toggles instant raw ore smelting On/Off (requires Auto-Smelt mastery). |
+| `/magnet` | *None* | *None* | Everyone | Toggles 5-block item attraction magnet On/Off (requires Magnet mastery). |
+
+---
+
 ## Teleportation & Navigation
 
 | Command | Arguments | Permission | Default | Description |

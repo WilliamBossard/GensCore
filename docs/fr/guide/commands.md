@@ -90,6 +90,17 @@ Métiers disponibles : **Mineur**, **Bûcheron**, **Chasseur**, **Fermier**, **P
 
 ---
 
+## Bonus Personnels de Quêtes (Solo Perks)
+Progression individuelle récompensant l'accomplissement des quêtes quotidiennes par des avantages permanents et des maîtrises majeures. Consultable et gérable en jeu ou sur le Portail Web.
+
+| Commande | Arguments | Permission | Défaut | Description |
+|---|---|---|---|---|
+| `/perks` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu des bonus personnels de quêtes. *(Aliases : `/bonus`, `/passe`)* |
+| `/autosmelt` | *Aucun* | *Aucune* | Tout le monde | Active ou désactive la fonte instantanée des minerais bruts (requiert la maîtrise Fonte Instantanée). |
+| `/magnet` | *Aucun* | *Aucune* | Tout le monde | Active ou désactive l'aimant attirant les objets au sol dans un rayon de 5 blocs (requiert la maîtrise Aimant de Collecte). |
+
+---
+
 ## Téléportation & Points de Repère
 
 | Commande | Arguments | Permission | Défaut | Description |

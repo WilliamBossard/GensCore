@@ -40,6 +40,7 @@ web:
       moderation: 'Outils pour le staff : ban, mute, kick, historique.'
       motd: Personnalisation du message de connexion du serveur.
       quests: Création et gestion des quêtes journalières/hebdomadaires.
+      solo_perks: Système de bonus de quêtes et maîtrises personnelles pour joueurs solo.
       spawners: Gestion personnalisée des spawners et des loots.
       stats: Suivi des statistiques des joueurs.
       tabboard: Personnalisation du menu TAB.
@@ -199,6 +200,7 @@ web:
     shop: Boutique Dynamique
     stats: Mes Statistiques
     team: Ma Guilde
+    perks: Bonus de Quêtes
   team:
     title: Gestion de Guilde
     subtitle: Gérez votre équipe, votre trésorerie et vos améliorations
@@ -255,6 +257,32 @@ web:
     promote_btn: Nommer Admin
     demote_btn: Rétrograder
     kick_btn: Expulser
+  perks:
+    title: Bonus Personnels de Quêtes
+    subtitle: Progressez dans vos quêtes pour débloquer des avantages permanents et des maîtrises exclusives
+    quests_completed: "Quêtes complétées :"
+    quests_count: "{{count}} quêtes"
+    unlocked_count: "{{unlocked}} / {{total}} débloqués"
+    free_section_title: Paliers Gratuits de Quêtes
+    free_section_desc: Avantages automatiquement débloquables dès que vous atteignez le nombre de quêtes requis
+    major_section_title: Maîtrises Majeures Personnelles
+    major_section_desc: Débloquez des maîtrises puissantes avec vos quêtes et payez en dollars ou en niveaux d'expérience
+    claim_btn: Réclamer ce bonus
+    claimed_badge: Acquis
+    locked_badge: Verrouillé
+    active_badge: Actif
+    inactive_badge: Désactivé
+    toggle_on: Activer
+    toggle_off: Désactiver
+    req_quests: "{{count}} quêtes requises"
+    req_more_quests: "Encore {{count}} quêtes nécessaires"
+    cost_money: "Coût : {{cost}} $"
+    cost_xp: "Coût : {{cost}} Niveaux XP"
+    buy_perk_btn: Débloquer la maîtrise
+    not_enough_funds: Fonds insuffisants
+    not_enough_xp: Niveaux XP insuffisants
+    unlock_success: "Bonus {{name}} débloqué avec succès !"
+    toggle_success: "Statut de {{name}} mis à jour !"
   public:
     admin_access: Accès Administrateur
     ah:

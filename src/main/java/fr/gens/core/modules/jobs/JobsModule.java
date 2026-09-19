@@ -198,6 +198,12 @@ public class JobsModule implements Module, Listener {
             }
         }
 
+        // Multiplicateur individuel (Perk JOBS_XP de quete)
+        fr.gens.core.modules.perks.SoloPerkModule soloPerks = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+        if (soloPerks != null && soloPerks.isEnabled() && soloPerks.getManager().hasPerk(uuid, fr.gens.core.modules.perks.SoloPerkType.JOBS_XP)) {
+            amount *= 1.05;
+        }
+
         double currentXp = getXp(uuid, type);
         int currentLevel = getLevel(uuid, type);
         

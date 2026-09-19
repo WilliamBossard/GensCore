@@ -67,6 +67,7 @@ public class ModuleManager {
         addModule(new AuthModule(plugin));
         addModule(new BedrockSkinModule(plugin));
         addModule(new MinigamesModule(plugin));
+        addModule(new fr.gens.core.modules.perks.SoloPerkModule(plugin));
 
         plugin.getLangManager().sendConsoleMessage("module.manager.loaded", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("count", String.valueOf(modules.size())));
 

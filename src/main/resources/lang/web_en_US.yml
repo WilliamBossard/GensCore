@@ -40,6 +40,7 @@ web:
       moderation: 'Staff tools: ban, mute, kick, history.'
       motd: Customization of the server login message.
       quests: Creation and management of daily/weekly quests.
+      solo_perks: Solo quest perks and personal masteries system.
       spawners: Custom spawners and loots management.
       stats: Tracking of player statistics.
       tabboard: Customization of the TAB menu.
@@ -193,6 +194,7 @@ web:
     shop: Dynamic Shop
     stats: My Statistics
     team: My Guild
+    perks: Quest Perks
   team:
     title: Guild Management
     subtitle: Manage your team, treasury, and guild upgrades
@@ -249,6 +251,32 @@ web:
     promote_btn: Promote Admin
     demote_btn: Demote
     kick_btn: Kick
+  perks:
+    title: Solo Quest Perks
+    subtitle: Complete quests to unlock permanent advantages and exclusive masteries
+    quests_completed: "Completed quests:"
+    quests_count: "{{count}} quests"
+    unlocked_count: "{{unlocked}} / {{total}} unlocked"
+    free_section_title: Free Quest Milestones
+    free_section_desc: Rewards unlocked automatically once you reach the required completed quest milestone
+    major_section_title: Major Solo Masteries
+    major_section_desc: Unlock powerful masteries with your quest progress and pay with dollars or XP levels
+    claim_btn: Claim this perk
+    claimed_badge: Unlocked
+    locked_badge: Locked
+    active_badge: Active
+    inactive_badge: Disabled
+    toggle_on: Enable
+    toggle_off: Disable
+    req_quests: "{{count}} quests required"
+    req_more_quests: "{{count}} more quests needed"
+    cost_money: "Cost: {{cost}} $"
+    cost_xp: "Cost: {{cost}} XP Levels"
+    buy_perk_btn: Unlock mastery
+    not_enough_funds: Insufficient funds
+    not_enough_xp: Insufficient XP levels
+    unlock_success: "Perk {{name}} successfully unlocked!"
+    toggle_success: "Status of {{name}} updated!"
   public:
     admin_access: Administrator Access
     ah:

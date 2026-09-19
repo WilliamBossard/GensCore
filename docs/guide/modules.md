@@ -1,4 +1,4 @@
-# In-Game Modules (28 Modules)
+# In-Game Modules (29 Modules)
 
 GensCore is built around a modular architecture managed by `ModuleManager`. Every module can be enabled or disabled dynamically without server restarts.
 
@@ -116,5 +116,25 @@ A complete clan ecosystem supporting Folia multi-threading and Bedrock crossplay
 
 ---
 
-## Complete Module List (28)
-`UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.
+## 12. Solo Quest Perks (SoloPerkModule)
+Comprehensive individual progression and rewards system for solo adventurers, connecting lifetime completed quests to permanent benefits and major masteries:
+- **Autonomy & Runtime Control:** 29th autonomous GensCore module (`solo_perks`), dynamically toggled at runtime (`/module solo_perks <on|off>`) or via the web admin panel without server restarts.
+- **Free Milestone Perks:** Unlocked automatically or on click once the lifetime completed quest quota is reached:
+  1. *Free Reroll (5 quests):* 1 free daily quest reroll (`/quest reroll`).
+  2. *Extra Home (15 quests):* +1 additional personal waypoint usable with `/sethome`.
+  3. *Celestial Stride (30 quests):* Permanent Speed I effect out of combat.
+  4. *Jobs Wisdom (50 quests):* Permanent +5% multiplier on all jobs XP gains.
+  5. *Instant Teleport (75 quests):* Halves all teleport warmup delays.
+  6. *Endless Feast (100 quests):* Unlocks the `/feed` command with a 15-minute cooldown without requiring a VIP rank.
+- **Major Solo Masteries:** Unlocked upon reaching a quest milestone AND paying an acquisition cost in dollars ($) or XP levels if the economy module is disabled:
+  1. *Item Magnet (25 quests, $15,000 / 30 XP):* Magnetically draws ground items within a 5-block radius directly to the player. Can be toggled On/Off (`/magnet`, `/perks` GUI, or Web).
+  2. *Double Harvest (40 quests, $35,000 / 55 XP):* 5% chance to double ore and log drops.
+  3. *Portable Workbench (50 quests, $20,000 / 40 XP):* Unlocks instant access to `/craft` and `/workbench` everywhere.
+  4. *Auto-Smelt (80 quests, $60,000 / 80 XP):* Automatically smelts mined raw ores into refined ingots. Can be toggled On/Off (`/autosmelt`, `/perks` GUI, or Web).
+  5. *Soul Preservation (100 quests, $100,000 / 120 XP):* Retains 50% of your experience levels upon death.
+- **Real-Time In-Game & Web Sync:** All perk acquisitions and On/Off toggle states synchronize instantly between SQLite, the in-game GUI (`/perks`), and the Player Web Portal (`/dashboard/perks`).
+
+---
+
+## Complete Module List (29)
+`UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `SoloPerkModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.

@@ -150,6 +150,12 @@ public class TeleportHomeModule implements Module, Listener {
             }
         }
         if (p.hasPermission("genscore.admin") || p.hasPermission("genscore.home.limit.*")) return 999;
+
+        fr.gens.core.modules.perks.SoloPerkModule perkModule = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+        if (perkModule != null && perkModule.isEnabled() && perkModule.getManager().hasPerk(p.getUniqueId(), fr.gens.core.modules.perks.SoloPerkType.EXTRA_HOME)) {
+            max += 1;
+        }
+
         return max;
     }
 

@@ -9,12 +9,22 @@ import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Default;
 import org.incendo.cloud.annotations.Command;
 
-
 public class UtilsModule implements Module, Listener {
 
     private CorePlugin plugin;
     private boolean enabled;
     private final java.util.Map<java.util.UUID, java.util.UUID> inspectingEnderChests = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.Map<java.util.UUID, Long> feedPerkCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private boolean hasWorkbenchPerk(Player p) {
+        fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+        return mod != null && mod.isEnabled() && mod.getManager().hasPerk(p.getUniqueId(), fr.gens.core.modules.perks.SoloPerkType.PORTABLE_WORKBENCH);
+    }
+
+    private boolean hasFeedPerk(Player p) {
+        fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+        return mod != null && mod.isEnabled() && mod.getManager().hasPerk(p.getUniqueId(), fr.gens.core.modules.perks.SoloPerkType.FEED_ACCESS);
+    }
 
     public UtilsModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -78,31 +88,27 @@ public class UtilsModule implements Module, Listener {
         plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openAnvil(p.getLocation(), true));
     }
 
-    @Command("craftingtable")
-    @SuppressWarnings("deprecation")
-    public void executeCraftingTable(org.bukkit.command.CommandSender sender) {
-        if (!(sender instanceof org.bukkit.entity.Player)) return;
-        org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
+    private void executeCraftingTable(Player p) {
         if (!enabled) return;
-        if (!p.hasPermission("genscore.craft")) {
-            plugin.getLangManager().sendMessage(p, "utilsmodule.msg_2");
+        if (!p.hasPermission("genscore.craft") && !hasWorkbenchPerk(p)) {
+            p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez pas la permission ni la maîtrise Établi Portatif.</red>"));
             return;
         }
         plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openWorkbench(p.getLocation(), true));
     }
 
     @Command("craft")
-    public void executeCraft(org.bukkit.command.CommandSender sender) { 
+    public void executeCraft(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        executeCraftingTable(p); 
+        executeCraftingTable(p);
     }
 
     @Command("workbench")
-    public void executeWorkbench(org.bukkit.command.CommandSender sender) { 
+    public void executeWorkbench(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        executeCraftingTable(p); 
+        executeCraftingTable(p);
     }
 
     @Command("enchanttable")
@@ -130,22 +136,25 @@ public class UtilsModule implements Module, Listener {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
         if (!enabled) return;
-        if (!p.hasPermission("genscore.ec")) {
-            plugin.getLangManager().sendMessage(p, "utilsmodule.msg_4");
-            return;
-        }
-        if (targetName != null && !targetName.trim().isEmpty()) {
-            if (!p.hasPermission("genscore.admin")) {
+
+        boolean isSelf = targetName == null || targetName.trim().isEmpty() || targetName.equalsIgnoreCase(p.getName());
+
+        if (isSelf) {
+            if (!p.hasPermission("genscore.ec")) {
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_5");
                 return;
             }
-            Player target = org.bukkit.Bukkit.getPlayer(targetName);
-            if (target == null) {
+        } else {
+            if (!p.hasPermission("genscore.openinv")) {
                 plugin.getLangManager().sendMessage(p, "utilsmodule.msg_6");
                 return;
             }
-            if (target.equals(p)) {
-                plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openInventory(p.getEnderChest()));
+        }
+
+        if (!isSelf) {
+            org.bukkit.entity.Player target = org.bukkit.Bukkit.getPlayerExact(targetName);
+            if (target == null) {
+                plugin.getLangManager().sendMessage(p, "error.player_not_found");
                 return;
             }
             plugin.getFoliaLib().getScheduler().runAtEntity(target, tTarget -> {
@@ -199,10 +208,27 @@ public class UtilsModule implements Module, Listener {
     public void executeFeed(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
-        if (!p.hasPermission("genscore.feed")) {
+
+        boolean hasPerm = p.hasPermission("genscore.feed");
+        boolean hasPerk = hasFeedPerk(p);
+
+        if (!hasPerm && !hasPerk) {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_7");
             return;
         }
+
+        if (!hasPerm && hasPerk) {
+            long now = System.currentTimeMillis();
+            long last = feedPerkCooldowns.getOrDefault(p.getUniqueId(), 0L);
+            long cd = 15 * 60 * 1000L; // 15 minutes
+            if (now - last < cd) {
+                long remainingSec = (cd - (now - last)) / 1000L;
+                p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Festin Infini : disponible dans " + (remainingSec / 60) + "m " + (remainingSec % 60) + "s.</red>"));
+                return;
+            }
+            feedPerkCooldowns.put(p.getUniqueId(), now);
+        }
+
         plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
             p.setFoodLevel(20);
             p.setSaturation(20.0f);
@@ -210,5 +236,3 @@ public class UtilsModule implements Module, Listener {
         });
     }
 }
-
-

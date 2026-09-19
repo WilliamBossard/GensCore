@@ -990,6 +990,99 @@ public class WebPlayerAPI implements Listener {
             ctx.json(Map.of("success", true));
         });
 
+        // --- SOLO PERKS REST ENDPOINTS ---
+
+        get("/api/player/perks", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+            if (mod == null || !mod.isEnabled()) {
+                ctx.json(Map.of("enabled", false));
+                return;
+            }
+
+            UUID uuid = UUID.fromString(uuidStr);
+            Map<String, Object> data = mod.getManager().getPlayerDataForWeb(uuid);
+            data.put("enabled", true);
+            ctx.json(data);
+        });
+
+        post("/api/player/perks/claim", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+            if (mod == null || !mod.isEnabled()) {
+                ctx.status(400).json(Map.of("error", "Le module de bonus individuels est desactive."));
+                return;
+            }
+
+            PerkClaimRequest req = ctx.bodyAsClass(PerkClaimRequest.class);
+            if (req.perkId == null || req.perkId.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Identifiant de bonus manquant."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkType perk = fr.gens.core.modules.perks.SoloPerkType.fromId(req.perkId);
+            if (perk == null) {
+                ctx.status(400).json(Map.of("error", "Bonus introuvable."));
+                return;
+            }
+
+            UUID uuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.perks.SoloPerkManager.UnlockResult res = mod.getManager().unlockPerk(uuid, perk);
+            switch (res) {
+                case SUCCESS -> ctx.json(Map.of("success", true, "perkId", perk.getId()));
+                case ALREADY_UNLOCKED -> ctx.status(400).json(Map.of("error", "Vous possedez deja ce bonus."));
+                case NOT_ENOUGH_QUESTS -> ctx.status(400).json(Map.of("error", "Nombre de quetes insuffisant (" + perk.getRequiredQuests() + " requises)."));
+                case NOT_ENOUGH_FUNDS -> ctx.status(400).json(Map.of("error", "Fonds insuffisants."));
+                case NOT_ENOUGH_XP -> ctx.status(400).json(Map.of("error", "Niveaux d'experience insuffisants."));
+                default -> ctx.status(400).json(Map.of("error", "Une erreur est survenue lors du deblocage."));
+            }
+        });
+
+        post("/api/player/perks/toggle", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+            if (mod == null || !mod.isEnabled()) {
+                ctx.status(400).json(Map.of("error", "Le module de bonus individuels est desactive."));
+                return;
+            }
+
+            PerkClaimRequest req = ctx.bodyAsClass(PerkClaimRequest.class);
+            if (req.perkId == null || req.perkId.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Identifiant de bonus manquant."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkType perk = fr.gens.core.modules.perks.SoloPerkType.fromId(req.perkId);
+            if (perk == null || !perk.isToggleable()) {
+                ctx.status(400).json(Map.of("error", "Ce bonus n'est pas activable/desactivable."));
+                return;
+            }
+
+            UUID uuid = UUID.fromString(uuidStr);
+            if (!mod.getManager().hasPerk(uuid, perk)) {
+                ctx.status(400).json(Map.of("error", "Vous ne possedez pas ce bonus."));
+                return;
+            }
+
+            boolean newState = mod.getManager().togglePerk(uuid, perk);
+            ctx.json(Map.of("success", true, "perkId", perk.getId(), "isEnabled", newState));
+        });
+
         get("/api/public/claims", ctx -> {
             fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
             if (bm != null) {
@@ -1100,6 +1193,11 @@ public class WebPlayerAPI implements Listener {
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static class TeamMemberActionRequest {
         public String uuid;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PerkClaimRequest {
+        public String perkId;
     }
 }
 
