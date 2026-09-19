@@ -1,6 +1,5 @@
 package fr.gens.core.modules.perks;
 
-import fr.gens.core.CorePlugin;
 import fr.gens.core.utils.PlaceholderUtils;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
