@@ -96,13 +96,22 @@ A complete clan ecosystem supporting Folia multi-threading and Bedrock crossplay
 - **Territory Claims ($16 \times 16$ Chunks):** Guilds claim chunks via `/team claim`. Claims are strictly purchased using the guild bank balance ($1500 or 10 XP levels per chunk).
   - *Comprehensive Anti-Grief:* Total protection against block breaking/placing, opening containers (chests, barrels, furnaces, hoppers, shulkers), redstone interactions (doors, trapdoors, buttons, levers), entity/livestock damage, and piston griefing across chunk borders.
   - *On-Screen Boundary Notifications:* Animated Title and Subtitle with an immersive chime sound displayed when a player enters claimed guild territory.
-- **Team Perks (Active Guild Upgrades):** 5 tiered perks purchased strictly from guild treasury:
-  1. *Max Members (Tiers 1 to 3):* 8, 11, and 14 max members (base 5).
-  2. *Extended Territory (Tiers 1 to 4):* 8, 12, 16, and 20 max claimed chunks (base 4).
-  3. *Jobs Boost (Tiers 1 to 3):* +5%, +10%, and +15% jobs XP bonus for online members.
-  4. *Auction House Tax Reduction (Tiers 1 to 2):* -25% and -50% tax cut on sales commission.
-  5. *Co-op Quest Boost (Tiers 1 to 2):* +10% and +20% guild quest progress points.
-- **Upcoming Perks (In Development):** 5 additional upgrade trees are currently being added: *Guild Home Warp* (`/team home`), *Territory Buffs* (AoE effects in claims), *Daily Bank Interest*, *Spawner Overclocking*, and *Virtual Shared Vault* (`/team vault`).
+- **Team Perks (10 Active Guild Upgrade Trees):** Permanent team perks funded strictly from the shared guild bank:
+  1. *Max Members (`MAX_MEMBERS`, Tiers 1 to 3):* 8, 11, and 14 max members (base 5).
+  2. *Extended Territory (`EXTENDED_TERRITORY`, Tiers 1 to 4):* 8, 12, 16, and 20 max claimed chunks (base 4).
+  3. *Jobs Boost (`JOBS_BOOST`, Tiers 1 to 3):* +5%, +10%, and +15% jobs XP bonus for online members.
+  4. *Auction House Tax Reduction (`AH_TAX_REDUCTION`, Tiers 1 to 2):* -25% and -50% tax cut on sales commission.
+  5. *Co-op Quest Boost (`COOP_QUESTS_BOOST`, Tiers 1 to 2):* +10% and +20% guild quest progress points.
+  6. *Guild Home Warp (`GUILD_HOME`, Tiers 1 to 3):* Shared teleportation waypoint (`/team home` and `/team sethome`). Reduced delays: 5s warmup and 15m cooldown at tier 1, 3s warmup and 5m cooldown at tier 2, instant warmup inside territory claims and 1m cooldown at tier 3.
+  7. *Territory Buffs (`TERRITORY_BUFF`, Tiers 1 to 3):* Passive AoE potion effects radiating to members inside claimed chunks (Tier 1: Regeneration I and slow Saturation, Tier 2: Speed I, Tier 3: Haste I).
+     - *Anti-Abuse Stabilization & Warmup:* To prevent nomadic claim-and-mine abuse and combat exploits, newly claimed chunks require a 5-minute chunk stabilization anchor (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) before radiating buffs (ActionBar countdown). A 15-second presence synchronization is required upon entering territory before buffs apply. Leaving guild territory immediately strips all active effects.
+  8. *Daily Bank Interest (`BANK_INTEREST`, Tiers 1 to 2):* Passive interest dividends deposited into the guild treasury every 24 real-world hours (+1% daily capped at $10,000 or 50 XP at tier 1, +2% daily capped at $25,000 or 100 XP at tier 2).
+  9. *Spawner Efficiency (`SPAWNER_EFFICIENCY`, Tiers 1 to 2):* Overclocks custom smart spawners placed within the guild's claims via `SpawnerManager.generateTick()` (+15% spawn speed at tier 1, +30% at tier 2).
+  10. *Virtual Shared Vault (`GUILD_VAULT`, Tiers 1 to 3):* Secure communal virtual chest accessible in-game via `/team vault` (or `/team coffre`, `/team chest`), direct `/team` action button, or the Player Web Portal (18 slots / 2 rows at tier 1, 36 slots / 4 rows at tier 2, 54 slots / 6 rows at tier 3).
+- **Direct GUI Action Buttons & Bedrock Forms:**
+  - In `/team` interface (54 slots): Slot 38 (Bed: Left-click for `/team home`, Right-click for `/team sethome`), Slot 40 (Chest/Barrel: Left-click for `/team vault`), Slot 42 (Bank balance status).
+  - Right-click shortcuts built into `/team upgrades` (Slot 19 for Home, Slot 23 for Vault).
+  - Native Bedrock Cumulus dialogs with buttons for Guild Home, Set Home, and Guild Vault.
 - **BlueMap Live Integration:** All guild claims render seamlessly on 3D BlueMap with customized hex colors configured via `/team color <#hex>` or the Web Panel.
 
 ---

@@ -236,6 +236,16 @@ web:
     perk_ah_desc: Réduit la taxe de vente sur l'Hôtel des Ventes pour tous les membres.
     perk_quests_name: Bonus Quêtes Coop
     perk_quests_desc: Multiplicateur de points gagnés lors des quêtes hebdomadaires de guilde.
+    perk_home_name: Home de Guilde
+    perk_home_desc: Débloque /team sethome et /team home avec cooldown réduit à chaque niveau.
+    perk_territory_name: Aura Territoriale
+    perk_territory_desc: Effets de potion passifs pour les membres dans les territoires de la guilde.
+    perk_interest_name: Intérêt Bancaire
+    perk_interest_desc: Génère un dividende quotidien automatique sur le solde de la banque.
+    perk_spawner_name: Efficacité Spawners
+    perk_spawner_desc: Accélère la vitesse d'apparition des monstres dans vos territoires.
+    perk_vault_name: Coffre de Guilde
+    perk_vault_desc: Débloque un coffre partagé sécurisé entre tous les membres (/team vault).
     level_label: "Niveau {{current}} / {{max}}"
     level_max: NIVEAU MAX
     buy_perk_btn: Acheter le niveau supérieur

@@ -230,6 +230,16 @@ web:
     perk_ah_desc: Reduces the Auction House sale tax for all guild members.
     perk_quests_name: Coop Quests Bonus
     perk_quests_desc: Points multiplier for weekly cooperative guild quests.
+    perk_home_name: Guild Home
+    perk_home_desc: Unlocks /team sethome and /team home with reduced cooldown per level.
+    perk_territory_name: Territory Aura
+    perk_territory_desc: Passive potion buffs for members while inside guild claims.
+    perk_interest_name: Bank Interest
+    perk_interest_desc: Generates automatic daily dividends on the guild bank balance.
+    perk_spawner_name: Spawner Efficiency
+    perk_spawner_desc: Increases spawner speed within claimed guild territory.
+    perk_vault_name: Guild Vault
+    perk_vault_desc: Unlocks a shared secure storage chest for all guild members (/team vault).
     level_label: "Level {{current}} / {{max}}"
     level_max: MAX LEVEL
     buy_perk_btn: Buy Next Level

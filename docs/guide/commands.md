@@ -56,6 +56,9 @@ Comprehensive clan system with shared treasury ($ or XP), territorial chunk clai
 | `/team disband` | *None* | *None* | Leader | Permanently disbands the guild and releases all claimed chunks. |
 | `/team quest` | *None* | *None* | Everyone | Opens the shared guild quest menu. |
 | `/team upgrades` | *None* | *None* | Everyone | Opens the guild upgrades shop menu. |
+| `/team sethome` | *None* | *None* | Admin / Leader | Defines the shared guild home waypoint at your current location (requires `GUILD_HOME`). |
+| `/team home` | *None* | *None* | Everyone | Teleports to the shared guild home (requires `GUILD_HOME`). |
+| `/team vault` | *None* | *None* | Everyone | Opens the communal guild virtual vault. *(Aliases: `/team coffre`, `/team chest`)* (requires `GUILD_VAULT`). |
 | `/team deposit` | `<amount>` | *None* | Everyone | Deposits dollars into the guild bank (when Economy is active). |
 | `/team depositxp` | `<levels>` | *None* | Everyone | Deposits XP levels into the guild bank (when Economy is disabled). |
 | `/team withdraw` | `<amount>` | *None* | Admin / Leader | Withdraws dollars from the guild bank. |

@@ -63,6 +63,24 @@ public class TeamModule implements Module {
         teamClaimListener = new TeamClaimListener(plugin);
         Bukkit.getPluginManager().registerEvents(teamClaimListener, plugin);
 
+        // Planificateur de l'interêt bancaire (vérifié toutes les heures)
+        plugin.getFoliaLib().getScheduler().runTimerAsync(t -> {
+            plugin.getTeamManager().tickBankInterest();
+        }, 20L * 60 * 60, 20L * 60 * 60); // toutes les heures (en ticks)
+
+        // Tâche périodique pour l'Aura Territoriale (toutes les 3 secondes)
+        plugin.getFoliaLib().getScheduler().runTimer(t -> {
+            if (!enabled || teamListener == null) return;
+            for (org.bukkit.entity.Player p : Bukkit.getOnlinePlayers()) {
+                if (p == null || !p.isOnline()) continue;
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+                    if (p.isOnline()) {
+                        teamListener.updateTerritoryBuffsForPlayer(p, p.getLocation().getChunk());
+                    }
+                });
+            }
+        }, 60L, 60L);
+
         plugin.getLangManager().sendConsoleMessage("teammodule.log_1");
     }
 

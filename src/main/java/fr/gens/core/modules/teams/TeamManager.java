@@ -40,6 +40,10 @@ public class TeamManager {
         return teamsById.get(id);
     }
 
+    public java.util.Collection<TeamData> getAllTeams() {
+        return teamsById.values();
+    }
+
     public TeamData getPlayerTeam(UUID playerUuid) {
         return teamsByPlayer.get(playerUuid);
     }
@@ -247,6 +251,29 @@ public class TeamManager {
                 if (targetLevel == 1) return 12000.0;
                 if (targetLevel == 2) return 30000.0;
                 return -1;
+            case "GUILD_HOME":
+                if (targetLevel == 1) return 20000.0;
+                if (targetLevel == 2) return 40000.0;
+                if (targetLevel == 3) return 75000.0;
+                return -1;
+            case "TERRITORY_BUFF":
+                if (targetLevel == 1) return 15000.0;
+                if (targetLevel == 2) return 35000.0;
+                if (targetLevel == 3) return 60000.0;
+                return -1;
+            case "BANK_INTEREST":
+                if (targetLevel == 1) return 30000.0;
+                if (targetLevel == 2) return 60000.0;
+                return -1;
+            case "SPAWNER_EFFICIENCY":
+                if (targetLevel == 1) return 25000.0;
+                if (targetLevel == 2) return 55000.0;
+                return -1;
+            case "GUILD_VAULT":
+                if (targetLevel == 1) return 10000.0;
+                if (targetLevel == 2) return 25000.0;
+                if (targetLevel == 3) return 50000.0;
+                return -1;
             default:
                 return -1;
         }
@@ -278,6 +305,29 @@ public class TeamManager {
                 if (targetLevel == 1) return 35;
                 if (targetLevel == 2) return 60;
                 return -1;
+            case "GUILD_HOME":
+                if (targetLevel == 1) return 50;
+                if (targetLevel == 2) return 80;
+                if (targetLevel == 3) return 120;
+                return -1;
+            case "TERRITORY_BUFF":
+                if (targetLevel == 1) return 40;
+                if (targetLevel == 2) return 65;
+                if (targetLevel == 3) return 100;
+                return -1;
+            case "BANK_INTEREST":
+                if (targetLevel == 1) return 60;
+                if (targetLevel == 2) return 100;
+                return -1;
+            case "SPAWNER_EFFICIENCY":
+                if (targetLevel == 1) return 55;
+                if (targetLevel == 2) return 90;
+                return -1;
+            case "GUILD_VAULT":
+                if (targetLevel == 1) return 30;
+                if (targetLevel == 2) return 55;
+                if (targetLevel == 3) return 85;
+                return -1;
             default:
                 return -1;
         }
@@ -294,6 +344,51 @@ public class TeamManager {
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
             plugin.getFoliaLib().getScheduler().runAsync(t -> module.getTeamDAO().saveTeamColor(team));
+        }
+    }
+
+    /**
+     * Applies daily bank interest to all guilds with BANK_INTEREST upgrade.
+     * Call this once every 24h via a scheduler.
+     */
+    public void tickBankInterest() {
+        long now = System.currentTimeMillis();
+        long oneDayMs = 86_400_000L;
+        for (TeamData team : getAllTeams()) {
+            double rate = team.getBankInterestRate();
+            if (rate <= 0) continue;
+            if (now - team.getLastInterestAt() < oneDayMs) continue;
+            double interest = team.getBankBalance() * rate;
+            double cap = team.getBankInterestCap();
+            interest = Math.min(interest, cap);
+            if (interest > 0) {
+                team.addBankBalance(interest);
+                team.setLastInterestAt(now);
+                team.broadcast(String.format("<gold>Interet bancaire : +%.2f $ (taux %.1f%%)", interest, rate * 100));
+                saveBankAsync(team);
+                saveInterestTimestampAsync(team);
+            }
+        }
+    }
+
+    public void saveInterestTimestampAsync(TeamData team) {
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            plugin.getFoliaLib().getScheduler().runAsync(t -> module.getTeamDAO().saveInterestTimestamp(team));
+        }
+    }
+
+    public void saveHomeAsync(TeamData team) {
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            plugin.getFoliaLib().getScheduler().runAsync(t -> module.getTeamDAO().saveHome(team));
+        }
+    }
+
+    public void saveVaultAsync(TeamData team) {
+        fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        if (module != null) {
+            plugin.getFoliaLib().getScheduler().runAsync(t -> module.getTeamDAO().saveVault(team));
         }
     }
 }

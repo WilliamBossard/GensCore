@@ -28,7 +28,7 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | **Bedrock Cross-Play (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Hardened</span> | Catching `Throwable` across Cumulus forms & skin API against 26.3 linkage mismatches |
 | **Folia Regional Threading** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Eliminated `isPrimaryThread` exceptions, added async teleport callbacks & cross-region decay |
 | **Guilds & Territory Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Comprehensive anti-grief, on-screen boundary titles, Admin roles, web portal, BlueMap |
-| **Upcoming Guild Upgrades** | <span style="color: #3b82f6; font-weight: 700;">Planned</span> | Guild Home Warp, Territory Buffs, Bank Interest, Spawner Boost, Virtual Shared Vault |
+| **Upcoming Guild Upgrades** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Guild Home Warp, Anti-Abuse Territory Buffs, 24h Bank Interest, Spawner Boost, Shared Vault |
 
 ---
 
@@ -59,22 +59,31 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 * **Full Web Portal Management:** Browser dashboard allowing leaders to promote/demote admins and kick members (with safety modal), manage shared funds ($ / XP), adjust live BlueMap hex colors, and purchase guild upgrades.
 * **Auto-Sync Web Panel Assets:** Automatic startup verification of newer web assets inside the JAR, seamlessly updating `plugins/GensCore/web/` without manual file deletion.
 
+### 6. Guild Perks Phase 2 Rollout, Direct Action Buttons & Anti-Abuse Shield
+* **5 Newly Rolled Out Permanent Upgrades:**
+  - **Guild Home Warp (`GUILD_HOME`):** Communal waypoint (`/team sethome` leader/admin only, `/team home` all members). Scaled cooldown and delay reduction (5s/15m tier 1, 3s/5m tier 2, instant inside claims and 1m cooldown tier 3).
+  - **Territory Buffs (`TERRITORY_BUFF`):** Passive potion effects radiating to members inside claimed territory (Regeneration I and slow Saturation, Speed I, Haste I).
+  - **Daily Bank Interest (`BANK_INTEREST`):** Passive interest dividends deposited into the guild treasury every 24 real-world hours (+1% and +2% daily, with strict inflation caps).
+  - **Spawner Efficiency Boost (`SPAWNER_EFFICIENCY`):** Accelerates custom smart spawner generation (`SpawnerManager.generateTick()`) by +15% to +30% inside guild claims.
+  - **Virtual Shared Vault (`GUILD_VAULT`):** Communal storage inventory (18, 36, or 54 slots) accessible via `/team vault` (or `/team coffre`, `/team chest`), direct `/team` action button, or the Player Web Portal.
+* **Anti-Abuse Territorial Protection:**
+  - 5-minute chunk stabilization anchor (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) required on newly claimed chunks before radiating potion buffs (with live ActionBar countdown), eliminating nomadic claim-and-mine abuse.
+  - 15-second presence synchronization required upon entering guild territory before receiving buffs.
+  - Instant removal of all potion effects when crossing out of guild territory.
+* **Direct Action Buttons & Bedrock Cross-Play:**
+  - Expanded `/team` GUI (54 slots) with direct action buttons: Slot 38 (Bed: Left-click for `/team home`, Right-click for `/team sethome`), Slot 40 (Vault), and Slot 42 (Bank).
+  - Native Bedrock Cumulus dialogs with buttons for Guild Home, Set Home, and Guild Vault.
+  - Right-click shortcuts in `/team upgrades` (Slot 19 for Home, Slot 23 for Vault).
+
 ---
 
 ## In-Progress Efforts
 
-### 1. Upcoming Guild Upgrades (In Development)
-* **Guild Home Warp (`GUILD_HOME`):** Shared teleportation point with tiered warmup and cooldown reductions.
-* **Territory Buffs (`TERRITORY_BUFF`):** Passive potion effects inside claimed chunks (Regeneration, Speed, Haste).
-* **Daily Bank Interest (`BANK_INTEREST`):** Passive interest percentage yielded to the guild treasury every 24 real-world hours.
-* **Spawner Overclocking (`SPAWNER_EFFICIENCY`):** Spawn speed and drop multiplier boosts for custom spawners placed inside claimed chunks.
-* **Virtual Shared Vault (`GUILD_VAULT`):** Secure communal storage inventory (9 to 54 slots) accessible in-game and via the web portal.
-
-### 2. GeyserMC & Floodgate Monitoring
+### 1. GeyserMC & Floodgate Monitoring
 * GeyserMC has rolled out initial 26.3 protocol updates (`2.11.3-SNAPSHOT`).
 * Floodgate Bedrock authentication and Cumulus form dialogs are undergoing compatibility validation to ensure seamless crossplay without requiring manual re-encryption key regeneration.
 
-### 3. Full Regression Testing across 28 Modules
+### 2. Full Regression Testing across 28 Modules
 * Systematic validation of all core modules running under Paper 26.3:
   - Economy & Jobs (Dynamic pricing shop, Player Auction House)
   - Security & Anti-Exploit (Shulker protection, container locks)
@@ -93,8 +102,8 @@ flowchart LR
     D --> E[Merge to main & v1.1.0 Release]
 ```
 
-1. **Phase 1 (Current):** Guilds 2.0 completed (Anti-grief claims, BlueMap, Admin roles, web portal).
-2. **Phase 2:** Implement the new guild perks (Home Warp, Territory Buffs, Bank Interest, Spawners, Shared Vault).
+1. **Phase 1 (Completed):** Guilds 2.0 completed (Anti-grief claims, BlueMap, Admin roles, web portal).
+2. **Phase 2 (Completed):** Guild Upgrades Phase 2 rolled out (Home Warp, Anti-abuse territory buffs, 24h bank interest, spawners, shared vault, GUI action buttons).
 3. **Phase 3:** High-concurrency stress testing (50+ simulated players with Spark profiling).
 4. **Phase 4:** Paper 26.3 Release Candidate (RC) release verification.
 5. **Phase 5:** Merge `dev` into `main` and publish official GensCore v1.1.0 distribution.
@@ -102,6 +111,12 @@ flowchart LR
 ---
 
 ## Recent Patch Notes
+
+### Patch 26.3-alpha.19 (September 19, 2026)
+- **Guild Perks Phase 2:** Deployed all 5 remaining permanent guild upgrades (`GUILD_HOME`, `TERRITORY_BUFF`, `BANK_INTEREST`, `SPAWNER_EFFICIENCY`, `GUILD_VAULT`).
+- **Territory Anti-Abuse Shield:** 5-minute chunk stabilization anchor (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) before radiating buffs with ActionBar countdown, 15-second presence synchronization on entry, and instant buff removal upon leaving.
+- **Direct Action Buttons & Bedrock Cross-Play:** 54-slot `/team` GUI with dedicated buttons at slot 38 (Home), slot 40 (Vault), and slot 42 (Bank), matching native Bedrock Cumulus dialog buttons and right-click shortcuts in `/team upgrades`.
+- **New Commands:** Registered `/team sethome`, `/team home`, `/team vault` (with aliases `/team coffre`, `/team chest`).
 
 ### Patch 26.3-alpha.18 (September 18, 2026)
 - **Guild Roles & Hierarchy:** Added full `ADMIN` role in SQLite database (`genscore_team_members.role`), commands `/team promote`, `/team demote`, `/team kick`, `/team leave`, `/team disband` and in-game GUI interactions (left-click promote/demote, right-click kick).

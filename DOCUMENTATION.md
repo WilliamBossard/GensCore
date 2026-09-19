@@ -115,6 +115,9 @@ Comprehensive guild and clan management system with shared treasury, chunk claim
 | `/team disband` | *None* | *None* | Leader | Permanently disbands the guild and unclaims all territory. |
 | `/team quest` | *None* | *None* | Everyone | Opens the shared Guild Quests progression menu. |
 | `/team upgrades` | *None* | *None* | Everyone | Opens the Guild Upgrades shop GUI. |
+| `/team sethome` | *None* | *None* | Admin / Leader | Defines the shared guild home waypoint at your current location (requires `GUILD_HOME`). |
+| `/team home` | *None* | *None* | Everyone | Teleports to the shared guild home (requires `GUILD_HOME`). |
+| `/team vault` | *None* | *None* | Everyone | Opens the communal guild virtual vault. *(Aliases: `/team coffre`, `/team chest`)* (requires `GUILD_VAULT`). |
 | `/team deposit` | `<amount>` | *None* | Everyone | Deposits dollars into the guild bank (when Economy is active). |
 | `/team depositxp` | `<levels>` | *None* | Everyone | Deposits XP levels into the guild bank (alternative when Economy is disabled). |
 | `/team withdraw` | `<amount>` | *None* | Admin / Leader | Withdraws dollars from the guild bank into personal balance. |
@@ -128,23 +131,34 @@ GensCore implements a 3-tier hierarchy system for guild security and co-manageme
 
 | Permission / Action | Chef (`LEADER`) | Admin (`ADMIN`) | Membre (`MEMBER`) |
 |---|:---:|:---:|:---:|
-| Disband Guild (`/team disband`) | ✅ | ❌ | ❌ |
-| Promote / Demote Admins | ✅ | ❌ | ❌ |
-| Kick Members | ✅ (Any) | ✅ (Regular Members only) | ❌ |
-| Invite Players (`/team invite`) | ✅ | ✅ | ❌ |
-| Claim / Unclaim Territory | ✅ | ✅ | ❌ |
-| Change BlueMap Color (`/team color`) | ✅ | ✅ | ❌ |
-| Purchase Upgrades (`/team upgrades`) | ✅ | ✅ | ❌ |
-| Withdraw Bank Funds / XP | ✅ | ✅ | ❌ |
-| Deposit Bank Funds / XP | ✅ | ✅ | ✅ |
-| Access Guild-Locked Chests (`/lock guild`) | ✅ | ✅ | ✅ |
-| Build / Interact in Guild Claims | ✅ | ✅ | ✅ |
-| Participate in Guild Quests | ✅ | ✅ | ✅ |
+| Disband Guild (`/team disband`) | Oui | Non | Non |
+| Promote / Demote Admins | Oui | Non | Non |
+| Kick Members | Oui (Tous) | Oui (Membres uniquement) | Non |
+| Invite Players (`/team invite`) | Oui | Oui | Non |
+| Define Guild Home (`/team sethome`) | Oui | Oui | Non |
+| Claim / Unclaim Territory | Oui | Oui | Non |
+| Change BlueMap Color (`/team color`) | Oui | Oui | Non |
+| Purchase Upgrades (`/team upgrades`) | Oui | Oui | Non |
+| Withdraw Bank Funds / XP | Oui | Oui | Non |
+| Teleport to Guild Home (`/team home`) | Oui | Oui | Oui |
+| Access Guild Vault (`/team vault`) | Oui | Oui | Oui |
+| Deposit Bank Funds / XP | Oui | Oui | Oui |
+| Access Guild-Locked Chests (`/lock guild`) | Oui | Oui | Oui |
+| Build / Interact in Guild Claims | Oui | Oui | Oui |
+| Participate in Guild Quests | Oui | Oui | Oui |
 
 - **Management via In-Game GUI (`/team`):**
-  - Clicking on a member's player head in the Guild GUI allows quick role actions:
-    - **Left-Click:** Promote to Admin or Demote to Member (Leader only).
-    - **Right-Click:** Kick the player from the guild (with role validation).
+  - **Quick Action Buttons:**
+    - Slot 38 (Bed): Guild Home. Left-click to teleport (`/team home`), Right-click for Admin/Leader to set the home (`/team sethome`).
+    - Slot 40 (Chest/Barrel): Guild Vault. Left-click to open the communal virtual chest (`/team vault`).
+    - Slot 42 (Gold Ingot/Bottle of Enchanting): Guild Bank treasury status and balance.
+    - Slot 19 and 23 in `/team upgrades`: Right-click shortcuts to teleport to home and open vault directly from the upgrade menu.
+  - **Bedrock / Floodgate Dialogs:**
+    - Native Cumulus form buttons dynamically adapt to player permissions with dedicated actions for "Home de Guilde", "Definir le Home", and "Coffre de Guilde".
+  - **Member Management:**
+    - Clicking on a member's player head allows quick role actions:
+      - **Left-Click:** Promote to Admin or Demote to Member (Leader only).
+      - **Right-Click:** Kick the player from the guild (with role validation).
 - **Management via Web Player Portal:**
   - Guild leaders and admins can log into the server Web Portal (`/portal` or via website) and access the **Guilde** tab.
   - View real-time treasury balances, manage members (Promote, Demote, Kick with confirmation modal), adjust the BlueMap territory color using an intuitive color picker, and purchase guild upgrades in a single click.
@@ -166,8 +180,8 @@ GensCore implements a 3-tier hierarchy system for guild security and co-manageme
   - When `EconomyModule` is disabled: Treasury automatically switches to player Experience (XP levels). The web portal and in-game GUIs dynamically hide currency inputs and display XP levels.
 - **Strict Treasury Funding Rule:** All land claims and guild perk upgrades must be funded directly and exclusively from the guild bank. Direct player purchases are prohibited to ensure collaborative teamwork.
 
-#### Guild Perks & Upgrades System
-Guilds can unlock 5 permanent team-wide upgrades paid through the guild bank:
+#### Guild Perks & Upgrades System (10 Active Trees)
+Guilds can unlock 10 permanent team-wide upgrades paid through the guild bank:
 1. **MAX_MEMBERS (Levels 1 to 3):**
    - Base: 5 members.
    - Formula: `5 + (level * 3)` -> 8, 11, 14 members max.
@@ -188,21 +202,35 @@ Guilds can unlock 5 permanent team-wide upgrades paid through the guild bank:
    - Boosts the points and contribution earned towards weekly guild quests.
    - Formula: `+10%` guild quest points per level (`1.10x`, `1.20x`).
    - Pricing ($ / XP): Level 1: $12,000 (35 XP), Level 2: $30,000 (60 XP).
-
-#### Planned Guild Upgrades (In Development)
-The following 5 additional guild upgrades are scheduled for rollout:
-1. **GUILD_HOME (Levels 1 to 3):**
-   - Shared guild teleportation waypoint (`/team sethome` and `/team home`).
-   - Upgrades reduce teleportation warmup delay (5s down to instant in claims) and cooldown timer (15m down to 1m).
-2. **TERRITORY_BUFF (Levels 1 to 3):**
-   - Area-of-effect passive buffs for all guild members located within claimed chunks.
-   - Level 1: Passive Regeneration I and slow Saturation. Level 2: Speed I inside claims. Level 3: Haste I inside claims.
-3. **BANK_INTEREST (Levels 1 to 2):**
-   - Yields passive interest dividends directly into the shared bank treasury every 24 real-world hours based on the balance (with safety anti-inflation caps).
-4. **SPAWNER_EFFICIENCY (Levels 1 to 2):**
-   - Boosts custom spawners placed within the guild's claimed chunks: +15% to +30% spawn frequency and bonus mob drop rates.
-5. **GUILD_VAULT (Levels 1 to 3):**
-   - Secure communal virtual chest accessible via `/team vault` and through the Player Web Portal (1 to 6 rows, 9 to 54 slots).
+6. **GUILD_HOME (Levels 1 to 3):**
+   - Shared teleportation waypoint accessible by all members via `/team home` and defined by leaders/admins via `/team sethome`.
+   - Level 1: 5-second warmup delay, 15-minute cooldown.
+   - Level 2: 3-second warmup delay, 5-minute cooldown.
+   - Level 3: Instant warmup inside claimed territory, 1-minute cooldown.
+   - Pricing ($ / XP): Level 1: $15,000 (40 XP), Level 2: $35,000 (65 XP), Level 3: $75,000 (95 XP).
+7. **TERRITORY_BUFF (Levels 1 to 3):**
+   - Passive area-of-effect potion buffs radiating to guild members located within claimed chunks.
+   - Level 1: Passive Regeneration I and slow Saturation.
+   - Level 2: Speed I inside territory claims.
+   - Level 3: Haste I inside territory claims.
+   - Anti-Abuse Protection: To prevent combat logging and nomadic claim-and-mine abuse, newly claimed chunks require a 5-minute stabilization anchor (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) before radiating buffs (displayed via ActionBar countdown). Players entering guild territory must remain inside for 15 seconds of synchronization warmup before receiving effects. Leaving guild territory immediately strips all active territory buffs.
+   - Pricing ($ / XP): Level 1: $20,000 (50 XP), Level 2: $45,000 (75 XP), Level 3: $90,000 (110 XP).
+8. **BANK_INTEREST (Levels 1 to 2):**
+   - Automatically deposits passive interest dividends into the shared guild bank every 24 real-world hours based on the current treasury balance.
+   - Level 1: +1% daily interest (capped at $10,000 or 50 XP max per day).
+   - Level 2: +2% daily interest (capped at $25,000 or 100 XP max per day).
+   - Pricing ($ / XP): Level 1: $25,000 (60 XP), Level 2: $60,000 (90 XP).
+9. **SPAWNER_EFFICIENCY (Levels 1 to 2):**
+   - Boosts custom smart spawners placed within the guild's claimed chunks (`SpawnerManager.generateTick()`).
+   - Level 1: +15% spawn tick speed.
+   - Level 2: +30% spawn tick speed.
+   - Pricing ($ / XP): Level 1: $30,000 (70 XP), Level 2: $70,000 (100 XP).
+10. **GUILD_VAULT (Levels 1 to 3):**
+    - Communal virtual storage chest accessible in-game via `/team vault` (or aliases `/team coffre`, `/team chest`), direct `/team` action button, or the Player Web Portal.
+    - Level 1: 18 slots (2 rows).
+    - Level 2: 36 slots (4 rows).
+    - Level 3: 54 slots (6 rows).
+    - Pricing ($ / XP): Level 1: $15,000 (45 XP), Level 2: $40,000 (70 XP), Level 3: $80,000 (100 XP).
 
 ---
 

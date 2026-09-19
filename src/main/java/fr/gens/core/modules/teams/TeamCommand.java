@@ -600,6 +600,103 @@ public class TeamCommand {
         invites.remove(uuid); // If they were invited
         invites.values().removeIf(val -> val.equals(uuid)); // If they were the inviter
     }
+
+    // ---- GUILD HOME ----
+    private final Map<UUID, Long> homeCooldowns = new ConcurrentHashMap<>();
+
+    @Command("team sethome")
+    public void executeTeamSetHome(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde."));
+            return;
+        }
+        if (!team.isAdminOrLeader(player.getUniqueId())) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Seuls le chef et les administrateurs peuvent definir le home de la guilde."));
+            return;
+        }
+        if (team.getUpgradeLevel("GUILD_HOME") <= 0) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Debloquez d'abord l'amelioration <gold>Home de Guilde</gold> dans le menu /team."));
+            return;
+        }
+        team.setHomeLocation(player.getLocation());
+        plugin.getTeamManager().saveHomeAsync(team);
+        player.sendMessage(PlaceholderUtils.parseToComponent("<green>Home de guilde defini a votre position."));
+        team.broadcast("<aqua>" + player.getName() + " a defini le home de la guilde.");
+    }
+
+    @Command("team home")
+    public void executeTeamHome(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde."));
+            return;
+        }
+        int warmup = team.getGuildHomeWarmup();
+        if (warmup < 0) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Debloquez d'abord l'amelioration <gold>Home de Guilde</gold> dans le menu /team."));
+            return;
+        }
+        org.bukkit.Location home = team.getHomeLocation();
+        if (home == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Aucun home de guilde defini. Un admin peut le faire avec /team sethome."));
+            return;
+        }
+        // Check cooldown
+        int cooldown = team.getGuildHomeCooldown();
+        UUID uuid = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        Long lastUsed = homeCooldowns.get(uuid);
+        if (lastUsed != null && now - lastUsed < (long) cooldown * 1000L) {
+            long remaining = (cooldown * 1000L - (now - lastUsed)) / 1000L;
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Cooldown : encore " + remaining + "s avant d'utiliser /team home."));
+            return;
+        }
+        homeCooldowns.put(uuid, now);
+        fr.gens.core.utils.TeleportUtil.teleportWithCooldown(plugin, player, home, "home de guilde " + team.getName(), "genscore.bypass.cooldown.all");
+    }
+
+    // ---- GUILD VAULT ----
+    @Command("team vault")
+    public void executeTeamVault(org.bukkit.command.CommandSender sender) {
+        openVaultForSender(sender);
+    }
+
+    @Command("team coffre")
+    public void executeTeamCoffre(org.bukkit.command.CommandSender sender) {
+        openVaultForSender(sender);
+    }
+
+    @Command("team chest")
+    public void executeTeamChest(org.bukkit.command.CommandSender sender) {
+        openVaultForSender(sender);
+    }
+
+    private void openVaultForSender(org.bukkit.command.CommandSender sender) {
+        if (!(sender instanceof Player)) return;
+        Player player = (Player) sender;
+        if (!module.isEnabled()) return;
+
+        TeamData team = plugin.getTeamManager().getPlayerTeam(player.getUniqueId());
+        if (team == null) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Vous n'avez pas de guilde."));
+            return;
+        }
+        int vaultSize = team.getVaultSize();
+        if (vaultSize <= 0) {
+            player.sendMessage(PlaceholderUtils.parseToComponent("<red>Debloquez d'abord l'amelioration <gold>Coffre de Guilde</gold> dans le menu /team."));
+            return;
+        }
+        teamGui.openTeamVaultGui(player, team);
+    }
 }
 
 

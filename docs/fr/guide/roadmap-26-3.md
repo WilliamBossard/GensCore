@@ -28,7 +28,7 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | **Crossplay Bedrock (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Blindé</span> | Capture des `Throwable` et isolation Cumulus/Floodgate face aux changements de bytecode 26.3 |
 | **Validation Folia Régionale** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Élimination de `isPrimaryThread`, callbacks de téléportation asynchrone et décomposition cross-region |
 | **Système de Guildes & Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Anti-grief total, titres frontaliers écran, rôles Admin, gestion web et BlueMap |
-| **Nouvelles Améliorations de Guilde** | <span style="color: #3b82f6; font-weight: 700;">Planifié</span> | Foyer de Guilde, Aura de Territoire, Intérêts Bancaires, Boost Spawners, Coffre-fort |
+| **Nouvelles Améliorations de Guilde** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Foyer de Guilde, Aura territoriale anti-abus, Intérêts 24h, Spawners et Coffre virtuel |
 
 ---
 
@@ -59,22 +59,31 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 * **Gestion complète Portail Web :** Interface de gestion en ligne permettant de promouvoir des administrateurs, rétrograder ou expulser des membres (avec modale de confirmation), personnaliser la couleur BlueMap en temps réel et acheter des améliorations d'équipe.
 * **Auto-mise à jour du Panel Web :** Détection automatique au démarrage des versions plus récentes d'assets web dans le JAR pour une extraction transparente dans `plugins/GensCore/web/`.
 
+### 6. Améliorations de Guilde Phase 2, Boutons d'Action & Bouclier Anti-Abus
+* **5 Nouvelles Améliorations Déployées :**
+  - **Foyer de Guilde (`GUILD_HOME`) :** Point de ralliement commun (`/team sethome` pour chef/admins, `/team home` pour tous). Délais réduits (5s/15m au niveau 1, 3s/5m au niveau 2, téléportation instantanée dans les claims et 1m au niveau 3).
+  - **Aura Territoriale (`TERRITORY_BUFF`) :** Effets de potions passifs pour les membres situés dans les claims (Régénération I et Saturation lente, Vitesse I, Célérité I).
+  - **Intérêts Bancaires Journaliers (`BANK_INTEREST`) :** Dividendes passifs calculés sur le solde de la banque de guilde chaque 24 heures réelles (+1% et +2% par jour, assortis de plafonds stricts anti-inflation).
+  - **Surcadençage des Spawners (`SPAWNER_EFFICIENCY`) :** Vitesse de génération des spawners personnalisés (`SpawnerManager.generateTick()`) accrue de +15% à +30% au sein des territoires de guilde.
+  - **Coffre-fort Virtuel Partagé (`GUILD_VAULT`) :** Espace de stockage partagé de 18, 36 ou 54 slots accessible via `/team vault` (ou `/team coffre`, `/team chest`), l'interface `/team` ou le portail web.
+* **Bouclier Anti-Abus Territoriale :**
+  - Ancrage territorial de 5 minutes (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) requis sur tout nouveau chunk avant d'émettre l'aura (avec compte à rebours dans l'ActionBar), interdisant tout détournement par minage nomade éphémère.
+  - Délai de présence de 15 secondes exigé à l'entrée du territoire avant réception des effets.
+  - Dissipation instantanée de tous les effets de potions dès la sortie du territoire.
+* **Boutons d'Action Directs In-Game & Bedrock :**
+  - Interface `/team` (54 slots) enrichie avec boutons d'action au slot 38 (Lit : Clic gauche pour `/team home`, Clic droit pour `/team sethome`), au slot 40 (Coffre virtuel partagé) et au slot 42 (Banque de guilde).
+  - Formulaires Bedrock Cumulus intégrant des boutons d'accès rapide au Home, à la définition du Home et au Coffre virtuel.
+  - Raccourcis directs en clic droit dans le menu `/team upgrades` (Slot 19 pour Home, Slot 23 pour Vault).
+
 ---
 
 ## Ce qui est en cours de travail
 
-### 1. Nouvelles Améliorations de Guilde (En cours d'implémentation)
-* **Foyer de Guilde (`GUILD_HOME`) :** Point de téléportation partagé avec réduction progressive du délai de téléportation et du cooldown.
-* **Aura de Territoire (`TERRITORY_BUFF`) :** Effets de potions passifs au sein des claims (Régénération, Vitesse, Célérité).
-* **Intérêts Bancaires Journaliers (`BANK_INTEREST`) :** Dividendes passifs calculés sur le solde de la trésorerie de guilde chaque 24 heures réelles.
-* **Surcadençage des Spawners (`SPAWNER_EFFICIENCY`) :** Vitesse de spawn et taux de drops augmentés pour les générateurs installés en territoire de guilde.
-* **Coffre-fort Virtuel Partagé (`GUILD_VAULT`) :** Inventaire sécurisé partagé (9 à 54 slots) accessible in-game et via le portail web.
-
-### 2. Suivi des mises à jour GeyserMC & Floodgate
+### 1. Suivi des mises à jour GeyserMC & Floodgate
 * Geyser a mis à disposition un build compatible avec le protocole réseau 26.3 (`2.11.3-SNAPSHOT`).
 * Floodgate fonctionne sans mise à jour immédiate obligatoire pour la vérification des clés de chiffrement Bedrock, mais des tests de validation approfondis sur les formulaires Cumulus et la transmission des skins sont en cours de réalisation.
 
-### 3. Validation continue des 28 modules intégrés
+### 2. Validation continue des 28 modules intégrés
 * Tests d'intégration progressifs de chaque module sous Paper 26.3 :
   - Métiers & Économie (Jobs, Shop, Auction House)
   - Sécurité & Anti-Exploit (Verrouillage coffres/shulkers, anti-duplication)
@@ -93,8 +102,8 @@ flowchart LR
     D --> E[Merge sur main & Release v1.1.0]
 ```
 
-1. **Phase 1 (Actuelle) :** Système de Guildes 2.0 terminé (Claims anti-grief, BlueMap, rôles Admin, portail web).
-2. **Phase 2 :** Intégration des nouvelles améliorations de guilde (Foyer, Aura, Intérêts, Spawners, Coffre-fort).
+1. **Phase 1 (Terminée) :** Système de Guildes 2.0 terminé (Claims anti-grief, BlueMap, rôles Admin, portail web).
+2. **Phase 2 (Terminée) :** Améliorations de guilde Phase 2 déployées (Foyer, Aura anti-abus, Intérêts 24h, Spawners, Coffre virtuel, boutons GUI & Bedrock).
 3. **Phase 3 :** Tests de charge et validation Folia multi-régions (50+ joueurs avec Spark).
 4. **Phase 4 :** Sortie de la Release Candidate (RC) Paper 26.3.
 5. **Phase 5 :** Fusion sur la branche `main` et publication du package officiel GensCore v1.1.0.
@@ -102,6 +111,12 @@ flowchart LR
 ---
 
 ## Historique des patchs récents
+
+### Patch 26.3-alpha.19 (19 Septembre 2026)
+- **Améliorations de Guilde Phase 2 :** Déploiement des 5 nouveaux arbres d'upgrades permanents (`GUILD_HOME`, `TERRITORY_BUFF`, `BANK_INTEREST`, `SPAWNER_EFFICIENCY`, `GUILD_VAULT`).
+- **Bouclier Anti-Abus Territoriale :** Ancrage territorial de 5 minutes (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) requis sur tout nouveau claim avant de diffuser l'aura avec décompte ActionBar, délai de présence de 15 secondes à l'entrée du territoire et retrait instantané des effets à la sortie.
+- **Boutons d'Action Directs & Crossplay Bedrock :** Agrandissement de l'interface `/team` à 54 slots avec boutons d'action au slot 38 (Lit : Clic gauche téléportation, Clic droit définition pour chefs/admins), slot 40 (Coffre virtuel) et slot 42 (Banque), formulaires Bedrock Cumulus natifs adaptés et raccourcis clic droit dans `/team upgrades`.
+- **Nouvelles Commandes :** Enregistrement de `/team sethome`, `/team home`, `/team vault` (et aliases `/team coffre`, `/team chest`).
 
 ### Patch 26.3-alpha.18 (18 Septembre 2026)
 - **Rôles & Hiérarchie de Guilde :** Ajout complet du rôle `ADMIN` dans la base SQLite (`genscore_team_members.role`), commandes `/team promote`, `/team demote`, `/team kick`, `/team leave`, `/team disband` et interaction dans l'interface `/team` (clic gauche promote/demote, clic droit kick).

@@ -14,12 +14,37 @@ public class TeamClaimManager {
     private final CorePlugin plugin;
     // Cle: "world:x:z" -> teamId
     private final Map<String, Integer> claims = new ConcurrentHashMap<>();
+    // Cle: "world:x:z" -> timestamp de claim
+    private final Map<String, Long> claimTimestamps = new ConcurrentHashMap<>();
+
+    // Temps d'ancrage avant que l'Aura Territoriale ne s'active (5 minutes)
+    public static final long CLAIM_ANCHOR_WARMUP_MS = 5 * 60 * 1000L;
 
     public static final double CLAIM_COST_MONEY = 1500.0;
     public static final int CLAIM_COST_XP = 10;
 
     public TeamClaimManager(CorePlugin plugin) {
         this.plugin = plugin;
+    }
+
+    public long getClaimAgeMillis(String key) {
+        Long time = claimTimestamps.get(key);
+        if (time == null) return Long.MAX_VALUE;
+        return System.currentTimeMillis() - time;
+    }
+
+    public long getClaimAgeMillis(Chunk chunk) {
+        return getClaimAgeMillis(getChunkKey(chunk));
+    }
+
+    public boolean isClaimStabilized(Chunk chunk) {
+        return getClaimAgeMillis(chunk) >= CLAIM_ANCHOR_WARMUP_MS;
+    }
+
+    public long getRemainingStabilizationMillis(Chunk chunk) {
+        long age = getClaimAgeMillis(chunk);
+        if (age >= CLAIM_ANCHOR_WARMUP_MS) return 0L;
+        return CLAIM_ANCHOR_WARMUP_MS - age;
     }
 
     public static String getChunkKey(String world, int x, int z) {
@@ -156,6 +181,7 @@ public class TeamClaimManager {
         }
 
         claims.put(key, team.getTeamId());
+        claimTimestamps.put(key, System.currentTimeMillis());
         notifyBlueMap();
         return ClaimResult.SUCCESS;
     }
@@ -184,18 +210,28 @@ public class TeamClaimManager {
         }
 
         claims.remove(key);
+        claimTimestamps.remove(key);
         notifyBlueMap();
         return UnclaimResult.SUCCESS;
     }
 
     public void removeAllTeamClaims(int teamId) {
-        claims.entrySet().removeIf(entry -> entry.getValue() != null && entry.getValue() == teamId);
+        claims.entrySet().removeIf(entry -> {
+            if (entry.getValue() != null && entry.getValue() == teamId) {
+                claimTimestamps.remove(entry.getKey());
+                return true;
+            }
+            return false;
+        });
         notifyBlueMap();
     }
 
     public void loadClaims(Map<String, Integer> loadedClaims) {
         claims.clear();
         claims.putAll(loadedClaims);
+        for (String k : loadedClaims.keySet()) {
+            claimTimestamps.put(k, 0L);
+        }
         notifyBlueMap();
     }
 

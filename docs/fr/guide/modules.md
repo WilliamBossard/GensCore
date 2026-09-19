@@ -96,13 +96,22 @@ Un écosystème de guilde complet, compatible Folia multi-thread et crossplay Be
 - **Claims de Territoire ($16 \times 16$ Chunks) :** Les guildes revendiquent des parcelles via `/team claim`. Tout claim est strictement financé par le solde de la banque de guilde (1 500 $ ou 10 niveaux d'XP par chunk).
   - *Anti-Grief Intégral :* Protection absolue contre la casse et pose de blocs, ouverture de coffres/barils/fours/shulkers, interactions redstone (portes, trappes, boutons, leviers), dégâts aux entités/animaux/porte-armures, et grief par pistons depuis l'extérieur.
   - *Notifications Frontalières :* Titre et sous-titre animés avec effet sonore immersif affichés sur l'écran du joueur lorsqu'il pénètre sur le territoire d'une guilde.
-- **Améliorations de Guilde Actives (Team Perks) :** 5 arbres de bonus permanents financés exclusivement par la banque de guilde :
-  1. *Membres Max (Niveaux 1 à 3) :* De 5 à 8, 11 et 14 membres maximum.
-  2. *Territoire Étendu (Niveaux 1 à 4) :* De 4 à 8, 12, 16 et 20 chunks revendiquables.
-  3. *Boost Métiers (Niveaux 1 à 3) :* +5%, +10% et +15% de gains d'expérience de métiers pour tous les membres en ligne.
-  4. *Réduction Taxe HDV (Niveaux 1 à 2) :* -25% et -50% sur la commission de vente à l'Hôtel des Ventes.
-  5. *Boost Quêtes Coop (Niveaux 1 à 2) :* +10% et +20% de points de quêtes de guilde.
-- **Améliorations en Cours de Développement :** 5 nouveaux arbres d'upgrades sont en cours d'intégration : *Foyer de Guilde* (`/team home`), *Aura de Territoire* (buffs de zone), *Intérêts Bancaires Journaliers*, *Surcadençage des Spawners* et *Coffre-fort Virtuel Partagé* (`/team vault`).
+- **Améliorations de Guilde Actives (10 Arbres de Perks) :** Améliorations permanentes financées exclusivement par la banque de guilde :
+  1. *Membres Max (`MAX_MEMBERS`, Niveaux 1 à 3) :* De 5 à 8, 11 et 14 membres maximum.
+  2. *Territoire Étendu (`EXTENDED_TERRITORY`, Niveaux 1 à 4) :* De 4 à 8, 12, 16 et 20 chunks revendiquables.
+  3. *Boost Métiers (`JOBS_BOOST`, Niveaux 1 à 3) :* +5%, +10% et +15% de gains d'expérience de métiers pour tous les membres en ligne.
+  4. *Réduction Taxe HDV (`AH_TAX_REDUCTION`, Niveaux 1 à 2) :* -25% et -50% sur la commission de vente à l'Hôtel des Ventes.
+  5. *Boost Quêtes Coop (`COOP_QUESTS_BOOST`, Niveaux 1 à 2) :* +10% et +20% de points de quêtes de guilde.
+  6. *Foyer de Guilde (`GUILD_HOME`, Niveaux 1 à 3) :* Point de téléportation partagé (`/team home` et `/team sethome`). Délais réduits : 5s de charge et 15m de cooldown au niveau 1, 3s et 5m au niveau 2, téléportation instantanée dans les claims et 1m de cooldown au niveau 3.
+  7. *Aura Territoriale (`TERRITORY_BUFF`, Niveaux 1 à 3) :* Effets passifs diffusés aux membres présents sur le territoire revendiqué (Niveau 1 : Régénération I et Saturation lente, Niveau 2 : Vitesse I, Niveau 3 : Célérité I).
+     - *Sécurité Anti-Abus :* Afin d'interdire les failles de minage nomade ou de fuite en combat, tout nouveau claim requiert un temps d'ancrage territorial de 5 minutes (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) avant de pouvoir diffuser l'aura (décompte affiché dans l'ActionBar). De plus, un délai de présence de 15 secondes est exigé lors de l'entrée sur le territoire avant l'octroi des buffs. Quitter le territoire dissipe immédiatement tous les effets.
+  8. *Intérêts Bancaires (`BANK_INTEREST`, Niveaux 1 à 2) :* Versements passifs d'intérêts dans la trésorerie de guilde toutes les 24 heures réelles (+1% par jour plafonné à 10 000 $ ou 50 XP au niveau 1, +2% par jour plafonné à 25 000 $ ou 100 XP au niveau 2).
+  9. *Efficacité des Spawners (`SPAWNER_EFFICIENCY`, Niveaux 1 à 2) :* Surcadence les générateurs personnalisés (`SpawnerManager.generateTick()`) posés dans les claims de la guilde (+15% de vitesse de génération au niveau 1, +30% au niveau 2).
+  10. *Coffre-fort Virtuel (`GUILD_VAULT`, Niveaux 1 à 3) :* Stockage virtuel commun accessible in-game via `/team vault` (ou `/team coffre`, `/team chest`), depuis le menu `/team` ou via le portail web (18 slots / 2 lignes au niveau 1, 36 slots / 4 lignes au niveau 2, 54 slots / 6 lignes au niveau 3).
+- **Boutons d'Action Rapides In-Game & Bedrock :**
+  - Dans l'interface `/team` (54 slots) : Slot 38 (Lit : Clic gauche pour `/team home`, Clic droit pour `/team sethome`), Slot 40 (Coffre/Tonneau : Clic gauche pour `/team vault`), Slot 42 (Statut Banque).
+  - Raccourcis clic droit intégrés directement dans `/team upgrades` (Slot 19 pour le Home, Slot 23 pour le Coffre).
+  - Formulaires Bedrock Cumulus proposant des boutons natifs dédiés au Home, à la définition du Home et au Coffre de guilde.
 - **Intégration Temps Réel BlueMap :** Tous les claims de guilde sont dessinés sur la carte 3D BlueMap avec une couleur hexadécimale personnalisable via `/team color <#hex>` ou le Panel Web.
 
 ---

@@ -56,6 +56,9 @@ Système complet de clans avec trésorerie partagée ($ ou XP), revendication te
 | `/team disband` | *Aucun* | *Aucune* | Chef | Dissout définitivement la guilde et libère tous ses territoires. |
 | `/team quest` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu des quêtes communautaires de guilde. |
 | `/team upgrades` | *Aucun* | *Aucune* | Tout le monde | Ouvre la boutique d'améliorations de guilde. |
+| `/team sethome` | *Aucun* | *Aucune* | Admin / Chef | Définit le point de ralliement (home) de la guilde à votre position (requiert `GUILD_HOME`). |
+| `/team home` | *Aucun* | *Aucune* | Tout le monde | Téléporte au point de ralliement de la guilde (requiert `GUILD_HOME`). |
+| `/team vault` | *Aucun* | *Aucune* | Tout le monde | Ouvre le coffre virtuel partagé de la guilde. *(Aliases : `/team coffre`, `/team chest`)* (requiert `GUILD_VAULT`). |
 | `/team deposit` | `<montant>` | *Aucune* | Tout le monde | Dépose de l'argent dans la banque de guilde (si Économie active). |
 | `/team depositxp` | `<niveaux>` | *Aucune* | Tout le monde | Dépose des niveaux d'XP dans la banque (si Économie désactivée). |
 | `/team withdraw` | `<montant>` | *Aucune* | Admin / Chef | Retire de l'argent de la banque de guilde. |

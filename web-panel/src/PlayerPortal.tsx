@@ -1006,7 +1006,63 @@ export function PlayerTeamSection({ token }: { token: string }) {
       nextStat: (upgrades['QUESTS'] || 0) < 2 ? `${(1.0 + ((upgrades['QUESTS'] || 0) + 1) * 0.10).toFixed(2)}x points` : null,
       costMoney: [12000, 30000][upgrades['QUESTS'] || 0] ?? -1,
       costXp: [35, 60][upgrades['QUESTS'] || 0] ?? -1,
-    }
+    },
+    // ---- New upgrades ----
+    {
+      id: 'GUILD_HOME',
+      title: t('web.team.perk_home_name') || 'Home de Guilde',
+      desc: t('web.team.perk_home_desc') || 'Debloque /team sethome et /team home avec cooldown reduit a chaque niveau.',
+      curLvl: upgrades['GUILD_HOME'] || 0,
+      maxLvl: 3,
+      currentStat: upgrades['GUILD_HOME'] ? `Cooldown : ${[900,300,60][Math.max(0,(upgrades['GUILD_HOME']||1)-1)]/60} min` : 'Non debloque',
+      nextStat: (upgrades['GUILD_HOME'] || 0) < 3 ? `Cooldown : ${[900,300,60][(upgrades['GUILD_HOME']||0)]/60} min` : null,
+      costMoney: [20000, 40000, 75000][upgrades['GUILD_HOME'] || 0] ?? -1,
+      costXp: [50, 80, 120][upgrades['GUILD_HOME'] || 0] ?? -1,
+    },
+    {
+      id: 'TERRITORY_BUFF',
+      title: t('web.team.perk_territory_name') || 'Aura Territoriale',
+      desc: t('web.team.perk_territory_desc') || 'Effets de potion passifs pour les membres dans les chunks de la guilde.',
+      curLvl: upgrades['TERRITORY_BUFF'] || 0,
+      maxLvl: 3,
+      currentStat: upgrades['TERRITORY_BUFF'] ? ['Regen I + Saturation','+ Speed I','+ Haste I'][(upgrades['TERRITORY_BUFF']||1)-1] : 'Non debloque',
+      nextStat: (upgrades['TERRITORY_BUFF'] || 0) < 3 ? ['Regen I + Saturation','+ Speed I','+ Haste I'][upgrades['TERRITORY_BUFF'] || 0] : null,
+      costMoney: [15000, 35000, 60000][upgrades['TERRITORY_BUFF'] || 0] ?? -1,
+      costXp: [40, 65, 100][upgrades['TERRITORY_BUFF'] || 0] ?? -1,
+    },
+    {
+      id: 'BANK_INTEREST',
+      title: t('web.team.perk_interest_name') || 'Interet Bancaire',
+      desc: t('web.team.perk_interest_desc') || 'Genere un dividende quotidien automatique sur le solde de la banque.',
+      curLvl: upgrades['BANK_INTEREST'] || 0,
+      maxLvl: 2,
+      currentStat: upgrades['BANK_INTEREST'] ? `${[1.0, 2.5][Math.max(0,(upgrades['BANK_INTEREST']||1)-1)]}% / jour` : 'Non debloque',
+      nextStat: (upgrades['BANK_INTEREST'] || 0) < 2 ? `${[1.0, 2.5][upgrades['BANK_INTEREST'] || 0]}% / jour` : null,
+      costMoney: [30000, 60000][upgrades['BANK_INTEREST'] || 0] ?? -1,
+      costXp: [60, 100][upgrades['BANK_INTEREST'] || 0] ?? -1,
+    },
+    {
+      id: 'SPAWNER_EFFICIENCY',
+      title: t('web.team.perk_spawner_name') || 'Efficacite Spawners',
+      desc: t('web.team.perk_spawner_desc') || 'Accelere la vitesse de generation des spawners dans les chunks revendiquez.',
+      curLvl: upgrades['SPAWNER_EFFICIENCY'] || 0,
+      maxLvl: 2,
+      currentStat: upgrades['SPAWNER_EFFICIENCY'] ? `${[15,30][(upgrades['SPAWNER_EFFICIENCY']||1)-1]}% plus rapide` : 'Non debloque',
+      nextStat: (upgrades['SPAWNER_EFFICIENCY'] || 0) < 2 ? `${[15,30][upgrades['SPAWNER_EFFICIENCY'] || 0]}% plus rapide` : null,
+      costMoney: [25000, 55000][upgrades['SPAWNER_EFFICIENCY'] || 0] ?? -1,
+      costXp: [55, 90][upgrades['SPAWNER_EFFICIENCY'] || 0] ?? -1,
+    },
+    {
+      id: 'GUILD_VAULT',
+      title: t('web.team.perk_vault_name') || 'Coffre de Guilde',
+      desc: t('web.team.perk_vault_desc') || 'Debloque un coffre partage entre tous les membres de la guilde (/team vault).',
+      curLvl: upgrades['GUILD_VAULT'] || 0,
+      maxLvl: 3,
+      currentStat: upgrades['GUILD_VAULT'] ? `${[9,27,54][(upgrades['GUILD_VAULT']||1)-1]} slots` : 'Non debloque',
+      nextStat: (upgrades['GUILD_VAULT'] || 0) < 3 ? `${[9,27,54][upgrades['GUILD_VAULT'] || 0]} slots` : null,
+      costMoney: [10000, 25000, 50000][upgrades['GUILD_VAULT'] || 0] ?? -1,
+      costXp: [30, 55, 85][upgrades['GUILD_VAULT'] || 0] ?? -1,
+    },
   ];
 
   return (
@@ -1301,7 +1357,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
 
             return (
               <div key={m.uuid} style={{
-                display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 14px',
+                display: 'flex', flexDirection: 'column',
+                gap: (canPromote || canDemote || canKick) ? '10px' : '0',
+                padding: '12px 14px',
                 background: 'rgba(255,255,255,0.02)', border: '1px solid var(--card-border)', borderRadius: '10px'
               }}>
                 <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px'}}>
