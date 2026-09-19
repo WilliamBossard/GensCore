@@ -53,7 +53,7 @@ public class SoloPerkModule implements Module {
         this.manager = new SoloPerkManager(plugin, perkDAO);
         this.listener = new SoloPerkListener(plugin, manager);
         this.gui = new SoloPerkGui(plugin, manager);
-        this.command = new SoloPerkCommand(plugin, manager, gui);
+        this.command = new SoloPerkCommand(manager, gui);
 
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
         listener.startTasks();

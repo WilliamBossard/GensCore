@@ -9,12 +9,10 @@ import org.incendo.cloud.annotations.Command;
 
 public class SoloPerkCommand {
 
-    private final CorePlugin plugin;
     private final SoloPerkManager manager;
     private final SoloPerkGui gui;
 
-    public SoloPerkCommand(CorePlugin plugin, SoloPerkManager manager, SoloPerkGui gui) {
-        this.plugin = plugin;
+    public SoloPerkCommand(SoloPerkManager manager, SoloPerkGui gui) {
         this.manager = manager;
         this.gui = gui;
     }

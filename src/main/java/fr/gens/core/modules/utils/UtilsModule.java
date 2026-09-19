@@ -88,6 +88,7 @@ public class UtilsModule implements Module, Listener {
         plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openAnvil(p.getLocation(), true));
     }
 
+    @SuppressWarnings("deprecation")
     private void executeCraftingTable(Player p) {
         if (!enabled) return;
         if (!p.hasPermission("genscore.craft") && !hasWorkbenchPerk(p)) {

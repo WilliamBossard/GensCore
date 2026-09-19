@@ -109,7 +109,7 @@ public class SoloPerkListener implements Listener {
             if (autoSmeltActive) {
                 Material smelted = getSmeltedMaterial(stack.getType());
                 if (smelted != null) {
-                    stack.setType(smelted);
+                    stack = stack.withType(smelted);
                 }
             }
 
