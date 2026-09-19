@@ -138,26 +138,37 @@ export function PlayerPerksSection({ token, isEnabled = true }: { token: string,
   const renderIcon = (perkId: string) => {
     switch (perkId) {
       case 'FREE_REROLL':
+      case 'second_souffle':
         return <RefreshCw size={24} color="#38bdf8" />;
       case 'EXTRA_HOME':
+      case 'nomade':
         return <Home size={24} color="#4ade80" />;
       case 'SPEED_BOOST':
+      case 'fouille_legere':
         return <Zap size={24} color="#facc15" />;
       case 'JOBS_XP':
+      case 'savoir_artisan':
         return <TrendingUp size={24} color="#c084fc" />;
       case 'WARMUP_REDUCTION':
+      case 'poche_dimensionnelle':
         return <Clock size={24} color="#22d3ee" />;
       case 'FEED_ACCESS':
+      case 'festin_infini':
         return <Utensils size={24} color="#fb923c" />;
       case 'MAGNET':
+      case 'aimant_recolte':
         return <Magnet size={24} color="#f472b6" />;
       case 'DOUBLE_DROP':
+      case 'benediction_minerale':
         return <Layers size={24} color="#eab308" />;
       case 'PORTABLE_WORKBENCH':
+      case 'atelier_portatif':
         return <Wrench size={24} color="#fb923c" />;
       case 'AUTO_SMELT':
+      case 'fonte_instantanee':
         return <Flame size={24} color="#ef4444" />;
       case 'KEEP_EXP':
+      case 'ame_preservee':
         return <Sparkles size={24} color="#10b981" />;
       default:
         return <Award size={24} color="var(--accent)" />;
@@ -195,14 +206,28 @@ export function PlayerPerksSection({ token, isEnabled = true }: { token: string,
   const xpLevels = data?.xpLevels || 0;
   const perksMap = data?.perks || {};
 
-  const freePerkOrder = ['FREE_REROLL', 'EXTRA_HOME', 'SPEED_BOOST', 'JOBS_XP', 'WARMUP_REDUCTION', 'FEED_ACCESS'];
-  const majorPerkOrder = ['MAGNET', 'DOUBLE_DROP', 'PORTABLE_WORKBENCH', 'AUTO_SMELT', 'KEEP_EXP'];
+  const freePerkKeys = [
+    { enum: 'FREE_REROLL', key: 'second_souffle' },
+    { enum: 'EXTRA_HOME', key: 'nomade' },
+    { enum: 'SPEED_BOOST', key: 'fouille_legere' },
+    { enum: 'JOBS_XP', key: 'savoir_artisan' },
+    { enum: 'WARMUP_REDUCTION', key: 'poche_dimensionnelle' },
+    { enum: 'FEED_ACCESS', key: 'festin_infini' },
+  ];
+  const majorPerkKeys = [
+    { enum: 'MAGNET', key: 'aimant_recolte' },
+    { enum: 'DOUBLE_DROP', key: 'benediction_minerale' },
+    { enum: 'PORTABLE_WORKBENCH', key: 'atelier_portatif' },
+    { enum: 'AUTO_SMELT', key: 'fonte_instantanee' },
+    { enum: 'KEEP_EXP', key: 'ame_preservee' },
+  ];
 
-  const freePerks = freePerkOrder.map(id => perksMap[id]).filter(Boolean);
-  const majorPerks = majorPerkOrder.map(id => perksMap[id]).filter(Boolean);
+  const freePerks = freePerkKeys.map(k => perksMap[k.enum] || perksMap[k.key]).filter(Boolean);
+  const majorPerks = majorPerkKeys.map(k => perksMap[k.enum] || perksMap[k.key]).filter(Boolean);
+  const allPerks = [...freePerks, ...majorPerks];
 
-  const totalUnlocked = Object.values(perksMap).filter(p => p.isUnlocked).length;
-  const totalPerks = Object.values(perksMap).length || 11;
+  const totalUnlocked = allPerks.filter(p => p.isUnlocked).length;
+  const totalPerks = 11;
   const globalProgress = Math.min(100, Math.round((questsDone / 100) * 100));
 
   return (
@@ -384,9 +409,27 @@ export function PlayerPerksSection({ token, isEnabled = true }: { token: string,
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '1.2rem', minHeight: '40px' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '0.8rem', minHeight: '38px' }}>
                     {desc}
                   </p>
+
+                  <div style={{ margin: '8px 0 12px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                      <span>Progression quêtes :</span>
+                      <span style={{ fontWeight: 'bold', color: hasRequiredQuests ? '#10b981' : '#38bdf8' }}>
+                        {Math.min(questsDone, perk.requiredQuests)} / {perk.requiredQuests} quêtes ({Math.min(100, Math.round((questsDone / perk.requiredQuests) * 100))}%)
+                      </span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${Math.min(100, Math.round((questsDone / perk.requiredQuests) * 100))}%`,
+                        height: '100%',
+                        background: isUnlocked ? '#10b981' : hasRequiredQuests ? '#38bdf8' : 'linear-gradient(to right, #0284c7, #38bdf8)',
+                        borderRadius: '3px',
+                        transition: 'width 0.4s ease'
+                      }} />
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -516,17 +559,38 @@ export function PlayerPerksSection({ token, isEnabled = true }: { token: string,
                     </span>
                   </div>
 
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '1.2rem', minHeight: '40px' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '0.8rem', minHeight: '38px' }}>
                     {desc}
                   </p>
+
+                  <div style={{ margin: '8px 0 8px 0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                      <span>Condition 1 : Quêtes</span>
+                      <span style={{ fontWeight: 'bold', color: hasRequiredQuests ? '#10b981' : '#f59e0b' }}>
+                        {Math.min(questsDone, perk.requiredQuests)} / {perk.requiredQuests} quêtes ({Math.min(100, Math.round((questsDone / perk.requiredQuests) * 100))}%)
+                      </span>
+                    </div>
+                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${Math.min(100, Math.round((questsDone / perk.requiredQuests) * 100))}%`,
+                        height: '100%',
+                        background: hasRequiredQuests ? '#10b981' : 'linear-gradient(to right, #d97706, #f59e0b)',
+                        borderRadius: '3px',
+                        transition: 'width 0.4s ease'
+                      }} />
+                    </div>
+                  </div>
 
                   <div style={{
                     background: 'rgba(0,0,0,0.2)', padding: '10px 12px', borderRadius: '8px',
                     marginBottom: '1.2rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
                   }}>
-                    <span style={{ color: 'var(--text-muted)' }}>Coût d'acquisition :</span>
-                    <strong style={{ color: isEco ? '#f59e0b' : '#38bdf8' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Condition 2 : Coût d'achat</span>
+                    <strong style={{ color: hasFunds ? '#10b981' : (isEco ? '#f59e0b' : '#38bdf8') }}>
                       {isEco ? `${Number(perk.costMoney).toFixed(0)} $` : `${perk.costXp} Niveaux XP`}
+                      <span style={{ fontSize: '0.75rem', fontWeight: 'normal', marginLeft: '6px', color: hasFunds ? '#10b981' : '#ef4444' }}>
+                        ({hasFunds ? 'Disponible' : 'Insuffisant'})
+                      </span>
                     </strong>
                   </div>
                 </div>
@@ -604,7 +668,7 @@ export function PlayerPerksSection({ token, isEnabled = true }: { token: string,
                       fontSize: '0.8rem',
                       fontStyle: 'italic'
                     }}>
-                      Verrouillé - Requières {perk.requiredQuests} quêtes
+                      Verrouillé - {perk.requiredQuests} quêtes requises & {isEco ? `${Number(perk.costMoney).toFixed(0)} $` : `${perk.costXp} XP`}
                     </div>
                   )}
                 </div>

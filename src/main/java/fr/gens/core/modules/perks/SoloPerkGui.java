@@ -55,6 +55,25 @@ public class SoloPerkGui {
         for (int i = 18; i < 27; i++) inv.setItem(i, grayGlass);
         for (int i = 45; i < 54; i++) inv.setItem(i, grayGlass);
 
+        // Séparateur informatif au centre de la séparation (Slot 22)
+        ItemStack sepItem = new ItemStack(Material.NETHER_STAR);
+        ItemMeta sepMeta = sepItem.getItemMeta();
+        if (sepMeta != null) {
+            sepMeta.displayName(PlaceholderUtils.parseToComponent("<gold><bold>--- Maitrises Majeures Payantes ---</bold></gold>"));
+            List<String> sepLore = new ArrayList<>();
+            sepLore.add("<dark_gray>Competences exclusives a acheter avec vos gains de quetes");
+            sepLore.add("");
+            sepLore.add("<gray>Requièrent un palier de quetes terminees");
+            if (eco) {
+                sepLore.add("<gray>ET un paiement en <gold><bold>dollars ($)</bold></gold> sur votre compte.");
+            } else {
+                sepLore.add("<gray>ET un paiement en <green><bold>niveaux d'experience (XP)</bold></green>.");
+            }
+            sepMeta.lore(sepLore.stream().map(PlaceholderUtils::parseToComponent).toList());
+            sepItem.setItemMeta(sepMeta);
+        }
+        inv.setItem(22, sepItem);
+
         // Header : Profil joueur (Slot 4)
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         ItemMeta headMeta = head.getItemMeta();
@@ -124,43 +143,75 @@ public class SoloPerkGui {
         UUID uuid = player.getUniqueId();
         boolean isUnlocked = unlocked.contains(perk.getId());
         boolean eco = manager.isEconomyEnabled();
+        fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+        double balance = (eco && ecoMod != null) ? ecoMod.getBalance(uuid) : 0.0;
+        int xp = player.getLevel();
 
         Material mat = isUnlocked ? perk.getIcon() : (completedQuests >= perk.getRequiredQuests() ? Material.EMERALD : Material.GRAY_DYE);
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
-        meta.displayName(PlaceholderUtils.parseToComponent("<yellow><bold>" + perk.getNameFr() + " <gray>(" + perk.getRequiredQuests() + " quetes)"));
+        String name = perk.getNameFr();
+        String costFormatted = eco ? String.format("%.0f $", perk.getCostMoney()) : (perk.getCostXp() + " XP");
+        if (perk.isMajor()) {
+            meta.displayName(PlaceholderUtils.parseToComponent("<gold><bold>" + name + "</bold> <gray>(" + costFormatted + " & " + perk.getRequiredQuests() + " quetes)</gray>"));
+        } else {
+            meta.displayName(PlaceholderUtils.parseToComponent("<yellow><bold>" + name + "</bold> <gray>(Gratuit - " + perk.getRequiredQuests() + " quetes)</gray>"));
+        }
+
         List<String> lore = new ArrayList<>();
         lore.add("<dark_gray>" + perk.getDescriptionFr());
+        lore.add("");
+
+        if (perk.isMajor()) {
+            lore.add("<gray>Type : <gold><bold>Maitrise Majeure Payante</bold></gold>");
+            if (eco) {
+                lore.add("<gray>Cout d'achat : <gold><bold>" + String.format("%.0f", perk.getCostMoney()) + " $</bold></gold>");
+            } else {
+                lore.add("<gray>Cout d'achat : <green><bold>" + perk.getCostXp() + " niveaux d'XP</bold></green>");
+            }
+        } else {
+            lore.add("<gray>Type : <aqua><bold>Palier Gratuit</bold></aqua>");
+            lore.add("<gray>Cout d'achat : <green><bold>GRATUIT</bold></green>");
+        }
+
+        boolean hasQuests = completedQuests >= perk.getRequiredQuests();
+        int remaining = perk.getRequiredQuests() - completedQuests;
+        if (hasQuests) {
+            lore.add("<gray>Condition quetes : <green><bold>VALIDEE</bold> (" + completedQuests + "/" + perk.getRequiredQuests() + " quetes)</green>");
+        } else {
+            lore.add("<gray>Condition quetes : <red><bold>INSUFFISANT</bold> (" + remaining + " manquante(s))</red>");
+        }
         lore.add("");
 
         if (isUnlocked) {
             if (perk.isToggleable()) {
                 boolean active = manager.isPerkActive(uuid, perk);
                 if (active) {
-                    lore.add("<green><bold>[ACTIF]</bold> <gray>- Clic pour desactiver");
+                    lore.add("<green><bold>[ACTIF]</bold> <gray>- Clic pour desactiver</gray>");
                 } else {
-                    lore.add("<red><bold>[DESACTIVE]</bold> <gray>- Clic pour activer");
+                    lore.add("<red><bold>[DESACTIVE]</bold> <gray>- Clic pour activer</gray>");
                 }
             } else {
-                lore.add("<green><bold>[ACQUIS ET ACTIF]</bold>");
+                lore.add("<green><bold>[ACQUIS ET ACTIF EN PERMANENCE]</bold></green>");
             }
         } else {
-            if (completedQuests >= perk.getRequiredQuests()) {
+            if (hasQuests) {
                 if (perk.isMajor()) {
-                    if (eco) {
-                        lore.add("<gold>Cout d'acquisition : <yellow>" + String.format("%.0f", perk.getCostMoney()) + " $");
+                    boolean hasFunds = eco ? (balance >= perk.getCostMoney()) : (xp >= perk.getCostXp());
+                    if (hasFunds) {
+                        lore.add("<yellow><bold>[CLIQUEZ POUR ACHETER (" + costFormatted + ")]</bold></yellow>");
                     } else {
-                        lore.add("<gold>Cout d'acquisition : <green>" + perk.getCostXp() + " niveaux d'XP");
+                        double missingMoney = perk.getCostMoney() - balance;
+                        int missingXp = perk.getCostXp() - xp;
+                        lore.add("<red><bold>[FONDS INSUFFISANTS]</bold> <gray>(Il vous manque " + (eco ? String.format("%.0f $", missingMoney) : (missingXp + " XP")) + ")</gray></red>");
                     }
-                    lore.add("<yellow><bold>[CLIQUEZ POUR ACHETER]</bold>");
                 } else {
-                    lore.add("<green><bold>[CLIQUEZ POUR RECLAMER GRATUITEMENT]</bold>");
+                    lore.add("<green><bold>[CLIQUEZ POUR RECLAMER GRATUITEMENT]</bold></green>");
                 }
             } else {
-                int remaining = perk.getRequiredQuests() - completedQuests;
-                lore.add("<red><bold>[VERROUILLE]</bold> <gray>(" + remaining + " quetes restantes)");
+                lore.add("<red><bold>[VERROUILLE]</bold> <gray>(Atteignez d'abord " + perk.getRequiredQuests() + " quetes terminees)</gray></red>");
             }
         }
 
@@ -203,15 +254,15 @@ public class SoloPerkGui {
                     btnText = perk.getNameFr() + "\n[ACQUIS]";
                 }
             } else {
+                String costStr = perk.isMajor() ? (eco ? (String.format("%.0f", perk.getCostMoney()) + " $") : (perk.getCostXp() + " XP")) : "GRATUIT";
                 if (completed >= perk.getRequiredQuests()) {
                     if (perk.isMajor()) {
-                        String costStr = eco ? (String.format("%.0f", perk.getCostMoney()) + " $") : (perk.getCostXp() + " XP");
                         btnText = perk.getNameFr() + "\n[ACHETER: " + costStr + "]";
                     } else {
                         btnText = perk.getNameFr() + "\n[RECLAMER GRATUIT]";
                     }
                 } else {
-                    btnText = perk.getNameFr() + "\n[VERROUILLE: " + perk.getRequiredQuests() + " quetes]";
+                    btnText = perk.getNameFr() + "\n[VERROUILLE: " + perk.getRequiredQuests() + " quetes | Cout: " + costStr + "]";
                 }
             }
 

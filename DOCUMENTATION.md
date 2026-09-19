@@ -282,10 +282,10 @@ Individual progression system rewarding lifetime completed quests with permanent
    - **Instant Teleport (75 quests):** Halves all teleport warmup delays.
    - **Endless Feast (100 quests):** Unlocks `/feed` command with 15-minute cooldown without VIP rank.
 2. **Major Solo Masteries (Maîtrises Majeures Payantes):**
-   - **Item Magnet (25 quests, $15,000 / 30 XP):** Magnetically draws items within 5 blocks directly to the player. Can be toggled On/Off (`/magnet`, `/perks` GUI, or Web).
-   - **Double Harvest (40 quests, $35,000 / 55 XP):** 5% chance to double ore and log drops.
-   - **Portable Workbench (50 quests, $20,000 / 40 XP):** Unlocks instant access to `/craft` and `/workbench` everywhere.
-   - **Auto-Smelt (80 quests, $60,000 / 80 XP):** Automatically smelts mined raw ores into refined ingots. Can be toggled On/Off (`/autosmelt`, `/perks` GUI, or Web).
+   - **Item Magnet (25 quests, $20,000 / 40 XP):** Magnetically draws items within 5 blocks directly to the player. Can be toggled On/Off (`/magnet`, `/perks` GUI, or Web).
+   - **Double Harvest (40 quests, $35,000 / 60 XP):** 5% chance to double ore and log drops.
+   - **Portable Workbench (60 quests, $50,000 / 80 XP):** Unlocks instant access to `/craft` and `/workbench` everywhere.
+   - **Auto-Smelt (80 quests, $75,000 / 100 XP):** Automatically smelts mined raw ores into refined ingots. Can be toggled On/Off (`/autosmelt`, `/perks` GUI, or Web).
    - **Soul Preservation (100 quests, $100,000 / 120 XP):** Retains 50% of experience levels upon death.
 
 ---

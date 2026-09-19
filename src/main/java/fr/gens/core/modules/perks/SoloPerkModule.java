@@ -43,6 +43,8 @@ public class SoloPerkModule implements Module {
         this.perkDAO.initDatabase();
     }
 
+    private boolean commandsRegistered = false;
+
     @Override
     public void enable() {
         if (perkDAO == null) {
@@ -50,10 +52,18 @@ public class SoloPerkModule implements Module {
             this.perkDAO.initDatabase();
         }
 
-        this.manager = new SoloPerkManager(plugin, perkDAO);
-        this.listener = new SoloPerkListener(plugin, manager);
-        this.gui = new SoloPerkGui(plugin, manager);
-        this.command = new SoloPerkCommand(manager, gui);
+        if (this.manager == null) {
+            this.manager = new SoloPerkManager(plugin, perkDAO);
+        }
+        if (this.listener == null) {
+            this.listener = new SoloPerkListener(plugin, manager);
+        }
+        if (this.gui == null) {
+            this.gui = new SoloPerkGui(plugin, manager);
+        }
+        if (this.command == null) {
+            this.command = new SoloPerkCommand(this, manager, gui);
+        }
 
         plugin.getServer().getPluginManager().registerEvents(listener, plugin);
         listener.startTasks();
@@ -70,8 +80,24 @@ public class SoloPerkModule implements Module {
 
     @Override
     public void registerCommands(CorePlugin plugin) {
+        if (commandsRegistered) return;
+        if (this.command == null) {
+            if (this.perkDAO == null) {
+                this.perkDAO = new SoloPerkDAO(plugin);
+                this.perkDAO.initDatabase();
+            }
+            if (this.manager == null) {
+                this.manager = new SoloPerkManager(plugin, perkDAO);
+            }
+            if (this.gui == null) {
+                this.gui = new SoloPerkGui(plugin, manager);
+            }
+            this.command = new SoloPerkCommand(this, manager, gui);
+        }
+
         if (plugin.getCommandManager() != null && plugin.getCommandManager().getAnnotationParser() != null && command != null) {
             plugin.getCommandManager().getAnnotationParser().parse(command);
+            commandsRegistered = true;
         }
     }
 

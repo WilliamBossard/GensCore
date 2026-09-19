@@ -127,10 +127,10 @@ Comprehensive individual progression and rewards system for solo adventurers, co
   5. *Instant Teleport (75 quests):* Halves all teleport warmup delays.
   6. *Endless Feast (100 quests):* Unlocks the `/feed` command with a 15-minute cooldown without requiring a VIP rank.
 - **Major Solo Masteries:** Unlocked upon reaching a quest milestone AND paying an acquisition cost in dollars ($) or XP levels if the economy module is disabled:
-  1. *Item Magnet (25 quests, $15,000 / 30 XP):* Magnetically draws ground items within a 5-block radius directly to the player. Can be toggled On/Off (`/magnet`, `/perks` GUI, or Web).
-  2. *Double Harvest (40 quests, $35,000 / 55 XP):* 5% chance to double ore and log drops.
-  3. *Portable Workbench (50 quests, $20,000 / 40 XP):* Unlocks instant access to `/craft` and `/workbench` everywhere.
-  4. *Auto-Smelt (80 quests, $60,000 / 80 XP):* Automatically smelts mined raw ores into refined ingots. Can be toggled On/Off (`/autosmelt`, `/perks` GUI, or Web).
+  1. *Item Magnet (25 quests, $20,000 / 40 XP):* Magnetically draws ground items within a 5-block radius directly to the player. Can be toggled On/Off (`/magnet`, `/perks` GUI, or Web).
+  2. *Double Harvest (40 quests, $35,000 / 60 XP):* 5% chance to double ore and log drops.
+  3. *Portable Workbench (60 quests, $50,000 / 80 XP):* Unlocks instant access to `/craft` and `/workbench` everywhere.
+  4. *Auto-Smelt (80 quests, $75,000 / 100 XP):* Automatically smelts mined raw ores into refined ingots. Can be toggled On/Off (`/autosmelt`, `/perks` GUI, or Web).
   5. *Soul Preservation (100 quests, $100,000 / 120 XP):* Retains 50% of your experience levels upon death.
 - **Real-Time In-Game & Web Sync:** All perk acquisitions and On/Off toggle states synchronize instantly between SQLite, the in-game GUI (`/perks`), and the Player Web Portal (`/dashboard/perks`).
 

@@ -55,7 +55,8 @@ public class SoloPerkManager {
 
     public boolean hasPerk(UUID uuid, SoloPerkType perk) {
         if (perk == null) return false;
-        return getUnlockedPerks(uuid).contains(perk.getId());
+        Set<String> unlocked = getUnlockedPerks(uuid);
+        return unlocked.contains(perk.getId()) || unlocked.contains(perk.name());
     }
 
     public boolean isPerkActive(UUID uuid, SoloPerkType perk) {
@@ -63,7 +64,7 @@ public class SoloPerkManager {
         if (!perk.isToggleable()) return true;
 
         Map<String, Boolean> settings = perkSettingsCache.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>(perkDAO.getPerkSettings(uuid)));
-        return settings.getOrDefault(perk.getId(), true);
+        return settings.getOrDefault(perk.getId(), settings.getOrDefault(perk.name(), true));
     }
 
     public int getQuestsCompletedTotal(UUID uuid) {
@@ -176,8 +177,8 @@ public class SoloPerkManager {
         Map<String, Object> perksMap = new HashMap<>();
         for (SoloPerkType type : SoloPerkType.values()) {
             Map<String, Object> pData = new HashMap<>();
-            boolean isUnlocked = unlocked.contains(type.getId());
-            boolean isEnabled = isUnlocked && (!type.isToggleable() || settings.getOrDefault(type.getId(), true));
+            boolean isUnlocked = unlocked.contains(type.getId()) || unlocked.contains(type.name());
+            boolean isEnabled = isUnlocked && (!type.isToggleable() || settings.getOrDefault(type.getId(), settings.getOrDefault(type.name(), true)));
 
             boolean canClaim = !isUnlocked && completed >= type.getRequiredQuests();
             if (canClaim && type.isMajor()) {
@@ -188,7 +189,8 @@ public class SoloPerkManager {
                 }
             }
 
-            pData.put("id", type.getId());
+            pData.put("id", type.name());
+            pData.put("key", type.getId());
             pData.put("nameFr", type.getNameFr());
             pData.put("nameEn", type.getNameEn());
             pData.put("descriptionFr", type.getDescriptionFr());
@@ -203,6 +205,7 @@ public class SoloPerkManager {
             pData.put("isEnabled", isEnabled);
             pData.put("canClaim", canClaim);
 
+            perksMap.put(type.name(), pData);
             perksMap.put(type.getId(), pData);
         }
 

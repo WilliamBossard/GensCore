@@ -127,11 +127,11 @@ Système complet de progression et de récompenses pour les joueurs solo, relian
   5. *Téléportation Instantanée (75 quêtes) :* Temps de charge des téléportations divisé par deux.
   6. *Festin Infini (100 quêtes) :* Accès débloqué à la commande `/feed` avec un temps de recharge de 15 minutes sans nécessité d'un grade VIP.
 - **Maîtrises Majeures Personnelles :** Déblocage conditionné par un palier de quêtes ET un coût d'acquisition en dollars ($) ou en niveaux d'expérience (XP) lorsque l'économie est coupée :
-  1. *Aimant de Collecte (25 quêtes, 15 000 $ / 30 XP) :* Aspire automatiquement les objets au sol dans un rayon de 5 blocs vers le joueur. Commutable en direct (`/magnet`, GUI `/perks` ou Web).
-  2. *Double Récolte (40 quêtes, 35 000 $ / 55 XP) :* 5% de chance de doubler les drops de minerais et de bois précieux.
-  3. *Établi Portatif (50 quêtes, 20 000 $ / 40 XP) :* Débloque les commandes `/craft` et `/workbench` n'importe où.
-  4. *Fonte Instantanée (80 quêtes, 60 000 $ / 80 XP) :* Transforme instantanément les minerais bruts minés en lingots cuits. Commutable en direct (`/autosmelt`, GUI `/perks` ou Web).
-  5. *Préservation d'Âme (100 quêtes, 100 000 $ / 120 XP) :* Conserve 50% de vos niveaux d'expérience lors d'une mort.
+  1. *Aimant de Collecte (25 quêtes, 20 000 $ / 40 XP) :* Aspire automatiquement les objets au sol dans un rayon de 5 blocs vers le joueur. Commutable en direct (`/magnet`, GUI `/perks` ou Web).
+  2. *Bénédiction Minérale (40 quêtes, 35 000 $ / 60 XP) :* 5% de chance de doubler les drops de minerais bruts et de bois récoltés.
+  3. *Atelier Portatif (60 quêtes, 50 000 $ / 80 XP) :* Débloque les commandes `/craft` et `/workbench` n'importe où.
+  4. *Fonte Instantanée (80 quêtes, 75 000 $ / 100 XP) :* Transforme instantanément les minerais bruts minés en lingots cuits. Commutable en direct (`/autosmelt`, GUI `/perks` ou Web).
+  5. *Âme Préservée (100 quêtes, 100 000 $ / 120 XP) :* Conserve 50% de vos niveaux d'expérience lors d'une mort.
 - **Synchronisation Instantanée In-Game & Web :** Toute acquisition ou commutation On/Off est synchronisée en temps réel entre la base SQLite, le GUI joueur en jeu (`/perks`) et l'onglet dédié du portail web (`/dashboard/perks`).
 
 ---
