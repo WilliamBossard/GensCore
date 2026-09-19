@@ -1,6 +1,5 @@
 package fr.gens.core.modules.perks;
 
-import fr.gens.core.utils.PlaceholderUtils;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -39,7 +38,7 @@ public class SoloPerkCommand {
     public void executeAutoSmelt(CommandSender sender) {
         if (!(sender instanceof Player player)) return;
         if (!manager.hasPerk(player.getUniqueId(), SoloPerkType.AUTO_SMELT)) {
-            player.sendMessage(PlaceholderUtils.parseToComponent(
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
                     "<red>Vous devez d'abord debloquer la Fonte Instantanee dans le menu <yellow>/perks</yellow> (requis : 80 quetes).</red>"
             ));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
@@ -47,7 +46,7 @@ public class SoloPerkCommand {
         }
 
         boolean newState = manager.togglePerk(player.getUniqueId(), SoloPerkType.AUTO_SMELT);
-        player.sendMessage(PlaceholderUtils.parseToComponent(
+        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
                 "<yellow>Fonte Instantanee (Auto-Smelt) : " + (newState ? "<green>ACTIVE</green>" : "<red>DESACTIVE</red>") + ".</yellow>"
         ));
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
@@ -57,7 +56,7 @@ public class SoloPerkCommand {
     public void executeMagnet(CommandSender sender) {
         if (!(sender instanceof Player player)) return;
         if (!manager.hasPerk(player.getUniqueId(), SoloPerkType.MAGNET)) {
-            player.sendMessage(PlaceholderUtils.parseToComponent(
+            player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
                     "<red>Vous devez d'abord debloquer l'Aimant de Recolte dans le menu <yellow>/perks</yellow> (requis : 25 quetes).</red>"
             ));
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
@@ -65,7 +64,7 @@ public class SoloPerkCommand {
         }
 
         boolean newState = manager.togglePerk(player.getUniqueId(), SoloPerkType.MAGNET);
-        player.sendMessage(PlaceholderUtils.parseToComponent(
+        player.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent(
                 "<yellow>Aimant de Recolte (Magnet) : " + (newState ? "<green>ACTIVE</green>" : "<red>DESACTIVE</red>") + ".</yellow>"
         ));
         player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
