@@ -146,8 +146,9 @@ flowchart LR
 ### Patch 26.3-alpha.19 (September 19, 2026)
 - **Paper API:** Upgraded to `26.3.build.19-alpha` (latest official PaperMC release).
 - **Solo Quest Perks & Guild Upgrades:** Shipped 58 team upgrades and 11 solo perks with real-time quest progress tracking (animated progress bars, dual quest and dollar requirements, in-game GUI and WebPanel sync).
-- **Automated Test Suite Expansion:** Extended unit test suite to 55 tests verifying business logic, anti-grief protections, and persistence.
-- **CI/CD Pipeline:** Updated GitHub Actions release workflow to target Paper `26.3.build.19-alpha` and require 55/55 passing unit tests prior to release packaging.
+- **Universal Player Head & Skin Handler (`HeadUtil`):** Native player head resolution for `/perks` and guild `/g` menus, persistent SQLite/RAM skin caching (`player_skins`), official Java paid accounts support, Bedrock (Floodgate/Geyser), and SkinsRestorer.
+- **Automated Test Suite Expansion:** Extended unit test suite to 58 tests verifying business logic, Base64 Mojang texture extraction, anti-grief protections, and persistence (100% pass rate).
+- **CI/CD Pipeline:** Updated GitHub Actions release workflow to target Paper `26.3.build.19-alpha` and require 58/58 passing unit tests prior to release packaging.
 
 ### Patch 26.3-alpha.16 (September 18, 2026)
 - **Paper API:** Upgraded to `26.3.build.16-alpha` (latest official PaperMC release).

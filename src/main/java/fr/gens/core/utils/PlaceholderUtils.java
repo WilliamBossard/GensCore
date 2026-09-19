@@ -1,5 +1,4 @@
 package fr.gens.core.utils;
-// Refreshing for IDE 
 
 import fr.gens.core.CorePlugin;
 import fr.gens.core.modules.EconomyModule;

@@ -746,8 +746,8 @@ public class QuestModule implements Module, Listener {
         // Player Head Stats
         int completedTotal = data.getCompletedTotal();
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+        fr.gens.core.utils.HeadUtil.applyHeadProfile(head, p);
         SkullMeta sm = (SkullMeta) head.getItemMeta();
-        sm.setPlayerProfile(p.getPlayerProfile());
         sm.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<aqua>" + p.getName()));
         List<String> hl = new ArrayList<>();
         hl.add("<dark_aqua>Statut:");

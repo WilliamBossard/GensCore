@@ -77,10 +77,10 @@ public class HeadDropModule implements Module, Listener {
         // Vérifie si on est dans les probabilités de drop
         if (random.nextDouble() * 100.0 <= dropChance) {
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+            fr.gens.core.utils.HeadUtil.applyHeadProfile(head, victim);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
             
             if (meta != null) {
-                meta.setPlayerProfile(victim.getPlayerProfile());
                 meta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Tête de <gold>" + victim.getName()));
 
                 List<String> lore = new ArrayList<>();

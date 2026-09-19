@@ -317,8 +317,10 @@ public class CustomGuiModule implements Module, Listener {
                 }
                 
                 if (item.getType() == Material.PLAYER_HEAD) {
-                    org.bukkit.inventory.meta.SkullMeta skullMeta = (org.bukkit.inventory.meta.SkullMeta) meta;
-                    skullMeta.setPlayerProfile(player.getPlayerProfile());
+                    fr.gens.core.utils.HeadUtil.applyHeadProfile(item, player);
+                    if (item.getItemMeta() != null) {
+                        meta = item.getItemMeta();
+                    }
                 }
                 
                 item.setItemMeta(meta);

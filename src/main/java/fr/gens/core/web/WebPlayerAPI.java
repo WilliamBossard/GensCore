@@ -200,38 +200,51 @@ public class WebPlayerAPI implements Listener {
 
         get("/api/head/{name}", ctx -> {
             String name = ctx.pathParam("name");
-            UUID uuid = webDAO.getPlayerUuidByUsername(name);
-            
-            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
-            if (skinModule != null) {
-                ctx.redirect(skinModule.getHeadUrl(uuid, name));
+            String cleanName = name.startsWith(".") ? name.substring(1) : name;
+            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            if (hash != null && !hash.isEmpty()) {
+                ctx.redirect("https://mc-heads.net/avatar/" + hash);
                 return;
             }
-            
-            String cleanName = name.startsWith(".") ? name.substring(1) : name;
-            ctx.redirect("https://crafthead.net/avatar/" + cleanName);
+            UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            if (uuid == null) {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(cleanName);
+                if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+            }
+            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            if (skinModule != null) {
+                String baseUrl = skinModule.getHeadUrl(uuid, name);
+                if (baseUrl.contains("mc-heads.net")) {
+                    ctx.redirect(baseUrl);
+                    return;
+                }
+            }
+            ctx.redirect("https://mc-heads.net/avatar/" + cleanName);
         });
 
         get("/api/head/{name}/{size}", ctx -> {
             String name = ctx.pathParam("name");
             String size = ctx.pathParam("size");
-            UUID uuid = webDAO.getPlayerUuidByUsername(name);
-            
-            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
             String cleanName = name.startsWith(".") ? name.substring(1) : name;
-            if (skinModule != null) {
-                String baseUrl = skinModule.getHeadUrl(uuid, name);
-                // Si l'URL contient mc-heads.net, on gère la taille avec le paramètre de taille
-                if (baseUrl.contains("mc-heads.net")) {
-                    ctx.redirect(baseUrl.replace(".png", "") + "/" + size);
-                } else {
-                    // Pour crafthead, il faut insérer la taille et utiliser le pseudo car c'est un serveur crack
-                    ctx.redirect("https://crafthead.net/avatar/" + cleanName + "/" + size);
-                }
+            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            if (hash != null && !hash.isEmpty()) {
+                ctx.redirect("https://mc-heads.net/avatar/" + hash + "/" + size);
                 return;
             }
-            
-            ctx.redirect("https://crafthead.net/avatar/" + cleanName + "/" + size);
+            UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            if (uuid == null) {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(cleanName);
+                if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+            }
+            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            if (skinModule != null) {
+                String baseUrl = skinModule.getHeadUrl(uuid, name);
+                if (baseUrl.contains("mc-heads.net")) {
+                    ctx.redirect(baseUrl.replace(".png", "") + "/" + size);
+                    return;
+                }
+            }
+            ctx.redirect("https://mc-heads.net/avatar/" + cleanName + "/" + size);
         });
 
         get("/api/player/balance", ctx -> {

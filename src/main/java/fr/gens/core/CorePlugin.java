@@ -64,6 +64,7 @@ public class CorePlugin extends JavaPlugin {
 
         this.storageManager = new StorageManager(this);
         this.databaseManager = new DatabaseManager(this);
+        fr.gens.core.utils.HeadUtil.init(this);
         this.actionBarManager = new ActionBarManager(this);
         this.actionBarManager.start();
         
@@ -160,6 +161,7 @@ public class CorePlugin extends JavaPlugin {
         if (this.moduleManager != null) {
             this.moduleManager.disableAllModules();
         }
+        fr.gens.core.utils.HeadUtil.shutdown();
         if (this.databaseManager != null) {
             this.databaseManager.close();
         }

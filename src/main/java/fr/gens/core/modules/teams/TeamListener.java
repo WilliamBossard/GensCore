@@ -5,8 +5,10 @@ import fr.gens.core.modules.BlueMapModule;
 import fr.gens.core.modules.EconomyModule;
 import fr.gens.core.utils.PlaceholderUtils;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -166,10 +168,24 @@ public class TeamListener implements Listener {
             }
 
             if (item.getType() == Material.PLAYER_HEAD) {
-                SkullMeta meta = (SkullMeta) item.getItemMeta();
-                if (meta != null && meta.getOwningPlayer() != null) {
-                    UUID targetUuid = meta.getOwningPlayer().getUniqueId();
-                    String targetName = meta.getOwningPlayer().getName() != null ? meta.getOwningPlayer().getName() : "ce joueur";
+                org.bukkit.inventory.meta.ItemMeta rawMeta = item.getItemMeta();
+                UUID targetUuid = null;
+                org.bukkit.NamespacedKey memberKey = new org.bukkit.NamespacedKey(plugin, "member_uuid");
+                if (rawMeta != null && rawMeta.getPersistentDataContainer().has(memberKey, org.bukkit.persistence.PersistentDataType.STRING)) {
+                    String uuidStr = rawMeta.getPersistentDataContainer().get(memberKey, org.bukkit.persistence.PersistentDataType.STRING);
+                    if (uuidStr != null) {
+                        try {
+                            targetUuid = UUID.fromString(uuidStr);
+                        } catch (Exception ignored) {}
+                    }
+                }
+                if (targetUuid == null && rawMeta instanceof SkullMeta sm && sm.getOwningPlayer() != null) {
+                    targetUuid = sm.getOwningPlayer().getUniqueId();
+                }
+
+                if (targetUuid != null) {
+                    OfflinePlayer targetOp = Bukkit.getOfflinePlayer(targetUuid);
+                    String targetName = targetOp.getName() != null ? targetOp.getName() : "ce joueur";
                     if (isLeader) {
                         if (event.getClick() == ClickType.LEFT) {
                             if (!targetUuid.equals(player.getUniqueId())) {

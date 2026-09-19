@@ -146,8 +146,9 @@ flowchart LR
 ### Patch 26.3-alpha.19 (19 Septembre 2026)
 - **API Paper :** Mise à niveau vers `26.3.build.19-alpha` (dernière build officielle PaperMC).
 - **Module Bonus de Quêtes Solo & Améliorations de Guilde :** Déploiement de 58 améliorations d'équipe et 11 bonus de quêtes individuelles avec progression temps réel (barres de progression animées, double condition quêtes et dollars, synchronisation WebPanel et GUI in-game).
-- **Suite de Tests Automatisés :** Extension à 55 tests unitaires JUnit 5 validant la logique métier, l'anti-grief et la persistance.
-- **Workflow CI/CD :** Pipeline GitHub Actions adapté pour cibler Paper `26.3.build.19-alpha` et l'exécution systématique des 55 tests unitaires avant packaging.
+- **Gestionnaire Universel de Têtes et Skins (`HeadUtil`) :** Résolution native des têtes de joueurs dans le menu `/perks` et le menu de guilde `/g`, avec mise en cache SQLite/RAM permanente (`player_skins`), prise en charge des comptes officiels Java payants, Bedrock (Floodgate/Geyser) et SkinsRestorer.
+- **Suite de Tests Automatisés :** Extension à 58 tests unitaires JUnit 5 validant la logique métier, l'extraction de textures Mojang Base64, l'anti-grief et la persistance (100% de réussite).
+- **Workflow CI/CD :** Pipeline GitHub Actions adapté pour cibler Paper `26.3.build.19-alpha` et l'exécution systématique des 58 tests unitaires avant packaging.
 
 ### Patch 26.3-alpha.16 (18 Septembre 2026)
 - **API Paper :** Mise à niveau vers `26.3.build.16-alpha` (dernière build officielle PaperMC).

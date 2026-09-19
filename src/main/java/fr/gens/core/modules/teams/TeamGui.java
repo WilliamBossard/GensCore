@@ -190,35 +190,49 @@ public class TeamGui {
 
         // Membres (slots 9 à 35)
         int slot = 9;
+        org.bukkit.NamespacedKey memberKey = new org.bukkit.NamespacedKey(plugin, "member_uuid");
         for (UUID memberUuid : team.getMembers()) {
             OfflinePlayer op = Bukkit.getOfflinePlayer(memberUuid);
-            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta meta = (SkullMeta) head.getItemMeta();
-            meta.setPlayerProfile(op.getPlayerProfile());
-            meta.displayName(PlaceholderUtils.parseToComponent("<yellow>" + (op.getName() != null ? op.getName() : "Joueur Inconnu")));
-            List<String> lore = new ArrayList<>();
-            if (team.getLeaderUuid().equals(memberUuid)) {
-                lore.add("<gold>★ Chef de Guilde");
-            } else if (team.isAdmin(memberUuid)) {
-                lore.add("<aqua>♦ Administrateur");
-                if (isLeader) {
-                    lore.add("");
-                    lore.add("<yellow>Clic gauche pour rétrograder en Membre");
-                    lore.add("<red>Clic droit pour exclure de la guilde");
-                }
-            } else {
-                lore.add("<gray>Membre");
-                if (isLeader) {
-                    lore.add("");
-                    lore.add("<green>Clic gauche pour promouvoir Administrateur");
-                    lore.add("<red>Clic droit pour exclure de la guilde");
-                } else if (team.isAdmin(player.getUniqueId())) {
-                    lore.add("");
-                    lore.add("<red>Clic droit pour exclure de la guilde");
-                }
+            String memberName = op.getName();
+            if (memberName == null) {
+                memberName = fr.gens.core.utils.HeadUtil.getUsername(memberUuid);
             }
-            meta.lore(parseLore(lore));
-            head.setItemMeta(meta);
+            if (memberName == null) {
+                fr.gens.core.database.WebDAO webDAO = new fr.gens.core.database.WebDAO(plugin);
+                memberName = webDAO.getPlayerUsernameByUuid(memberUuid);
+            }
+            if (memberName == null) memberName = "Joueur Inconnu";
+
+            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+            fr.gens.core.utils.HeadUtil.applyHeadProfile(head, memberUuid, memberName);
+            SkullMeta meta = (SkullMeta) head.getItemMeta();
+            if (meta != null) {
+                meta.getPersistentDataContainer().set(memberKey, org.bukkit.persistence.PersistentDataType.STRING, memberUuid.toString());
+                meta.displayName(PlaceholderUtils.parseToComponent("<yellow>" + memberName));
+                List<String> lore = new ArrayList<>();
+                if (team.getLeaderUuid().equals(memberUuid)) {
+                    lore.add("<gold>★ Chef de Guilde");
+                } else if (team.isAdmin(memberUuid)) {
+                    lore.add("<aqua>♦ Administrateur");
+                    if (isLeader) {
+                        lore.add("");
+                        lore.add("<yellow>Clic gauche pour rétrograder en Membre");
+                        lore.add("<red>Clic droit pour exclure de la guilde");
+                    }
+                } else {
+                    lore.add("<gray>Membre");
+                    if (isLeader) {
+                        lore.add("");
+                        lore.add("<green>Clic gauche pour promouvoir Administrateur");
+                        lore.add("<red>Clic droit pour exclure de la guilde");
+                    } else if (team.isAdmin(player.getUniqueId())) {
+                        lore.add("");
+                        lore.add("<red>Clic droit pour exclure de la guilde");
+                    }
+                }
+                meta.lore(parseLore(lore));
+                head.setItemMeta(meta);
+            }
 
             inv.setItem(slot++, head);
             if (slot > 35) break;

@@ -76,7 +76,8 @@ public class SoloPerkGui {
 
         // Header : Profil joueur (Slot 4)
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-        ItemMeta headMeta = head.getItemMeta();
+        fr.gens.core.utils.HeadUtil.applyHeadProfile(head, player);
+        org.bukkit.inventory.meta.SkullMeta headMeta = (org.bukkit.inventory.meta.SkullMeta) head.getItemMeta();
         if (headMeta != null) {
             headMeta.displayName(PlaceholderUtils.parseToComponent("<gold><bold>" + player.getName() + " - Progression"));
             List<String> lore = new ArrayList<>();
