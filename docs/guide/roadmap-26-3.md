@@ -3,7 +3,7 @@
 Follow real-time progress, newly deployed improvements, and the transition roadmap of **GensCore** towards **Minecraft 26.3** and **Java 25 LTS**.
 
 ::: info Project Status
-- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 19+)
+- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 26+)
 - **Runtime Environment:** Java 25 LTS
 - **Active Working Branch:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 - **Stability:** Advanced functional Alpha in testing & staging
@@ -16,7 +16,7 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | Component | Status | Details |
 | :--- | :---: | :--- |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Compiled with `--release 25` flag and verified on Temurin JVM 25 |
-| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.19-alpha` |
+| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.26-alpha` |
 | **Craft Quests (Torches & Bulk Crafting)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Accurate shift-click batch size tracking and vanilla yield multiplier |
 | **Comprehensive Shop (319 Items & Potions)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | 7 balanced categories (25-35% margin), SQLite auto-seeding & GUI pagination |
 | **Web Minigames Remaster & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Slot machine RTP calibrated to 84%, 3D animated CoinFlip, real-time admin switches |
@@ -142,6 +142,12 @@ flowchart LR
 - **Thread-Safe Loot Handling:** Synchronized player `YamlConfiguration` instances in `LootManager` to eliminate race conditions and corrupted files during concurrent async saves on Folia.
 - **Non-blocking Discord Shutdown:** Replaced rigid `Thread.sleep(1500)` in `DiscordModule` with `jda.awaitShutdown(Duration.ofMillis(1500))` and graceful fallback to `shutdownNow()`.
 - **Expanded Automated Test Suite:** Integrated JUnit 5 (`junit-jupiter:5.12.0`) and Maven Surefire, deploying a comprehensive test suite of 55 unit tests covering critical plugin modules with a 100% pass rate (55/55 tests).
+
+### Patch 26.3-alpha.26 (September 20, 2026)
+- **Paper API:** Upgraded to `26.3.build.26-alpha` (latest official PaperMC release).
+- **Dependency Upgrades:** Updated VaultAPI (`1.7.1`), Incendo Cloud Paper (`2.0.1`), Cloud Annotations (`2.1.0`), and Cloud Minecraft Extras (`2.0.1`).
+- **Quality Assurance & Testing:** Automated unit test suite (58 tests) passing at 100% and verified Shaded JAR packaging.
+- **CI/CD Pipeline:** GitHub Actions release workflow updated to target Paper `26.3.build.26-alpha`.
 
 ### Patch 26.3-alpha.19 (September 19, 2026)
 - **Paper API:** Upgraded to `26.3.build.19-alpha` (latest official PaperMC release).

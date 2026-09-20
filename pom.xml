@@ -53,7 +53,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>26.3.build.19-alpha</version>
+            <version>26.3.build.26-alpha</version>
             <scope>provided</scope>
         </dependency>
 
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
-            <version>1.7</version>
+            <version>1.7.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -151,17 +151,17 @@
         <dependency>
             <groupId>org.incendo</groupId>
             <artifactId>cloud-paper</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.incendo</groupId>
             <artifactId>cloud-annotations</artifactId>
-            <version>2.0.0</version>
+            <version>2.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.incendo</groupId>
             <artifactId>cloud-minecraft-extras</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.1</version>
         </dependency>
         
         <!-- FoliaLib for multi-platform scheduling -->

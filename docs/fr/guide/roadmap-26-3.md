@@ -3,7 +3,7 @@
 Suivez en temps réel l'avancée des travaux, les améliorations apportées et la feuille de route de **GensCore** pour **Minecraft 26.3** et **Java 25 LTS**.
 
 ::: info Statut du Projet
-- **Version cible :** Minecraft 26.3 (Paper Build Alpha 19+)
+- **Version cible :** Minecraft 26.3 (Paper Build Alpha 26+)
 - **Environnement d'exécution :** Java 25 LTS
 - **Branche de travail active :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 - **Stabilité :** Alpha fonctionnelle avancée en environnement de production / test
@@ -16,7 +16,7 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | Composant | Statut | Détails |
 | :--- | :---: | :--- |
 | **Compatibilité Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Compilé avec le flag `--release 25` et tests JVM réussis |
-| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.19-alpha` |
+| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.26-alpha` |
 | **Quêtes de Craft (Torches & Multi-craft)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Prise en compte exacte du rendement unitaire vanilla et du shift-click |
 | **Boutique Complète (319 Objets & Potions)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | 7 catégories, prix équilibrés (marge 25-35%), auto-seeding SQLite & pagination |
 | **Remaster Mini-Jeux Web & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | RTP Casino ramené à 84%, nouveau jeu CoinFlip 3D, switch admin en direct |
@@ -142,6 +142,12 @@ flowchart LR
 - **Thread-Safety du Module Loot :** Synchronisation des instances `YamlConfiguration` dans `LootManager` pour éliminer les corruptions de fichiers lors de sauvegardes asynchrones concurrentes sur Folia.
 - **Arrêt JDA Non Bloquant :** Remplacement du délai figé `Thread.sleep(1500)` dans `DiscordModule` par `jda.awaitShutdown(Duration.ofMillis(1500))` avec bascule gracieuse sur `shutdownNow()`.
 - **Suite de Tests Automatisés Élargie :** Intégration de JUnit 5 (`junit-jupiter:5.12.0`) et Surefire, avec déploiement d'une suite complète de 55 tests unitaires couvrant l'ensemble des modules critiques avec un taux de réussite de 100% (55/55).
+
+### Patch 26.3-alpha.26 (20 Septembre 2026)
+- **API Paper :** Mise à niveau vers `26.3.build.26-alpha` (dernière build officielle PaperMC).
+- **Mise à jour des Dépendances :** Actualisation de VaultAPI (`1.7.1`), Incendo Cloud Paper (`2.0.1`), Cloud Annotations (`2.1.0`) et Cloud Minecraft Extras (`2.0.1`).
+- **Assurance Qualité & Tests :** Suite de 58 tests unitaires automatisés validée à 100% avec packaging Shaded JAR vérifié.
+- **Workflow CI/CD :** Pipeline GitHub Actions aligné sur la build `26.3.build.26-alpha`.
 
 ### Patch 26.3-alpha.19 (19 Septembre 2026)
 - **API Paper :** Mise à niveau vers `26.3.build.19-alpha` (dernière build officielle PaperMC).
