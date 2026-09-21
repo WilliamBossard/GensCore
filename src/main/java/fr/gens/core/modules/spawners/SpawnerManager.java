@@ -76,7 +76,26 @@ public class SpawnerManager {
             if (data.isLootChest()) continue;
             
             // Check if it's time to tick this spawner based on its speed level
-            long delayMillis = getDelayTicks(data.getSpeedLevel()) * 50L; // Convert ticks to milliseconds
+            long baseDelayMillis = getDelayTicks(data.getSpeedLevel()) * 50L; // Convert ticks to milliseconds
+
+            // Apply SPAWNER_EFFICIENCY guild upgrade if the chunk is claimed
+            double efficiencyMultiplier = 1.0;
+            Location preCheckLoc = data.getLocation();
+            if (preCheckLoc != null && preCheckLoc.getWorld() != null) {
+                fr.gens.core.modules.teams.TeamClaimManager claimMgr = module.getPlugin().getTeamManager().getClaimManager();
+                if (claimMgr != null) {
+                    Integer teamId = claimMgr.getTeamIdAt(preCheckLoc.getWorld().getName(),
+                            preCheckLoc.getBlockX() >> 4, preCheckLoc.getBlockZ() >> 4);
+                    if (teamId != null) {
+                        fr.gens.core.modules.teams.TeamData teamData = module.getPlugin().getTeamManager().getTeam(teamId);
+                        if (teamData != null) {
+                            efficiencyMultiplier = teamData.getSpawnerEfficiencyMultiplier();
+                        }
+                    }
+                }
+            }
+            long delayMillis = (long)(baseDelayMillis * efficiencyMultiplier);
+
             if (now - data.getLastGenerateMillis() < delayMillis) {
                 continue; // Not its turn yet
             }

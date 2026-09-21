@@ -262,7 +262,7 @@ public class CustomGuiModule implements Module, Listener {
                         }
                     });
                 } else {
-                    final Material finalMat = baseItem.getType();
+                    final Material finalMat = fr.gens.core.utils.ViaVersionUtil.getSafeMenuMaterial(baseItem.getType(), player.getUniqueId());
                     btn = new fr.gens.core.utils.BedrockFormManager.BedrockButton(finalBtnText, finalMat, p -> {
                         if (finalCmd == null || finalCmd.isEmpty()) {
                             openDetailForm(p, menu, finalDetailText, null, finalMat);
@@ -298,6 +298,10 @@ public class CustomGuiModule implements Module, Listener {
             if (baseItem == null) continue;
             
             ItemStack item = baseItem.clone();
+            Material safeMat = fr.gens.core.utils.ViaVersionUtil.getSafeMenuMaterial(item.getType(), player.getUniqueId());
+            if (safeMat != item.getType()) {
+                item = item.withType(safeMat);
+            }
             ItemMeta meta = item.getItemMeta();
             if (meta != null) {
                 if (meta.hasDisplayName()) {
@@ -317,8 +321,10 @@ public class CustomGuiModule implements Module, Listener {
                 }
                 
                 if (item.getType() == Material.PLAYER_HEAD) {
-                    org.bukkit.inventory.meta.SkullMeta skullMeta = (org.bukkit.inventory.meta.SkullMeta) meta;
-                    skullMeta.setPlayerProfile(player.getPlayerProfile());
+                    fr.gens.core.utils.HeadUtil.applyHeadProfile(item, player);
+                    if (item.getItemMeta() != null) {
+                        meta = item.getItemMeta();
+                    }
                 }
                 
                 item.setItemMeta(meta);
@@ -349,7 +355,9 @@ public class CustomGuiModule implements Module, Listener {
                 }
             } else if (cmdToRun.startsWith("console: ")) {
                 String cmd = cmdToRun.substring(9).replace("%player_name%", p.getName());
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                plugin.getFoliaLib().getScheduler().runNextTick((gt) -> {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                });
             } else {
                 p.performCommand(cmdToRun);
             }

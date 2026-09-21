@@ -13,6 +13,7 @@ Welcome to the official documentation for **GensCore**, the all-in-one survival/
    - [Guilds & Teams](#guilds--teams)
    - [Jobs & Professions](#jobs--professions)
    - [Daily Quests](#daily-quests)
+   - [Solo Perks & Quest Masteries](#solo-perks--quest-masteries)
    - [Teleportation & Navigation](#teleportation--navigation)
    - [Container Security & Lock Protection](#container-security--lock-protection)
    - [Custom Spawners & Stacking](#custom-spawners--stacking)
@@ -51,6 +52,7 @@ GensCore is designed as an autonomous, self-contained server core replacing doze
 - **Concurrency & Folia Threading:** Utilizes *FoliaLib* for regional multi-threading. Global actions run on `GlobalRegionScheduler`, chunk tasks on `RegionScheduler`, and player actions on `EntityScheduler`. Console commands and inventory manipulations are isolated to prevent cross-thread synchronization crashes.
 - **Autonomous Database:** Embedded **SQLite** engine operating in **WAL (Write-Ahead Logging)** mode (`PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;`). No external SQL server is required, though transactions are thread-safe and isolated.
 - **Cross-Play Ready (Geyser & Floodgate):** Bedrock players are natively detected. In-game menus automatically open as native Bedrock dialogs (Cumulus Forms API) on Bedrock clients, while Java players receive virtual chest GUIs. Bedrock custom skins and heads are supported via the built-in Web Avatar API.
+- **Multi-Protocol & ViaVersion Interoperability:** Uses reflection-isolated `ViaVersionUtil` to seamlessly support legacy Java clients (26.2, 1.21.x, 1.20.x). Automatically substitutes 26.3 blocks (Pale Oak, Resin) in menus with cross-version equivalents, exposes `%genscore_client_version%` via PlaceholderAPI, and provides `/check <player>` for staff diagnostics.
 - **Vault & LuckPerms Optionality:** Built-in economy and permission systems function with or without Vault and LuckPerms. If Vault is present, GensCore registers its `GensVaultEconomy` provider automatically.
 
 ---
@@ -100,21 +102,137 @@ Player-to-player marketplace with expiration timers, listing limits, and automat
 ---
 
 ### Guilds & Teams
-Full-featured clan and guild system with private team chat, shared banks, and cooperative guild quests.
+Comprehensive guild and clan management system with shared treasury, chunk claim territorial protections, on-screen boundary notifications, BlueMap marker synchronization, role hierarchy (Leader, Admin, Member), in-game perks, and integrated web portal control.
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
 | `/team` | *None* | *None* | Everyone | Opens the interactive Guild Management GUI. *(Aliases: `/guild`, `/guilde`, `/teams`)* |
 | `/team create` | `<name>` | *None* | Everyone | Creates a new guild with the sender as leader (max 16 characters). |
-| `/team invite` | `<player>` | *None* | Everyone | Invites a player to join your guild (leader only). |
+| `/team invite` | `<player>` | *None* | Admin / Leader | Invites a player to join your guild. |
 | `/team accept` | *None* | *None* | Everyone | Accepts a pending guild invitation. |
+| `/team kick` | `<player>` | *None* | Admin / Leader | Kicks a member from the guild (Admins cannot kick the Leader or other Admins). |
+| `/team promote` | `<player>` | *None* | Leader | Promotes a guild member to Administrator (`ADMIN`). |
+| `/team demote` | `<player>` | *None* | Leader | Demotes an Administrator back to regular Member (`MEMBER`). |
+| `/team leave` | *None* | *None* | Member / Admin | Leaves your current guild (Leaders must disband or transfer leadership first). |
+| `/team disband` | *None* | *None* | Leader | Permanently disbands the guild and unclaims all territory. |
 | `/team quest` | *None* | *None* | Everyone | Opens the shared Guild Quests progression menu. |
+| `/team upgrades` | *None* | *None* | Everyone | Opens the Guild Upgrades shop GUI. |
+| `/team sethome` | *None* | *None* | Admin / Leader | Defines the shared guild home waypoint at your current location (requires `GUILD_HOME`). |
+| `/team home` | *None* | *None* | Everyone | Teleports to the shared guild home (requires `GUILD_HOME`). |
+| `/team vault` | *None* | *None* | Everyone | Opens the communal guild virtual vault. *(Aliases: `/team coffre`, `/team chest`)* (requires `GUILD_VAULT`). |
+| `/team deposit` | `<amount>` | *None* | Everyone | Deposits dollars into the guild bank (when Economy is active). |
+| `/team depositxp` | `<levels>` | *None* | Everyone | Deposits XP levels into the guild bank (alternative when Economy is disabled). |
+| `/team withdraw` | `<amount>` | *None* | Admin / Leader | Withdraws dollars from the guild bank into personal balance. |
+| `/team withdrawxp` | `<levels>` | *None* | Admin / Leader | Withdraws XP levels from the guild bank into player levels. |
+| `/team claim` | *None* | *None* | Admin / Leader | Claims the current chunk ($16 \times 16$) for the guild. Strictly funded from the guild bank. |
+| `/team unclaim` | *None* | *None* | Admin / Leader | Releases the current chunk claim back to the wild. |
+| `/team color` | `<hex>` | *None* | Admin / Leader | Sets the guild territory color for BlueMap rendering (e.g. `#3498db`). |
 
-**In-GUI Guild Features:**
-- View online and offline members with roles.
-- Guild vault / shared bank deposit and withdrawal.
-- Team progression and leveling.
-- Kick members, transfer leadership, or disband guild.
+#### Guild Hierarchy & Role Permissions
+GensCore implements a 3-tier hierarchy system for guild security and co-management:
+
+| Permission / Action | Chef (`LEADER`) | Admin (`ADMIN`) | Membre (`MEMBER`) |
+|---|:---:|:---:|:---:|
+| Disband Guild (`/team disband`) | Oui | Non | Non |
+| Promote / Demote Admins | Oui | Non | Non |
+| Kick Members | Oui (Tous) | Oui (Membres uniquement) | Non |
+| Invite Players (`/team invite`) | Oui | Oui | Non |
+| Define Guild Home (`/team sethome`) | Oui | Oui | Non |
+| Claim / Unclaim Territory | Oui | Oui | Non |
+| Change BlueMap Color (`/team color`) | Oui | Oui | Non |
+| Purchase Upgrades (`/team upgrades`) | Oui | Oui | Non |
+| Withdraw Bank Funds / XP | Oui | Oui | Non |
+| Teleport to Guild Home (`/team home`) | Oui | Oui | Oui |
+| Access Guild Vault (`/team vault`) | Oui | Oui | Oui |
+| Deposit Bank Funds / XP | Oui | Oui | Oui |
+| Access Guild-Locked Chests (`/lock guild`) | Oui | Oui | Oui |
+| Build / Interact in Guild Claims | Oui | Oui | Oui |
+| Participate in Guild Quests | Oui | Oui | Oui |
+
+- **Management via In-Game GUI (`/team`):**
+  - **Quick Action Buttons:**
+    - Slot 38 (Bed): Guild Home. Left-click to teleport (`/team home`), Right-click for Admin/Leader to set the home (`/team sethome`).
+    - Slot 40 (Chest/Barrel): Guild Vault. Left-click to open the communal virtual chest (`/team vault`).
+    - Slot 42 (Gold Ingot/Bottle of Enchanting): Guild Bank treasury status and balance.
+    - Slot 19 and 23 in `/team upgrades`: Right-click shortcuts to teleport to home and open vault directly from the upgrade menu.
+  - **Bedrock / Floodgate Dialogs:**
+    - Native Cumulus form buttons dynamically adapt to player permissions with dedicated actions for "Home de Guilde", "Definir le Home", and "Coffre de Guilde".
+  - **Member Management:**
+    - Clicking on a member's player head allows quick role actions:
+      - **Left-Click:** Promote to Admin or Demote to Member (Leader only).
+      - **Right-Click:** Kick the player from the guild (with role validation).
+- **Management via Web Player Portal:**
+  - Guild leaders and admins can log into the server Web Portal (`/portal` or via website) and access the **Guilde** tab.
+  - View real-time treasury balances, manage members (Promote, Demote, Kick with confirmation modal), adjust the BlueMap territory color using an intuitive color picker, and purchase guild upgrades in a single click.
+
+#### Territory Claims & Anti-Grief Protection
+- **Comprehensive Anti-Grief Shield:** Unaffiliated players cannot break blocks, place blocks, open chests/barrels/shulker boxes, use hoppers/furnaces, or interact with redstone mechanisms (doors, trapdoors, buttons, levers) in claimed chunks.
+- **Entity & Livestock Protection:** Armor stands, item frames, paintings, villagers, and passive animals within claimed chunks cannot be damaged or altered by non-members.
+- **Anti-Piston Boundary Safeguard:** Pistons cannot push or pull blocks across chunk boundaries into or out of guild territory.
+- **On-Screen Border Notifications:**
+  - When crossing into a claimed guild territory, players receive an animated Title and Subtitle on their screen displaying the guild's name and protection status, accompanied by an immersive chime sound effect.
+- **Claim Limits & Base Costs:**
+  - Base claim limit: 4 chunks ($16 \times 16$, expandable up to 20 chunks via the `EXTENDED_TERRITORY` upgrade).
+  - Cost per claim: $1500.00 (Economy ON) or 10 XP Levels (Economy OFF), charged strictly to the shared guild bank.
+- **BlueMap Live Visualization:** All claimed chunks are rendered in real time on the interactive BlueMap web layer using the hex color chosen by the guild leaders.
+
+#### Guild Shared Treasury (Bank)
+- **Economy-Aware Currency Duality:**
+  - When `EconomyModule` is enabled: Treasury transactions use in-game currency ($).
+  - When `EconomyModule` is disabled: Treasury automatically switches to player Experience (XP levels). The web portal and in-game GUIs dynamically hide currency inputs and display XP levels.
+- **Strict Treasury Funding Rule:** All land claims and guild perk upgrades must be funded directly and exclusively from the guild bank. Direct player purchases are prohibited to ensure collaborative teamwork.
+
+#### Guild Perks & Upgrades System (10 Active Trees)
+Guilds can unlock 10 permanent team-wide upgrades paid through the guild bank:
+1. **MAX_MEMBERS (Levels 1 to 3):**
+   - Base: 5 members.
+   - Formula: `5 + (level * 3)` -> 8, 11, 14 members max.
+   - Pricing ($ / XP): Level 1: $5,000 (25 XP), Level 2: $15,000 (45 XP), Level 3: $35,000 (70 XP).
+2. **EXTENDED_TERRITORY (Levels 1 to 4):**
+   - Base: 4 claims.
+   - Formula: `4 + (level * 4)` -> 8, 12, 16, 20 chunks max.
+   - Pricing ($ / XP): Level 1: $4,000 (20 XP), Level 2: $10,000 (35 XP), Level 3: $20,000 (55 XP), Level 4: $40,000 (80 XP).
+3. **JOBS_BOOST (Levels 1 to 3):**
+   - Grants a permanent job experience multiplier to all online guild members.
+   - Formula: `+5%` XP per level (`1.05x`, `1.10x`, `1.15x`).
+   - Pricing ($ / XP): Level 1: $10,000 (30 XP), Level 2: $25,000 (50 XP), Level 3: $50,000 (80 XP).
+4. **AH_TAX_REDUCTION (Levels 1 to 2):**
+   - Reduces the sales commission tax when selling items on the Auction House (`/ah`).
+   - Formula: `-25%` tax reduction per level (Level 1: -25%, Level 2: -50% tax).
+   - Pricing ($ / XP): Level 1: $8,000 (30 XP), Level 2: $20,000 (55 XP).
+5. **COOP_QUESTS_BOOST (Levels 1 to 2):**
+   - Boosts the points and contribution earned towards weekly guild quests.
+   - Formula: `+10%` guild quest points per level (`1.10x`, `1.20x`).
+   - Pricing ($ / XP): Level 1: $12,000 (35 XP), Level 2: $30,000 (60 XP).
+6. **GUILD_HOME (Levels 1 to 3):**
+   - Shared teleportation waypoint accessible by all members via `/team home` and defined by leaders/admins via `/team sethome`.
+   - Level 1: 5-second warmup delay, 15-minute cooldown.
+   - Level 2: 3-second warmup delay, 5-minute cooldown.
+   - Level 3: Instant warmup inside claimed territory, 1-minute cooldown.
+   - Pricing ($ / XP): Level 1: $15,000 (40 XP), Level 2: $35,000 (65 XP), Level 3: $75,000 (95 XP).
+7. **TERRITORY_BUFF (Levels 1 to 3):**
+   - Passive area-of-effect potion buffs radiating to guild members located within claimed chunks.
+   - Level 1: Passive Regeneration I and slow Saturation.
+   - Level 2: Speed I inside territory claims.
+   - Level 3: Haste I inside territory claims.
+   - Anti-Abuse Protection: To prevent combat logging and nomadic claim-and-mine abuse, newly claimed chunks require a 5-minute stabilization anchor (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) before radiating buffs (displayed via ActionBar countdown). Players entering guild territory must remain inside for 15 seconds of synchronization warmup before receiving effects. Leaving guild territory immediately strips all active territory buffs.
+   - Pricing ($ / XP): Level 1: $20,000 (50 XP), Level 2: $45,000 (75 XP), Level 3: $90,000 (110 XP).
+8. **BANK_INTEREST (Levels 1 to 2):**
+   - Automatically deposits passive interest dividends into the shared guild bank every 24 real-world hours based on the current treasury balance.
+   - Level 1: +1% daily interest (capped at $10,000 or 50 XP max per day).
+   - Level 2: +2% daily interest (capped at $25,000 or 100 XP max per day).
+   - Pricing ($ / XP): Level 1: $25,000 (60 XP), Level 2: $60,000 (90 XP).
+9. **SPAWNER_EFFICIENCY (Levels 1 to 2):**
+   - Boosts custom smart spawners placed within the guild's claimed chunks (`SpawnerManager.generateTick()`).
+   - Level 1: +15% spawn tick speed.
+   - Level 2: +30% spawn tick speed.
+   - Pricing ($ / XP): Level 1: $30,000 (70 XP), Level 2: $70,000 (100 XP).
+10. **GUILD_VAULT (Levels 1 to 3):**
+    - Communal virtual storage chest accessible in-game via `/team vault` (or aliases `/team coffre`, `/team chest`), direct `/team` action button, or the Player Web Portal.
+    - Level 1: 18 slots (2 rows).
+    - Level 2: 36 slots (4 rows).
+    - Level 3: 54 slots (6 rows).
+    - Pricing ($ / XP): Level 1: $15,000 (45 XP), Level 2: $40,000 (70 XP), Level 3: $80,000 (100 XP).
 
 ---
 
@@ -144,6 +262,32 @@ A revolving quest system providing daily objectives with rewards.
 
 - **Quest Rerolls:** Players with `genscore.quests.reroll` can right-click an objective in the GUI to reroll it.
 - **Admin Reset:** Admins with `genscore.quests.admin` can force-reroll all active quests.
+
+---
+
+### Solo Perks & Quest Masteries
+Individual progression system rewarding lifetime completed quests with permanent advantages and major masteries. Fully managed in-game via chest GUI (`/perks`) or on the Player Web Portal (`/dashboard/perks`).
+
+| Command | Arguments | Permission | Default | Description |
+|---|---|---|---|---|
+| `/perks` | *None* | *None* | Everyone | Opens the Solo Quest Perks GUI. *(Aliases: `/bonus`, `/passe`)* |
+| `/autosmelt` | *None* | *None* | Everyone | Toggles instant raw ore smelting On/Off (requires Auto-Smelt mastery). |
+| `/magnet` | *None* | *None* | Everyone | Toggles 5-block item attraction magnet On/Off (requires Magnet mastery). |
+
+#### Two-Tier Progression Mechanics:
+1. **Free Milestone Perks (Paliers Gratuits):**
+   - **Free Reroll (5 quests):** 1 additional free daily quest reroll (`/quest reroll`).
+   - **Extra Home (15 quests):** +1 additional personal waypoint usable with `/sethome`.
+   - **Celestial Stride (30 quests):** Permanent Speed I effect out of combat.
+   - **Jobs Wisdom (50 quests):** Permanent +5% multiplier on all jobs XP gains.
+   - **Instant Teleport (75 quests):** Halves all teleport warmup delays.
+   - **Endless Feast (100 quests):** Unlocks `/feed` command with 15-minute cooldown without VIP rank.
+2. **Major Solo Masteries (Maîtrises Majeures Payantes):**
+   - **Item Magnet (25 quests, $20,000 / 40 XP):** Magnetically draws items within 5 blocks directly to the player. Can be toggled On/Off (`/magnet`, `/perks` GUI, or Web).
+   - **Double Harvest (40 quests, $35,000 / 60 XP):** 5% chance to double ore and log drops.
+   - **Portable Workbench (60 quests, $50,000 / 80 XP):** Unlocks instant access to `/craft` and `/workbench` everywhere.
+   - **Auto-Smelt (80 quests, $75,000 / 100 XP):** Automatically smelts mined raw ores into refined ingots. Can be toggled On/Off (`/autosmelt`, `/perks` GUI, or Web).
+   - **Soul Preservation (100 quests, $100,000 / 120 XP):** Retains 50% of experience levels upon death.
 
 ---
 
@@ -218,6 +362,7 @@ Enforcement suite logging actions to database and Discord webhooks.
 | `/kick` | `<player> [reason]` | `genscore.kick` | OP | Kicks an online player from the server. |
 | `/freeze` | `<player>` | `genscore.freeze` | OP | Freezes a player in place for screensharing/investigation (disables movement, interaction, and commands). |
 | `/openinv` | `<player>` | `genscore.openinv` | OP | Live inspection of another player's inventory and armor slots. *(Alias: `/invsee`)* |
+| `/check` | `<player>` | `genscore.check` | OP | Detailed technical dossier of a player (Bedrock/Java, client version via ViaVersion, protocol ID, ping, health, moderation status, and coordinates). *(Alias: `/whois`)* |
 
 ---
 
@@ -389,6 +534,12 @@ Chest and container security operates at the block-event level:
 - **Bedrock Skin & Head Support:** Head requests (`/api/head/{name}`) resolve Geyser XUIDs to fetch authentic Bedrock skins instead of fallback Steve avatars.
 - **Bedrock Prefix:** Configurable prefix (e.g. `[Bedrock]` or `.`) automatically handled in commands and LuckPerms group lookups.
 
+### ViaVersion & Multi-Protocol Interoperability
+- **Decoupled Reflection API:** `ViaVersionUtil` accesses ViaVersion through dynamic reflection, ensuring zero runtime crashes whether ViaVersion is installed or not.
+- **Material Fallback System:** Exclusive Minecraft 26.3 materials (Pale Oak variants, Resin, Creaking Heart) are converted on the fly to universal equivalents (`DARK_OAK_*`, `ORANGE_TERRACOTTA`) when building chest GUIs or Bedrock forms for legacy clients.
+- **PlaceholderAPI Official Expansion (`genscore`):** Exposes `%genscore_client_version%`, `%genscore_client_protocol%`, `%genscore_client_type%`, `%genscore_is_legacy%`, `%genscore_is_bedrock%`, `%genscore_balance%`, `%genscore_guild%`, and `%genscore_ping%`.
+- **Internal MiniMessage & TabBoard Tags:** `%client_version%`, `%client_protocol%`, `%client_type%`, and `%is_legacy%` available directly across TabBoard headers, footers, and scoreboards.
+
 ### Custom YAML Menus
 Server owners can build unlimited graphical menus in `plugins/GensCore/menus/*.yml`:
 - Specify custom titles, rows (1 to 6), items, display names, and lores.
@@ -459,6 +610,16 @@ Accessible to everyday players at `http://<your-server-ip>:8080`:
   - Overall Job Level across all 6 professions.
   - **7-Day Quest Activity Chart:** Visual SVG line graph charting your quest completions over the past week.
   - **Recent Transactions Log:** Review your last 5 financial transactions (payments sent, received, or shop purchases).
+- **Guild Management Portal (`/dashboard/team`):**
+  - **Shared Bank Interface:** Deposit or withdraw funds directly from the web browser. Automatically switches to player XP levels if server economy is disabled.
+  - **BlueMap Territory Control:** Real-time claim usage indicator ($X/Y$ chunks) and live hexadecimal color picker for instant BlueMap territory styling.
+  - **Perks Shop:** Purchase permanent guild upgrades (Members capacity, Claims, Jobs boost, AH tax reduction, Coop Quests multiplier) funded strictly by the shared bank.
+  - **Roster & Role Administration:** View all guild members with badges (`Chef`, `Admin`, `Membre`). Leaders can promote members to Admin or demote them back; Leaders and Admins can kick members with confirmation modals directly from the browser.
+- **Player Perks Portal (`/dashboard/perks`):**
+  - **Lifetime Quest Tracker:** Global progress bar tracking completed daily quests towards the 100-quest milestone.
+  - **Free Milestone Perks:** Claim unlocked rewards upon reaching thresholds (Free Rerolls, Extra Homes, Speed Boost, Jobs XP multiplier, Warmup reduction, /feed access).
+  - **Major Masteries Shop:** Acquire high-tier masteries with funds or XP levels (Item Magnet, Double Drop, Portable Workbench, Auto-Smelt, Soul Preservation).
+  - **Live Toggle Switches:** Toggle active masteries (Item Magnet, Auto-Smelt) On or Off in real-time with instant SQLite and in-game state synchronization.
 - **Avatar Engine (`/api/head/{name}/{size}`):** High-speed 3D head and avatar rendering supporting both Java skins and Bedrock Floodgate avatars.
 
 ---

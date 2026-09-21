@@ -3,10 +3,10 @@
 Suivez en temps réel l'avancée des travaux, les améliorations apportées et la feuille de route de **GensCore** pour **Minecraft 26.3** et **Java 25 LTS**.
 
 ::: info Statut du Projet
-- **Version cible :** Minecraft 26.3 (Paper Build Alpha 16+)
+- **Version cible :** Minecraft 26.3 (Paper Build Alpha 26+)
 - **Environnement d'exécution :** Java 25 LTS
 - **Branche de travail active :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
-- **Stabilité :** Alpha fonctionnelle avancée en environnement de production / test
+- **Stabilité :** **Beta** — Fonctionnalités stables, prêtes pour un déploiement en production
 :::
 
 ---
@@ -15,9 +15,9 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 
 | Composant | Statut | Détails |
 | :--- | :---: | :--- |
-| **Compatibilité Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Compilé avec le flag `--release 25` et tests JVM réussis |
-| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.16-alpha` |
-| **Quêtes de Craft (Torches & Multi-craft)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Prise en compte exacte du rendement unitaire vanilla et du shift-click |
+| **Support Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Compilé avec l'option `--release 25` et validé sur JVM Temurin 25 |
+| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.28-alpha` |
+| **Quêtes de Craft (Torches & Craft en Masse)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Prise en compte du Shift-Click et calcul précis du ratio d'objets créés vanilla |
 | **Boutique Complète (319 Objets & Potions)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | 7 catégories, prix équilibrés (marge 25-35%), auto-seeding SQLite & pagination |
 | **Remaster Mini-Jeux Web & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | RTP Casino ramené à 84%, nouveau jeu CoinFlip 3D, switch admin en direct |
 | **Internationalisation (FR & EN)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Traduction intégrale in-game et web de tous les modules |
@@ -27,6 +27,9 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | **Sync Bannissements** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Synchronisation SQLite ⟷ `banned-players.json` natif |
 | **Crossplay Bedrock (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Blindé</span> | Capture des `Throwable` et isolation Cumulus/Floodgate face aux changements de bytecode 26.3 |
 | **Validation Folia Régionale** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Élimination de `isPrimaryThread`, callbacks de téléportation asynchrone et décomposition cross-region |
+| **Système de Guildes & Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Anti-grief total, titres frontaliers écran, rôles Admin, gestion web et BlueMap |
+| **Nouvelles Améliorations de Guilde** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Foyer de Guilde, Aura territoriale anti-abus, Intérêts 24h, Spawners et Coffre virtuel |
+| **Module de Bonus de Quêtes Solo** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | 29ème module autonome (`solo_perks`), 11 bonus (paliers gratuits & maîtrises majeures), On/Off instantané, GUI & synchronisation Web |
 
 ---
 
@@ -50,6 +53,29 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 * **Problème identifié :** Lors de l'initialisation de `PaperCommandManager`, la bibliothèque sous-jacente Cloud Framework invoquait une classe de réflexion interne (`ItemStackParser$ModernParser`) cherchant les méthodes `asBukkitCopy` et `asCraftMirror` sur les classes internes NMS de Mojang, dont la signature a évolué en 26.3, provoquant un `ExceptionInInitializerError`.
 * **Solution apportée :** Remplacement ciblé de la classe `ItemStackParser` dans les sources compilées avec un mécanisme de détection sécurisé et un repli automatique vers `LegacyParser` (100% Bukkit API standard sans injection NMS). Le plugin démarre désormais sans la moindre erreur sur Paper 26.3.
 
+### 5. Système de Guildes, Territoires (Claims) & Rôles Administrateur
+* **Hiérarchie et délégation :** Implémentation complète du rôle **Administrateur (`ADMIN`)** en complément du **Chef (`LEADER`)** et des **Membres (`MEMBER`)**. Les administrateurs peuvent inviter, expulser des membres réguliers, revendiquer des claims, effectuer des retraits bancaires et acheter des améliorations.
+* **Sécurité territoriale & Anti-Grief :** Protection absolue des chunks revendiqués ($16 \times 16$). Blocage de la casse/pose, accès coffres/barils/fours/shulkers/entonnoirs, interactions redstone (portes, boutons, leviers), dégâts aux entités passives/porte-armures et interdiction des pistons traversant les bordures.
+* **Affichage frontalier immersif :** Envoi d'un Titre et Sous-titre animés à l'écran du joueur avec effet sonore lorsqu'il pénètre dans un territoire revendiqué par une guilde.
+* **Gestion complète Portail Web :** Interface de gestion en ligne permettant de promouvoir des administrateurs, rétrograder ou expulser des membres (avec modale de confirmation), personnaliser la couleur BlueMap en temps réel et acheter des améliorations d'équipe.
+* **Auto-mise à jour du Panel Web :** Détection automatique au démarrage des versions plus récentes d'assets web dans le JAR pour une extraction transparente dans `plugins/GensCore/web/`.
+
+### 6. Améliorations de Guilde Phase 2, Boutons d'Action & Bouclier Anti-Abus
+* **5 Nouvelles Améliorations Déployées :**
+  - **Foyer de Guilde (`GUILD_HOME`) :** Point de ralliement commun (`/team sethome` pour chef/admins, `/team home` pour tous). Délais réduits (5s/15m au niveau 1, 3s/5m au niveau 2, téléportation instantanée dans les claims et 1m au niveau 3).
+  - **Aura Territoriale (`TERRITORY_BUFF`) :** Effets de potions passifs pour les membres situés dans les claims (Régénération I et Saturation lente, Vitesse I, Célérité I).
+  - **Intérêts Bancaires Journaliers (`BANK_INTEREST`) :** Dividendes passifs calculés sur le solde de la banque de guilde chaque 24 heures réelles (+1% et +2% par jour, assortis de plafonds stricts anti-inflation).
+  - **Surcadençage des Spawners (`SPAWNER_EFFICIENCY`) :** Vitesse de génération des spawners personnalisés (`SpawnerManager.generateTick()`) accrue de +15% à +30% au sein des territoires de guilde.
+  - **Coffre-fort Virtuel Partagé (`GUILD_VAULT`) :** Espace de stockage partagé de 18, 36 ou 54 slots accessible via `/team vault` (ou `/team coffre`, `/team chest`), l'interface `/team` ou le portail web.
+* **Bouclier Anti-Abus Territoriale :**
+  - Ancrage territorial de 5 minutes (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) requis sur tout nouveau chunk avant d'émettre l'aura (avec compte à rebours dans l'ActionBar), interdisant tout détournement par minage nomade éphémère.
+  - Délai de présence de 15 secondes exigé à l'entrée du territoire avant réception des effets.
+  - Dissipation instantanée de tous les effets de potions dès la sortie du territoire.
+* **Boutons d'Action Directs In-Game & Bedrock :**
+  - Interface `/team` (54 slots) enrichie avec boutons d'action au slot 38 (Lit : Clic gauche pour `/team home`, Clic droit pour `/team sethome`), au slot 40 (Coffre virtuel partagé) et au slot 42 (Banque de guilde).
+  - Formulaires Bedrock Cumulus intégrant des boutons d'accès rapide au Home, à la définition du Home et au Coffre virtuel.
+  - Raccourcis directs en clic droit dans le menu `/team upgrades` (Slot 19 pour Home, Slot 23 pour Vault).
+
 ---
 
 ## Ce qui est en cours de travail
@@ -71,20 +97,43 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 
 ```mermaid
 flowchart LR
-    A[Build Paper 26.3 Alpha 8] --> B[Shop 319 Items & Quêtes]
-    B --> C[Tests de charge & Stabilisation dev]
+    A[Paper 26.3 Alpha 16] --> B[Guildes & Claims 2.0]
+    B --> C[Upgrades Guilde & Tests de charge]
     C --> D[Release Candidate Paper 26.3]
     D --> E[Merge sur main & Release v1.1.0]
 ```
 
-1. **Phase 1 (Actuelle) :** Stabilisation sur la branche `dev` avec Paper 26.3 Build 16-alpha et boutique complète.
-2. **Phase 2 :** Validation des tests de stress (50+ joueurs simulés avec profilage Spark).
-3. **Phase 3 :** Sortie de la Release Candidate (RC) Paper 26.3.
-4. **Phase 4 :** Fusion sur la branche `main` et publication du package officiel GensCore v1.1.0.
+1. **Phase 1 (Terminée) :** Système de Guildes 2.0 terminé (Claims anti-grief, BlueMap, rôles Admin, portail web).
+2. **Phase 2 (Terminée) :** Améliorations de guilde Phase 2 déployées (Foyer, Aura anti-abus, Intérêts 24h, Spawners, Coffre virtuel, boutons GUI & Bedrock).
+3. **Phase 3 :** Tests de charge et validation Folia multi-régions (50+ joueurs avec Spark).
+4. **Phase 4 :** Sortie de la Release Candidate (RC) Paper 26.3.
+5. **Phase 5 :** Fusion sur la branche `main` et publication du package officiel GensCore v1.1.0.
 
 ---
 
 ## Historique des patchs récents
+
+### Patch 26.3-alpha.20 (19 Septembre 2026)
+- **Module de Bonus Personnels de Quêtes (SoloPerkModule) :** 29ème module autonome de GensCore (`solo_perks`), activable et désactivable à chaud en jeu (`/module solo_perks <on|off>`) ou via le panel web admin.
+- **Progression sur Deux Paliers :**
+  - *Paliers Gratuits de Quêtes :* 6 avantages débloqués par paliers de quêtes accomplies à vie (5, 15, 30, 50, 75, 100 quêtes) : Relance Gratuite, Foyer Additionnel, Foulée Céleste, Savoir des Métiers, Téléportation Instantanée, Festin Infini (/feed avec 15 minutes de recharge sans grade VIP requis).
+  - *Maîtrises Majeures Personnelles :* 5 maîtrises puissantes conditionnées par un palier de quêtes et un paiement en dollars ($) ou niveaux XP (quand l'économie est coupée) : Aimant de Collecte, Double Récolte, Établi Portatif (/craft et /workbench), Fonte Instantanée (Auto-Smelt), Préservation d'Âme (50% de l'XP sauvé à la mort).
+- **Interrupteurs On/Off Instantanés :** Aimant (`/magnet`) et Fonte Instantanée (`/autosmelt`) commutables en direct via commandes dédiées, GUI `/perks` ou commutateurs sur le web.
+- **Portail Web Joueur (/dashboard/perks) :** Page dédiée avec barre de progression globale, compteurs de quêtes, achat de maîtrises et commutateurs On/Off en direct avec synchronisation SQLite temps réel.
+- **Zéro Émoji :** Conception rigoureusement textuelle et professionnelle sans aucun émoji.
+
+### Patch 26.3-alpha.19 (19 Septembre 2026)
+- **Améliorations de Guilde Phase 2 :** Déploiement des 5 nouveaux arbres d'upgrades permanents (`GUILD_HOME`, `TERRITORY_BUFF`, `BANK_INTEREST`, `SPAWNER_EFFICIENCY`, `GUILD_VAULT`).
+- **Bouclier Anti-Abus Territoriale :** Ancrage territorial de 5 minutes (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) requis sur tout nouveau claim avant de diffuser l'aura avec décompte ActionBar, délai de présence de 15 secondes à l'entrée du territoire et retrait instantané des effets à la sortie.
+- **Boutons d'Action Directs & Crossplay Bedrock :** Agrandissement de l'interface `/team` à 54 slots avec boutons d'action au slot 38 (Lit : Clic gauche téléportation, Clic droit définition pour chefs/admins), slot 40 (Coffre virtuel) et slot 42 (Banque), formulaires Bedrock Cumulus natifs adaptés et raccourcis clic droit dans `/team upgrades`.
+- **Nouvelles Commandes :** Enregistrement de `/team sethome`, `/team home`, `/team vault` (et aliases `/team coffre`, `/team chest`).
+
+### Patch 26.3-alpha.18 (18 Septembre 2026)
+- **Rôles & Hiérarchie de Guilde :** Ajout complet du rôle `ADMIN` dans la base SQLite (`genscore_team_members.role`), commandes `/team promote`, `/team demote`, `/team kick`, `/team leave`, `/team disband` et interaction dans l'interface `/team` (clic gauche promote/demote, clic droit kick).
+- **Protection Anti-Grief Complète des Claims :** Sécurisation totale des parcelles de guilde contre la casse/pose, ouverture de coffres, barils, fours, shulkers, entonnoirs, redstone, attaques d'animaux/porte-armures et pistons inter-chunks.
+- **Titres Écran Frontaliers :** Envoi d'un titre et sous-titre traduits avec effet sonore lors du franchissement des frontières d'un territoire revendiqué.
+- **Portail Web Guilde Étendu :** Nouveaux boutons d'administration des membres (promotion Admin, rétrogradation, expulsion avec modale de confirmation), gestion en ligne de la trésorerie ($/XP), personnalisation de la couleur BlueMap et achats d'upgrades.
+- **Auto-Sync Assets Web :** Mise à jour automatique des assets web de `plugins/GensCore/web/` dès l'installation d'une nouvelle version du JAR sans nécessiter de suppression manuelle.
 
 ### Patch 26.3-alpha.17 (18 Septembre 2026)
 - **Garde-fou Anti-Arbitrage Boutique :** Harmonisation de l'exposant d'inflation dynamique dans `ShopItem` avec `GLOBAL_INFLATION_EXPONENT` et instauration d'un plafond de marge strict interdisant au prix de vente de dépasser 75% du prix d'achat, éliminant tout risque de boucle infinie de duplication de monnaie.
@@ -92,7 +141,33 @@ flowchart LR
 - **Write-Behind Cache SQLite (Économie) :** Remplacement des micro-écritures asynchrones isolées par une sauvegarde groupée périodique par lots (`flushDirtyBalances()` toutes les 10 secondes), prévenant les régressions d'état désordonnées en base de données.
 - **Thread-Safety du Module Loot :** Synchronisation des instances `YamlConfiguration` dans `LootManager` pour éliminer les corruptions de fichiers lors de sauvegardes asynchrones concurrentes sur Folia.
 - **Arrêt JDA Non Bloquant :** Remplacement du délai figé `Thread.sleep(1500)` dans `DiscordModule` par `jda.awaitShutdown(Duration.ofMillis(1500))` avec bascule gracieuse sur `shutdownNow()`.
-- **Suite de Tests Automatisés Élargie :** Intégration de JUnit 5 (`junit-jupiter:5.12.0`) et Surefire, avec déploiement d'une suite complète de 38 tests unitaires couvrant l'anti-arbitrage du shop, la validation financière, la sérialisation Base64, l'assainissement des formulaires Bedrock, le calcul de batch des quêtes de craft, la simulation Monte-Carlo du Casino Web (RTP 84%), l'authentification BCrypt et la persistance SQLite par lots avec un taux de réussite de 100% (38/38).
+### Release 26.3-beta.1 (21 Septembre 2026)
+- **Passage Alpha → Beta.** GensCore atteint la stabilité Beta. Tous les modules principaux sont prêts pour la production et ont passé l'audit complet.
+- **Module Lootr — Migration Complète vers SQLite :** Les coffres instanciés par joueur sont désormais entièrement persistés en SQLite (`lootr_chests` & `lootr_player_chests`) via `LootDAO`. Migration transparente automatique des anciens fichiers `chests.yml` au premier démarrage.
+- **Sécurisation Threads Folia :** Les commandes console dans `QuestModule`, `CustomGuiModule` et `BlueMapModule` s'exécutent désormais garantis sur le `GlobalRegionScheduler` via `runNextTick`, prévenant les crashs cross-thread sur Folia.
+- **Sécurité Inventaire AuctionHouseModule :** La récupération d'item et le vidage du slot en main s'exécutent dans `runAtEntity` pour éviter toute manipulation d'inventaire asynchrone.
+- **Fix Accès Chunk TeamCommand :** `/team claim` et `/team unclaim` calculent désormais les coordonnées du chunk par arithmétique pure (sans appel `getChunk()`), éliminant l'`IllegalStateException: Asynchronous chunk access` sur Folia.
+- **Fix Race Condition JobsModule :** Remplacement de `dirtyPlayers.clear()` par `dirtyPlayers.removeAll(toSave)` dans la tâche d'auto-sauvegarde XP, empêchant la perte de gains d'XP lors de sauvegardes concurrentes.
+- **Suite de Tests Élargie :** 69 tests unitaires automatisés (contre 58 précédemment) — 11 nouveaux tests couvrant le CRUD SQLite de `LootDAO`, l'UPSERT, la suppression en cascade et le round-trip Base64 des inventaires.
+- **Qualité du Code :** Suppression de tous les imports inutilisés (`ByteArrayInputStream`, `ByteArrayOutputStream`, `Base64` dans `StorageManager` ; `Collections` dans `LootManager`).
+
+### Patch 26.3-alpha.28 (21 Septembre 2026)
+- **API Paper :** Mise à niveau vers `26.3.build.28-alpha` (dernière build officielle du dépôt PaperMC).
+- **Validation des Tests Automatisés :** Exécution complète des 69 tests unitaires avec 100% de réussite et zéro régression.
+- **Workflow CI/CD :** Pipeline GitHub Actions aligné sur la build Paper `26.3.build.28-alpha`.
+
+### Patch 26.3-alpha.26 (20 Septembre 2026)
+- **API Paper :** Mise à niveau vers `26.3.build.26-alpha` (dernière build officielle PaperMC).
+- **Mise à jour des Dépendances :** Actualisation de VaultAPI (`1.7.1`), Incendo Cloud Paper (`2.0.1`), Cloud Annotations (`2.1.0`) et Cloud Minecraft Extras (`2.0.1`).
+- **Assurance Qualité & Tests :** Suite de 58 tests unitaires automatisés validée à 100% avec packaging Shaded JAR vérifié.
+- **Workflow CI/CD :** Pipeline GitHub Actions aligné sur la build `26.3.build.26-alpha`.
+
+### Patch 26.3-alpha.19 (19 Septembre 2026)
+- **API Paper :** Mise à niveau vers `26.3.build.19-alpha` (dernière build officielle PaperMC).
+- **Module Bonus de Quêtes Solo & Améliorations de Guilde :** Déploiement de 58 améliorations d'équipe et 11 bonus de quêtes individuelles avec progression temps réel (barres de progression animées, double condition quêtes et dollars, synchronisation WebPanel et GUI in-game).
+- **Gestionnaire Universel de Têtes et Skins (`HeadUtil`) :** Résolution native des têtes de joueurs dans le menu `/perks` et le menu de guilde `/g`, avec mise en cache SQLite/RAM permanente (`player_skins`), prise en charge des comptes officiels Java payants, Bedrock (Floodgate/Geyser) et SkinsRestorer.
+- **Suite de Tests Automatisés :** Extension à 58 tests unitaires JUnit 5 validant la logique métier, l'extraction de textures Mojang Base64, l'anti-grief et la persistance (100% de réussite).
+- **Workflow CI/CD :** Pipeline GitHub Actions adapté pour cibler Paper `26.3.build.19-alpha` et l'exécution systématique des 58 tests unitaires avant packaging.
 
 ### Patch 26.3-alpha.16 (18 Septembre 2026)
 - **API Paper :** Mise à niveau vers `26.3.build.16-alpha` (dernière build officielle PaperMC).

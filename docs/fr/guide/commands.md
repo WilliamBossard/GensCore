@@ -41,14 +41,31 @@ Toutes les commandes de GensCore sont enregistrées de façon asynchrone via le 
 ---
 
 ## Guildes & Équipes (Teams)
+Système complet de clans avec trésorerie partagée ($ ou XP), revendication territoriale anti-grief par chunks ($16 \times 16$), notifications à l'écran, synchronisation BlueMap en temps réel, hiérarchie de rôles (Chef, Admin, Membre) et améliorations permanentes.
 
 | Commande | Arguments | Permission | Défaut | Description |
 |---|---|---|---|---|
-| `/team` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu de gestion de guilde. *(Aliases : `/guild`, `/guilde`, `/teams`)* |
+| `/team` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu interactif de gestion de guilde. *(Aliases : `/guild`, `/guilde`, `/teams`)* |
 | `/team create` | `<nom>` | *Aucune* | Tout le monde | Fonde une nouvelle guilde (16 caractères max). |
-| `/team invite` | `<joueur>` | *Aucune* | Tout le monde | Invite un joueur à rejoindre votre guilde. |
+| `/team invite` | `<joueur>` | *Aucune* | Admin / Chef | Invite un joueur à rejoindre votre guilde. |
 | `/team accept` | *Aucun* | *Aucune* | Tout le monde | Accepte une invitation en attente. |
+| `/team kick` | `<joueur>` | *Aucune* | Admin / Chef | Expulse un membre de la guilde (les Admins ne peuvent pas expulser le Chef ni d'autres Admins). |
+| `/team promote` | `<joueur>` | *Aucune* | Chef | Promeut un membre au rang d'Administrateur (`ADMIN`). |
+| `/team demote` | `<joueur>` | *Aucune* | Chef | Rétrograde un Administrateur au rang de Membre classique. |
+| `/team leave` | *Aucun* | *Aucune* | Membre / Admin | Quitte la guilde actuelle (le Chef doit dissoudre la guilde). |
+| `/team disband` | *Aucun* | *Aucune* | Chef | Dissout définitivement la guilde et libère tous ses territoires. |
 | `/team quest` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu des quêtes communautaires de guilde. |
+| `/team upgrades` | *Aucun* | *Aucune* | Tout le monde | Ouvre la boutique d'améliorations de guilde. |
+| `/team sethome` | *Aucun* | *Aucune* | Admin / Chef | Définit le point de ralliement (home) de la guilde à votre position (requiert `GUILD_HOME`). |
+| `/team home` | *Aucun* | *Aucune* | Tout le monde | Téléporte au point de ralliement de la guilde (requiert `GUILD_HOME`). |
+| `/team vault` | *Aucun* | *Aucune* | Tout le monde | Ouvre le coffre virtuel partagé de la guilde. *(Aliases : `/team coffre`, `/team chest`)* (requiert `GUILD_VAULT`). |
+| `/team deposit` | `<montant>` | *Aucune* | Tout le monde | Dépose de l'argent dans la banque de guilde (si Économie active). |
+| `/team depositxp` | `<niveaux>` | *Aucune* | Tout le monde | Dépose des niveaux d'XP dans la banque (si Économie désactivée). |
+| `/team withdraw` | `<montant>` | *Aucune* | Admin / Chef | Retire de l'argent de la banque de guilde. |
+| `/team withdrawxp` | `<niveaux>` | *Aucune* | Admin / Chef | Retire des niveaux d'XP de la banque de guilde. |
+| `/team claim` | *Aucun* | *Aucune* | Admin / Chef | Revendique le chunk actuel ($16 \times 16$). Financé strictement par la banque de guilde. |
+| `/team unclaim` | *Aucun* | *Aucune* | Admin / Chef | Libère le chunk revendiqué et le rend au monde sauvage. |
+| `/team color` | `<hex>` | *Aucune* | Admin / Chef | Définit la couleur du territoire de guilde sur BlueMap (ex: `#3498db`). |
 
 ---
 
@@ -70,6 +87,17 @@ Métiers disponibles : **Mineur**, **Bûcheron**, **Chasseur**, **Fermier**, **P
 
 - Relance (reroll) via clic droit nécessite la permission `genscore.quests.reroll`.
 - Relance globale forcée (admin) nécessite `genscore.quests.admin`.
+
+---
+
+## Bonus Personnels de Quêtes (Solo Perks)
+Progression individuelle récompensant l'accomplissement des quêtes quotidiennes par des avantages permanents et des maîtrises majeures. Consultable et gérable en jeu ou sur le Portail Web.
+
+| Commande | Arguments | Permission | Défaut | Description |
+|---|---|---|---|---|
+| `/perks` | *Aucun* | *Aucune* | Tout le monde | Ouvre le menu des bonus personnels de quêtes. *(Aliases : `/bonus`, `/passe`)* |
+| `/autosmelt` | *Aucun* | *Aucune* | Tout le monde | Active ou désactive la fonte instantanée des minerais bruts (requiert la maîtrise Fonte Instantanée). |
+| `/magnet` | *Aucun* | *Aucune* | Tout le monde | Active ou désactive l'aimant attirant les objets au sol dans un rayon de 5 blocs (requiert la maîtrise Aimant de Collecte). |
 
 ---
 

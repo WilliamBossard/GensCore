@@ -30,7 +30,6 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import org.incendo.cloud.annotations.Argument;
 import org.incendo.cloud.annotations.Command;
-import org.incendo.cloud.annotations.Default;
 
 public class AuthModule implements Module, Listener {
 
@@ -265,41 +264,85 @@ public class AuthModule implements Module, Listener {
         });
     }
 
-    @Command("login [password]")
-    public void onLoginCommand(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") @Default("") String password) {
+    @Command("login")
+    public void onLoginNoArg(org.bukkit.command.CommandSender sender) {
+        plugin.getLangManager().sendMessage(sender, "authmodule.msg_11");
+    }
+
+    @Command("l")
+    public void onLoginAliasNoArg(org.bukkit.command.CommandSender sender) {
+        onLoginNoArg(sender);
+    }
+
+    @Command("login <password>")
+    public void onLoginCommand(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") String password) {
         if (password.trim().isEmpty()) {
-            plugin.getLangManager().sendMessage(sender, "error.invalid_syntax");
+            plugin.getLangManager().sendMessage(sender, "authmodule.msg_11");
             return;
         }
         executeLogin(sender, password.trim());
     }
 
-    @Command("l [password]")
-    public void onLoginAliasCommand(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") @Default("") String password) {
+    @Command("l <password>")
+    public void onLoginAliasCommand(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") String password) {
         onLoginCommand(sender, password);
     }
 
-    @Command("register [password] [confirm]")
-    public void onRegisterCommand(
-            org.bukkit.command.CommandSender sender,
-            @Argument(value = "password", description = "Mot de passe") @Default("") String password,
-            @Argument(value = "confirm", description = "Confirmation du mot de passe") @Default("") String confirm
-    ) {
+    @Command("register")
+    public void onRegisterNoArg(org.bukkit.command.CommandSender sender) {
+        plugin.getLangManager().sendMessage(sender, "authmodule.msg_5");
+    }
+
+    @Command("reg")
+    public void onRegisterAliasNoArg(org.bukkit.command.CommandSender sender) {
+        onRegisterNoArg(sender);
+    }
+
+    @Command("register <password>")
+    public void onRegisterSingle(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") String password) {
         if (password.trim().isEmpty()) {
-            plugin.getLangManager().sendMessage(sender, "error.invalid_syntax");
+            plugin.getLangManager().sendMessage(sender, "authmodule.msg_5");
             return;
         }
-        String finalConfirm = confirm.trim().isEmpty() ? password.trim() : confirm.trim();
+        executeRegister(sender, password.trim(), password.trim());
+    }
+
+    @Command("reg <password>")
+    public void onRegisterAliasSingle(org.bukkit.command.CommandSender sender, @Argument(value = "password", description = "Mot de passe") String password) {
+        onRegisterSingle(sender, password);
+    }
+
+    @Command("register <password> <confirm>")
+    public void onRegisterCommand(
+            org.bukkit.command.CommandSender sender,
+            @Argument(value = "password", description = "Mot de passe") String password,
+            @Argument(value = "confirm", description = "Confirmation du mot de passe") String confirm
+    ) {
+        if (password.trim().isEmpty()) {
+            plugin.getLangManager().sendMessage(sender, "authmodule.msg_5");
+            return;
+        }
+        String finalConfirm = (confirm == null || confirm.trim().isEmpty()) ? password.trim() : confirm.trim();
         executeRegister(sender, password.trim(), finalConfirm);
     }
 
-    @Command("reg [password] [confirm]")
+    @Command("reg <password> <confirm>")
     public void onRegisterAliasCommand(
             org.bukkit.command.CommandSender sender,
-            @Argument(value = "password", description = "Mot de passe") @Default("") String password,
-            @Argument(value = "confirm", description = "Confirmation du mot de passe") @Default("") String confirm
+            @Argument(value = "password", description = "Mot de passe") String password,
+            @Argument(value = "confirm", description = "Confirmation du mot de passe") String confirm
     ) {
         onRegisterCommand(sender, password, confirm);
+    }
+
+    @Command("changepassword")
+    public void onChangePasswordNoArg(org.bukkit.command.CommandSender sender) {
+        plugin.getLangManager().sendMessage(sender, "authmodule.msg_16");
+    }
+
+    @Command("changemdp")
+    public void onChangeMdpNoArg(org.bukkit.command.CommandSender sender) {
+        onChangePasswordNoArg(sender);
     }
 
     @Command("changepassword <oldPass> <newPass>")

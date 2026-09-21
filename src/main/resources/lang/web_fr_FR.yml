@@ -40,6 +40,7 @@ web:
       moderation: 'Outils pour le staff : ban, mute, kick, historique.'
       motd: Personnalisation du message de connexion du serveur.
       quests: Création et gestion des quêtes journalières/hebdomadaires.
+      solo_perks: Système de bonus de quêtes et maîtrises personnelles pour joueurs solo.
       spawners: Gestion personnalisée des spawners et des loots.
       stats: Suivi des statistiques des joueurs.
       tabboard: Personnalisation du menu TAB.
@@ -198,6 +199,90 @@ web:
     new: NOUVEAU
     shop: Boutique Dynamique
     stats: Mes Statistiques
+    team: Ma Guilde
+    perks: Bonus de Quêtes
+  team:
+    title: Gestion de Guilde
+    subtitle: Gérez votre équipe, votre trésorerie et vos améliorations
+    no_team_title: Aucune Guilde
+    no_team_desc: Vous ne faites actuellement partie d'aucune guilde. Créez-en une en jeu avec /team create <nom> ou rejoignez des alliés !
+    role_leader: Chef de Guilde
+    role_admin: Administrateur
+    role_member: Membre
+    bank_title: Banque de Guilde
+    bank_desc: Tous les achats de territoires et d'améliorations sont obligatoirement prélevés sur cette réserve commune.
+    bank_balance_money: "Solde Bancaire : {{amount}} $"
+    bank_balance_xp: "Solde XP : {{amount}} Niveaux d'XP"
+    deposit_btn: Déposer
+    withdraw_btn: Retirer
+    deposit_money_placeholder: Montant en $
+    deposit_xp_placeholder: Niveaux d'XP
+    withdraw_leader_only: Seul le chef de guilde peut retirer des fonds.
+    withdraw_admin_only: Seuls le chef et les administrateurs peuvent retirer des fonds.
+    territory_title: Territoire & Claims (BlueMap)
+    territory_desc: Vos chunks protégés sur le serveur et visibles en temps réel sur la carte.
+    claims_count: "Chunks possédés : {{current}} / {{max}}"
+    claim_cost_money: "Coût par claim : 1500.00 $ (prélevé sur la banque)"
+    claim_cost_xp: "Coût par chunk : 10 Niveaux d'XP (prélevé sur la banque)"
+    color_label: Couleur de la Guilde sur BlueMap
+    color_save_btn: Sauvegarder la couleur
+    upgrades_title: Améliorations de Guilde
+    upgrades_desc: Achetez des bonus permanents pour votre guilde grâce aux fonds de votre banque.
+    perk_members_name: Membres Max
+    perk_members_desc: Augmente la capacité maximale de joueurs dans votre guilde.
+    perk_claims_name: Territoire Étendu
+    perk_claims_desc: Augmente le nombre maximum de chunks revendicables.
+    perk_jobs_name: Bonus Métiers
+    perk_jobs_desc: Multiplicateur d'expérience sur tous les métiers des membres.
+    perk_ah_name: Réduction Taxe HDV
+    perk_ah_desc: Réduit la taxe de vente sur l'Hôtel des Ventes pour tous les membres.
+    perk_quests_name: Bonus Quêtes Coop
+    perk_quests_desc: Multiplicateur de points gagnés lors des quêtes hebdomadaires de guilde.
+    perk_home_name: Home de Guilde
+    perk_home_desc: Débloque /team sethome et /team home avec cooldown réduit à chaque niveau.
+    perk_territory_name: Aura Territoriale
+    perk_territory_desc: Effets de potion passifs pour les membres dans les territoires de la guilde.
+    perk_interest_name: Intérêt Bancaire
+    perk_interest_desc: Génère un dividende quotidien automatique sur le solde de la banque.
+    perk_spawner_name: Efficacité Spawners
+    perk_spawner_desc: Accélère la vitesse d'apparition des monstres dans vos territoires.
+    perk_vault_name: Coffre de Guilde
+    perk_vault_desc: Débloque un coffre partagé sécurisé entre tous les membres (/team vault).
+    level_label: "Niveau {{current}} / {{max}}"
+    level_max: NIVEAU MAX
+    buy_perk_btn: Acheter le niveau supérieur
+    cost_label_money: "Coût : {{cost}} $ (banque)"
+    cost_label_xp: "Coût : {{cost}} Niveaux XP (banque)"
+    members_title: Membres de la Guilde
+    promote_btn: Nommer Admin
+    demote_btn: Rétrograder
+    kick_btn: Expulser
+  perks:
+    title: Bonus Personnels de Quêtes
+    subtitle: Progressez dans vos quêtes pour débloquer des avantages permanents et des maîtrises exclusives
+    quests_completed: "Quêtes complétées :"
+    quests_count: "{{count}} quêtes"
+    unlocked_count: "{{unlocked}} / {{total}} débloqués"
+    free_section_title: Paliers Gratuits de Quêtes
+    free_section_desc: Avantages automatiquement débloquables dès que vous atteignez le nombre de quêtes requis
+    major_section_title: Maîtrises Majeures Personnelles
+    major_section_desc: Débloquez des maîtrises puissantes avec vos quêtes et payez en dollars ou en niveaux d'expérience
+    claim_btn: Réclamer ce bonus
+    claimed_badge: Acquis
+    locked_badge: Verrouillé
+    active_badge: Actif
+    inactive_badge: Désactivé
+    toggle_on: Activer
+    toggle_off: Désactiver
+    req_quests: "{{count}} quêtes requises"
+    req_more_quests: "Encore {{count}} quêtes nécessaires"
+    cost_money: "Coût : {{cost}} $"
+    cost_xp: "Coût : {{cost}} Niveaux XP"
+    buy_perk_btn: Débloquer la maîtrise
+    not_enough_funds: Fonds insuffisants
+    not_enough_xp: Niveaux XP insuffisants
+    unlock_success: "Bonus {{name}} débloqué avec succès !"
+    toggle_success: "Statut de {{name}} mis à jour !"
   public:
     admin_access: Accès Administrateur
     ah:
@@ -233,10 +318,8 @@ web:
             (<code>/ah</code>).
           title: Économie & Boutique Dynamique
         guilds:
-          desc: Créez votre propre Guilde (<code>/team</code>) et invitez vos amis.
-            Ensemble, participez à la quête hebdomadaire pour gagner des récompenses
-            exclusives et monter en haut du classement global !
-          title: Guildes & Quêtes Hebdomadaires
+          desc: Fondez votre Guilde (<code>/team</code>), recrutez des membres et nommez des <strong>Admins</strong> pour cogérer votre faction. Revendiquez vos territoires (<strong>Claims</strong>) avec protection anti-grief totale (blocs, coffres, pistons, entités) et affichage du nom de guilde à l'écran. Profitez d'une trésorerie commune ($ / XP), d'un affichage BlueMap avec couleur personnalisable, et achetez des <strong>améliorations de guilde</strong> (membres, claims, bonus métiers, réduction de taxe HDV) directement en jeu ou sur le portail web !
+          title: Guildes, Territoires & Trésorerie
         jobs:
           desc: Progressez dans vos métiers (<code>/jobs</code>) pour devenir le meilleur
             artisan du serveur. De plus, vous avez la capacité de récupérer les <strong>Spawners</strong>
@@ -324,8 +407,8 @@ web:
       qty_available: "Disponible :"
       slots_used: "slots utilisés"
       slots_full: "Inventaire de dépôt plein"
-      sell_partial: "Vendre {qty} unité(s)"
-      withdraw_partial: "Récupérer {qty} unité(s) en jeu"
+      sell_partial: "Vendre {{qty}} unité(s)"
+      withdraw_partial: "Récupérer {{qty}} unité(s) en jeu"
     stats:
       balance: Solde Bancaire
       best_team: Meilleure Guilde

@@ -40,6 +40,7 @@ web:
       moderation: 'Staff tools: ban, mute, kick, history.'
       motd: Customization of the server login message.
       quests: Creation and management of daily/weekly quests.
+      solo_perks: Solo quest perks and personal masteries system.
       spawners: Custom spawners and loots management.
       stats: Tracking of player statistics.
       tabboard: Customization of the TAB menu.
@@ -192,6 +193,90 @@ web:
     new: NEW
     shop: Dynamic Shop
     stats: My Statistics
+    team: My Guild
+    perks: Quest Perks
+  team:
+    title: Guild Management
+    subtitle: Manage your team, treasury, and guild upgrades
+    no_team_title: No Guild
+    no_team_desc: You are currently not part of any guild. Create one in-game using /team create <name> or join your allies!
+    role_leader: Guild Leader
+    role_admin: Administrator
+    role_member: Member
+    bank_title: Guild Bank
+    bank_desc: All claims and upgrade purchases are strictly funded through this shared treasury.
+    bank_balance_money: "Bank Balance: {{amount}} $"
+    bank_balance_xp: "Bank XP: {{amount}} XP Levels"
+    deposit_btn: Deposit
+    withdraw_btn: Withdraw
+    deposit_money_placeholder: Amount in $
+    deposit_xp_placeholder: XP Levels
+    withdraw_leader_only: Only the guild leader can withdraw funds.
+    withdraw_admin_only: Only the leader and administrators can withdraw funds.
+    territory_title: Territory & Claims (BlueMap)
+    territory_desc: Your protected chunks on the server, visible live on the world map.
+    claims_count: "Owned Chunks: {{current}} / {{max}}"
+    claim_cost_money: "Cost per claim: 1500.00 $ (guild bank)"
+    claim_cost_xp: "Cost per claim: 10 XP Levels (guild bank)"
+    color_label: Guild Color on BlueMap
+    color_save_btn: Save color
+    upgrades_title: Guild Upgrades
+    upgrades_desc: Unlock permanent guild perks funded by your guild bank treasury.
+    perk_members_name: Max Members
+    perk_members_desc: Increases the maximum player capacity of your guild.
+    perk_claims_name: Extended Territory
+    perk_claims_desc: Increases the maximum number of claimable chunks.
+    perk_jobs_name: Jobs Bonus
+    perk_jobs_desc: Experience multiplier for all member jobs.
+    perk_ah_name: AH Fee Reduction
+    perk_ah_desc: Reduces the Auction House sale tax for all guild members.
+    perk_quests_name: Coop Quests Bonus
+    perk_quests_desc: Points multiplier for weekly cooperative guild quests.
+    perk_home_name: Guild Home
+    perk_home_desc: Unlocks /team sethome and /team home with reduced cooldown per level.
+    perk_territory_name: Territory Aura
+    perk_territory_desc: Passive potion buffs for members while inside guild claims.
+    perk_interest_name: Bank Interest
+    perk_interest_desc: Generates automatic daily dividends on the guild bank balance.
+    perk_spawner_name: Spawner Efficiency
+    perk_spawner_desc: Increases spawner speed within claimed guild territory.
+    perk_vault_name: Guild Vault
+    perk_vault_desc: Unlocks a shared secure storage chest for all guild members (/team vault).
+    level_label: "Level {{current}} / {{max}}"
+    level_max: MAX LEVEL
+    buy_perk_btn: Buy Next Level
+    cost_label_money: "Cost: {{cost}} $ (bank)"
+    cost_label_xp: "Cost: {{cost}} XP Levels (bank)"
+    members_title: Guild Members
+    promote_btn: Promote Admin
+    demote_btn: Demote
+    kick_btn: Kick
+  perks:
+    title: Solo Quest Perks
+    subtitle: Complete quests to unlock permanent advantages and exclusive masteries
+    quests_completed: "Completed quests:"
+    quests_count: "{{count}} quests"
+    unlocked_count: "{{unlocked}} / {{total}} unlocked"
+    free_section_title: Free Quest Milestones
+    free_section_desc: Rewards unlocked automatically once you reach the required completed quest milestone
+    major_section_title: Major Solo Masteries
+    major_section_desc: Unlock powerful masteries with your quest progress and pay with dollars or XP levels
+    claim_btn: Claim this perk
+    claimed_badge: Unlocked
+    locked_badge: Locked
+    active_badge: Active
+    inactive_badge: Disabled
+    toggle_on: Enable
+    toggle_off: Disable
+    req_quests: "{{count}} quests required"
+    req_more_quests: "{{count}} more quests needed"
+    cost_money: "Cost: {{cost}} $"
+    cost_xp: "Cost: {{cost}} XP Levels"
+    buy_perk_btn: Unlock mastery
+    not_enough_funds: Insufficient funds
+    not_enough_xp: Insufficient XP levels
+    unlock_success: "Perk {{name}} successfully unlocked!"
+    toggle_success: "Status of {{name}} updated!"
   public:
     admin_access: Administrator Access
     ah:
@@ -226,10 +311,8 @@ web:
             items to other players via the Auction House (<code>/ah</code>).
           title: Economy & Dynamic Shop
         guilds:
-          desc: Create your own Guild (<code>/team</code>) and invite your friends.
-            Together, participate in the weekly quest to earn exclusive rewards and
-            climb to the top of the global leaderboard!
-          title: Guilds & Weekly Quests
+          desc: Found your Guild (<code>/team</code>), recruit members and appoint <strong>Admins</strong> to co-manage your faction. Claim your territories (<strong>Claims</strong>) with comprehensive anti-grief protection (blocks, containers, pistons, entities) and custom on-screen boundary titles. Enjoy a shared treasury ($ / XP), live BlueMap rendering with custom colors, and purchase <strong>guild upgrades</strong> (member slots, claim expansion, jobs boost, AH tax reduction) in-game or directly from the web portal!
+          title: Guilds, Territories & Treasury
         jobs:
           desc: Progress in your jobs (<code>/jobs</code>) to become the best craftsman
             on the server. Plus, you have the ability to retrieve <strong>Spawners</strong>
@@ -354,8 +437,8 @@ web:
       qty_available: "Available:"
       slots_used: "slots used"
       slots_full: "Deposit inventory full"
-      sell_partial: "Sell {qty} unit(s)"
-      withdraw_partial: "Retrieve {qty} unit(s) in-game"
+      sell_partial: "Sell {{qty}} unit(s)"
+      withdraw_partial: "Retrieve {{qty}} unit(s) in-game"
     stats:
       balance: Bank Balance
       best_team: Best Guild

@@ -200,38 +200,51 @@ public class WebPlayerAPI implements Listener {
 
         get("/api/head/{name}", ctx -> {
             String name = ctx.pathParam("name");
-            UUID uuid = webDAO.getPlayerUuidByUsername(name);
-            
-            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
-            if (skinModule != null) {
-                ctx.redirect(skinModule.getHeadUrl(uuid, name));
+            String cleanName = name.startsWith(".") ? name.substring(1) : name;
+            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            if (hash != null && !hash.isEmpty()) {
+                ctx.redirect("https://mc-heads.net/avatar/" + hash);
                 return;
             }
-            
-            String cleanName = name.startsWith(".") ? name.substring(1) : name;
-            ctx.redirect("https://crafthead.net/avatar/" + cleanName);
+            UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            if (uuid == null) {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(cleanName);
+                if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+            }
+            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            if (skinModule != null) {
+                String baseUrl = skinModule.getHeadUrl(uuid, name);
+                if (baseUrl.contains("mc-heads.net")) {
+                    ctx.redirect(baseUrl);
+                    return;
+                }
+            }
+            ctx.redirect("https://mc-heads.net/avatar/" + cleanName);
         });
 
         get("/api/head/{name}/{size}", ctx -> {
             String name = ctx.pathParam("name");
             String size = ctx.pathParam("size");
-            UUID uuid = webDAO.getPlayerUuidByUsername(name);
-            
-            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
             String cleanName = name.startsWith(".") ? name.substring(1) : name;
-            if (skinModule != null) {
-                String baseUrl = skinModule.getHeadUrl(uuid, name);
-                // Si l'URL contient mc-heads.net, on gère la taille avec le paramètre de taille
-                if (baseUrl.contains("mc-heads.net")) {
-                    ctx.redirect(baseUrl.replace(".png", "") + "/" + size);
-                } else {
-                    // Pour crafthead, il faut insérer la taille et utiliser le pseudo car c'est un serveur crack
-                    ctx.redirect("https://crafthead.net/avatar/" + cleanName + "/" + size);
-                }
+            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            if (hash != null && !hash.isEmpty()) {
+                ctx.redirect("https://mc-heads.net/avatar/" + hash + "/" + size);
                 return;
             }
-            
-            ctx.redirect("https://crafthead.net/avatar/" + cleanName + "/" + size);
+            UUID uuid = webDAO.getPlayerUuidByUsername(name);
+            if (uuid == null) {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(cleanName);
+                if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+            }
+            fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
+            if (skinModule != null) {
+                String baseUrl = skinModule.getHeadUrl(uuid, name);
+                if (baseUrl.contains("mc-heads.net")) {
+                    ctx.redirect(baseUrl.replace(".png", "") + "/" + size);
+                    return;
+                }
+            }
+            ctx.redirect("https://mc-heads.net/avatar/" + cleanName + "/" + size);
         });
 
         get("/api/player/balance", ctx -> {
@@ -312,6 +325,9 @@ public class WebPlayerAPI implements Listener {
             long oneDay = 86400000L;
             long todayStart = (System.currentTimeMillis() / oneDay) * oneDay;
             stats.put("questsActivity", webDAO.getQuestsActivity(uuidStr, todayStart, oneDay));
+
+            // Client Version (ViaVersion / Native / Bedrock)
+            stats.put("clientVersion", fr.gens.core.utils.ViaVersionUtil.getPlayerVersionName(UUID.fromString(uuidStr)));
 
             ctx.json(stats);
         });
@@ -518,6 +534,579 @@ public class WebPlayerAPI implements Listener {
 
             ctx.json(Map.of("success", true, "message", rewardMessage, "prizeIndex", wonIndex));
         });
+
+        // --- GUILD / TEAM REST ENDPOINTS ---
+
+        get("/api/player/team", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.json(Map.of("hasTeam", false));
+                return;
+            }
+
+            fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+            boolean ecoEnabled = (ecoMod != null && ecoMod.isEnabled());
+
+            fr.gens.core.modules.teams.TeamClaimManager claimMgr = plugin.getTeamManager().getClaimManager();
+            int currentClaims = claimMgr != null ? claimMgr.getClaimsCount(team.getTeamId()) : 0;
+
+            List<Map<String, Object>> membersList = new ArrayList<>();
+            for (UUID mUuid : team.getMembers()) {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(mUuid);
+                String name = op.getName() != null ? op.getName() : webDAO.getPlayerUsernameByUuid(mUuid);
+                if (name == null) name = "Inconnu";
+                boolean isLeader = team.getLeaderUuid().equals(mUuid);
+                boolean isAdm = team.isAdmin(mUuid);
+                membersList.add(Map.of(
+                    "uuid", mUuid.toString(),
+                    "username", name,
+                    "isLeader", isLeader,
+                    "isAdmin", isAdm,
+                    "role", team.getRoleName(mUuid)
+                ));
+            }
+
+            Map<String, Object> teamInfo = new HashMap<>();
+            teamInfo.put("hasTeam", true);
+            teamInfo.put("teamId", team.getTeamId());
+            teamInfo.put("name", team.getName());
+            teamInfo.put("leaderUuid", team.getLeaderUuid().toString());
+            teamInfo.put("isLeader", team.getLeaderUuid().equals(playerUuid));
+            teamInfo.put("isAdmin", team.isAdmin(playerUuid));
+            teamInfo.put("canManage", team.isAdminOrLeader(playerUuid));
+            teamInfo.put("bankBalance", team.getBankBalance());
+            teamInfo.put("bankXp", team.getBankXp());
+            teamInfo.put("color", team.getColor());
+            teamInfo.put("isEconomyEnabled", ecoEnabled);
+            teamInfo.put("currentClaims", currentClaims);
+            teamInfo.put("maxClaims", team.getMaxClaims());
+            teamInfo.put("maxMembers", team.getMaxMembers());
+            teamInfo.put("jobsXpMultiplier", team.getJobsXpMultiplier());
+            teamInfo.put("ahTaxReduction", team.getAhTaxReduction());
+            teamInfo.put("questPointsMultiplier", team.getQuestPointsMultiplier());
+            teamInfo.put("upgrades", team.getUpgrades());
+            teamInfo.put("members", membersList);
+
+            ctx.json(teamInfo);
+        });
+
+        post("/api/player/team/deposit", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            TeamDepositRequest req = ctx.bodyAsClass(TeamDepositRequest.class);
+            fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+            boolean ecoEnabled = (ecoMod != null && ecoMod.isEnabled());
+
+            if ("xp".equalsIgnoreCase(req.type)) {
+                int levels = (int) Math.floor(req.amount);
+                if (levels <= 0) {
+                    ctx.status(400).json(Map.of("error", "Montant d'XP invalide."));
+                    return;
+                }
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP == null || !onlineP.isOnline()) {
+                    ctx.status(400).json(Map.of("error", "Vous devez etre connecte en jeu pour deposer vos niveaux d'XP."));
+                    return;
+                }
+                if (onlineP.getLevel() < levels) {
+                    ctx.status(400).json(Map.of("error", "Niveau d'XP insuffisant (actuel : " + onlineP.getLevel() + ")."));
+                    return;
+                }
+                plugin.getFoliaLib().getScheduler().runAtEntity(onlineP, task -> {
+                    if (onlineP.getLevel() >= levels) {
+                        onlineP.setLevel(onlineP.getLevel() - levels);
+                        team.addBankXp(levels);
+                        plugin.getTeamManager().saveBankAsync(team);
+                        onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez depose <yellow>" + levels + " niveaux d'XP<green> dans la banque de guilde."));
+                    }
+                });
+                ctx.json(Map.of("success", true, "bankXp", team.getBankXp() + levels));
+                return;
+            } else {
+                if (!ecoEnabled) {
+                    ctx.status(400).json(Map.of("error", "L'economie est desactivee sur ce serveur. Utilisez l'XP."));
+                    return;
+                }
+                double amount = req.amount;
+                if (amount <= 0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
+                    ctx.status(400).json(Map.of("error", "Montant d'argent invalide."));
+                    return;
+                }
+                if (ecoMod.getBalance(playerUuid) < amount) {
+                    ctx.status(400).json(Map.of("error", "Solde personnel insuffisant."));
+                    return;
+                }
+                ecoMod.takeMoney(playerUuid, amount);
+                team.addBankBalance(amount);
+                plugin.getTeamManager().saveBankAsync(team);
+
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP != null && onlineP.isOnline()) {
+                    onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez depose <gold>" + String.format("%.2f", amount) + " $<green> dans la banque de guilde."));
+                }
+                ctx.json(Map.of("success", true, "bankBalance", team.getBankBalance()));
+                return;
+            }
+        });
+
+        post("/api/player/team/withdraw", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.isAdminOrLeader(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seuls le chef et les administrateurs de guilde peuvent retirer des fonds de la banque."));
+                return;
+            }
+
+            TeamDepositRequest req = ctx.bodyAsClass(TeamDepositRequest.class);
+            fr.gens.core.modules.EconomyModule ecoMod = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+            boolean ecoEnabled = (ecoMod != null && ecoMod.isEnabled());
+
+            if ("xp".equalsIgnoreCase(req.type)) {
+                int levels = (int) Math.floor(req.amount);
+                if (levels <= 0) {
+                    ctx.status(400).json(Map.of("error", "Montant d'XP invalide."));
+                    return;
+                }
+                if (team.getBankXp() < levels) {
+                    ctx.status(400).json(Map.of("error", "Solde XP de la banque insuffisant."));
+                    return;
+                }
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP == null || !onlineP.isOnline()) {
+                    ctx.status(400).json(Map.of("error", "Vous devez etre connecte en jeu pour recevoir vos niveaux d'XP."));
+                    return;
+                }
+                boolean withdrawn = team.withdrawBankXp(levels);
+                if (!withdrawn) {
+                    ctx.status(400).json(Map.of("error", "Echec du retrait d'XP."));
+                    return;
+                }
+                plugin.getFoliaLib().getScheduler().runAtEntity(onlineP, task -> {
+                    onlineP.setLevel(onlineP.getLevel() + levels);
+                    onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez retire <yellow>" + levels + " niveaux d'XP<green> de la banque de guilde."));
+                });
+                plugin.getTeamManager().saveBankAsync(team);
+                ctx.json(Map.of("success", true, "bankXp", team.getBankXp()));
+                return;
+            } else {
+                if (!ecoEnabled) {
+                    ctx.status(400).json(Map.of("error", "L'economie est desactivee sur ce serveur. Utilisez l'XP."));
+                    return;
+                }
+                double amount = req.amount;
+                if (amount <= 0 || Double.isNaN(amount) || Double.isInfinite(amount)) {
+                    ctx.status(400).json(Map.of("error", "Montant d'argent invalide."));
+                    return;
+                }
+                if (team.getBankBalance() < amount) {
+                    ctx.status(400).json(Map.of("error", "Solde d'argent de la banque insuffisant."));
+                    return;
+                }
+                boolean withdrawn = team.withdrawBankBalance(amount);
+                if (!withdrawn) {
+                    ctx.status(400).json(Map.of("error", "Echec du retrait."));
+                    return;
+                }
+                ecoMod.addMoney(playerUuid, amount);
+                plugin.getTeamManager().saveBankAsync(team);
+
+                Player onlineP = Bukkit.getPlayer(playerUuid);
+                if (onlineP != null && onlineP.isOnline()) {
+                    onlineP.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>[Guilde] Vous avez retire <gold>" + String.format("%.2f", amount) + " $<green> de la banque de guilde."));
+                }
+                ctx.json(Map.of("success", true, "bankBalance", team.getBankBalance()));
+                return;
+            }
+        });
+
+        post("/api/player/team/upgrade", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.isAdminOrLeader(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seuls le chef et les administrateurs de guilde peuvent acheter des ameliorations."));
+                return;
+            }
+
+            TeamUpgradeRequest req = ctx.bodyAsClass(TeamUpgradeRequest.class);
+            if (req.perkId == null || req.perkId.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Identifiant d'amelioration manquant."));
+                return;
+            }
+
+            boolean success = plugin.getTeamManager().buyPerk(team, req.perkId);
+            if (success) {
+                ctx.json(Map.of(
+                    "success", true,
+                    "perkId", req.perkId.toUpperCase(),
+                    "newLevel", team.getUpgradeLevel(req.perkId),
+                    "bankBalance", team.getBankBalance(),
+                    "bankXp", team.getBankXp()
+                ));
+            } else {
+                ctx.status(400).json(Map.of("error", "Fonds insuffisants dans la banque de guilde ou niveau maximum deja atteint."));
+            }
+        });
+
+        post("/api/player/team/color", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.isAdminOrLeader(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seuls le chef et les administrateurs de guilde peuvent modifier la couleur de la guilde."));
+                return;
+            }
+
+            TeamColorRequest req = ctx.bodyAsClass(TeamColorRequest.class);
+            if (req.color == null || !req.color.matches("^#([A-Fa-f0-9]{6})$")) {
+                ctx.status(400).json(Map.of("error", "Format de couleur invalide (attendu : #RRGGBB)."));
+                return;
+            }
+
+            team.setColor(req.color);
+            plugin.getTeamManager().saveColorAsync(team);
+
+            fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+            if (bm != null) {
+                bm.updateAllTeamTerritories();
+            }
+
+            ctx.json(Map.of("success", true, "color", team.getColor()));
+        });
+
+        post("/api/player/team/promote", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.isLeader(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seul le chef de guilde peut nommer des administrateurs."));
+                return;
+            }
+
+            TeamMemberActionRequest req = ctx.bodyAsClass(TeamMemberActionRequest.class);
+            if (req.uuid == null) {
+                ctx.status(400).json(Map.of("error", "UUID du joueur manquant."));
+                return;
+            }
+
+            UUID targetUuid;
+            try {
+                targetUuid = UUID.fromString(req.uuid);
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "UUID invalide."));
+                return;
+            }
+
+            if (!team.getMembers().contains(targetUuid)) {
+                ctx.status(400).json(Map.of("error", "Ce joueur ne fait pas partie de votre guilde."));
+                return;
+            }
+
+            if (team.isLeader(targetUuid)) {
+                ctx.status(400).json(Map.of("error", "Le chef de guilde ne peut pas etre nomme administrateur."));
+                return;
+            }
+
+            if (team.isAdmin(targetUuid)) {
+                ctx.status(400).json(Map.of("error", "Ce membre est deja administrateur de la guilde."));
+                return;
+            }
+
+            plugin.getTeamManager().promoteAdmin(team, targetUuid);
+
+            org.bukkit.OfflinePlayer targetOp = Bukkit.getOfflinePlayer(targetUuid);
+            String targetName = targetOp.getName() != null ? targetOp.getName() : "Un membre";
+            org.bukkit.OfflinePlayer leaderOp = Bukkit.getOfflinePlayer(playerUuid);
+            String leaderName = leaderOp.getName() != null ? leaderOp.getName() : "Le chef";
+            team.broadcast("<gold><bold>" + targetName + "</bold> a ete promu <aqua>Administrateur</aqua> de la guilde par <yellow>" + leaderName + "</yellow> !");
+
+            Player targetPlayer = Bukkit.getPlayer(targetUuid);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                targetPlayer.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green><bold>Felicitation !</bold> Vous etes desormais Administrateur de la guilde.</green>"));
+            }
+
+            ctx.json(Map.of("success", true));
+        });
+
+        post("/api/player/team/demote", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            if (!team.isLeader(playerUuid)) {
+                ctx.status(403).json(Map.of("error", "Seul le chef de guilde peut retrograder des administrateurs."));
+                return;
+            }
+
+            TeamMemberActionRequest req = ctx.bodyAsClass(TeamMemberActionRequest.class);
+            if (req.uuid == null) {
+                ctx.status(400).json(Map.of("error", "UUID du joueur manquant."));
+                return;
+            }
+
+            UUID targetUuid;
+            try {
+                targetUuid = UUID.fromString(req.uuid);
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "UUID invalide."));
+                return;
+            }
+
+            if (!team.getMembers().contains(targetUuid)) {
+                ctx.status(400).json(Map.of("error", "Ce joueur ne fait pas partie de votre guilde."));
+                return;
+            }
+
+            if (!team.isAdmin(targetUuid)) {
+                ctx.status(400).json(Map.of("error", "Ce joueur n'est pas administrateur de la guilde."));
+                return;
+            }
+
+            plugin.getTeamManager().demoteAdmin(team, targetUuid);
+
+            org.bukkit.OfflinePlayer targetOp = Bukkit.getOfflinePlayer(targetUuid);
+            String targetName = targetOp.getName() != null ? targetOp.getName() : "Un membre";
+            org.bukkit.OfflinePlayer leaderOp = Bukkit.getOfflinePlayer(playerUuid);
+            String leaderName = leaderOp.getName() != null ? leaderOp.getName() : "Le chef";
+            team.broadcast("<yellow><bold>" + targetName + "</bold> a ete retrograde au rang de <white>Membre</white> par <gold>" + leaderName + "</gold>.");
+
+            Player targetPlayer = Bukkit.getPlayer(targetUuid);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                targetPlayer.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>Vous n'etes plus administrateur de la guilde.</yellow>"));
+            }
+
+            ctx.json(Map.of("success", true));
+        });
+
+        post("/api/player/team/kick", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            UUID playerUuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            if (team == null) {
+                ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
+                return;
+            }
+
+            TeamMemberActionRequest req = ctx.bodyAsClass(TeamMemberActionRequest.class);
+            if (req.uuid == null) {
+                ctx.status(400).json(Map.of("error", "UUID du joueur manquant."));
+                return;
+            }
+
+            UUID targetUuid;
+            try {
+                targetUuid = UUID.fromString(req.uuid);
+            } catch (Exception e) {
+                ctx.status(400).json(Map.of("error", "UUID invalide."));
+                return;
+            }
+
+            if (!team.getMembers().contains(targetUuid)) {
+                ctx.status(400).json(Map.of("error", "Ce joueur ne fait pas partie de votre guilde."));
+                return;
+            }
+
+            if (team.isLeader(targetUuid)) {
+                ctx.status(403).json(Map.of("error", "Vous ne pouvez pas exclure le chef de guilde."));
+                return;
+            }
+
+            if (!team.canManageMembers(playerUuid, targetUuid)) {
+                ctx.status(403).json(Map.of("error", "Vous n'avez pas la permission d'exclure ce membre."));
+                return;
+            }
+
+            org.bukkit.OfflinePlayer targetOp = Bukkit.getOfflinePlayer(targetUuid);
+            String targetName = targetOp.getName() != null ? targetOp.getName() : "Un membre";
+            org.bukkit.OfflinePlayer kickerOp = Bukkit.getOfflinePlayer(playerUuid);
+            String kickerName = kickerOp.getName() != null ? kickerOp.getName() : "Un responsable";
+
+            plugin.getTeamManager().removeMember(team, targetUuid);
+
+            team.broadcast("<red><bold>" + targetName + "</bold> a ete exclu de la guilde par <yellow>" + kickerName + "</yellow>.");
+
+            Player targetPlayer = Bukkit.getPlayer(targetUuid);
+            if (targetPlayer != null && targetPlayer.isOnline()) {
+                targetPlayer.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez ete exclu de la guilde " + team.getName() + ".</red>"));
+            }
+
+            ctx.json(Map.of("success", true));
+        });
+
+        // --- SOLO PERKS REST ENDPOINTS ---
+
+        get("/api/player/perks", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+            if (mod == null || !mod.isEnabled()) {
+                ctx.json(Map.of("enabled", false));
+                return;
+            }
+
+            UUID uuid = UUID.fromString(uuidStr);
+            Map<String, Object> data = mod.getManager().getPlayerDataForWeb(uuid);
+            data.put("enabled", true);
+            ctx.json(data);
+        });
+
+        post("/api/player/perks/claim", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+            if (mod == null || !mod.isEnabled()) {
+                ctx.status(400).json(Map.of("error", "Le module de bonus individuels est desactive."));
+                return;
+            }
+
+            PerkClaimRequest req = ctx.bodyAsClass(PerkClaimRequest.class);
+            if (req.perkId == null || req.perkId.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Identifiant de bonus manquant."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkType perk = fr.gens.core.modules.perks.SoloPerkType.fromId(req.perkId);
+            if (perk == null) {
+                ctx.status(400).json(Map.of("error", "Bonus introuvable."));
+                return;
+            }
+
+            UUID uuid = UUID.fromString(uuidStr);
+            fr.gens.core.modules.perks.SoloPerkManager.UnlockResult res = mod.getManager().unlockPerk(uuid, perk);
+            switch (res) {
+                case SUCCESS -> ctx.json(Map.of("success", true, "perkId", perk.getId()));
+                case ALREADY_UNLOCKED -> ctx.status(400).json(Map.of("error", "Vous possedez deja ce bonus."));
+                case NOT_ENOUGH_QUESTS -> ctx.status(400).json(Map.of("error", "Nombre de quetes insuffisant (" + perk.getRequiredQuests() + " requises)."));
+                case NOT_ENOUGH_FUNDS -> ctx.status(400).json(Map.of("error", "Fonds insuffisants."));
+                case NOT_ENOUGH_XP -> ctx.status(400).json(Map.of("error", "Niveaux d'experience insuffisants."));
+                default -> ctx.status(400).json(Map.of("error", "Une erreur est survenue lors du deblocage."));
+            }
+        });
+
+        post("/api/player/perks/toggle", ctx -> {
+            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            if (uuidStr == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkModule mod = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+            if (mod == null || !mod.isEnabled()) {
+                ctx.status(400).json(Map.of("error", "Le module de bonus individuels est desactive."));
+                return;
+            }
+
+            PerkClaimRequest req = ctx.bodyAsClass(PerkClaimRequest.class);
+            if (req.perkId == null || req.perkId.trim().isEmpty()) {
+                ctx.status(400).json(Map.of("error", "Identifiant de bonus manquant."));
+                return;
+            }
+
+            fr.gens.core.modules.perks.SoloPerkType perk = fr.gens.core.modules.perks.SoloPerkType.fromId(req.perkId);
+            if (perk == null || !perk.isToggleable()) {
+                ctx.status(400).json(Map.of("error", "Ce bonus n'est pas activable/desactivable."));
+                return;
+            }
+
+            UUID uuid = UUID.fromString(uuidStr);
+            if (!mod.getManager().hasPerk(uuid, perk)) {
+                ctx.status(400).json(Map.of("error", "Vous ne possedez pas ce bonus."));
+                return;
+            }
+
+            boolean newState = mod.getManager().togglePerk(uuid, perk);
+            ctx.json(Map.of("success", true, "perkId", perk.getId(), "isEnabled", newState));
+        });
+
+        get("/api/public/claims", ctx -> {
+            fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+            if (bm != null) {
+                ctx.json(bm.getClaimsMapData());
+            } else {
+                ctx.json(List.of());
+            }
+        });
     }
 
     private List<WheelReward> getActiveWheelRewards() {
@@ -599,6 +1188,32 @@ public class WebPlayerAPI implements Listener {
                 e.printStackTrace();
             }
         });
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TeamDepositRequest {
+        public double amount;
+        public String type; // "money" or "xp"
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TeamUpgradeRequest {
+        public String perkId;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TeamColorRequest {
+        public String color;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TeamMemberActionRequest {
+        public String uuid;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
+    public static class PerkClaimRequest {
+        public String perkId;
     }
 }
 

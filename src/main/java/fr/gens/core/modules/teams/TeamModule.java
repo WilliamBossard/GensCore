@@ -1,7 +1,9 @@
 package fr.gens.core.modules.teams;
 
 import fr.gens.core.CorePlugin;
+import fr.gens.core.database.TeamDAO;
 import fr.gens.core.modules.Module;
+import fr.gens.core.utils.DatabaseManager;
 import org.bukkit.Bukkit;
 
 
@@ -12,7 +14,9 @@ public class TeamModule implements Module {
     private TeamCommand teamCommand;
     private boolean enabled;
     
-    private fr.gens.core.database.TeamDAO teamDAO;
+    private TeamDAO teamDAO;
+
+    private TeamClaimListener teamClaimListener;
 
     public TeamModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -27,7 +31,7 @@ public class TeamModule implements Module {
     @Override
     public boolean isEnabled() { return enabled; }
 
-    public fr.gens.core.database.TeamDAO getTeamDAO() {
+    public TeamDAO getTeamDAO() {
         return teamDAO;
     }
 
@@ -36,7 +40,7 @@ public class TeamModule implements Module {
     }
 
     @Override
-    public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
+    public void initDatabase(DatabaseManager dbManager) {
         dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_teams (team_id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(32) UNIQUE, leader_uuid VARCHAR(36));");
         dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_team_stats (team_id INTEGER PRIMARY KEY, weekly_points INTEGER DEFAULT 0, total_points INTEGER DEFAULT 0, FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE);");
         dbManager.executeStatement("CREATE TABLE IF NOT EXISTS genscore_team_quests (team_id INTEGER PRIMARY KEY, quest_id TEXT, progress INTEGER DEFAULT 0, FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE);");
@@ -55,6 +59,28 @@ public class TeamModule implements Module {
 
         teamCommand = new TeamCommand(plugin, teamGui, this);
         Bukkit.getPluginManager().registerEvents(teamListener, plugin);
+
+        teamClaimListener = new TeamClaimListener(plugin);
+        Bukkit.getPluginManager().registerEvents(teamClaimListener, plugin);
+
+        // Planificateur de l'interêt bancaire (vérifié toutes les heures)
+        plugin.getFoliaLib().getScheduler().runTimerAsync(t -> {
+            plugin.getTeamManager().tickBankInterest();
+        }, 20L * 60 * 60, 20L * 60 * 60); // toutes les heures (en ticks)
+
+        // Tâche périodique pour l'Aura Territoriale (toutes les 3 secondes)
+        plugin.getFoliaLib().getScheduler().runTimer(t -> {
+            if (!enabled || teamListener == null) return;
+            for (org.bukkit.entity.Player p : Bukkit.getOnlinePlayers()) {
+                if (p == null || !p.isOnline()) continue;
+                plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+                    if (p.isOnline()) {
+                        teamListener.updateTerritoryBuffsForPlayer(p, p.getLocation().getChunk());
+                    }
+                });
+            }
+        }, 60L, 60L);
+
         plugin.getLangManager().sendConsoleMessage("teammodule.log_1");
     }
 
@@ -70,6 +96,9 @@ public class TeamModule implements Module {
         enabled = false;
         if (teamListener != null) {
             org.bukkit.event.HandlerList.unregisterAll(teamListener);
+        }
+        if (teamClaimListener != null) {
+            org.bukkit.event.HandlerList.unregisterAll(teamClaimListener);
         }
         plugin.getLangManager().sendConsoleMessage("teammodule.log_2");
     }

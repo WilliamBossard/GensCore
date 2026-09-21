@@ -92,7 +92,7 @@ public class JobsModule implements Module, Listener {
         autoSaveTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> {
             if (dirtyPlayers.isEmpty()) return;
             java.util.Set<UUID> toSave = new java.util.HashSet<>(dirtyPlayers);
-            dirtyPlayers.clear();
+            dirtyPlayers.removeAll(toSave); // Fix: removeAll au lieu de clear() pour éviter la perte d'XP gagnée pendant la copie
             for (UUID uuid : toSave) {
                 savePlayer(uuid);
             }
@@ -189,6 +189,21 @@ public class JobsModule implements Module, Listener {
         if (!hasJob(player.getUniqueId(), type)) return;
         
         UUID uuid = player.getUniqueId();
+        
+        // Multiplicateur de guilde (Perk JOBS)
+        if (plugin.getTeamManager() != null) {
+            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
+            if (team != null) {
+                amount *= team.getJobsXpMultiplier();
+            }
+        }
+
+        // Multiplicateur individuel (Perk JOBS_XP de quete)
+        fr.gens.core.modules.perks.SoloPerkModule soloPerks = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+        if (soloPerks != null && soloPerks.isEnabled() && soloPerks.getManager().hasPerk(uuid, fr.gens.core.modules.perks.SoloPerkType.JOBS_XP)) {
+            amount *= 1.05;
+        }
+
         double currentXp = getXp(uuid, type);
         int currentLevel = getLevel(uuid, type);
         

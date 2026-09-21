@@ -6,7 +6,14 @@ import java.util.UUID;
 public class FloodgateUtil {
     
     public static boolean isFloodgateInstalled() {
-        return Bukkit.getPluginManager().isPluginEnabled("floodgate");
+        try {
+            if (Bukkit.getServer() == null || Bukkit.getPluginManager() == null) {
+                return false;
+            }
+            return Bukkit.getPluginManager().isPluginEnabled("floodgate");
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     public static boolean isBedrockPlayer(UUID uuid) {

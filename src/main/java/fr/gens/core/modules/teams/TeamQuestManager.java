@@ -125,11 +125,12 @@ public class TeamQuestManager {
         current += amount;
         if (current >= activeQuest.amount) {
             current = activeQuest.amount;
+            int awardedPoints = (int) Math.round(activeQuest.points * team.getQuestPointsMultiplier());
             team.broadcast("<green><bold> Votre guilde a terminé la Quête Hebdomadaire !");
-            team.broadcast("<yellow>+" + activeQuest.points + " Points de Guilde !");
+            team.broadcast("<yellow>+" + awardedPoints + " Points de Guilde !" + (awardedPoints > activeQuest.points ? " <gold>(Bonus Perk: +" + Math.round((team.getQuestPointsMultiplier() - 1.0) * 100) + "%)</gold>" : ""));
             
             // Ajouter les points
-            team.addPoints(activeQuest.points);
+            team.addPoints(awardedPoints);
             
             // Sauvegarder les points dans la DB
             plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {

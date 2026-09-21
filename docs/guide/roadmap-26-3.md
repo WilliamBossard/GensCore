@@ -3,10 +3,10 @@
 Follow real-time progress, newly deployed improvements, and the transition roadmap of **GensCore** towards **Minecraft 26.3** and **Java 25 LTS**.
 
 ::: info Project Status
-- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 16+)
+- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 26+)
 - **Runtime Environment:** Java 25 LTS
 - **Active Working Branch:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
-- **Stability:** Advanced functional Alpha in testing & staging
+- **Stability:** **Beta** — Stable feature set, production-ready for public testing
 :::
 
 ---
@@ -16,7 +16,7 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | Component | Status | Details |
 | :--- | :---: | :--- |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Compiled with `--release 25` flag and verified on Temurin JVM 25 |
-| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.16-alpha` |
+| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.28-alpha` |
 | **Craft Quests (Torches & Bulk Crafting)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Accurate shift-click batch size tracking and vanilla yield multiplier |
 | **Comprehensive Shop (319 Items & Potions)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | 7 balanced categories (25-35% margin), SQLite auto-seeding & GUI pagination |
 | **Web Minigames Remaster & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Slot machine RTP calibrated to 84%, 3D animated CoinFlip, real-time admin switches |
@@ -27,6 +27,9 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | **Banlist Synchronization** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Full bidirectional sync between SQLite and native `banned-players.json` |
 | **Bedrock Cross-Play (Geyser/Floodgate)** | <span style="color: #22c55e; font-weight: 700;">Hardened</span> | Catching `Throwable` across Cumulus forms & skin API against 26.3 linkage mismatches |
 | **Folia Regional Threading** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Eliminated `isPrimaryThread` exceptions, added async teleport callbacks & cross-region decay |
+| **Guilds & Territory Claims 2.0** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Comprehensive anti-grief, on-screen boundary titles, Admin roles, web portal, BlueMap |
+| **Upcoming Guild Upgrades** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Guild Home Warp, Anti-Abuse Territory Buffs, 24h Bank Interest, Spawner Boost, Shared Vault |
+| **Solo Quest Perks Module** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | 29th autonomous module (`solo_perks`), 11 perks (free milestones & major masteries), instant On/Off, GUI & Web sync |
 
 ---
 
@@ -50,6 +53,29 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 * **Identified Cause:** During `PaperCommandManager` initialization, the shaded Cloud Command Framework eagerly invoked reflection on Mojang NMS classes (`ItemStackParser$ModernParser`) looking for `asBukkitCopy` and `asCraftMirror` methods. Minecraft 26.3 internal refactorings caused this to throw `ExceptionInInitializerError`.
 * **Resolution:** Replaced `ItemStackParser` with a resilient implementation featuring safe fallback detection to `LegacyParser` (100% standard Bukkit API without any fragile NMS reflection). GensCore now starts instantaneously on Paper 26.3.
 
+### 5. Guilds, Territory Claims & Administrator Roles
+* **Hierarchy & Delegation:** Fully implemented the **Administrator (`ADMIN`)** role alongside the **Leader (`LEADER`)** and **Members (`MEMBER`)**. Admins can invite, kick regular members, claim/unclaim chunks, withdraw treasury funds, and purchase team upgrades.
+* **Territory Security & Anti-Grief:** Bulletproof protection across claimed chunks ($16 \times 16$). Prevents block breaking/placing, opening containers (chests, barrels, furnaces, hoppers, shulkers), redstone interactions (doors, buttons, levers), livestock/armor stand damage, and piston griefing across borders.
+* **On-Screen Boundary Alerts:** Sends an animated Title and Subtitle with sound effect to players when they enter or cross claimed guild borders.
+* **Full Web Portal Management:** Browser dashboard allowing leaders to promote/demote admins and kick members (with safety modal), manage shared funds ($ / XP), adjust live BlueMap hex colors, and purchase guild upgrades.
+* **Auto-Sync Web Panel Assets:** Automatic startup verification of newer web assets inside the JAR, seamlessly updating `plugins/GensCore/web/` without manual file deletion.
+
+### 6. Guild Perks Phase 2 Rollout, Direct Action Buttons & Anti-Abuse Shield
+* **5 Newly Rolled Out Permanent Upgrades:**
+  - **Guild Home Warp (`GUILD_HOME`):** Communal waypoint (`/team sethome` leader/admin only, `/team home` all members). Scaled cooldown and delay reduction (5s/15m tier 1, 3s/5m tier 2, instant inside claims and 1m cooldown tier 3).
+  - **Territory Buffs (`TERRITORY_BUFF`):** Passive potion effects radiating to members inside claimed territory (Regeneration I and slow Saturation, Speed I, Haste I).
+  - **Daily Bank Interest (`BANK_INTEREST`):** Passive interest dividends deposited into the guild treasury every 24 real-world hours (+1% and +2% daily, with strict inflation caps).
+  - **Spawner Efficiency Boost (`SPAWNER_EFFICIENCY`):** Accelerates custom smart spawner generation (`SpawnerManager.generateTick()`) by +15% to +30% inside guild claims.
+  - **Virtual Shared Vault (`GUILD_VAULT`):** Communal storage inventory (18, 36, or 54 slots) accessible via `/team vault` (or `/team coffre`, `/team chest`), direct `/team` action button, or the Player Web Portal.
+* **Anti-Abuse Territorial Protection:**
+  - 5-minute chunk stabilization anchor (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) required on newly claimed chunks before radiating potion buffs (with live ActionBar countdown), eliminating nomadic claim-and-mine abuse.
+  - 15-second presence synchronization required upon entering guild territory before receiving buffs.
+  - Instant removal of all potion effects when crossing out of guild territory.
+* **Direct Action Buttons & Bedrock Cross-Play:**
+  - Expanded `/team` GUI (54 slots) with direct action buttons: Slot 38 (Bed: Left-click for `/team home`, Right-click for `/team sethome`), Slot 40 (Vault), and Slot 42 (Bank).
+  - Native Bedrock Cumulus dialogs with buttons for Guild Home, Set Home, and Guild Vault.
+  - Right-click shortcuts in `/team upgrades` (Slot 19 for Home, Slot 23 for Vault).
+
 ---
 
 ## In-Progress Efforts
@@ -71,20 +97,43 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 
 ```mermaid
 flowchart LR
-    A[Paper 26.3 Alpha 8] --> B[Shop 319 Items & Quests]
-    B --> C[Stress Testing & dev Stabilization]
+    A[Paper 26.3 Alpha 16] --> B[Guilds & Claims 2.0]
+    B --> C[Guild Upgrades & Stress Testing]
     C --> D[Paper 26.3 Release Candidate]
     D --> E[Merge to main & v1.1.0 Release]
 ```
 
-1. **Phase 1 (Current):** Stabilization on the `dev` branch on Paper 26.3 Build 16-alpha with complete shop.
-2. **Phase 2:** High-concurrency stress testing (50+ simulated players with Spark profiling).
-3. **Phase 3:** Paper 26.3 Release Candidate (RC) release verification.
-4. **Phase 4:** Merge `dev` into `main` and publish the official GensCore v1.1.0 distribution.
+1. **Phase 1 (Completed):** Guilds 2.0 completed (Anti-grief claims, BlueMap, Admin roles, web portal).
+2. **Phase 2 (Completed):** Guild Upgrades Phase 2 rolled out (Home Warp, Anti-abuse territory buffs, 24h bank interest, spawners, shared vault, GUI action buttons).
+3. **Phase 3:** High-concurrency stress testing (50+ simulated players with Spark profiling).
+4. **Phase 4:** Paper 26.3 Release Candidate (RC) release verification.
+5. **Phase 5:** Merge `dev` into `main` and publish official GensCore v1.1.0 distribution.
 
 ---
 
 ## Recent Patch Notes
+
+### Patch 26.3-alpha.20 (September 19, 2026)
+- **Solo Quest Perks Module (SoloPerkModule):** 29th autonomous GensCore module (`solo_perks`), runtime toggleable in-game (`/module solo_perks <on|off>`) or through the admin web dashboard.
+- **Two-Tier Progression:**
+  - *Free Milestone Perks:* 6 advantages unlocked automatically or on click by reaching lifetime completed quest thresholds (5, 15, 30, 50, 75, 100 quests): Free Reroll, Extra Home, Celestial Stride, Jobs Wisdom, Instant Teleport, Endless Feast (/feed with 15-minute cooldown without VIP rank).
+  - *Major Solo Masteries:* 5 masteries requiring a quest milestone AND payment in dollars ($) or XP levels: Item Magnet, Double Harvest, Portable Workbench (/craft & /workbench), Auto-Smelt, Soul Preservation (50% XP saved on death).
+- **Instant On/Off Toggles:** Magnet (`/magnet`) and Auto-Smelt (`/autosmelt`) switchable at any time via commands, in-game `/perks` GUI, or the Web Portal.
+- **Player Web Portal (/dashboard/perks):** Dedicated page featuring global quest progress bar, quest counters, mastery purchase buttons, and live toggle switches backed by real-time SQLite synchronization.
+- **Zero Emojis:** Strictly textual, clean, and professional design without any emojis.
+
+### Patch 26.3-alpha.19 (September 19, 2026)
+- **Guild Perks Phase 2:** Deployed all 5 remaining permanent guild upgrades (`GUILD_HOME`, `TERRITORY_BUFF`, `BANK_INTEREST`, `SPAWNER_EFFICIENCY`, `GUILD_VAULT`).
+- **Territory Anti-Abuse Shield:** 5-minute chunk stabilization anchor (`CLAIM_ANCHOR_WARMUP_MS = 300_000L`) before radiating buffs with ActionBar countdown, 15-second presence synchronization on entry, and instant buff removal upon leaving.
+- **Direct Action Buttons & Bedrock Cross-Play:** 54-slot `/team` GUI with dedicated buttons at slot 38 (Home), slot 40 (Vault), and slot 42 (Bank), matching native Bedrock Cumulus dialog buttons and right-click shortcuts in `/team upgrades`.
+- **New Commands:** Registered `/team sethome`, `/team home`, `/team vault` (with aliases `/team coffre`, `/team chest`).
+
+### Patch 26.3-alpha.18 (September 18, 2026)
+- **Guild Roles & Hierarchy:** Added full `ADMIN` role in SQLite database (`genscore_team_members.role`), commands `/team promote`, `/team demote`, `/team kick`, `/team leave`, `/team disband` and in-game GUI interactions (left-click promote/demote, right-click kick).
+- **Bulletproof Claim Anti-Grief:** Complete chunk protection against block break/place, container access (chests, barrels, furnaces, shulkers, hoppers), redstone interactions, entity/livestock damage, and piston crossing.
+- **Boundary Screen Titles:** Player screen titles and sound effects displayed upon crossing into claimed territory.
+- **Expanded Guild Web Portal:** Real-time member cards with role badges, promotion/demotion, kick with confirmation modal, treasury management ($/XP), BlueMap color picker, and upgrade purchases.
+- **Web Asset Auto-Sync:** Compares JAR web assets on startup and auto-extracts updates into `plugins/GensCore/web/`.
 
 ### Patch 26.3-alpha.17 (September 18, 2026)
 - **Shop Anti-Arbitrage Guard:** Harmonized dynamic inflation exponent in `ShopItem` with `GLOBAL_INFLATION_EXPONENT` and implemented a strict 75% max sell-to-buy price cap, eliminating circular infinite currency arbitrage.
@@ -92,7 +141,33 @@ flowchart LR
 - **Economy Write-Behind Batching:** Replaced isolated asynchronous SQLite writes in `EconomyModule` with a batched *Write-Behind Cache* (`flushDirtyBalances()` every 10 seconds), preventing out-of-order database state regressions.
 - **Thread-Safe Loot Handling:** Synchronized player `YamlConfiguration` instances in `LootManager` to eliminate race conditions and corrupted files during concurrent async saves on Folia.
 - **Non-blocking Discord Shutdown:** Replaced rigid `Thread.sleep(1500)` in `DiscordModule` with `jda.awaitShutdown(Duration.ofMillis(1500))` and graceful fallback to `shutdownNow()`.
-- **Expanded Automated Test Suite:** Integrated JUnit 5 (`junit-jupiter:5.12.0`) and Maven Surefire, deploying a comprehensive test suite of 38 unit tests covering shop anti-arbitrage, economy number validation, Base64 item serialization, Bedrock form sanitization, crafting quest batch yield calculation, Web Casino Monte-Carlo simulation (84% RTP), BCrypt security authentication, and SQLite in-memory batching with a 100% pass rate (38/38 tests).
+### Release 26.3-beta.1 (September 21, 2026)
+- **Status: Alpha → Beta.** GensCore reaches Beta stability. All core modules are production-ready and have passed full auditing.
+- **Lootr Module — Full SQLite Migration:** Per-player instanced loot chests are now fully persisted in SQLite (`lootr_chests` & `lootr_player_chests` tables) via `LootDAO`. Automatic transparent migration of legacy `chests.yml` files on first startup.
+- **Folia Threading Hardening:** Console commands in `QuestModule`, `CustomGuiModule`, and `BlueMapModule` are now guaranteed to execute on the `GlobalRegionScheduler` via `runNextTick`, preventing cross-thread crashes on Folia.
+- **AuctionHouseModule Inventory Safety:** Item retrieval and hand-slot clearing now execute inside `runAtEntity` to prevent async inventory manipulation.
+- **TeamCommand Chunk Access Fix:** `/team claim` and `/team unclaim` now compute chunk coordinates via pure arithmetic (no `getChunk()` call), eliminating `IllegalStateException: Asynchronous chunk access` on Folia.
+- **JobsModule Race Condition Fix:** Replaced `dirtyPlayers.clear()` with `dirtyPlayers.removeAll(toSave)` in the XP auto-save task, preventing XP gain loss during concurrent saves.
+- **Test Suite Expanded:** 69 automated unit tests (up from 58) — 11 new tests covering `LootDAO` SQLite CRUD, UPSERT, cascade delete, and Base64 inventory round-trips.
+- **Code Quality:** Removed all unused imports (`ByteArrayInputStream`, `ByteArrayOutputStream`, `Base64` in `StorageManager`; `Collections` in `LootManager`).
+
+### Patch 26.3-alpha.28 (September 21, 2026)
+- **Paper API:** Upgraded to `26.3.build.28-alpha` (latest official release from PaperMC Maven repository).
+- **Automated Test Validation:** Full suite of 69 automated unit tests verified and passing at 100% with zero regressions.
+- **CI/CD Pipeline:** Aligned GitHub Actions release workflow target to Paper `26.3.build.28-alpha`.
+
+### Patch 26.3-alpha.26 (September 20, 2026)
+- **Paper API:** Upgraded to `26.3.build.26-alpha` (latest official PaperMC release).
+- **Dependency Upgrades:** Updated VaultAPI (`1.7.1`), Incendo Cloud Paper (`2.0.1`), Cloud Annotations (`2.1.0`), and Cloud Minecraft Extras (`2.0.1`).
+- **Quality Assurance & Testing:** Automated unit test suite (58 tests) passing at 100% and verified Shaded JAR packaging.
+- **CI/CD Pipeline:** GitHub Actions release workflow updated to target Paper `26.3.build.26-alpha`.
+
+### Patch 26.3-alpha.19 (September 19, 2026)
+- **Paper API:** Upgraded to `26.3.build.19-alpha` (latest official PaperMC release).
+- **Solo Quest Perks & Guild Upgrades:** Shipped 58 team upgrades and 11 solo perks with real-time quest progress tracking (animated progress bars, dual quest and dollar requirements, in-game GUI and WebPanel sync).
+- **Universal Player Head & Skin Handler (`HeadUtil`):** Native player head resolution for `/perks` and guild `/g` menus, persistent SQLite/RAM skin caching (`player_skins`), official Java paid accounts support, Bedrock (Floodgate/Geyser), and SkinsRestorer.
+- **Automated Test Suite Expansion:** Extended unit test suite to 58 tests verifying business logic, Base64 Mojang texture extraction, anti-grief protections, and persistence (100% pass rate).
+- **CI/CD Pipeline:** Updated GitHub Actions release workflow to target Paper `26.3.build.19-alpha` and require 58/58 passing unit tests prior to release packaging.
 
 ### Patch 26.3-alpha.16 (September 18, 2026)
 - **Paper API:** Upgraded to `26.3.build.16-alpha` (latest official PaperMC release).

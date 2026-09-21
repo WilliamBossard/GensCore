@@ -35,6 +35,11 @@ Access at: `http://<your-server-ip>:8080`
 
 - **Player Dashboard:** Login with in-game `/register` credentials.
 - **Live Stats:** Wallet balance, global job levels, blocks broken, mobs killed, deaths, and K/D ratio.
+- **Guild Management Tab (`/dashboard/team`):**
+  - **Shared Treasury Management:** View and deposit/withdraw dollars or XP levels directly from the web. When the Economy module is disabled, currency fields are automatically hidden and replaced by stored XP levels.
+  - **BlueMap Territory Controls:** View claimed chunks count, maximum limit, live territory link, and customize the team color on BlueMap via an interactive hex color picker.
+  - **Web Perks Shop:** Purchase any of the 5 guild upgrades directly from the browser. Purchases are strictly validated and debited from the guild bank.
+  - **Roster & Role Administration:** Inspect member cards with role badges (`★ Chef`, `♦ Admin`, `Membre`). Leaders can promote members to Admin or demote them in one click. Leaders and Admins can kick members directly from the browser with safety confirmation modals.
 - **7-Day Quest Activity:** Visual SVG graph tracking daily quest completion history.
 - **Transaction History:** Review your last 5 financial transactions.
 - **Head & Avatar Engine (`/api/head/{name}/{size}`):** Renders high-resolution 3D avatars for both Java and Bedrock players.

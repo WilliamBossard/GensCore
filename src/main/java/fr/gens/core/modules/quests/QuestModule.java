@@ -526,7 +526,10 @@ public class QuestModule implements Module, Listener {
                     } catch (NumberFormatException ignored) {}
                 }
             } else {
-                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                final String finalCmd = cmd;
+                plugin.getFoliaLib().getScheduler().runNextTick((gt) -> {
+                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
+                });
             }
         }
     }
@@ -686,14 +689,14 @@ public class QuestModule implements Module, Listener {
                         java.util.List<fr.gens.core.utils.BedrockFormManager.BedrockButton> detailBtns = new java.util.ArrayList<>();
                         if (!completed) {
                             detailBtns.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("§cRelancer la quête\n§r§8(Reroll)", org.bukkit.Material.ENDER_PEARL, p2 -> {
-                                int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
+                                int limit = getMaxRerolls(p2);
                                 PlayerQuestData p2Data = playerData.get(p2.getUniqueId());
                                 if (p2Data != null && p2Data.getRerollsDone() < limit) {
                                     rerollQuest(p2, category, questId, p2Data);
                                     p2.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>La quête a été remplacée !"));
                                     openQuestsMenu(p2);
                                 } else {
-                                    p2.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez plus de rerolls disponibles !"));
+                                    p2.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez plus de rerolls disponibles ! (" + limit + " max)"));
                                 }
                             }));
                         }
@@ -702,6 +705,13 @@ public class QuestModule implements Module, Listener {
                     }));
                 }
             }
+
+            buttons.add(new fr.gens.core.utils.BedrockFormManager.BedrockButton("Bonus & Maitrises\n(Arbre de Perks)", org.bukkit.Material.NETHER_STAR, player -> {
+                fr.gens.core.modules.perks.SoloPerkModule soloPerks = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+                if (soloPerks != null && soloPerks.isEnabled()) {
+                    soloPerks.getGui().openMenu(player);
+                }
+            }));
 
             fr.gens.core.utils.BedrockFormManager.openSimpleForm(p, "Quêtes Journalières", "Voici vos quêtes du jour :", buttons);
             return;
@@ -739,8 +749,8 @@ public class QuestModule implements Module, Listener {
         // Player Head Stats
         int completedTotal = data.getCompletedTotal();
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+        fr.gens.core.utils.HeadUtil.applyHeadProfile(head, p);
         SkullMeta sm = (SkullMeta) head.getItemMeta();
-        sm.setPlayerProfile(p.getPlayerProfile());
         sm.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<aqua>" + p.getName()));
         List<String> hl = new ArrayList<>();
         hl.add("<dark_aqua>Statut:");
@@ -803,7 +813,7 @@ public class QuestModule implements Module, Listener {
                     }
                     if (p.hasPermission("genscore.quests.reroll") && !completed) {
                         lore.add(" ");
-                        int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
+                        int limit = getMaxRerolls(p);
                         int used = data.getRerollsDone();
                         lore.add("<light_purple>» Clic Droit pour Reroll (" + used + "/" + limit + ")");
                     } else if (completed) {
@@ -827,8 +837,33 @@ public class QuestModule implements Module, Listener {
                 defaultSlot++;
             }
         }
+
+        // Bouton d'accès direct à l'arbre des bonus de quêtes (Slot 40)
+        ItemStack perkItem = new ItemStack(Material.NETHER_STAR);
+        ItemMeta pMeta = perkItem.getItemMeta();
+        if (pMeta != null) {
+            pMeta.displayName(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold><bold>Bonus & Maitrises de Quetes"));
+            List<String> pLore = new ArrayList<>();
+            pLore.add("<dark_gray>Progression & Bonus passifs");
+            pLore.add("<gray>Consultez vos bonus debloques");
+            pLore.add("<gray>grace a vos quetes accomplies !");
+            pLore.add("");
+            pLore.add("<yellow><bold>» Cliquez pour ouvrir l'arbre de perks</bold>");
+            pMeta.lore(pLore.stream().map(fr.gens.core.utils.PlaceholderUtils::parseToComponent).toList());
+            perkItem.setItemMeta(pMeta);
+        }
+        inv.setItem(40, perkItem);
         
         plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openInventory(inv));
+    }
+
+    public int getMaxRerolls(Player player) {
+        int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
+        fr.gens.core.modules.perks.SoloPerkModule perkModule = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+        if (perkModule != null && perkModule.isEnabled() && perkModule.getManager().hasPerk(player.getUniqueId(), fr.gens.core.modules.perks.SoloPerkType.FREE_REROLL)) {
+            limit += 1;
+        }
+        return limit;
     }
 
     public static class QuestGuiHolder implements org.bukkit.inventory.InventoryHolder {
@@ -858,15 +893,26 @@ public class QuestModule implements Module, Listener {
         if (!enabled) return;
         if (event.getInventory().getHolder() instanceof QuestGuiHolder holder) {
             Player p = (Player) event.getWhoClicked();
-            if (!p.getUniqueId().equals(holder.getOwnerUuid())) {
+            
+            // Sécurité cross-thread : seul le propriétaire peut interagir
+            if (!holder.getOwnerUuid().equals(p.getUniqueId())) {
                 event.setCancelled(true);
                 p.closeInventory();
                 return;
             }
-            if (event.getClickedInventory() == null) return;
-            if (!event.getClickedInventory().equals(event.getView().getTopInventory())) {
-                if (event.getAction() == org.bukkit.event.inventory.InventoryAction.MOVE_TO_OTHER_INVENTORY) {
-                    event.setCancelled(true);
+            
+            // Empêcher toute interaction avec les vitres décoratives
+            ItemStack currentItem = event.getCurrentItem();
+            if (currentItem != null && currentItem.getType() == Material.BLUE_STAINED_GLASS_PANE) {
+                event.setCancelled(true);
+                return;
+            }
+
+            if (currentItem != null && currentItem.getType() == Material.NETHER_STAR) {
+                event.setCancelled(true);
+                fr.gens.core.modules.perks.SoloPerkModule soloPerks = (fr.gens.core.modules.perks.SoloPerkModule) plugin.getModuleManager().getModule("solo_perks");
+                if (soloPerks != null && soloPerks.isEnabled()) {
+                    soloPerks.getGui().openMenu(p);
                 }
                 return;
             }
@@ -893,7 +939,7 @@ public class QuestModule implements Module, Listener {
                             if (data.isCompleted(category, questId)) return;
                             
                             // Check limit
-                            int limit = plugin.getConfigManager().getConfig("modules/quests.yml").getInt("quests.max_rerolls_per_day", 3);
+                            int limit = getMaxRerolls(p);
                             int used = data.getRerollsDone();
                             if (used >= limit) {
                                 p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous avez atteint la limite de " + limit + " rerolls pour aujourd'hui !"));

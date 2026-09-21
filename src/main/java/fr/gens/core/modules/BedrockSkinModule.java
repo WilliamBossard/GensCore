@@ -242,11 +242,11 @@ public class BedrockSkinModule implements Module, Listener {
         if (name != null && !name.isEmpty()) {
             // Corriger le pseudo si c'est un joueur Bedrock pour ne pas envoyer le prefixe floodgate
             String cleanName = name.startsWith(".") ? name.substring(1) : name;
-            return "https://crafthead.net/helm/" + cleanName + ".png";
+            return "https://mc-heads.net/avatar/" + cleanName + ".png";
         } else if (uuid != null) {
-            return "https://crafthead.net/helm/" + uuid.toString() + ".png";
+            return "https://mc-heads.net/avatar/" + uuid.toString() + ".png";
         }
-        return "https://crafthead.net/helm/Steve.png";
+        return "https://mc-heads.net/avatar/Steve.png";
     }
 
     /**

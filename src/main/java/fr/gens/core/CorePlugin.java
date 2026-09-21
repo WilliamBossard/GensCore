@@ -64,6 +64,8 @@ public class CorePlugin extends JavaPlugin {
 
         this.storageManager = new StorageManager(this);
         this.databaseManager = new DatabaseManager(this);
+        fr.gens.core.utils.HeadUtil.init(this);
+        fr.gens.core.utils.ViaVersionUtil.init(this);
         this.actionBarManager = new ActionBarManager(this);
         this.actionBarManager.start();
         
@@ -82,6 +84,12 @@ public class CorePlugin extends JavaPlugin {
         // 3. Initialiser les managers dependants des modules (comme TeamManager)
         this.teamManager = new TeamManager(this);
         this.teamQuestManager = new TeamQuestManager(this);
+
+        // Synchroniser BlueMap des que TeamManager et ses claims sont en memoire
+        fr.gens.core.modules.BlueMapModule bmm = (fr.gens.core.modules.BlueMapModule) this.moduleManager.getModule("bluemap");
+        if (bmm != null && bmm.isEnabled()) {
+            bmm.updateAllTeamTerritories();
+        }
         
         // Demande à chaque module d'enregistrer ses commandes
         for (fr.gens.core.modules.Module module : this.moduleManager.getModules()) {
@@ -101,6 +109,11 @@ public class CorePlugin extends JavaPlugin {
             this.webManager.start();
         } else {
             getLangManager().sendConsoleMessage("core.web_disabled");
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new fr.gens.core.utils.GensCoreExpansion(this).register();
+            getLogger().info("[PlaceholderAPI] GensCoreExpansion enregistree avec succes.");
         }
 
         // 4. Lancer les rappels automatiques (Discord et Guilde)
@@ -154,6 +167,7 @@ public class CorePlugin extends JavaPlugin {
         if (this.moduleManager != null) {
             this.moduleManager.disableAllModules();
         }
+        fr.gens.core.utils.HeadUtil.shutdown();
         if (this.databaseManager != null) {
             this.databaseManager.close();
         }

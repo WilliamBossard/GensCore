@@ -66,7 +66,53 @@ public class TeamDAO {
                     "item_data TEXT" +
                     ");");
             stmt.execute("CREATE INDEX IF NOT EXISTS idx_genscore_pending_rewards_uuid ON genscore_pending_rewards(uuid);");
-                    
+
+            // Migration des colonnes Banque et Couleur de Guilde
+            plugin.getDatabaseManager().addColumnIfNotExists("genscore_teams", "bank_balance", "DOUBLE DEFAULT 0.0");
+            plugin.getDatabaseManager().addColumnIfNotExists("genscore_teams", "bank_xp", "INTEGER DEFAULT 0");
+            plugin.getDatabaseManager().addColumnIfNotExists("genscore_teams", "color", "VARCHAR(7) DEFAULT '#2ecc71'");
+            plugin.getDatabaseManager().addColumnIfNotExists("genscore_team_members", "role", "VARCHAR(16) DEFAULT 'MEMBER'");
+
+            // Table des claims territoriaux de guilde
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_claims (" +
+                    "team_id INTEGER, " +
+                    "world VARCHAR(64), " +
+                    "chunk_x INT, " +
+                    "chunk_z INT, " +
+                    "PRIMARY KEY(world, chunk_x, chunk_z), " +
+                    "FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE" +
+                    ");");
+
+            // Table des ameliorations de guilde
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_upgrades (" +
+                    "team_id INTEGER, " +
+                    "perk_id VARCHAR(32), " +
+                    "level INTEGER DEFAULT 0, " +
+                    "PRIMARY KEY(team_id, perk_id), " +
+                    "FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE" +
+                    ");");
+
+            // Table du home de guilde
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_home (" +
+                    "team_id INTEGER PRIMARY KEY, " +
+                    "world VARCHAR(64), " +
+                    "x DOUBLE, y DOUBLE, z DOUBLE, " +
+                    "yaw FLOAT DEFAULT 0, pitch FLOAT DEFAULT 0, " +
+                    "FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE" +
+                    ");");
+
+            // Table du coffre de guilde
+            stmt.execute("CREATE TABLE IF NOT EXISTS genscore_team_vault (" +
+                    "team_id INTEGER, " +
+                    "slot INTEGER, " +
+                    "item_data TEXT, " +
+                    "PRIMARY KEY(team_id, slot), " +
+                    "FOREIGN KEY(team_id) REFERENCES genscore_teams(team_id) ON DELETE CASCADE" +
+                    ");");
+
+            // Colonne de migration: timestamp du dernier interet bancaire
+            plugin.getDatabaseManager().addColumnIfNotExists("genscore_teams", "last_interest_at", "BIGINT DEFAULT 0");
+
         } catch (SQLException e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la création des tables des teams", e);
         }
@@ -146,6 +192,13 @@ public class TeamDAO {
                     String leaderStr = rs.getString("leader_uuid");
                     if (leaderStr != null) {
                         TeamData team = new TeamData(id, name, UUID.fromString(leaderStr));
+                        try {
+                            team.setBankBalance(rs.getDouble("bank_balance"));
+                            team.setBankXp(rs.getInt("bank_xp"));
+                            String color = rs.getString("color");
+                            if (color != null && !color.isEmpty()) team.setColor(color);
+                            team.setLastInterestAt(rs.getLong("last_interest_at"));
+                        } catch (Exception ignored) {}
                         teamsById.put(id, team);
                     }
                 }
@@ -162,6 +215,12 @@ public class TeamDAO {
                         if (team != null) {
                             UUID memberUuid = UUID.fromString(uuidStr);
                             team.addMember(memberUuid);
+                            try {
+                                String role = rs.getString("role");
+                                if ("ADMIN".equalsIgnoreCase(role)) {
+                                    team.promoteAdmin(memberUuid);
+                                }
+                            } catch (Exception ignored) {}
                             teamsByPlayer.put(memberUuid, team);
                         }
                     }
@@ -180,6 +239,27 @@ public class TeamDAO {
                     }
                 }
             }
+
+            // Load upgrades
+            try (Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery("SELECT * FROM genscore_team_upgrades")) {
+                while (rs.next()) {
+                    int teamId = rs.getInt("team_id");
+                    String perkId = rs.getString("perk_id");
+                    int level = rs.getInt("level");
+                    TeamData team = teamsById.get(teamId);
+                    if (team != null && perkId != null) {
+                        team.setUpgradeLevel(perkId, level);
+                    }
+                }
+            }
+
+            // Load home and vault for each team
+            for (TeamData team : teamsById.values()) {
+                loadHome(team);
+                loadVault(team);
+            }
+
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("teammanager.log_1");
             e.printStackTrace();
@@ -231,6 +311,18 @@ public class TeamDAO {
              PreparedStatement stmt = conn.prepareStatement("INSERT INTO genscore_team_members (team_id, player_uuid) VALUES (?, ?)")) {
             stmt.setInt(1, teamId);
             stmt.setString(2, member.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateMemberRole(int teamId, UUID member, String role) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("UPDATE genscore_team_members SET role = ? WHERE team_id = ? AND player_uuid = ?")) {
+            stmt.setString(1, role);
+            stmt.setInt(2, teamId);
+            stmt.setString(3, member.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -395,6 +487,213 @@ public class TeamDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void loadClaims(Map<String, Integer> claimsMap) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM genscore_team_claims")) {
+            while (rs.next()) {
+                int teamId = rs.getInt("team_id");
+                String world = rs.getString("world");
+                int x = rs.getInt("chunk_x");
+                int z = rs.getInt("chunk_z");
+                claimsMap.put(fr.gens.core.modules.teams.TeamClaimManager.getChunkKey(world, x, z), teamId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean addClaim(int teamId, String world, int chunkX, int chunkZ) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO genscore_team_claims (team_id, world, chunk_x, chunk_z) VALUES (?, ?, ?, ?) " +
+                     "ON CONFLICT(world, chunk_x, chunk_z) DO UPDATE SET team_id = ?")) {
+            stmt.setInt(1, teamId);
+            stmt.setString(2, world);
+            stmt.setInt(3, chunkX);
+            stmt.setInt(4, chunkZ);
+            stmt.setInt(5, teamId);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean removeClaim(String world, int chunkX, int chunkZ) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_team_claims WHERE world = ? AND chunk_x = ? AND chunk_z = ?")) {
+            stmt.setString(1, world);
+            stmt.setInt(2, chunkX);
+            stmt.setInt(3, chunkZ);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void removeAllTeamClaims(int teamId) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_team_claims WHERE team_id = ?")) {
+            stmt.setInt(1, teamId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveTeamBank(TeamData team) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("UPDATE genscore_teams SET bank_balance = ?, bank_xp = ? WHERE team_id = ?")) {
+            stmt.setDouble(1, team.getBankBalance());
+            stmt.setInt(2, team.getBankXp());
+            stmt.setInt(3, team.getTeamId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveTeamColor(TeamData team) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement("UPDATE genscore_teams SET color = ? WHERE team_id = ?")) {
+            stmt.setString(1, team.getColor());
+            stmt.setInt(2, team.getTeamId());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveUpgrade(int teamId, String perkId, int level) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO genscore_team_upgrades (team_id, perk_id, level) VALUES (?, ?, ?) " +
+                     "ON CONFLICT(team_id, perk_id) DO UPDATE SET level = ?")) {
+            stmt.setInt(1, teamId);
+            stmt.setString(2, perkId.toUpperCase());
+            stmt.setInt(3, level);
+            stmt.setInt(4, level);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    // ---- GUILD HOME ----
+    public void saveHome(TeamData team) {
+        org.bukkit.Location loc = team.getHomeLocation();
+        if (loc == null || loc.getWorld() == null) {
+            // Delete home if null
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(
+                         "DELETE FROM genscore_team_home WHERE team_id = ?")) {
+                stmt.setInt(1, team.getTeamId());
+                stmt.executeUpdate();
+            } catch (SQLException e) { e.printStackTrace(); }
+            return;
+        }
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO genscore_team_home (team_id, world, x, y, z, yaw, pitch) VALUES (?,?,?,?,?,?,?) " +
+                     "ON CONFLICT(team_id) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
+            stmt.setInt(1, team.getTeamId());
+            stmt.setString(2, loc.getWorld().getName());
+            stmt.setDouble(3, loc.getX());
+            stmt.setDouble(4, loc.getY());
+            stmt.setDouble(5, loc.getZ());
+            stmt.setFloat(6, loc.getYaw());
+            stmt.setFloat(7, loc.getPitch());
+            stmt.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    public void loadHome(TeamData team) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT world, x, y, z, yaw, pitch FROM genscore_team_home WHERE team_id = ?")) {
+            stmt.setInt(1, team.getTeamId());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String worldName = rs.getString("world");
+                org.bukkit.World world = org.bukkit.Bukkit.getWorld(worldName);
+                if (world != null) {
+                    org.bukkit.Location loc = new org.bukkit.Location(
+                            world,
+                            rs.getDouble("x"),
+                            rs.getDouble("y"),
+                            rs.getDouble("z"),
+                            rs.getFloat("yaw"),
+                            rs.getFloat("pitch"));
+                    team.setHomeLocation(loc);
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // ---- GUILD VAULT ----
+    public void saveVault(TeamData team) {
+        int vaultSize = team.getVaultSize();
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            // Clear all slots first
+            try (PreparedStatement del = conn.prepareStatement(
+                    "DELETE FROM genscore_team_vault WHERE team_id = ?")) {
+                del.setInt(1, team.getTeamId());
+                del.executeUpdate();
+            }
+            // Insert all occupied slots
+            try (PreparedStatement ins = conn.prepareStatement(
+                    "INSERT INTO genscore_team_vault (team_id, slot, item_data) VALUES (?, ?, ?)")) {
+                for (java.util.Map.Entry<Integer, org.bukkit.inventory.ItemStack> entry : team.getVaultContents().entrySet()) {
+                    int slot = entry.getKey();
+                    org.bukkit.inventory.ItemStack item = entry.getValue();
+                    if (slot < 0 || slot >= vaultSize || item == null || item.getType() == org.bukkit.Material.AIR) continue;
+                    try {
+                        byte[] data = item.serializeAsBytes();
+                        String base64 = java.util.Base64.getEncoder().encodeToString(data);
+                        ins.setInt(1, team.getTeamId());
+                        ins.setInt(2, slot);
+                        ins.setString(3, base64);
+                        ins.addBatch();
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                }
+                ins.executeBatch();
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    public void loadVault(TeamData team) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT slot, item_data FROM genscore_team_vault WHERE team_id = ?")) {
+            stmt.setInt(1, team.getTeamId());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                int slot = rs.getInt("slot");
+                String base64 = rs.getString("item_data");
+                if (base64 == null || base64.isEmpty()) continue;
+                try {
+                    byte[] data = java.util.Base64.getDecoder().decode(base64);
+                    org.bukkit.inventory.ItemStack item = org.bukkit.inventory.ItemStack.deserializeBytes(data);
+                    team.setVaultItem(slot, item);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // ---- BANK INTEREST TIMESTAMP ----
+    public void saveInterestTimestamp(TeamData team) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "UPDATE genscore_teams SET last_interest_at = ? WHERE team_id = ?")) {
+            stmt.setLong(1, team.getLastInterestAt());
+            stmt.setInt(2, team.getTeamId());
+            stmt.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 }
 

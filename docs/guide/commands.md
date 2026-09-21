@@ -41,14 +41,31 @@ All commands in GensCore are parsed asynchronously through the **Cloud Command F
 ---
 
 ## Guilds & Teams
+Comprehensive clan system with shared treasury ($ or XP), territorial chunk claims ($16 \times 16$), on-screen boundary notifications, real-time BlueMap rendering, 3-tier role hierarchy (Leader, Admin, Member), and permanent team perks.
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
 | `/team` | *None* | *None* | Everyone | Opens the Guild management GUI. *(Aliases: `/guild`, `/guilde`, `/teams`)* |
 | `/team create` | `<name>` | *None* | Everyone | Creates a new guild (max 16 characters). |
-| `/team invite` | `<player>` | *None* | Everyone | Invites a player to join your guild. |
+| `/team invite` | `<player>` | *None* | Admin / Leader | Invites a player to join your guild. |
 | `/team accept` | *None* | *None* | Everyone | Accepts a pending guild invite. |
+| `/team kick` | `<player>` | *None* | Admin / Leader | Kicks a member from the guild (Admins cannot kick the Leader or other Admins). |
+| `/team promote` | `<player>` | *None* | Leader | Promotes a member to Administrator (`ADMIN`). |
+| `/team demote` | `<player>` | *None* | Leader | Demotes an Administrator back to regular Member. |
+| `/team leave` | *None* | *None* | Member / Admin | Leaves your current guild (the Leader must disband the guild). |
+| `/team disband` | *None* | *None* | Leader | Permanently disbands the guild and releases all claimed chunks. |
 | `/team quest` | *None* | *None* | Everyone | Opens the shared guild quest menu. |
+| `/team upgrades` | *None* | *None* | Everyone | Opens the guild upgrades shop menu. |
+| `/team sethome` | *None* | *None* | Admin / Leader | Defines the shared guild home waypoint at your current location (requires `GUILD_HOME`). |
+| `/team home` | *None* | *None* | Everyone | Teleports to the shared guild home (requires `GUILD_HOME`). |
+| `/team vault` | *None* | *None* | Everyone | Opens the communal guild virtual vault. *(Aliases: `/team coffre`, `/team chest`)* (requires `GUILD_VAULT`). |
+| `/team deposit` | `<amount>` | *None* | Everyone | Deposits dollars into the guild bank (when Economy is active). |
+| `/team depositxp` | `<levels>` | *None* | Everyone | Deposits XP levels into the guild bank (when Economy is disabled). |
+| `/team withdraw` | `<amount>` | *None* | Admin / Leader | Withdraws dollars from the guild bank. |
+| `/team withdrawxp` | `<levels>` | *None* | Admin / Leader | Withdraws XP levels from the guild bank. |
+| `/team claim` | *None* | *None* | Admin / Leader | Claims the current chunk ($16 \times 16$). Strictly funded from the guild bank. |
+| `/team unclaim` | *None* | *None* | Admin / Leader | Releases the current chunk claim back to the wild. |
+| `/team color` | `<hex>` | *None* | Admin / Leader | Sets guild territory color on BlueMap (e.g. `#3498db`). |
 
 ---
 
@@ -70,6 +87,17 @@ Available professions: **Miner**, **Lumberjack**, **Hunter**, **Farmer**, **Fish
 
 - Right-click reroll requires `genscore.quests.reroll`.
 - Admin forced reroll requires `genscore.quests.admin`.
+
+---
+
+## Solo Quest Perks
+Individual progression system rewarding lifetime completed quests with permanent advantages and major masteries. Viewable and manageable in-game or via the Player Web Portal.
+
+| Command | Arguments | Permission | Default | Description |
+|---|---|---|---|---|
+| `/perks` | *None* | *None* | Everyone | Opens the Solo Quest Perks GUI. *(Aliases: `/bonus`, `/passe`)* |
+| `/autosmelt` | *None* | *None* | Everyone | Toggles instant raw ore smelting On/Off (requires Auto-Smelt mastery). |
+| `/magnet` | *None* | *None* | Everyone | Toggles 5-block item attraction magnet On/Off (requires Magnet mastery). |
 
 ---
 

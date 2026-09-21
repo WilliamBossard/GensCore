@@ -283,6 +283,47 @@ public class ModerationModule implements Module, Listener {
         });
     }
 
+    @Command("check <target>")
+    public void executeCheck(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
+        if (!enabled) return;
+        if (!sender.hasPermission("genscore.check") && !sender.hasPermission("genscore.freeze")) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_1");
+            return;
+        }
+
+        Player target = Bukkit.getPlayer(targetName);
+        if (target == null) {
+            plugin.getLangManager().sendMessage(sender, "moderationmodule.msg_3");
+            return;
+        }
+
+        UUID uuid = target.getUniqueId();
+        boolean isBedrock = fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(uuid);
+        String clientVersion = fr.gens.core.utils.ViaVersionUtil.getPlayerVersionName(uuid);
+        int proto = fr.gens.core.utils.ViaVersionUtil.getPlayerProtocolVersion(uuid);
+        boolean isFrozen = frozenPlayers.contains(uuid);
+        boolean isMuted = isMuted(uuid);
+        String platform = isBedrock ? "<green>Bedrock (Geyser)</green>" : "<aqua>Java Edition</aqua>";
+
+        String locStr = target.getWorld().getName() + " (" + target.getLocation().getBlockX() + ", " + target.getLocation().getBlockY() + ", " + target.getLocation().getBlockZ() + ")";
+        String statusStr = (isFrozen ? "<red>[GELE]</red> " : "") + (isMuted ? "<red>[MUET]</red> " : "") + (!isFrozen && !isMuted ? "<green>[ACTIF]</green>" : "");
+
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold>========== <yellow>Fiche Joueur : " + target.getName() + "</yellow> <gold>=========="));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>UUID : <white>" + uuid));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Plateforme : " + platform));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Version Client : <white>" + clientVersion + " <gray>(Protocole : " + (proto > 0 ? proto : "Natif 26.3+") + ")"));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Latence : <yellow>" + target.getPing() + " ms</yellow>"));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Statut : " + statusStr));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Mode de jeu : <white>" + target.getGameMode().name() + "</white> | Sante : <red>" + String.format("%.1f", target.getHealth()) + "/20</red>"));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gray>Position : <white>" + locStr));
+        sender.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<gold>========================================"));
+    }
+
+    @Command("whois <target>")
+    public void executeWhoisAlias(CommandSender sender, @Argument(value = "target", suggestions = "onlinePlayers", description = "Le joueur ciblé") String targetName) {
+        executeCheck(sender, targetName);
+    }
+
     public static class ModerationInvseeHolder implements org.bukkit.inventory.InventoryHolder {
         private org.bukkit.inventory.Inventory inventory;
         public void setInventory(org.bukkit.inventory.Inventory inv) { this.inventory = inv; }

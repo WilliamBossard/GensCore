@@ -76,6 +76,10 @@ public class WebManager {
             Object value = section.get(key);
             if (value instanceof org.bukkit.configuration.ConfigurationSection) {
                 map.put(key, convertToMap((org.bukkit.configuration.ConfigurationSection) value));
+            } else if (value instanceof String) {
+                String str = (String) value;
+                str = str.replaceAll("(?<!\\{)\\{([a-zA-Z0-9_]+)\\}(?!\\})", "{{$1}}");
+                map.put(key, str);
             } else {
                 map.put(key, value);
             }
@@ -94,13 +98,31 @@ public class WebManager {
             plugin.getLogger().info("The default web admin password was in plain text. It has been hashed for security.");
         }
 
-        // Extraction des fichiers web s'ils n'existent pas ou si index.html manque
+        // Extraction des fichiers web s'ils n'existent pas ou si index.html est different du jar
         File webDir = new File(plugin.getDataFolder(), "web");
         File indexFile = new File(webDir, "index.html");
         
         boolean autoUpdate = webConfig.getBoolean("web.auto_update_panel", true);
+        boolean needsUpdate = !webDir.exists() || !indexFile.exists() || autoUpdate;
+
+        if (!needsUpdate) {
+            try (java.io.InputStream in = plugin.getResource("public/index.html")) {
+                if (in != null) {
+                    byte[] jarBytes = in.readAllBytes();
+                    if (indexFile.exists()) {
+                        byte[] diskBytes = java.nio.file.Files.readAllBytes(indexFile.toPath());
+                        if (!java.util.Arrays.equals(jarBytes, diskBytes)) {
+                            needsUpdate = true;
+                            plugin.getLogger().info("New web panel build detected in plugin jar. Updating web assets...");
+                        }
+                    } else {
+                        needsUpdate = true;
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
         
-        if (!webDir.exists() || !indexFile.exists() || autoUpdate) {
+        if (needsUpdate) {
             webDir.mkdirs();
             try {
                 java.net.URL url = getClass().getProtectionDomain().getCodeSource().getLocation();
@@ -122,11 +144,6 @@ public class WebManager {
                             }
                         }
                         plugin.getLogger().info("Web files extracted in " + webDir.getPath());
-                        if (autoUpdate) {
-                            webConfig.set("web.auto_update_panel", false);
-                            plugin.getConfigManager().saveConfigAsync("modules/web.yml");
-                            plugin.getLogger().info("auto_update_panel has been set to false to prevent overwriting custom changes on next restart.");
-                        }
                     }
                 }
             } catch (Exception e) {
@@ -546,6 +563,7 @@ public class WebManager {
                     if (p != null && p.isOnline()) {
                         map.put("online", true);
                         map.put("ping", p.getPing());
+                        map.put("clientVersion", fr.gens.core.utils.ViaVersionUtil.getPlayerVersionName(uuid));
                         try {
                             map.put("health", p.getHealth());
                             org.bukkit.attribute.AttributeInstance attr = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
@@ -557,6 +575,7 @@ public class WebManager {
                     } else {
                         map.put("online", false);
                         map.put("ping", 0);
+                        map.put("clientVersion", "-");
                         map.put("health", 0);
                         map.put("maxHealth", 20.0);
                     }
