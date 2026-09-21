@@ -326,6 +326,9 @@ public class WebPlayerAPI implements Listener {
             long todayStart = (System.currentTimeMillis() / oneDay) * oneDay;
             stats.put("questsActivity", webDAO.getQuestsActivity(uuidStr, todayStart, oneDay));
 
+            // Client Version (ViaVersion / Native / Bedrock)
+            stats.put("clientVersion", fr.gens.core.utils.ViaVersionUtil.getPlayerVersionName(UUID.fromString(uuidStr)));
+
             ctx.json(stats);
         });
 

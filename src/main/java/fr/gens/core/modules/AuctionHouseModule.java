@@ -98,34 +98,37 @@ public class AuctionHouseModule implements Module {
             return;
         }
 
-        ItemStack item = p.getInventory().getItemInMainHand();
-        if (item == null || item.getType() == Material.AIR) {
-            plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_3");
-            return;
-        }
-
-        // On clone et on retire l'objet immédiatement de la main pour empêcher tout exploit de duplication
-        ItemStack itemToSell = item.clone();
-        p.getInventory().setItemInMainHand(null);
-
-        // Sauvegarde en base de données
-        String base64Item = ItemSerializer.toBase64(itemToSell);
-        long expireTime = System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 7); // 7 jours
-
-        plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
-            try {
-                ahDAO.addAuction(p.getUniqueId().toString(), p.getName(), price, base64Item, expireTime);
-                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
-                    p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Objet mis en vente pour <yellow>" + price + " $ <green>!"));
-                    Bukkit.broadcast(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>[AH] <white>" + p.getName() + " <green>vient de mettre un objet en vente pour <yellow>" + price + " $ <green>!"));
-                });
-            } catch (Exception e) {
-                plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
-                    giveOrDropItem(p, itemToSell);
-                    plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5");
-                });
-                e.printStackTrace();
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, (task) -> {
+            if (!p.isOnline()) return;
+            ItemStack item = p.getInventory().getItemInMainHand();
+            if (item == null || item.getType() == Material.AIR) {
+                plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_3");
+                return;
             }
+
+            // On clone et on retire l'objet immédiatement de la main sur le thread de l'entité
+            ItemStack itemToSell = item.clone();
+            p.getInventory().setItemInMainHand(null);
+
+            // Sauvegarde asynchrone en base de données
+            String base64Item = ItemSerializer.toBase64(itemToSell);
+            long expireTime = System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 7); // 7 jours
+
+            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
+                try {
+                    ahDAO.addAuction(p.getUniqueId().toString(), p.getName(), price, base64Item, expireTime);
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
+                        p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<green>Objet mis en vente pour <yellow>" + price + " $ <green>!"));
+                        Bukkit.broadcast(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>[AH] <white>" + p.getName() + " <green>vient de mettre un objet en vente pour <yellow>" + price + " $ <green>!"));
+                    });
+                } catch (Exception e) {
+                    plugin.getFoliaLib().getScheduler().runAtEntity(p, (t2) -> {
+                        giveOrDropItem(p, itemToSell);
+                        plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5");
+                    });
+                    e.printStackTrace();
+                }
+            });
         });
     }
 

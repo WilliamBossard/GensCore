@@ -124,11 +124,16 @@ public class TeamClaimManager {
     }
 
     public ClaimResult claimChunk(Player player, TeamData team, Chunk chunk) {
+        if (chunk == null || chunk.getWorld() == null) return ClaimResult.DATABASE_ERROR;
+        return claimChunk(player, team, chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+    }
+
+    public ClaimResult claimChunk(Player player, TeamData team, String worldName, int chunkX, int chunkZ) {
         if (!team.isAdminOrLeader(player.getUniqueId())) {
             return ClaimResult.NOT_LEADER;
         }
 
-        String key = getChunkKey(chunk);
+        String key = getChunkKey(worldName, chunkX, chunkZ);
         Integer existingTeamId = claims.get(key);
         if (existingTeamId != null) {
             if (existingTeamId == team.getTeamId()) {
@@ -167,7 +172,7 @@ public class TeamClaimManager {
         // Sauvegarde BDD
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            boolean dbSuccess = module.getTeamDAO().addClaim(team.getTeamId(), chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+            boolean dbSuccess = module.getTeamDAO().addClaim(team.getTeamId(), worldName, chunkX, chunkZ);
             if (!dbSuccess) {
                 // Rembourser la banque si erreur SQL
                 if (isEcoEnabled) {
@@ -187,11 +192,16 @@ public class TeamClaimManager {
     }
 
     public UnclaimResult unclaimChunk(Player player, TeamData team, Chunk chunk) {
+        if (chunk == null || chunk.getWorld() == null) return UnclaimResult.NOT_CLAIMED;
+        return unclaimChunk(player, team, chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+    }
+
+    public UnclaimResult unclaimChunk(Player player, TeamData team, String worldName, int chunkX, int chunkZ) {
         if (!team.isAdminOrLeader(player.getUniqueId())) {
             return UnclaimResult.NOT_LEADER;
         }
 
-        String key = getChunkKey(chunk);
+        String key = getChunkKey(worldName, chunkX, chunkZ);
         Integer existingTeamId = claims.get(key);
         if (existingTeamId == null) {
             return UnclaimResult.NOT_CLAIMED;
@@ -203,7 +213,7 @@ public class TeamClaimManager {
 
         fr.gens.core.modules.teams.TeamModule module = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
         if (module != null) {
-            boolean dbSuccess = module.getTeamDAO().removeClaim(chunk.getWorld().getName(), chunk.getX(), chunk.getZ());
+            boolean dbSuccess = module.getTeamDAO().removeClaim(worldName, chunkX, chunkZ);
             if (!dbSuccess) {
                 return UnclaimResult.DATABASE_ERROR;
             }

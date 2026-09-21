@@ -52,6 +52,11 @@ To eliminate entity lag on high-population servers:
 - **Cumulus Forms:** In-game GUIs open as native Bedrock dialogs for mobile and console players, avoiding touch-screen desyncs.
 - **Skin & Head API:** Renders authentic Bedrock player heads via the web API (`/api/head/{name}/{size}`).
 - **Prefix Isolation:** Handles Bedrock prefixes (`.` or `*`) smoothly across all commands and LuckPerms lookups.
+- **Zero-Crash Resilience During Minecraft Transitions:** GensCore isolates Floodgate calls behind safe dynamic checks and `Throwable` interception. If Geyser or Floodgate is not yet updated for the latest Paper version, GensCore continues running seamlessly and automatically falls back to standard Java inventory menus.
+- **Recommended Deployment During Major Version Transitions:**
+  1. *Proxy/Standalone Mode:* Run Geyser on a Velocity proxy or as a Standalone process (`Geyser.jar`), keeping only `floodgate-spigot` on Paper.
+  2. *Protocol Bridging:* Pair with `ViaVersion` on Paper or Velocity to bridge Bedrock network packets while Paper runs the latest build.
+  3. *Development Builds:* Download bleeding-edge CI builds directly from [GeyserMC Downloads](https://download.geysermc.org/) or their continuous integration server.
 
 ---
 
@@ -136,5 +141,19 @@ Comprehensive individual progression and rewards system for solo adventurers, co
 
 ---
 
+## 13. ViaVersion & Multi-Protocol Interoperability
+Comprehensive cross-version compatibility engine managed by `ViaVersionUtil`:
+- **Dynamic Protocol Detection:** Seamlessly queries the ViaVersion API via decoupled reflection to detect the exact client protocol of every connected player (e.g., `26.3+ (Native)`, `26.2 / 1.21.4 (Via)`, `1.21.x (Via)`, `1.20.x (Via)`, or `Bedrock (Geyser)`).
+- **Zero-Dependency Resilience:** GensCore runs safely whether ViaVersion is installed or absent from the server process, with no `ClassNotFoundException` or `NoClassDefFoundError` risks.
+- **26.3 Material Fallback Shield:** Automatically translates exclusive Minecraft 26.3 items (such as Pale Oak logs, planks, doors, or resin) into safe, cross-version materials (`Material.DARK_OAK_*`, etc.) when generating inventory menus (`CustomGuiModule`, `BedrockFormManager`) for players connected via legacy clients, preventing inventory texture glitches.
+- **Advanced Moderation Command (`/check <player>` & `/whois <player>`):** Gives staff members (`genscore.check`) an instant technical dossier on any online target: platform (Java or Bedrock), client brand/version, numerical protocol version, network latency (ping), moderation status (frozen, muted), health, hunger, gamemode, and exact coordinates.
+- **Multi-Version Placeholders & Variables:**
+  - *Internal MiniMessage & TabBoard Support:* `%client_version%` (`<client_version>`), `%client_protocol%` (`<client_protocol>`), `%client_type%` (`<client_type>`), `%is_legacy%` (`<is_legacy>`), `%is_bedrock%` (`<is_bedrock>`).
+  - *Official PlaceholderAPI Expansion (`GensCoreExpansion`):* Exposes `%genscore_client_version%`, `%genscore_client_protocol%`, `%genscore_client_type%`, `%genscore_is_legacy%`, `%genscore_is_bedrock%`, `%genscore_balance%`, `%genscore_guild%`, `%genscore_guild_role%`, `%genscore_ping%` to external plugins (TAB, DeluxeMenus, scoreboards).
+- **Web & Staff Diagnostics:** Exposes client version data across the Web Admin Player List (`/api/admin/players`) and Player Stats endpoints (`/api/player/stats`) to streamline administration and support.
+
+---
+
 ## Complete Module List (29)
 `UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `SoloPerkModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.
+

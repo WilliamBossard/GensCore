@@ -52,6 +52,11 @@ Pour éliminer les chutes de TPS causées par les entités sur les serveurs à f
 - **Formulaires Cumulus :** Les menus s'affichent sous forme de formulaires Bedrock natifs sur mobile et console pour éviter les désynchronisations tactiles.
 - **API Skins & Têtes :** Génère les têtes de joueurs Bedrock authentiques via l'API web (`/api/head/{nom}/{taille}`).
 - **Gestion des Préfixes :** Traitement transparent des préfixes Bedrock (`.` ou `*`) dans les commandes et LuckPerms.
+- **Résilience Absolue Anti-Crash :** GensCore encapsule les appels Floodgate dans des vérifications dynamiques et des blocs `Throwable`. Si Geyser ou Floodgate n'est pas encore mis à jour pour la version exacte de Paper, le serveur démarre sans aucune erreur et GensCore bascule automatiquement sur les menus d'inventaire Java classiques.
+- **Solutions de Déploiement pendant les Transitions de Version :**
+  1. *Mode Proxy ou Standalone :* Exécutez Geyser en amont sur un proxy (Velocity) ou via `Geyser.jar` autonome (processus Java indépendant avec port UDP 19132), en ne conservant que `floodgate-spigot` sur le serveur Paper.
+  2. *Passerelle de Protocoles :* Combinez avec `ViaVersion` sur Paper ou Velocity pour accepter les paquets réseau des versions Bedrock supportées pendant que Paper tourne sur la toute dernière build 26.3.
+  3. *Builds de Développement (CI) :* Téléchargez les builds préliminaires directement depuis le serveur d'intégration continue officiel [GeyserMC Downloads](https://download.geysermc.org/).
 
 ---
 
@@ -136,5 +141,19 @@ Système complet de progression et de récompenses pour les joueurs solo, relian
 
 ---
 
+## 13. Interopérabilité Multi-Protocoles & ViaVersion
+Moteur d'adaptation et de compatibilité multi-versions piloté par `ViaVersionUtil` :
+- **Détection Dynamique de Protocole :** Interroge l'API de ViaVersion par réflexion isolée pour identifier la version exacte du client de chaque joueur connecté (ex. `26.3+ (Natif)`, `26.2 / 1.21.4 (Via)`, `1.21.x (Via)`, `1.20.x (Via)` ou `Bedrock (Geyser)`).
+- **Résilience Absolue Sans Dépendance Statique :** GensCore s'exécute de manière identique que ViaVersion soit installé ou non sur le serveur, éliminant tout risque d'erreur `ClassNotFoundException` ou `NoClassDefFoundError`.
+- **Bouclier de Repli des Matériaux 26.3 (Material Fallback) :** Convertit automatiquement les blocs et objets exclusifs à Minecraft 26.3 (comme les bûches, planches ou portes de Pale Oak, ou la résine) en matériaux équivalents universels (`Material.DARK_OAK_*`, etc.) lors de la génération des menus d'inventaire (`CustomGuiModule`, `BedrockFormManager`) pour les clients anciens, évitant ainsi les textures violettes ou manquantes.
+- **Outil de Modération Avancé (`/check <joueur>` & `/whois <joueur>`) :** Fournit aux modérateurs (`genscore.check`) une fiche technique instantanée sur le joueur ciblé : plateforme (Java/Bedrock), version commerciale du client, identifiant numérique de protocole, latence ping en millisecondes, statut de sanctions (gelé, muet), vie, faim, mode de jeu et coordonnées précises.
+- **Variables et Placeholders Multi-Versions :**
+  - *Support Interne MiniMessage & TabBoard :* `%client_version%` (`<client_version>`), `%client_protocol%` (`<client_protocol>`), `%client_type%` (`<client_type>`), `%is_legacy%` (`<is_legacy>`), `%is_bedrock%` (`<is_bedrock>`).
+  - *Extension Officielle PlaceholderAPI (`GensCoreExpansion`) :* Expose les variables `%genscore_client_version%`, `%genscore_client_protocol%`, `%genscore_client_type%`, `%genscore_is_legacy%`, `%genscore_is_bedrock%`, `%genscore_balance%`, `%genscore_guild%`, `%genscore_guild_role%`, `%genscore_ping%` à tous les plugins tiers (TAB, DeluxeMenus, scoreboards).
+- **Diagnostic Web & Modération :** Expose la version exacte du client dans l'API d'administration (`/api/admin/players`) et les statistiques joueurs (`/api/player/stats`) pour faciliter le diagnostic et l'assistance des administrateurs.
+
+---
+
 ## Liste Complète des Modules (29)
 `UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `SoloPerkModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.
+

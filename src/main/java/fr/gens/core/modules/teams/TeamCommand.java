@@ -306,7 +306,12 @@ public class TeamCommand {
             return;
         }
 
-        TeamClaimManager.ClaimResult result = plugin.getTeamManager().getClaimManager().claimChunk(player, team, player.getLocation().getChunk());
+        org.bukkit.Location loc = player.getLocation();
+        String worldName = loc.getWorld() != null ? loc.getWorld().getName() : "world";
+        int chunkX = loc.getBlockX() >> 4;
+        int chunkZ = loc.getBlockZ() >> 4;
+
+        TeamClaimManager.ClaimResult result = plugin.getTeamManager().getClaimManager().claimChunk(player, team, worldName, chunkX, chunkZ);
         switch (result) {
             case SUCCESS:
                 team.broadcast("<green>" + player.getName() + " a revendique ce chunk pour la guilde ! (Territoires: " + plugin.getTeamManager().getClaimManager().getClaimsCount(team.getTeamId()) + "/" + team.getMaxClaims() + ")");
@@ -347,7 +352,12 @@ public class TeamCommand {
             return;
         }
 
-        TeamClaimManager.UnclaimResult result = plugin.getTeamManager().getClaimManager().unclaimChunk(player, team, player.getLocation().getChunk());
+        org.bukkit.Location unclaimLoc = player.getLocation();
+        String unclaimWorld = unclaimLoc.getWorld() != null ? unclaimLoc.getWorld().getName() : "world";
+        int unclaimChunkX = unclaimLoc.getBlockX() >> 4;
+        int unclaimChunkZ = unclaimLoc.getBlockZ() >> 4;
+
+        TeamClaimManager.UnclaimResult result = plugin.getTeamManager().getClaimManager().unclaimChunk(player, team, unclaimWorld, unclaimChunkX, unclaimChunkZ);
         switch (result) {
             case SUCCESS:
                 team.broadcast("<green>" + player.getName() + " a libere un territoire de guilde. (Restants: " + plugin.getTeamManager().getClaimManager().getClaimsCount(team.getTeamId()) + "/" + team.getMaxClaims() + ")");

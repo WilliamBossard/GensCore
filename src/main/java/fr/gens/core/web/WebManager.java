@@ -563,6 +563,7 @@ public class WebManager {
                     if (p != null && p.isOnline()) {
                         map.put("online", true);
                         map.put("ping", p.getPing());
+                        map.put("clientVersion", fr.gens.core.utils.ViaVersionUtil.getPlayerVersionName(uuid));
                         try {
                             map.put("health", p.getHealth());
                             org.bukkit.attribute.AttributeInstance attr = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
@@ -574,6 +575,7 @@ public class WebManager {
                     } else {
                         map.put("online", false);
                         map.put("ping", 0);
+                        map.put("clientVersion", "-");
                         map.put("health", 0);
                         map.put("maxHealth", 20.0);
                     }

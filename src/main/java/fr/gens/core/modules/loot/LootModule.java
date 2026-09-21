@@ -76,7 +76,7 @@ public class LootModule implements Module, Listener {
 
     @Override
     public void initDatabase(fr.gens.core.utils.DatabaseManager dbManager) {
-        // Les coffres et récompenses Lootr sont gérés au format YAML via LootManager
+        new fr.gens.core.database.LootDAO(plugin).initDatabase();
     }
 
     @Override

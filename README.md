@@ -1,6 +1,6 @@
 # GensCore
 
-![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.3+-red.svg)
+![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.3+-red.svg) ![Status](https://img.shields.io/badge/Status-Beta-orange.svg) ![Tests](https://img.shields.io/badge/Tests-69%20passing-brightgreen.svg)
 
 **GensCore** is a comprehensive core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all the essential server mechanics into a single, optimized plugin, offering excellent performance while avoiding the need to manage dozens of separate small plugins. It is fully compatible with **Paper** and **Folia**!
 
@@ -37,8 +37,9 @@ GensCore is designed to be fully **autonomous**. It can run standalone without r
 
 ### Optional Integrations
 * **[GeyserMC & Floodgate](https://geysermc.org/):** Highly recommended if you allow Bedrock cross-play. GensCore automatically detects Floodgate to open native Bedrock Forms (Cumulus API), assign platform prefixes (`[Bedrock]`), resolve Bedrock UUIDs/skins, and optimize inventory interactions.
+* **[ViaVersion & ViaBackwards](https://viaversion.com/):** Multi-version interop bridge. Automatically detects client versions (e.g. 26.2, 1.21.x, 1.20.x), maps 26.3 menu materials, supplies `%genscore_client_version%` placeholders, and enables the `/check <player>` staff command.
 * **[BlueMap](https://bluemap.bluecolored.de/):** If installed, the web panel integrates a live map view for administrators.
-* **[PlaceholderAPI](https://placeholderapi.com/):** For custom placeholder expansion resolution.
+* **[PlaceholderAPI](https://placeholderapi.com/):** Integrated with the official `GensCoreExpansion` (%genscore_balance%, %genscore_client_version%, %genscore_guild%, etc.).
 
 ### Compatibility: Paper & Folia Only
 **GensCore is STRICTLY compatible with PaperMC and Folia (Minecraft 26.3+, Java 25+).** 
@@ -201,7 +202,9 @@ On startup and when a player with the `genscore.admin` permission (or operator s
 
 ## Lootr Integration
 
-GensCore completely integrates a custom Lootr-like system (per-player loot chests) directly into the core, meaning **you do not need to install any external mods or plugins**. You can configure its behaviour in the `modules/lootr.yml` file:
+GensCore completely integrates a custom Lootr-like system (per-player loot chests) directly into the core, meaning **you do not need to install any external mods or plugins**. Chest data and per-player loot inventories are persisted in the embedded **SQLite** database (`lootr_chests` & `lootr_player_chests` tables). If a legacy `chests.yml` file is detected on startup, it will be migrated automatically and transparently.
+
+You can configure its behaviour in the `modules/lootr.yml` file:
 
 ```yaml
 lootr:

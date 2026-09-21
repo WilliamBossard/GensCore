@@ -65,6 +65,7 @@ public class CorePlugin extends JavaPlugin {
         this.storageManager = new StorageManager(this);
         this.databaseManager = new DatabaseManager(this);
         fr.gens.core.utils.HeadUtil.init(this);
+        fr.gens.core.utils.ViaVersionUtil.init(this);
         this.actionBarManager = new ActionBarManager(this);
         this.actionBarManager.start();
         
@@ -108,6 +109,11 @@ public class CorePlugin extends JavaPlugin {
             this.webManager.start();
         } else {
             getLangManager().sendConsoleMessage("core.web_disabled");
+        }
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new fr.gens.core.utils.GensCoreExpansion(this).register();
+            getLogger().info("[PlaceholderAPI] GensCoreExpansion enregistree avec succes.");
         }
 
         // 4. Lancer les rappels automatiques (Discord et Guilde)

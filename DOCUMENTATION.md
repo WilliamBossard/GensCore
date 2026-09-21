@@ -52,6 +52,7 @@ GensCore is designed as an autonomous, self-contained server core replacing doze
 - **Concurrency & Folia Threading:** Utilizes *FoliaLib* for regional multi-threading. Global actions run on `GlobalRegionScheduler`, chunk tasks on `RegionScheduler`, and player actions on `EntityScheduler`. Console commands and inventory manipulations are isolated to prevent cross-thread synchronization crashes.
 - **Autonomous Database:** Embedded **SQLite** engine operating in **WAL (Write-Ahead Logging)** mode (`PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;`). No external SQL server is required, though transactions are thread-safe and isolated.
 - **Cross-Play Ready (Geyser & Floodgate):** Bedrock players are natively detected. In-game menus automatically open as native Bedrock dialogs (Cumulus Forms API) on Bedrock clients, while Java players receive virtual chest GUIs. Bedrock custom skins and heads are supported via the built-in Web Avatar API.
+- **Multi-Protocol & ViaVersion Interoperability:** Uses reflection-isolated `ViaVersionUtil` to seamlessly support legacy Java clients (26.2, 1.21.x, 1.20.x). Automatically substitutes 26.3 blocks (Pale Oak, Resin) in menus with cross-version equivalents, exposes `%genscore_client_version%` via PlaceholderAPI, and provides `/check <player>` for staff diagnostics.
 - **Vault & LuckPerms Optionality:** Built-in economy and permission systems function with or without Vault and LuckPerms. If Vault is present, GensCore registers its `GensVaultEconomy` provider automatically.
 
 ---
@@ -361,6 +362,7 @@ Enforcement suite logging actions to database and Discord webhooks.
 | `/kick` | `<player> [reason]` | `genscore.kick` | OP | Kicks an online player from the server. |
 | `/freeze` | `<player>` | `genscore.freeze` | OP | Freezes a player in place for screensharing/investigation (disables movement, interaction, and commands). |
 | `/openinv` | `<player>` | `genscore.openinv` | OP | Live inspection of another player's inventory and armor slots. *(Alias: `/invsee`)* |
+| `/check` | `<player>` | `genscore.check` | OP | Detailed technical dossier of a player (Bedrock/Java, client version via ViaVersion, protocol ID, ping, health, moderation status, and coordinates). *(Alias: `/whois`)* |
 
 ---
 
@@ -531,6 +533,12 @@ Chest and container security operates at the block-event level:
 - **Cumulus Forms API:** Opening menus (`/team`, `/jobs`, `/shop`) automatically serves native Bedrock window forms instead of Java inventory containers, avoiding desyncs and touch-screen misclicks.
 - **Bedrock Skin & Head Support:** Head requests (`/api/head/{name}`) resolve Geyser XUIDs to fetch authentic Bedrock skins instead of fallback Steve avatars.
 - **Bedrock Prefix:** Configurable prefix (e.g. `[Bedrock]` or `.`) automatically handled in commands and LuckPerms group lookups.
+
+### ViaVersion & Multi-Protocol Interoperability
+- **Decoupled Reflection API:** `ViaVersionUtil` accesses ViaVersion through dynamic reflection, ensuring zero runtime crashes whether ViaVersion is installed or not.
+- **Material Fallback System:** Exclusive Minecraft 26.3 materials (Pale Oak variants, Resin, Creaking Heart) are converted on the fly to universal equivalents (`DARK_OAK_*`, `ORANGE_TERRACOTTA`) when building chest GUIs or Bedrock forms for legacy clients.
+- **PlaceholderAPI Official Expansion (`genscore`):** Exposes `%genscore_client_version%`, `%genscore_client_protocol%`, `%genscore_client_type%`, `%genscore_is_legacy%`, `%genscore_is_bedrock%`, `%genscore_balance%`, `%genscore_guild%`, and `%genscore_ping%`.
+- **Internal MiniMessage & TabBoard Tags:** `%client_version%`, `%client_protocol%`, `%client_type%`, and `%is_legacy%` available directly across TabBoard headers, footers, and scoreboards.
 
 ### Custom YAML Menus
 Server owners can build unlimited graphical menus in `plugins/GensCore/menus/*.yml`:

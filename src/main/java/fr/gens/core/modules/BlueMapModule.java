@@ -44,7 +44,9 @@ public class BlueMapModule implements Module, Listener {
         if (Bukkit.getPluginManager().isPluginEnabled("BlueMap")) {
             registerBlueMapListener();
             plugin.getFoliaLib().getScheduler().runLater((t2) -> {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap start");
+                plugin.getFoliaLib().getScheduler().runNextTick(gt -> {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap start");
+                });
                 plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_1");
                 updateAllTeamTerritories();
             }, 40L);
@@ -69,7 +71,13 @@ public class BlueMapModule implements Module, Listener {
         enabled = false;
 
         if (Bukkit.getPluginManager().isPluginEnabled("BlueMap")) {
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap stop");
+            if (plugin.isEnabled()) {
+                plugin.getFoliaLib().getScheduler().runNextTick(gt -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap stop"));
+            } else {
+                try {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "bluemap stop");
+                } catch (Exception ignored) {}
+            }
             plugin.getLangManager().sendConsoleMessage("bluemapmodule.log_2");
         }
     }

@@ -6,7 +6,7 @@ folia-supported: true
 authors: [William Bossard]
 description: Le coeur du réseau Gens (GensBien / GensMauvais).
 # Dépendances optionnelles (softdepend) : GensCore fonctionne de façon autonome même sans ces plugins
-softdepend: [Vault, LuckPerms, floodgate, BlueMap, PlaceholderAPI]
+softdepend: [Vault, LuckPerms, floodgate, BlueMap, PlaceholderAPI, ViaVersion]
 commands:
   money:
     description: Voir son argent

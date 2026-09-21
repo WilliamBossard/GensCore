@@ -92,7 +92,7 @@ public class JobsModule implements Module, Listener {
         autoSaveTask = plugin.getFoliaLib().getScheduler().runTimerAsync(() -> {
             if (dirtyPlayers.isEmpty()) return;
             java.util.Set<UUID> toSave = new java.util.HashSet<>(dirtyPlayers);
-            dirtyPlayers.clear();
+            dirtyPlayers.removeAll(toSave); // Fix: removeAll au lieu de clear() pour éviter la perte d'XP gagnée pendant la copie
             for (UUID uuid : toSave) {
                 savePlayer(uuid);
             }

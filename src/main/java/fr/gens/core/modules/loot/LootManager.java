@@ -1,6 +1,7 @@
 package fr.gens.core.modules.loot;
 
 import fr.gens.core.CorePlugin;
+import fr.gens.core.database.LootDAO;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -10,82 +11,117 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LootManager {
 
     private final CorePlugin plugin;
-    private final File dataFolder;
-    private final File chestsFile;
-    private FileConfiguration chestsConfig;
-    private final File playerDataFolder;
-
+    private final LootDAO lootDAO;
     private final Map<String, LootChestData> chestsCache = new ConcurrentHashMap<>();
-    private final Map<UUID, FileConfiguration> playerCache = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<String>> playerLootedCache = new ConcurrentHashMap<>();
 
     public LootManager(CorePlugin plugin) {
         this.plugin = plugin;
-        this.dataFolder = new File(plugin.getDataFolder(), "lootr");
-        if (!dataFolder.exists()) {
-            dataFolder.mkdirs();
-        }
-        
-        this.chestsFile = new File(dataFolder, "chests.yml");
-        this.playerDataFolder = new File(dataFolder, "playerdata");
-        if (!playerDataFolder.exists()) {
-            playerDataFolder.mkdirs();
-        }
+        this.lootDAO = new LootDAO(plugin);
+        this.lootDAO.initDatabase();
 
+        migrateYamlIfPresent();
         loadChests();
     }
 
-    public void loadChests() {
-        if (!chestsFile.exists()) {
-            try {
-                chestsFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        chestsConfig = YamlConfiguration.loadConfiguration(chestsFile);
-        chestsCache.clear();
+    public LootDAO getLootDAO() {
+        return lootDAO;
+    }
 
-        for (String key : chestsConfig.getKeys(false)) {
-            ConfigurationSection section = chestsConfig.getConfigurationSection(key);
-            if (section != null) {
-                String lootTable = section.getString("lootTable");
-                long seed = section.getLong("seed", 0);
-                int size = section.getInt("size", 27);
-                Location loc = stringToLoc(key);
-                chestsCache.put(key, new LootChestData(lootTable, seed, size, loc));
+    /**
+     * Migration automatique et transparente des anciens fichiers YAML (chests.yml et playerdata/)
+     * vers la base de données relationnelle SQLite.
+     */
+    private void migrateYamlIfPresent() {
+        File dataFolder = new File(plugin.getDataFolder(), "lootr");
+        File chestsFile = new File(dataFolder, "chests.yml");
+
+        if (chestsFile.exists() && chestsFile.length() > 0) {
+            plugin.getLogger().info("[Lootr] Migration des coffres depuis chests.yml vers SQLite en cours...");
+            try {
+                FileConfiguration chestsConfig = YamlConfiguration.loadConfiguration(chestsFile);
+                int migratedCount = 0;
+                for (String key : chestsConfig.getKeys(false)) {
+                    ConfigurationSection section = chestsConfig.getConfigurationSection(key);
+                    if (section != null) {
+                        String lootTable = section.getString("lootTable", "minecraft:chests/simple_dungeon");
+                        long seed = section.getLong("seed", 0);
+                        int size = section.getInt("size", 27);
+                        lootDAO.saveChest(key, lootTable, seed, size);
+                        migratedCount++;
+                    }
+                }
+                plugin.getLogger().info("[Lootr] Migration de " + migratedCount + " coffres terminée avec succès.");
+                File backup = new File(dataFolder, "chests.yml.migrated");
+                chestsFile.renameTo(backup);
+            } catch (Exception e) {
+                plugin.getLogger().warning("[Lootr] Erreur lors de la migration de chests.yml : " + e.getMessage());
             }
         }
-        plugin.getLogger().info("[Lootr] " + chestsCache.size() + " chests loaded.");
+
+        File playerDataFolder = new File(dataFolder, "playerdata");
+        if (playerDataFolder.exists() && playerDataFolder.isDirectory()) {
+            File[] files = playerDataFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+            if (files != null && files.length > 0) {
+                plugin.getLogger().info("[Lootr] Migration des inventaires joueurs (" + files.length + " fichiers) vers SQLite...");
+                for (File file : files) {
+                    try {
+                        String name = file.getName().replace(".yml", "");
+                        UUID uuid = UUID.fromString(name);
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+                        for (String key : config.getKeys(false)) {
+                            if (config.contains(key + ".items")) {
+                                List<?> list = config.getList(key + ".items");
+                                if (list != null) {
+                                    ItemStack[] items = new ItemStack[list.size()];
+                                    for (int i = 0; i < list.size(); i++) {
+                                        Object obj = list.get(i);
+                                        items[i] = (obj instanceof ItemStack is) ? is : null;
+                                    }
+                                    lootDAO.savePlayerLoot(uuid, key, items);
+                                }
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                }
+                File backupDir = new File(dataFolder, "playerdata_migrated");
+                playerDataFolder.renameTo(backupDir);
+                plugin.getLogger().info("[Lootr] Migration des inventaires joueurs terminée.");
+            }
+        }
+    }
+
+    public void loadChests() {
+        chestsCache.clear();
+        Map<String, LootChestData> loaded = lootDAO.loadAllChests();
+        for (Map.Entry<String, LootChestData> entry : loaded.entrySet()) {
+            Location loc = stringToLoc(entry.getKey());
+            entry.getValue().setLocation(loc);
+            chestsCache.put(entry.getKey(), entry.getValue());
+        }
+        plugin.getLogger().info("[Lootr] " + chestsCache.size() + " coffres chargés depuis SQLite.");
     }
 
     public void saveChests() {
-        for (Map.Entry<String, LootChestData> entry : chestsCache.entrySet()) {
-            chestsConfig.set(entry.getKey() + ".lootTable", entry.getValue().getLootTable());
-            chestsConfig.set(entry.getKey() + ".seed", entry.getValue().getSeed());
-            chestsConfig.set(entry.getKey() + ".size", entry.getValue().getSize());
-        }
-        try {
-            chestsConfig.save(chestsFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // En mode SQLite, chaque création/modification est persistée directement.
     }
 
     public String locToString(Location loc) {
+        if (loc == null || loc.getWorld() == null) return "";
         return loc.getWorld().getName() + "|" + loc.getBlockX() + "|" + loc.getBlockY() + "|" + loc.getBlockZ();
     }
 
     public Location stringToLoc(String str) {
+        if (str == null) return null;
         String[] split = str.split("\\|");
         if (split.length == 4) {
             World world = Bukkit.getWorld(split[0]);
@@ -99,7 +135,7 @@ public class LootManager {
     public boolean isLootChest(Location loc) {
         return chestsCache.containsKey(locToString(loc));
     }
-    
+
     public LootChestData getLootChestData(Location loc) {
         return chestsCache.get(locToString(loc));
     }
@@ -107,108 +143,57 @@ public class LootManager {
     public void addLootChest(Location loc, String lootTable, long seed, int size) {
         String key = locToString(loc);
         chestsCache.put(key, new LootChestData(lootTable, seed, size, loc));
-        chestsConfig.set(key + ".lootTable", lootTable);
-        chestsConfig.set(key + ".seed", seed);
-        chestsConfig.set(key + ".size", size);
-        if (plugin.isEnabled()) {
-            plugin.getFoliaLib().getScheduler().runAsync((wrappedTask) -> {
-                try {
-                    chestsConfig.save(chestsFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        } else {
-            try {
-                chestsConfig.save(chestsFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        plugin.getFoliaLib().getScheduler().runAsync(task -> {
+            lootDAO.saveChest(key, lootTable, seed, size);
+        });
     }
 
     public void removeLootChest(Location loc) {
         String key = locToString(loc);
         chestsCache.remove(key);
-        chestsConfig.set(key, null);
-        try {
-            chestsConfig.save(chestsFile);
-        } catch (IOException e) {
-            e.printStackTrace();
+        for (Set<String> set : playerLootedCache.values()) {
+            set.remove(key);
         }
+        plugin.getFoliaLib().getScheduler().runAsync(task -> {
+            lootDAO.deleteChest(key);
+        });
     }
-    
+
     public Map<String, LootChestData> getChestsCache() {
         return chestsCache;
     }
 
     // --- PLAYER DATA ---
 
-    private File getPlayerFile(UUID uuid) {
-        return new File(playerDataFolder, uuid.toString() + ".yml");
-    }
-
     public void removePlayerCache(UUID uuid) {
-        playerCache.remove(uuid);
-    }
-
-    private FileConfiguration getPlayerConfig(UUID uuid) {
-        return playerCache.computeIfAbsent(uuid, k -> {
-            File file = getPlayerFile(uuid);
-            if (!file.exists()) return new YamlConfiguration();
-            return YamlConfiguration.loadConfiguration(file);
-        });
+        playerLootedCache.remove(uuid);
     }
 
     public ItemStack[] getPlayerLoot(UUID uuid, Location loc) {
-        FileConfiguration config = getPlayerConfig(uuid);
-        String key = locToString(loc);
-        
-        synchronized (config) {
-            if (config.contains(key + ".items")) {
-                List<?> list = config.getList(key + ".items");
-                if (list != null) {
-                    ItemStack[] items = new ItemStack[list.size()];
-                    for (int i = 0; i < list.size(); i++) {
-                        Object obj = list.get(i);
-                        if (obj instanceof ItemStack) {
-                            items[i] = (ItemStack) obj;
-                        } else {
-                            items[i] = null;
-                        }
-                    }
-                    return items;
-                }
-            }
-        }
-        return null;
+        return lootDAO.getPlayerLoot(uuid, locToString(loc));
     }
 
     public void savePlayerLoot(UUID uuid, Location loc, ItemStack[] items) {
-        File file = getPlayerFile(uuid);
-        FileConfiguration config = getPlayerConfig(uuid);
         String key = locToString(loc);
-        
-        synchronized (config) {
-            config.set(key + ".items", java.util.Arrays.asList(items));
-        }
-
+        playerLootedCache.computeIfAbsent(uuid, k -> ConcurrentHashMap.newKeySet()).add(key);
         plugin.getFoliaLib().getScheduler().runAsync(task -> {
-            synchronized (config) {
-                try {
-                    config.save(file);
-                } catch (IOException e) {
-                    plugin.getLogger().warning("[LootManager] Erreur lors de la sauvegarde du loot : " + e.getMessage());
-                }
-            }
+            lootDAO.savePlayerLoot(uuid, key, items);
         });
     }
 
     public boolean hasPlayerLooted(UUID uuid, Location loc) {
-        FileConfiguration config = getPlayerConfig(uuid);
-        synchronized (config) {
-            return config.contains(locToString(loc));
+        String key = locToString(loc);
+        Set<String> set = playerLootedCache.get(uuid);
+        if (set != null) {
+            return set.contains(key);
         }
+
+        // Chargement du cache joueur lors du premier test
+        Set<String> loaded = lootDAO.loadLootedLocationsForPlayer(uuid);
+        Set<String> concurrentSet = ConcurrentHashMap.newKeySet();
+        concurrentSet.addAll(loaded);
+        playerLootedCache.put(uuid, concurrentSet);
+        return concurrentSet.contains(key);
     }
 
     public static class LootChestData {
@@ -249,6 +234,3 @@ public class LootManager {
         }
     }
 }
-
-
-

@@ -136,6 +136,15 @@ public class PlaceholderUtils {
             resolvers.add(Placeholder.parsed("ping", String.valueOf(p.getPing())));
         }
 
+        // Client & Protocol Version (ViaVersion / Floodgate)
+        if (text.contains("client_") || text.contains("is_legacy") || text.contains("is_bedrock")) {
+            resolvers.add(Placeholder.parsed("client_version", ViaVersionUtil.getPlayerVersionName(p.getUniqueId())));
+            resolvers.add(Placeholder.parsed("client_protocol", String.valueOf(ViaVersionUtil.getPlayerProtocolVersion(p.getUniqueId()))));
+            resolvers.add(Placeholder.parsed("client_type", FloodgateUtil.isBedrockPlayer(p.getUniqueId()) ? "Bedrock" : "Java"));
+            resolvers.add(Placeholder.parsed("is_legacy", String.valueOf(ViaVersionUtil.isLegacyClient(p.getUniqueId()))));
+            resolvers.add(Placeholder.parsed("is_bedrock", String.valueOf(FloodgateUtil.isBedrockPlayer(p.getUniqueId()))));
+        }
+
         // Discord
         if (text.contains("discord")) {
             boolean linked = p.hasPermission("genscore.discord.linked");
@@ -237,7 +246,12 @@ public class PlaceholderUtils {
                     .replace("%deaths%", "<deaths>")
                     .replace("%first_join%", "<first_join>")
                     .replace("%group%", "<group>")
-                    .replace("%prefix%", "<prefix>");
+                    .replace("%prefix%", "<prefix>")
+                    .replace("%client_version%", "<client_version>")
+                    .replace("%client_protocol%", "<client_protocol>")
+                    .replace("%client_type%", "<client_type>")
+                    .replace("%is_legacy%", "<is_legacy>")
+                    .replace("%is_bedrock%", "<is_bedrock>");
         }
 
         if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {

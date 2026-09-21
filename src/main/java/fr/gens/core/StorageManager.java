@@ -2,11 +2,8 @@ package fr.gens.core;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Base64;
 import org.bukkit.inventory.ItemStack;
 
 public class StorageManager {
@@ -58,102 +55,18 @@ public class StorageManager {
     }
 
     public String itemStackToBase64(ItemStack item) {
-        if (item == null) return null;
-        return Base64.getEncoder().encodeToString(item.serializeAsBytes());
+        return fr.gens.core.utils.ItemSerializer.toBase64(item);
     }
 
-    @SuppressWarnings("deprecation")
-    // NOTE: BukkitObjectInputStream is deprecated but intentionally used here for backward-compatibility
-    // with legacy serialized data (Java serialization format, prefix "rO0AB"). New data uses ItemStack.deserializeBytes().
     public ItemStack itemStackFromBase64(String data) {
-        if (data == null || data.isEmpty()) return null;
-        
-        if (data.startsWith("rO0AB")) {
-            try {
-                ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(data));
-                org.bukkit.util.io.BukkitObjectInputStream dataInput = new org.bukkit.util.io.BukkitObjectInputStream(inputStream);
-                ItemStack item = (ItemStack) dataInput.readObject();
-                dataInput.close();
-                return item;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-        
-        try {
-            return ItemStack.deserializeBytes(Base64.getDecoder().decode(data));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return fr.gens.core.utils.ItemSerializer.fromBase64(data);
     }
 
     public String itemStackArrayToBase64(ItemStack[] items) {
-        if (items == null) return null;
-        try {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            java.io.DataOutputStream dataOutput = new java.io.DataOutputStream(outputStream);
-            dataOutput.writeInt(items.length);
-            for (ItemStack item : items) {
-                if (item != null) {
-                    byte[] bytes = item.serializeAsBytes();
-                    dataOutput.writeInt(bytes.length);
-                    dataOutput.write(bytes);
-                } else {
-                    dataOutput.writeInt(0);
-                }
-            }
-            dataOutput.close();
-            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return fr.gens.core.utils.ItemSerializer.itemStackArrayToBase64(items);
     }
 
-    @SuppressWarnings("deprecation")
-    // NOTE: Same as above — legacy migration path only. New data uses ItemStack.deserializeBytes().
     public ItemStack[] itemStackArrayFromBase64(String data) {
-        if (data == null || data.isEmpty()) return null;
-        
-        if (data.startsWith("rO0AB")) {
-            try {
-                ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(data));
-                org.bukkit.util.io.BukkitObjectInputStream dataInput = new org.bukkit.util.io.BukkitObjectInputStream(inputStream);
-                int size = dataInput.readInt();
-                ItemStack[] items = new ItemStack[size];
-                for (int i = 0; i < size; i++) {
-                    items[i] = (ItemStack) dataInput.readObject();
-                }
-                dataInput.close();
-                return items;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-        
-        try {
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64.getDecoder().decode(data));
-            java.io.DataInputStream dataInput = new java.io.DataInputStream(inputStream);
-            int size = dataInput.readInt();
-            ItemStack[] items = new ItemStack[size];
-            for (int i = 0; i < size; i++) {
-                int len = dataInput.readInt();
-                if (len > 0) {
-                    byte[] bytes = new byte[len];
-                    dataInput.readFully(bytes);
-                    items[i] = ItemStack.deserializeBytes(bytes);
-                } else {
-                    items[i] = null;
-                }
-            }
-            dataInput.close();
-            return items;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return fr.gens.core.utils.ItemSerializer.itemStackArrayFromBase64(data);
     }
 }

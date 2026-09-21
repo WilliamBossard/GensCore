@@ -28,6 +28,9 @@ dependencies:
     PlaceholderAPI:
       load: BEFORE
       required: false
+    ViaVersion:
+      load: BEFORE
+      required: false
 
 # Commandes et Permissions (Facultatif dans Paper avec Cloud, mais inclus pour cohérence)
 commands:

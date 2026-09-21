@@ -526,7 +526,10 @@ public class QuestModule implements Module, Listener {
                     } catch (NumberFormatException ignored) {}
                 }
             } else {
-                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                final String finalCmd = cmd;
+                plugin.getFoliaLib().getScheduler().runNextTick((gt) -> {
+                    Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCmd);
+                });
             }
         }
     }
