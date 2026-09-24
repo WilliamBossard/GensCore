@@ -138,6 +138,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
   const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'shop' | 'settings' | 'modules' | 'files' | 'players' | 'content'>((localStorage.getItem('gens_admin_tab') as any) || 'shop');
+  const [isValidating, setIsValidating] = useState(true);
   const [config, setConfig] = useState<ConfigState>({
     inflationExponent: 0.5,
     ahTaxPercentage: 0.0,
@@ -166,6 +167,7 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
   }, [activeTab]);
 
   useEffect(() => {
+    let isMounted = true;
     fetch(`${API_URL}/admin/config`, { headers: { 'Authorization': `Bearer ${password}` } })
       .then(res => {
         if (res.status === 401) {
@@ -175,8 +177,17 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
         }
         return res.ok ? res.json() : null;
       })
-      .then(data => { if (data) setConfig(data); })
-      .catch(console.error);
+      .then(data => {
+        if (!isMounted) return;
+        if (data) setConfig(data);
+        setIsValidating(false);
+      })
+      .catch(err => {
+        if (!isMounted) return;
+        console.error(err);
+        setIsValidating(false);
+      });
+    return () => { isMounted = false; };
   }, [password]);
 
   const handleSaveConfig = (e: React.FormEvent) => {
@@ -202,6 +213,32 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     setConfig(newConfig);
     saveConfigToServer(newConfig);
   };
+
+  if (isValidating) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: 'var(--bg-color)',
+        gap: '16px'
+      }}>
+        <div className="spinner" style={{
+          width: '42px',
+          height: '42px',
+          border: '3px solid rgba(255,255,255,0.1)',
+          borderTopColor: 'var(--accent)',
+          borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 500 }}>
+          {t('web.admin.verifying') || 'Vérification des accès administrateur...'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-layout">
@@ -3003,7 +3040,6 @@ function App() {
   const handleAdminLogout = () => {
     localStorage.removeItem('gens_admin_pwd');
     setAdminPassword(null);
-    window.location.href = '/';
   };
 
   const handlePlayerLogin = (data: any) => {
