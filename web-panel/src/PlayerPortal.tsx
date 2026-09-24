@@ -1481,22 +1481,28 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
 
   return (
     <div className="admin-layout">
-      {/* Sidebar Mobile Toggle */}
-      <button className="mobile-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} style={{position: 'fixed', top: '15px', left: '15px', zIndex: 101, background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '8px', cursor: 'pointer', display: 'none'}}>
-        {sidebarOpen ? <X size={24}/> : <Menu size={24}/>}
-      </button>
-
       {/* Overlay mobile */}
       {sidebarOpen && (
         <div 
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 90 }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-header" style={{flexDirection: 'column', gap: '10px'}}>
+        <div style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', marginBottom: '-6px' }}>
+          <button 
+            className="mobile-close-btn" 
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fermer le menu"
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
+          >
+            <X size={22} />
+          </button>
+        </div>
+
+        <div className="admin-sidebar-header" style={{flexDirection: 'column', gap: '10px', paddingTop: '0'}}>
           <img src={getPlayerAvatarUrl(playerData.username, 100)} alt="Avatar" style={{width: '64px', height: '64px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)'}} />
           <h2 style={{fontSize: '1.2rem', textAlign: 'center'}}>{playerData.username}</h2>
           {playerData.isOp && <span style={{background: '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold'}}>ADMIN</span>}
@@ -1505,7 +1511,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           </div>
         </div>
         
-        <nav className="admin-nav" style={{marginTop: '1.5rem'}}>
+        <nav className="admin-nav" style={{marginTop: '1.2rem'}}>
           <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.shop')}</Link>
           <Link to="/dashboard/ah" className={location.pathname === '/dashboard/ah' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><ShoppingCart size={18}/> {t('web.nav.ah')}</Link>
           <Link to="/dashboard/team" className={location.pathname === '/dashboard/team' ? 'active' : ''} onClick={() => setSidebarOpen(false)}><Users size={18}/> {t('web.nav.team') || 'Ma Guilde'}</Link>
@@ -1522,23 +1528,60 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
               <Sparkles size={18}/> {t('web.nav.perks') || 'Bonus de Quêtes'}
             </Link>
           )}
-          
+        </nav>
+
+        <div className="admin-sidebar-footer" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {playerData.isOp && (
-            <div style={{marginTop: '2rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem'}}>
-              <Link to="/admin" className={location.pathname.startsWith('/admin') ? 'active' : ''} style={{color: '#fbbf24'}}><Shield size={18}/> {t('web.nav.admin')}</Link>
-            </div>
+            <Link 
+              to="/admin" 
+              className="logout-button" 
+              style={{ color: '#fbbf24', textDecoration: 'none', borderColor: 'rgba(251, 191, 36, 0.3)', background: 'rgba(251, 191, 36, 0.08)' }} 
+              onClick={() => setSidebarOpen(false)}
+            >
+              <Shield size={18}/> {t('web.nav.admin')}
+            </Link>
           )}
           
-          <button onClick={onLogout} style={{marginTop: 'auto', background: 'transparent', border: 'none', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold', width: '100%', borderRadius: '8px', transition: 'background 0.2s'}} 
-            onMouseOver={e=>e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'} 
-            onMouseOut={e=>e.currentTarget.style.background='transparent'}>
+          <button 
+            onClick={onLogout} 
+            className="logout-button" 
+            style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+          >
             <LogOut size={18}/> {t('web.nav.logout')}
           </button>
-        </nav>
+        </div>
       </aside>
 
       {/* Main Content */}
       <main className="admin-main">
+        {/* Mobile Top Bar */}
+        <div className="mobile-top-bar">
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Ouvrir le menu"
+          >
+            <Menu size={22} />
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+            <img 
+              src={getPlayerAvatarUrl(playerData.username, 32)} 
+              alt={playerData.username} 
+              style={{ width: '28px', height: '28px', borderRadius: '6px', flexShrink: 0 }} 
+            />
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {playerData.username}
+            </span>
+            {playerData.isOp && (
+              <span style={{ background: '#ef4444', color: 'white', padding: '1px 6px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: 'bold', flexShrink: 0 }}>
+                ADMIN
+              </span>
+            )}
+          </div>
+          <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+            <PlayerBalanceWidget uuid={playerData.uuid} token={playerData.token} variant="pill" />
+          </div>
+        </div>
         <Routes>
           <Route index element={<ClientShop isEnabled={isModuleEnabled('DynamicShop')} />} />
           <Route path="ah" element={<ClientAh isEnabled={isModuleEnabled('AuctionHouse')} />} />
