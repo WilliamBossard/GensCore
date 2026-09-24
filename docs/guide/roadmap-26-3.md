@@ -3,10 +3,11 @@
 Follow real-time progress, newly deployed improvements, and the transition roadmap of **GensCore** towards **Minecraft 26.3** and **Java 25 LTS**.
 
 ::: info Project Status
-- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 26+)
+- **Target Engine:** Minecraft 26.3 (Paper Build Alpha 40+)
 - **Runtime Environment:** Java 25 LTS
+- **Plugin Version:** Release **1.0.1** (dedicated to Minecraft 26.3)
 - **Active Working Branch:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
-- **Stability:** **Beta** — Stable feature set, production-ready for public testing
+- **Stability:** **Stable Release** — Production-ready for public deployment
 :::
 
 ---
@@ -16,7 +17,10 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | Component | Status | Details |
 | :--- | :---: | :--- |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Compiled with `--release 25` flag and verified on Temurin JVM 25 |
-| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.28-alpha` |
+| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.40-alpha` (Release 1.0.1) |
+| **Dependencies Upgrades** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Jackson 2.22.3, JDA 6.7.0, Vite 8.3.1, Lucide 1.48.0, i18next 17.0.15 |
+| **Mobile Web Optimization** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Responsive UX for < 480px, fluid card, 100vw drawers, chunk code-splitting |
+| **Geyser Standalone Architecture** | <span style="color: #22c55e; font-weight: 700;">Operational</span> | Pterodactyl Standalone deployment with auto-update & zero NMS crashes |
 | **Craft Quests (Torches & Bulk Crafting)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Accurate shift-click batch size tracking and vanilla yield multiplier |
 | **Comprehensive Shop (319 Items & Potions)** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | 7 balanced categories (25-35% margin), SQLite auto-seeding & GUI pagination |
 | **Web Minigames Remaster & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Slot machine RTP calibrated to 84%, 3D animated CoinFlip, real-time admin switches |
@@ -75,6 +79,23 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
   - Expanded `/team` GUI (54 slots) with direct action buttons: Slot 38 (Bed: Left-click for `/team home`, Right-click for `/team sethome`), Slot 40 (Vault), and Slot 42 (Bank).
   - Native Bedrock Cumulus dialogs with buttons for Guild Home, Set Home, and Guild Vault.
   - Right-click shortcuts in `/team upgrades` (Slot 19 for Home, Slot 23 for Vault).
+
+### 7. Release 1.0.1: Paper Build 40-alpha, Dependencies & Mobile
+* **Official Release 1.0.1 Migration:** Production milestone dedicated to **Minecraft 26.3** (succeeding release 1.0.0 for 26.2).
+* **Paper API Upgrade:** Bumped to `26.3.build.40-alpha` with all 69 unit test suites passing cleanly under Java 25 LTS.
+* **Backend Libraries Upgrades:**
+  - `jackson-databind` upgraded to `2.22.3` (JSON deserialization security patches).
+  - `JDA` (Java Discord API) upgraded to `6.7.0` (Discord Gateway v10 protocol stability).
+* **Frontend Web Panel Modernization & Optimization:**
+  - Upgraded dependencies: `vite` (8.3.1), `lucide-react` (1.48.0), `react-i18next` (17.0.15), `typescript-eslint` (8.70.1), `eslint` (10.11.0), `@types/node` (26.6.2).
+  - Mobile UX responsiveness: Fluid login card (`max-width: 400px; margin: 0 1rem;`), touch-friendly drawers (`width: 100vw;`), compact paddings, and font hierarchy for compact screens (< 480px).
+  - Rolldown/Vite manual chunk code-splitting (`vendor-core`, `vendor-charts`, `vendor-icons`), zero build warnings in 578ms.
+* **Jobs Resilience (`JobsModule`):**
+  - Eliminated redundant player quit listener to avoid double sync/async save overhead.
+  - Hardened memory safety by flushing `dirtyPlayers` cache upon successful asynchronous persist.
+* **Bedrock Crossplay Standalone Architecture:**
+  - Documented and validated **Geyser Standalone** on Pterodactyl (`egg-geyser-m-c.json` in `PTDL_v2` format).
+  - Isolated execution on UDP port `19132` with automated startup updates, completely bypassing Paper 26.3 NMS Spigot injection crashes.
 
 ---
 
