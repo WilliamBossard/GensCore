@@ -335,12 +335,23 @@ public class WebPlayerAPI implements Listener {
         get("/api/player/info", ctx -> {
             String uuidStr = ctx.queryParam("uuid");
             if (uuidStr == null) {
+                uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            }
+            if (uuidStr == null) {
                 ctx.status(400).json("UUID manquant");
                 return;
             }
+            String auth = ctx.header("Authorization");
+            if (auth != null && auth.startsWith("Bearer ")) {
+                String tokenUuid = webManager.getPlayerUuidFromCtx(ctx);
+                if (tokenUuid == null) {
+                    ctx.status(401).json(Map.of("error", "Session expirée"));
+                    return;
+                }
+            }
             org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(UUID.fromString(uuidStr));
             boolean isOp = (op != null && op.isOp());
-            ctx.json(Map.of("isOp", isOp));
+            ctx.json(Map.of("isOp", isOp, "valid", true));
         });
 
         get("/api/games/config", ctx -> {
@@ -546,6 +557,16 @@ public class WebPlayerAPI implements Listener {
 
             UUID playerUuid = UUID.fromString(uuidStr);
             fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            
+            // Fallback BDD : si le joueur n'est pas en RAM (jamais connecté depuis démarrage),
+            // on charge sa guilde directement depuis la base de données.
+            if (team == null) {
+                fr.gens.core.modules.teams.TeamModule teamModule = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+                if (teamModule != null) {
+                    team = teamModule.getTeamDAO().getTeamByPlayerUuid(playerUuid);
+                }
+            }
+            
             if (team == null) {
                 ctx.json(Map.of("hasTeam", false));
                 return;

@@ -174,33 +174,80 @@ select.input-field option {
 
 /* === BOUTONS === */
 .btn {
-  padding: 10px 20px; font-size: 0.95rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 6px; cursor: pointer; border: none; font-weight: 500; transition: background 0.2s;
-  background: var(--accent); color: white;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(135deg, var(--accent), #2563eb);
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  letter-spacing: 0.02em;
 }
-.btn:hover { background: var(--accent-hover); }
+.btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.45);
+  transform: translateY(-1px);
+}
+.btn:active { transform: translateY(0); }
 
 .login-button { 
-  width: 100%; padding: 12px; background: var(--accent); 
-  color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; 
-  cursor: pointer; transition: all 0.2s;
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 12px rgba(59, 130, 246, 0.35);
+  letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
 }
-.login-button:hover { 
-  background: var(--accent-hover);
-  box-shadow: 0 0 15px var(--accent-glow);
+.login-button::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; right: -100%; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  transition: left 0.4s ease;
+}
+.login-button:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.5);
+  transform: translateY(-1px);
+}
+.login-button:hover::after { left: 100%; }
+.login-button:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3); }
+.login-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-.btn-small { padding: 8px 16px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 6px; cursor: pointer; border: none; font-weight: 500; transition: background 0.2s; }
-.btn-primary { background: var(--accent); color: white; }
-.btn-primary:hover { background: var(--accent-hover); }
-.btn-icon { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 6px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
-.btn-icon:hover { background: var(--danger); color: white; border-color: var(--danger); }
+.btn-small { padding: 8px 16px; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 7px; cursor: pointer; border: none; font-weight: 600; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, var(--accent), #2563eb); color: white; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+.btn-primary:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 4px 14px rgba(59,130,246,0.45); transform: translateY(-1px); }
+.btn-icon { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 7px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.btn-icon:hover { background: var(--danger); color: white; border-color: var(--danger); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
 
 /* === SAVE BUTTON === */
 .btn-save {
-  background: var(--success);
+  background: linear-gradient(135deg, var(--success), #059669);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
 }
 .btn-save:hover {
-  background: #059669;
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
 }
 
 /* === ADMIN DASHBOARD === */
@@ -427,25 +474,94 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   .admin-item-row > div:last-child { display: flex !important; justify-content: space-between !important; width: 100% !important; }
   .admin-studio-grid { grid-template-columns: 1fr !important; }
   .settings-grid { grid-template-columns: 1fr !important; }
+
+  /* ==== MOBILE: FIX MENUS COMPRESSÉS ==== */
+  /* Les cards génériques ne doivent pas lever sur mobile */
+  .admin-card:hover { transform: none !important; }
+  
+  /* Les sections de contenu prennent toute la largeur */
+  .dashboard-content > div {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Grilles de stats : 2 colonnes sur mobile */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  /* Team / Guilde: layout en colonne sur mobile */
+  .team-info-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Éviter les débordements horizontaux */
+  .admin-main > * { max-width: 100%; overflow-x: hidden; }
+  
+  /* Formulaires : colonnes en une seule colonne */
+  .form-row-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Bar chart en pleine largeur */
+  .chart-bar-row {
+    height: 100px !important;
+  }
+
+  /* Jobs : cartes en colonnes sur mobile */
+  .jobs-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Boutons d'action de guilde : flex-wrap */
+  .team-action-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .team-action-row > * {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+  }
+
+  /* Corrige le padding du contenu des sections */
+  .section-content {
+    padding: 1rem !important;
+  }
 }
 
 @media (max-width: 480px) {
   .login-card { padding: 2rem 1.25rem; margin: 0 0.5rem; }
-  .admin-main { padding: 1rem 0.6rem !important; }
-  .admin-header h2 { font-size: 1.25rem !important; }
+  .admin-main { padding: 0.8rem 0.5rem !important; }
+  .admin-header h2 { font-size: 1.2rem !important; }
   .hero-title { font-size: 1.75rem !important; }
   .hero-container { padding: 2rem 0.5rem !important; }
   .public-header { padding: 12px 14px !important; }
   .drawer-panel { width: 100vw !important; max-width: 100vw !important; border-radius: 0 !important; }
-  .table-container { border-radius: 6px; }
-  th, td { padding: 10px 12px; font-size: 0.82rem; }
-  .shop-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
-  .ah-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+  .table-container { border-radius: 6px; overflow-x: auto; }
+  th, td { padding: 8px 10px; font-size: 0.8rem; }
+  .shop-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+  .ah-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
   .price-row { grid-template-columns: 1fr !important; }
-  .admin-card { padding: 1.2rem 1rem !important; border-radius: 12px !important; }
-  .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-  .stats-grid .admin-card { padding: 1.2rem 0.6rem !important; }
-  .stats-grid h3 { font-size: 1.4rem !important; }
+  .admin-card { padding: 1rem 0.85rem !important; border-radius: 12px !important; }
+  .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  .stats-grid .admin-card { padding: 1rem 0.5rem !important; }
+  .stats-grid h3 { font-size: 1.3rem !important; }
+  /* Boutons plus grands pour le touch */
+  .btn, .btn-small { min-height: 42px; }
+  .login-button { min-height: 48px; font-size: 1.05rem; }
+  /* Guilde: membres en colonne pleine largeur */
+  .team-members-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* Textes tronqués trop agressifs : les laisser wrapper */
+  .overflow-nowrap-mobile {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+  }
 }
 
 /* === REWORK BOUTIQUES & AH GENSCORE === */

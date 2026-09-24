@@ -1,0 +1,17 @@
+{
+  "short_name": "GensCore",
+  "name": "GensCore - Serveur Minecraft",
+  "description": "Portail Joueur & Administration GensCore",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#090a0f",
+  "theme_color": "#3b82f6",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -1067,36 +1067,36 @@ export function PlayerTeamSection({ token }: { token: string }) {
   ];
 
   return (
-    <div className="dashboard-content" style={{padding: '2rem'}}>
+    <div className="dashboard-content" style={{padding: 'clamp(1rem, 4vw, 2rem)'}}>
       {/* Header Guilde */}
-      <div className="admin-card" style={{marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem'}}>
-        <div style={{display: 'flex', alignItems: 'center', gap: '1.2rem'}}>
+      <div className="admin-card" style={{marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0, flex: 1}}>
           <div style={{
-            width: '56px', height: '56px', borderRadius: '12px',
+            width: '52px', height: '52px', borderRadius: '12px', flexShrink: 0,
             background: team.color || '#2ecc71', display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: `0 0 20px ${(team.color || '#2ecc71')}66`
           }}>
-            <Shield size={32} color="#ffffff" />
+            <Shield size={28} color="#ffffff" />
           </div>
-          <div>
-            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-              <h1 style={{margin: 0, fontSize: '1.8rem'}}>{team.name}</h1>
+          <div style={{minWidth: 0}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
+              <h1 style={{margin: 0, fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', lineHeight: 1.2}}>{team.name}</h1>
               <span style={{
                 background: isLeader ? 'rgba(234, 179, 8, 0.2)' : isAdmin ? 'rgba(59, 130, 246, 0.2)' : 'rgba(148, 163, 184, 0.2)',
                 color: isLeader ? '#eab308' : isAdmin ? '#3b82f6' : '#94a3b8',
                 border: `1px solid ${isLeader ? 'rgba(234, 179, 8, 0.4)' : isAdmin ? 'rgba(59, 130, 246, 0.4)' : 'rgba(148, 163, 184, 0.3)'}`,
-                padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'
+                padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0
               }}>
                 {isLeader ? (t('web.team.role_leader') || 'Chef de Guilde') : isAdmin ? (t('web.team.role_admin') || 'Administrateur') : (t('web.team.role_member') || 'Membre')}
               </span>
             </div>
-            <p style={{color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem'}}>
-              {t('web.team.subtitle') || 'Gerez votre equipe, votre tresorerie et vos ameliorations'}
+            <p style={{color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.88rem'}}>
+              {t('web.team.subtitle') || 'Gérez votre équipe, votre trésorerie et vos améliorations'}
             </p>
           </div>
         </div>
-        <button onClick={fetchTeam} className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-main)', cursor: 'pointer'}}>
-          <RefreshCw size={16} /> {t('web.wallet.refresh') || 'Actualiser'}
+        <button onClick={fetchTeam} style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.88rem', flexShrink: 0}}>
+          <RefreshCw size={15} /> {t('web.wallet.refresh') || 'Actualiser'}
         </button>
       </div>
 
@@ -1137,21 +1137,21 @@ export function PlayerTeamSection({ token }: { token: string }) {
           {/* Formulaire Depot */}
           <form onSubmit={handleDeposit} style={{marginBottom: '1rem'}}>
             <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px'}}>
-              {isEco ? 'Deposer des dollars dans la banque :' : 'Deposer des niveaux d\'XP (joueur connecte) :'}
+              {isEco ? 'Déposer des dollars dans la banque :' : "Déposer des niveaux d'XP (joueur connecté) :"}
             </label>
-            <div style={{display: 'flex', gap: '10px'}}>
+            <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
               <input
                 type="number"
                 min="1"
                 step={isEco ? '0.01' : '1'}
-                placeholder={isEco ? 'Montant en $' : 'Niveaux d\'XP'}
+                placeholder={isEco ? 'Montant en $' : "Niveaux d'XP"}
                 value={depositAmount}
                 onChange={e => setDepositAmount(e.target.value)}
                 className="login-input"
-                style={{margin: 0, flex: 1}}
+                style={{margin: 0, flex: '1 1 120px', minWidth: '100px'}}
               />
-              <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: 'var(--accent)'}}>
-                {t('web.team.deposit_btn') || 'Deposer'}
+              <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', flex: '0 0 auto'}}>
+                {t('web.team.deposit_btn') || 'Déposer'}
               </button>
             </div>
           </form>
@@ -1160,20 +1160,20 @@ export function PlayerTeamSection({ token }: { token: string }) {
           {canManage ? (
             <form onSubmit={handleWithdraw}>
               <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px'}}>
-                {isEco ? 'Retirer des fonds vers votre solde :' : 'Retirer des niveaux d\'XP vers votre joueur :'}
+                {isEco ? 'Retirer des fonds vers votre solde :' : "Retirer des niveaux d'XP vers votre joueur :"}
               </label>
-              <div style={{display: 'flex', gap: '10px'}}>
+              <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
                 <input
                   type="number"
                   min="1"
                   step={isEco ? '0.01' : '1'}
-                  placeholder={isEco ? 'Montant en $' : 'Niveaux d\'XP'}
+                  placeholder={isEco ? 'Montant en $' : "Niveaux d'XP"}
                   value={withdrawAmount}
                   onChange={e => setWithdrawAmount(e.target.value)}
                   className="login-input"
-                  style={{margin: 0, flex: 1}}
+                  style={{margin: 0, flex: '1 1 120px', minWidth: '100px'}}
                 />
-                <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: '#3b82f6'}}>
+                <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', flex: '0 0 auto'}}>
                   {t('web.team.withdraw_btn') || 'Retirer'}
                 </button>
               </div>
@@ -1221,13 +1221,13 @@ export function PlayerTeamSection({ token }: { token: string }) {
             <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px'}}>
               {t('web.team.color_label') || 'Couleur de la Guilde sur BlueMap :'}
             </label>
-            <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap'}}>
               <input
                 type="color"
                 value={customColor}
                 onChange={e => setCustomColor(e.target.value)}
                 disabled={!canManage}
-                style={{width: '44px', height: '44px', padding: '2px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: canManage ? 'pointer' : 'not-allowed', background: 'transparent'}}
+                style={{width: '44px', height: '44px', padding: '2px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: canManage ? 'pointer' : 'not-allowed', background: 'transparent', flexShrink: 0}}
               />
               <input
                 type="text"
@@ -1235,7 +1235,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                 onChange={e => setCustomColor(e.target.value)}
                 disabled={!canManage}
                 className="login-input"
-                style={{margin: 0, maxWidth: '120px', fontFamily: 'monospace'}}
+                style={{margin: 0, width: '110px', flex: '0 0 110px', fontFamily: 'monospace'}}
               />
               {canManage && (
                 <button onClick={handleSaveColor} disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: 'var(--card-bg)', border: '1px solid var(--card-border)'}}>
