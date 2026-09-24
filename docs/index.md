@@ -60,10 +60,10 @@ features:
       <span style="font-size: 0.75rem; font-weight: 600; color: #e9d5ff; background: rgba(168, 85, 247, 0.15); padding: 0.25rem 0.6rem; border-radius: 4px; border: 1px solid rgba(168, 85, 247, 0.3);">Geyser Standalone</span>
     </div>
     <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
-      <a href="/guide/roadmap-26-3" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.3rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; background: linear-gradient(90deg, #9333ea, #6366f1); color: #fff; box-shadow: 0 4px 14px rgba(147, 51, 234, 0.3);">
+      <a href="/GensCore/guide/roadmap-26-3" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.3rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; background: linear-gradient(90deg, #9333ea, #6366f1); color: #fff; box-shadow: 0 4px 14px rgba(147, 51, 234, 0.3);">
         View 26.3 Roadmap
       </a>
-      <a href="/guide/getting-started" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.15);">
+      <a href="/GensCore/guide/getting-started" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; text-decoration: none; background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.15);">
         Getting Started
       </a>
     </div>
