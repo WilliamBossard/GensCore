@@ -93,7 +93,7 @@ cd ..
 # Then, package the Java plugin
 mvn clean package -DskipTests
 ```
-The final file will be located in `target/GensCore-1.0-SNAPSHOT.jar`.
+The final file will be located in `target/GensCore-1.0.1.jar`.
 
 ### Build via GitHub Actions
 GensCore has a configured Workflow (in `.github/workflows/release.yml`).

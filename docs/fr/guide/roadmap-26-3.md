@@ -3,10 +3,11 @@
 Suivez en temps réel l'avancée des travaux, les améliorations apportées et la feuille de route de **GensCore** pour **Minecraft 26.3** et **Java 25 LTS**.
 
 ::: info Statut du Projet
-- **Version cible :** Minecraft 26.3 (Paper Build Alpha 26+)
+- **Version cible :** Minecraft 26.3 (Paper Build Alpha 40+)
 - **Environnement d'exécution :** Java 25 LTS
+- **Version du Plugin :** Release **1.0.1** (dédiée à Minecraft 26.3)
 - **Branche de travail active :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) & [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
-- **Stabilité :** **Beta** — Fonctionnalités stables, prêtes pour un déploiement en production
+- **Stabilité :** **Release Stable** — Prêt pour le déploiement en production
 :::
 
 ---
@@ -16,7 +17,10 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | Composant | Statut | Détails |
 | :--- | :---: | :--- |
 | **Support Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Compilé avec l'option `--release 25` et validé sur JVM Temurin 25 |
-| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.28-alpha` |
+| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.40-alpha` (Release 1.0.1) |
+| **Mises à Jour Dépendances** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Jackson 2.22.3, JDA 6.7.0, Vite 8.3.1, Lucide 1.48.0, i18next 17.0.15 |
+| **Optimisation Mobile Web** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Design responsive écrans < 480px, carte fluide, code-splitting chunks |
+| **Architecture Geyser Standalone** | <span style="color: #22c55e; font-weight: 700;">Opérationnel</span> | Déploiement Standalone Pterodactyl avec auto-update et isolation NMS |
 | **Quêtes de Craft (Torches & Craft en Masse)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Prise en compte du Shift-Click et calcul précis du ratio d'objets créés vanilla |
 | **Boutique Complète (319 Objets & Potions)** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | 7 catégories, prix équilibrés (marge 25-35%), auto-seeding SQLite & pagination |
 | **Remaster Mini-Jeux Web & CoinFlip** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | RTP Casino ramené à 84%, nouveau jeu CoinFlip 3D, switch admin en direct |
@@ -75,6 +79,23 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
   - Interface `/team` (54 slots) enrichie avec boutons d'action au slot 38 (Lit : Clic gauche pour `/team home`, Clic droit pour `/team sethome`), au slot 40 (Coffre virtuel partagé) et au slot 42 (Banque de guilde).
   - Formulaires Bedrock Cumulus intégrant des boutons d'accès rapide au Home, à la définition du Home et au Coffre virtuel.
   - Raccourcis directs en clic droit dans le menu `/team upgrades` (Slot 19 pour Home, Slot 23 pour Vault).
+
+### 7. Release 1.0.1 : Paper Build 40-alpha, Mises à jour des Dépendances & Mobile
+* **Passage officiel en Release 1.0.1 :** Version de production dédiée à **Minecraft 26.3** (faisant suite à la version 1.0.0 pour 26.2).
+* **Mise à niveau de l'API Paper :** Passage à `26.3.build.40-alpha` avec validation et passage avec succès des 69 tests unitaires sous Java 25 LTS.
+* **Mises à jour des bibliothèques Backend :**
+  - `jackson-databind` mis à niveau en `2.22.3` (correctifs de sécurité et désérialisation JSON).
+  - `JDA` (Java Discord API) mis à niveau en `6.7.0` (stabilité passerelle Discord Gateway v10).
+* **Mises à jour et optimisation Frontend Web Panel :**
+  - Montée de version de `vite` (8.3.1), `lucide-react` (1.48.0), `react-i18next` (17.0.15), `typescript-eslint` (8.70.1), `eslint` (10.11.0), `@types/node` (26.6.2).
+  - Optimisation responsive complète pour smartphones et petits écrans (< 480px) : carte de connexion fluide (`max-width: 400px; margin: 0 1rem;`), tiroirs tactiles plein écran (`width: 100vw;`), paddings compacts et tailles de polices proportionnelles.
+  - Découpage Rolldown/Vite en chunks manuels (`vendor-core`, `vendor-charts`, `vendor-icons`), éliminant tout warning de taille de bundle à la compilation.
+* **Fiabilisation des Métiers (`JobsModule`) :**
+  - Suppression d'un listener de déconnexion redondant qui déclenchait un double enregistrement synchrone/asynchrone.
+  - Nettoyage sécurisé du cache `dirtyPlayers` après sauvegarde asynchrone réussie pour prévenir les fuites de mémoire.
+* **Architecture Crossplay Bedrock Standalone :**
+  - Déploiement et documentation de **Geyser Standalone** sous Pterodactyl via l'œuf officiel (`egg-geyser-m-c.json` au format `PTDL_v2`).
+  - Fonctionnement autonome sur le port UDP `19132` avec auto-update automatique au démarrage et élimination totale des conflits d'injection NMS dans Paper 26.3.
 
 ---
 

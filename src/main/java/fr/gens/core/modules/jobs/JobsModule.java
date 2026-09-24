@@ -280,6 +280,8 @@ public class JobsModule implements Module, Listener {
         if (!enabled) return;
         UUID uuid = e.getPlayer().getUniqueId();
         
+        dirtyPlayers.remove(uuid);
+
         // Deep copy des maps avant de les supprimer de la mémoire pour l'asynchrone
         Map<JobType, Double> xpCopy = playerXp.containsKey(uuid) ? new java.util.HashMap<>(playerXp.get(uuid)) : null;
         Map<JobType, Integer> levelCopy = playerLevel.containsKey(uuid) ? new java.util.HashMap<>(playerLevel.get(uuid)) : null;
@@ -334,17 +336,6 @@ public class JobsModule implements Module, Listener {
             Player p = e.getEntity().getKiller();
             addXp(p, JobType.CHASSEUR, 5.0, 2.0);
         }
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
-        UUID uuid = e.getPlayer().getUniqueId();
-        if (dirtyPlayers.remove(uuid)) {
-            savePlayer(uuid);
-        }
-        playerXp.remove(uuid);
-        playerLevel.remove(uuid);
-        activeJobs.remove(uuid);
     }
 }
 
