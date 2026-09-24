@@ -1786,8 +1786,8 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
       </div>
 
       {/* BARRE DE FILTRES ET RECHERCHE */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap'}}>
-        <div style={{display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px'}}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap'}}>
+        <div style={{display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' as any, msOverflowStyle: 'none' as any, scrollbarWidth: 'none' as any, flex: '1 1 200px'}}>
           <button 
             className={`multiplier-btn ${activeCatId === 'all' ? 'selected' : ''}`}
             onClick={() => setActiveCatId('all')}
@@ -1831,14 +1831,14 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
           ))}
         </div>
 
-        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 14px', minWidth: '260px'}}>
-          <Search size={18} color="var(--text-muted)"/>
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 12px', flex: '1 1 180px', minWidth: '160px'}}>
+          <Search size={16} color="var(--text-muted)"/>
           <input 
             type="text" 
-            placeholder="Rechercher un objet..." 
+            placeholder="Rechercher..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem'}}
+            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.88rem'}}
           />
         </div>
       </div>
