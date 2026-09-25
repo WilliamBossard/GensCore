@@ -135,36 +135,37 @@ public class TeamDAO {
             boolean hasRewards = false;
             try (PreparedStatement stmt = conn.prepareStatement("SELECT * FROM genscore_pending_rewards WHERE uuid = ?")) {
                 stmt.setString(1, player.getUniqueId().toString());
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    hasRewards = true;
-                    double amount = rs.getDouble("amount");
-                    String itemData = rs.getString("item_data");
-                    
-                    if (amount > 0) {
-                        fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
-                        if (eco != null && eco.isEnabled()) {
-                            eco.addMoney(player.getUniqueId(), amount);
-                            plugin.getLangManager().sendMessage(player, "economy.pending_reward", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)));
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        hasRewards = true;
+                        double amount = rs.getDouble("amount");
+                        String itemData = rs.getString("item_data");
+                        
+                        if (amount > 0) {
+                            fr.gens.core.modules.EconomyModule eco = (fr.gens.core.modules.EconomyModule) plugin.getModuleManager().getModule("economy");
+                            if (eco != null && eco.isEnabled()) {
+                                eco.addMoney(player.getUniqueId(), amount);
+                                plugin.getLangManager().sendMessage(player, "economy.pending_reward", net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.parsed("amount", String.valueOf(amount)));
+                            }
                         }
-                    }
-                    if (itemData != null && !itemData.isEmpty()) {
-                        String[] parts = itemData.split(":");
-                        if (parts.length == 2) {
-                            try {
-                                org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
-                                int count = Integer.parseInt(parts[1]);
-                                org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(mat, count);
-                                
-                                plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
-                                    java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> excess = player.getInventory().addItem(item);
-                                    for (org.bukkit.inventory.ItemStack drop : excess.values()) {
-                                        player.getWorld().dropItemNaturally(player.getLocation(), drop);
-                                    }
-                                    plugin.getLangManager().sendMessage(player, "guild.reward_received");
-                                });
-                            } catch (Exception e) {
-                                plugin.getLangManager().sendMessage(player, "error.invalid_reward");
+                        if (itemData != null && !itemData.isEmpty()) {
+                            String[] parts = itemData.split(":");
+                            if (parts.length == 2) {
+                                try {
+                                    org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
+                                    int count = Integer.parseInt(parts[1]);
+                                    org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(mat, count);
+                                    
+                                    plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
+                                        java.util.HashMap<Integer, org.bukkit.inventory.ItemStack> excess = player.getInventory().addItem(item);
+                                        for (org.bukkit.inventory.ItemStack drop : excess.values()) {
+                                            player.getWorld().dropItemNaturally(player.getLocation(), drop);
+                                        }
+                                        plugin.getLangManager().sendMessage(player, "guild.reward_received");
+                                    });
+                                } catch (Exception e) {
+                                    plugin.getLangManager().sendMessage(player, "error.invalid_reward");
+                                }
                             }
                         }
                     }
@@ -619,19 +620,20 @@ public class TeamDAO {
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT world, x, y, z, yaw, pitch FROM genscore_team_home WHERE team_id = ?")) {
             stmt.setInt(1, team.getTeamId());
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                String worldName = rs.getString("world");
-                org.bukkit.World world = org.bukkit.Bukkit.getWorld(worldName);
-                if (world != null) {
-                    org.bukkit.Location loc = new org.bukkit.Location(
-                            world,
-                            rs.getDouble("x"),
-                            rs.getDouble("y"),
-                            rs.getDouble("z"),
-                            rs.getFloat("yaw"),
-                            rs.getFloat("pitch"));
-                    team.setHomeLocation(loc);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String worldName = rs.getString("world");
+                    org.bukkit.World world = org.bukkit.Bukkit.getWorld(worldName);
+                    if (world != null) {
+                        org.bukkit.Location loc = new org.bukkit.Location(
+                                world,
+                                rs.getDouble("x"),
+                                rs.getDouble("y"),
+                                rs.getDouble("z"),
+                                rs.getFloat("yaw"),
+                                rs.getFloat("pitch"));
+                        team.setHomeLocation(loc);
+                    }
                 }
             }
         } catch (SQLException e) { e.printStackTrace(); }
@@ -673,16 +675,17 @@ public class TeamDAO {
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT slot, item_data FROM genscore_team_vault WHERE team_id = ?")) {
             stmt.setInt(1, team.getTeamId());
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                int slot = rs.getInt("slot");
-                String base64 = rs.getString("item_data");
-                if (base64 == null || base64.isEmpty()) continue;
-                try {
-                    byte[] data = java.util.Base64.getDecoder().decode(base64);
-                    org.bukkit.inventory.ItemStack item = org.bukkit.inventory.ItemStack.deserializeBytes(data);
-                    team.setVaultItem(slot, item);
-                } catch (Exception ex) { ex.printStackTrace(); }
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int slot = rs.getInt("slot");
+                    String base64 = rs.getString("item_data");
+                    if (base64 == null || base64.isEmpty()) continue;
+                    try {
+                        byte[] data = java.util.Base64.getDecoder().decode(base64);
+                        org.bukkit.inventory.ItemStack item = org.bukkit.inventory.ItemStack.deserializeBytes(data);
+                        team.setVaultItem(slot, item);
+                    } catch (Exception ex) { ex.printStackTrace(); }
+                }
             }
         } catch (SQLException e) { e.printStackTrace(); }
     }

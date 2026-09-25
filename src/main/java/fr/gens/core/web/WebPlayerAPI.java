@@ -1034,7 +1034,7 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/perks/claim", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            String uuidStr = webManager.getAuthenticatedPlayerUuid(ctx);
             if (uuidStr == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
@@ -1071,7 +1071,7 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/perks/toggle", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+            String uuidStr = webManager.getAuthenticatedPlayerUuid(ctx);
             if (uuidStr == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
@@ -1197,13 +1197,7 @@ public class WebPlayerAPI implements Listener {
     }
 
     private UUID resolvePlayerUuid(io.javalin.http.Context ctx) {
-        String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-        if (uuidStr == null) {
-            uuidStr = ctx.queryParam("uuid");
-        }
-        if (uuidStr == null) {
-            uuidStr = ctx.header("X-Player-UUID");
-        }
+        String uuidStr = webManager.getAuthenticatedPlayerUuid(ctx);
         if (uuidStr != null && !uuidStr.trim().isEmpty()) {
             try {
                 return UUID.fromString(uuidStr.trim());

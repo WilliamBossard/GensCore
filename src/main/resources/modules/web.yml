@@ -11,6 +11,9 @@ web:
   force_lang: ""
   # Server IP to display in the Web Panel
   server_ip: "localhost"
+  # Allowed CORS origin for web requests (e.g. "https://play.gensbien.fr" or "http://localhost:3000")
+  # Leave empty to allow any origin in development mode
+  allowed_origin: ""
   # Maximum number of deposit slots a player can use via /web deposit (like a chest = 27)
   deposit_limit: 27
   # The text displayed on the public landing page of the Web Panel

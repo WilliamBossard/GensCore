@@ -54,7 +54,7 @@ public class WebManager {
         this.webDAO.initDatabase();
     }
 
-    public String getPlayerUuidFromCtx(io.javalin.http.Context ctx) {
+    public String getAuthenticatedPlayerUuid(io.javalin.http.Context ctx) {
         String sessionUuid = ctx.attribute("playerUuid");
         if (sessionUuid != null) return sessionUuid;
         String auth = ctx.header("Authorization");
@@ -76,6 +76,13 @@ public class WebManager {
                 } catch (Exception ignored) {}
             }
         }
+        return null;
+    }
+
+    public String getPlayerUuidFromCtx(io.javalin.http.Context ctx) {
+        String authUuid = getAuthenticatedPlayerUuid(ctx);
+        if (authUuid != null) return authUuid;
+
         String xUuid = ctx.header("X-Player-UUID");
         if (xUuid != null && !xUuid.trim().isEmpty()) {
             try {
@@ -192,6 +199,7 @@ public class WebManager {
                         if (allowedOrigin != null && !allowedOrigin.isEmpty()) {
                             it.allowHost(allowedOrigin);
                         } else {
+                            plugin.getLogger().warning("[WebManager] CORS ouvert à toutes les origines (anyHost). Pour la production, définissez 'web.allowed_origin' dans modules/web.yml.");
                             it.anyHost();
                         }
                     });
@@ -818,7 +826,7 @@ public class WebManager {
 
         // Objets déposés en jeu par le joueur via /web deposit
         get("/api/shop/deposited", ctx -> {
-            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            String sessionUuid = getAuthenticatedPlayerUuid(ctx);
             if (sessionUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non connecté"));
                 return;
@@ -857,7 +865,7 @@ public class WebManager {
 
         // Vente en ligne d'un objet déposé
         post("/api/shop/sell-deposited", ctx -> {
-            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            String sessionUuid = getAuthenticatedPlayerUuid(ctx);
             if (sessionUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non connecté"));
                 return;
@@ -950,7 +958,7 @@ public class WebManager {
 
         // Récupération en jeu d'un objet déposé vers l'inventaire Minecraft
         post("/api/shop/withdraw-deposited", ctx -> {
-            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            String sessionUuid = getAuthenticatedPlayerUuid(ctx);
             if (sessionUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non connecté"));
                 return;
@@ -1029,7 +1037,7 @@ public class WebManager {
 
         // Achat en ligne avec débit immédiat et livraison différée/immédiate
         post("/api/shop/buy", ctx -> {
-            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            String sessionUuid = getAuthenticatedPlayerUuid(ctx);
             if (sessionUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non connecté"));
                 return;
@@ -1269,6 +1277,52 @@ public class WebManager {
                 } catch (Exception e) {
                     plugin.getLogger().severe("Failed to wipe BlueMap maps folder: " + e.getMessage());
                 }
+
+                try {
+                    java.util.Set<java.io.File> cacheFilesToDelete = new java.util.HashSet<>();
+                    cacheFilesToDelete.add(new java.io.File("map-color-cache.dat"));
+                    if (plugin.getDataFolder().getParentFile() != null) {
+                        java.io.File pluginsDir = plugin.getDataFolder().getParentFile();
+                        cacheFilesToDelete.add(new java.io.File(pluginsDir, "map-color-cache.dat"));
+                        cacheFilesToDelete.add(new java.io.File(pluginsDir, "BlueMap/map-color-cache.dat"));
+                        cacheFilesToDelete.add(new java.io.File(pluginsDir, "BlueMap/web/map-color-cache.dat"));
+                        cacheFilesToDelete.add(new java.io.File(pluginsDir, "BlueMap/web/data/markers.json"));
+
+                        java.io.File serverRootDir = pluginsDir.getParentFile();
+                        if (serverRootDir != null) {
+                            cacheFilesToDelete.add(new java.io.File(serverRootDir, "map-color-cache.dat"));
+                        }
+                    }
+                    try {
+                        java.io.File worldContainer = org.bukkit.Bukkit.getWorldContainer();
+                        if (worldContainer != null) {
+                            cacheFilesToDelete.add(new java.io.File(worldContainer, "map-color-cache.dat"));
+                        }
+                    } catch (Exception ignored) {}
+
+                    for (java.io.File f : cacheFilesToDelete) {
+                        if (f.exists() && f.isFile()) {
+                            if (f.delete()) {
+                                plugin.getLogger().info("Wipe success: Deleted " + f.getName() + " (" + f.getPath() + ")");
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Failed to wipe map-color-cache.dat: " + e.getMessage());
+                }
+
+                try {
+                    if (plugin.getTeamManager() != null && plugin.getTeamManager().getClaimManager() != null) {
+                        plugin.getTeamManager().getClaimManager().getClaimsMap().clear();
+                    }
+                    fr.gens.core.modules.BlueMapModule bm = (fr.gens.core.modules.BlueMapModule) plugin.getModuleManager().getModule("bluemap");
+                    if (bm != null) {
+                        bm.updateAllTeamTerritories();
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Failed to clear in-memory BlueMap claims during wipe: " + e.getMessage());
+                }
+
                 plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
                     org.bukkit.Bukkit.shutdown();
                 });
@@ -1316,7 +1370,7 @@ public class WebManager {
 
         // Achat d'une offre de l'Hôtel des Ventes (AH) depuis le Web
         post("/api/ah/buy", ctx -> {
-            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            String sessionUuid = getAuthenticatedPlayerUuid(ctx);
             if (sessionUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non connecté"));
                 return;
@@ -1420,7 +1474,7 @@ public class WebManager {
 
         // Annulation et récupération d'une offre AH par son vendeur depuis le Web
         post("/api/ah/cancel", ctx -> {
-            String sessionUuid = getPlayerUuidFromCtx(ctx);
+            String sessionUuid = getAuthenticatedPlayerUuid(ctx);
             if (sessionUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non connecté"));
                 return;

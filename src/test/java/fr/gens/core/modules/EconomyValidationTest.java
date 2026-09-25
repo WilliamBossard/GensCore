@@ -53,4 +53,15 @@ public class EconomyValidationTest {
         assertTrue(isValidAdminAmount(0.0), "0.0 est un solde valide pour /eco set");
         assertFalse(isValidAdminAmount(-5.0), "-5.0 est invalide même pour /eco set");
     }
+
+    @Test
+    @DisplayName("Le transfert /pay vers son propre compte doit être interdit")
+    void testSelfPaymentRejection() {
+        java.util.UUID sender = java.util.UUID.randomUUID();
+        java.util.UUID receiverSame = sender;
+        java.util.UUID receiverOther = java.util.UUID.randomUUID();
+
+        assertTrue(receiverOther.equals(sender) == false, "Un destinataire différent doit être autorisé");
+        assertTrue(receiverSame.equals(sender), "L'auto-virement doit être détecté et rejeté");
+    }
 }

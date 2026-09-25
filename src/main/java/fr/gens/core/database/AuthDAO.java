@@ -51,14 +51,15 @@ public class AuthDAO {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, uuid.toString());
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return new AuthData(
-                        rs.getString("password_hash"),
-                        rs.getString("salt"),
-                        rs.getString("last_ip"),
-                        rs.getLong("last_login")
-                );
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new AuthData(
+                            rs.getString("password_hash"),
+                            rs.getString("salt"),
+                            rs.getString("last_ip"),
+                            rs.getLong("last_login")
+                    );
+                }
             }
         } catch (SQLException e) {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Erreur lors de la lecture des donnees d'auth", e);

@@ -356,6 +356,10 @@ public class EconomyModule implements Module, Listener {
                 plugin.getLangManager().sendMessage(p, "error.player_offline");
                 return;
             }
+            if (target.getUniqueId().equals(p.getUniqueId())) {
+                plugin.getLangManager().sendMessage(p, "error.cannot_pay_self");
+                return;
+            }
             if (!Double.isFinite(amount) || amount <= 0) {
                 plugin.getLangManager().sendMessage(p, "error.invalid_amount");
                 return;

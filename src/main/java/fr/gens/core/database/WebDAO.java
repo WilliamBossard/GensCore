@@ -185,15 +185,16 @@ public class WebDAO {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
              PreparedStatement pstmt = conn.prepareStatement("SELECT type, material, amount, price, timestamp FROM player_transactions_history WHERE uuid = ? ORDER BY timestamp DESC LIMIT 5")) {
             pstmt.setString(1, uuidStr);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                Map<String, Object> tr = new HashMap<>();
-                tr.put("type", rs.getString("type"));
-                tr.put("material", rs.getString("material"));
-                tr.put("amount", rs.getInt("amount"));
-                tr.put("price", rs.getDouble("price"));
-                tr.put("timestamp", rs.getLong("timestamp"));
-                recentTransactions.add(tr);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> tr = new HashMap<>();
+                    tr.put("type", rs.getString("type"));
+                    tr.put("material", rs.getString("material"));
+                    tr.put("amount", rs.getInt("amount"));
+                    tr.put("price", rs.getDouble("price"));
+                    tr.put("timestamp", rs.getLong("timestamp"));
+                    recentTransactions.add(tr);
+                }
             }
         } catch (Exception e) {}
         return recentTransactions;
@@ -205,12 +206,13 @@ public class WebDAO {
              PreparedStatement pstmt = conn.prepareStatement("SELECT completed_at FROM player_quests_history WHERE uuid = ? AND completed_at >= ?")) {
             pstmt.setString(1, uuidStr);
             pstmt.setLong(2, todayStart - (6 * oneDay));
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                long completedAt = rs.getLong("completed_at");
-                int dayDiff = (int) ((todayStart - (completedAt / oneDay * oneDay)) / oneDay);
-                if (dayDiff >= 0 && dayDiff < 7) {
-                    questsActivity[6 - dayDiff]++;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    long completedAt = rs.getLong("completed_at");
+                    int dayDiff = (int) ((todayStart - (completedAt / oneDay * oneDay)) / oneDay);
+                    if (dayDiff >= 0 && dayDiff < 7) {
+                        questsActivity[6 - dayDiff]++;
+                    }
                 }
             }
         } catch (Exception e) {}
@@ -222,13 +224,14 @@ public class WebDAO {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
              PreparedStatement pstmt = conn.prepareStatement("SELECT id, material, amount FROM player_web_bets WHERE uuid = ?")) {
             pstmt.setString(1, uuidStr);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                items.add(Map.of(
-                    "id", rs.getInt("id"),
-                    "material", rs.getString("material"),
-                    "amount", rs.getInt("amount")
-                ));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    items.add(Map.of(
+                        "id", rs.getInt("id"),
+                        "material", rs.getString("material"),
+                        "amount", rs.getInt("amount")
+                    ));
+                }
             }
         } catch (Exception e) {}
         return items;
@@ -239,9 +242,10 @@ public class WebDAO {
              PreparedStatement pstmt = conn.prepareStatement("SELECT last_played FROM player_minigame_cooldowns WHERE uuid = ? AND game_id = ?")) {
             pstmt.setString(1, uuidStr);
             pstmt.setString(2, gameId);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                return rs.getLong("last_played");
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getLong("last_played");
+                }
             }
         } catch (Exception e) {}
         return 0L;
