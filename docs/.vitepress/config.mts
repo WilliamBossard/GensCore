@@ -47,7 +47,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Getting Started', link: '/guide/getting-started' },
-          { text: 'Roadmap 26.3', link: '/guide/roadmap-26-3' },
+          { text: 'Roadmap', link: '/guide/roadmap' },
           { text: 'Commands', link: '/guide/commands' },
           { text: 'Permissions', link: '/guide/permissions' },
           { text: 'Modules', link: '/guide/modules' },
@@ -61,7 +61,7 @@ export default defineConfig({
             items: [
               { text: 'Introduction & Setup', link: '/guide/getting-started' },
               { text: 'Configuration & Network', link: '/guide/configuration' },
-              { text: 'Roadmap & Progress 26.3', link: '/guide/roadmap-26-3' }
+              { text: 'Roadmap & Changelog', link: '/guide/roadmap' }
             ]
           },
           {
@@ -94,7 +94,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Démarrage', link: '/fr/guide/getting-started' },
-          { text: 'Roadmap 26.3', link: '/fr/guide/roadmap-26-3' },
+          { text: 'Roadmap', link: '/fr/guide/roadmap' },
           { text: 'Commandes', link: '/fr/guide/commands' },
           { text: 'Permissions', link: '/fr/guide/permissions' },
           { text: 'Modules', link: '/fr/guide/modules' },
@@ -108,7 +108,7 @@ export default defineConfig({
             items: [
               { text: 'Introduction & Installation', link: '/fr/guide/getting-started' },
               { text: 'Configuration & Réseau', link: '/fr/guide/configuration' },
-              { text: 'Feuille de route & Suivi 26.3', link: '/fr/guide/roadmap-26-3' }
+              { text: 'Roadmap & Changelog', link: '/fr/guide/roadmap' }
             ]
           },
           {
