@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Résoudre la version finale (tag Git ou input manuel)
       - name: Resolve Version & Release Metadata
@@ -64,14 +64,14 @@ jobs:
           echo "Version: ${VERSION} | Release: ${RELEASE_NAME} | Draft: ${IS_DRAFT} | Pre-release: ${IS_PRERELEASE}"
 
       - name: Setup Java 25
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: '25'
           distribution: 'temurin'
           cache: maven
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: 'npm'
@@ -110,7 +110,7 @@ jobs:
           echo "path=${DST}" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: ${{ steps.meta.outputs.release_name }}
           tag_name: ${{ steps.meta.outputs.tag }}
