@@ -1727,7 +1727,9 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 
   // Filtrage des categories et items
   const allItems: ShopItem[] = categories.flatMap(c => c.items || []);
-  let displayItems = activeCatId === 'all' ? allItems : (categories.find(c => c.id === activeCatId)?.items || []);
+  let displayItems = activeCatId === 'all' 
+    ? allItems 
+    : (categories.find(c => String(c.id).toLowerCase() === String(activeCatId).toLowerCase())?.items || []);
   displayItems = displayItems.filter(i => i.isEnabled !== false);
 
   if (searchQuery.trim()) {
@@ -1774,48 +1776,62 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 
       {/* BARRE DE FILTRES ET RECHERCHE */}
       <div className="shop-filter-bar">
-        <div className="tab-row" style={{flex: '1 1 300px', minWidth: 0}}>
+        <div className="tab-row" style={{minWidth: 0, width: '100%'}}>
           <button 
+            type="button"
             className={`tab-btn ${activeCatId === 'all' ? 'active' : ''}`}
-            onClick={() => setActiveCatId('all')}
+            onClick={() => { setActiveCatId('all'); setSearchQuery(''); }}
           >
             Tous ({allItems.length})
           </button>
 
           <button 
+            type="button"
             className={`tab-btn ${activeCatId === 'deposited' ? 'active' : ''}`}
-            onClick={() => { setActiveCatId('deposited'); fetchDeposited(); }}
+            onClick={() => { setActiveCatId('deposited'); setSearchQuery(''); fetchDeposited(); }}
             style={{
               background: activeCatId === 'deposited' ? 'linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2))' : undefined,
               borderColor: activeCatId === 'deposited' ? '#10b981' : undefined
             }}
           >
-            <Package size={16} color="#10b981" />
-            <span>Mes Objets Déposés (/web deposit)</span>
+            <Package size={16} color="#10b981" style={{pointerEvents: 'none'}} />
+            <span style={{pointerEvents: 'none'}}>Mes Objets Déposés (/web deposit)</span>
             {depositedItems.length > 0 && (
-              <span style={{fontSize: '0.72rem', background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '10px', fontWeight: 'bold'}}>
+              <span style={{fontSize: '0.72rem', background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '10px', fontWeight: 'bold', pointerEvents: 'none'}}>
                 {depositedItems.length}
               </span>
             )}
           </button>
 
-          {categories.map(c => (
-            <button 
-              key={c.id} 
-              className={`tab-btn ${activeCatId === c.id ? 'active' : ''}`}
-              onClick={() => setActiveCatId(c.id)}
-            >
-              <div className="mc-item-icon" style={{width: '18px', height: '18px'}}>
-                <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
-              </div>
-              <span>{c.displayName}</span>
-              <span style={{fontSize: '0.72rem', opacity: 0.7}}>({c.items?.length || 0})</span>
-            </button>
-          ))}
+          {categories.map(c => {
+            const isSelected = String(activeCatId).toLowerCase() === String(c.id).toLowerCase();
+            return (
+              <button 
+                key={c.id} 
+                type="button"
+                className={`tab-btn ${isSelected ? 'active' : ''}`}
+                onClick={() => { setActiveCatId(c.id); setSearchQuery(''); }}
+              >
+                <div className="mc-item-icon" style={{width: '18px', height: '18px', pointerEvents: 'none'}}>
+                  <img 
+                    src={getMinecraftItemUrl(c.icon || 'CHEST')} 
+                    alt={c.id} 
+                    loading="lazy" 
+                    decoding="async" 
+                    onError={handleMinecraftImageError}
+                    draggable={false}
+                    style={{pointerEvents: 'none'}}
+                  />
+                </div>
+                <span style={{pointerEvents: 'none'}}>{c.displayName}</span>
+                <span style={{fontSize: '0.72rem', opacity: 0.7, pointerEvents: 'none'}}>({c.items?.length || 0})</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="shop-search-box">
-          <Search size={16} color="var(--text-muted)"/>
+          <Search size={16} color="var(--text-muted)" style={{flexShrink: 0}} />
           <input 
             type="text" 
             placeholder="Rechercher un objet..." 
@@ -2868,7 +2884,7 @@ export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
         <p>{t('web.public.leaderboard_subtitle')}</p>
       </div>
 
-      <div style={{maxWidth: '1000px', margin: '0 auto', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem', overflowX: 'auto'}}>
+      <div style={{maxWidth: '1000px', width: '100%', boxSizing: 'border-box', margin: '0 auto', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: 'clamp(1rem, 3vw, 1.5rem)', overflowX: 'auto'}}>
         <table className="shop-table" style={{width: '100%', textAlign: 'left', minWidth: '600px'}}>
           <thead>
             <tr>

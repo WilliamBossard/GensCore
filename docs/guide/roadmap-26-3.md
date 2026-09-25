@@ -17,7 +17,7 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 | Component | Status | Details |
 | :--- | :---: | :--- |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Compiled with `--release 25` flag and verified on Temurin JVM 25 |
-| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.40-alpha` (Release 1.0.1) |
+| **Paper 26.3 API** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | API dependency upgraded to `26.3.build.41-alpha` (Release 1.0.1) |
 | **Dependencies Upgrades** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Jackson 2.22.3, JDA 6.7.0, Vite 8.3.1, Lucide 1.48.0, i18next 17.0.15 |
 | **Mobile Web Optimization** | <span style="color: #22c55e; font-weight: 700;">Completed</span> | Responsive UX for < 480px, fluid card, 100vw drawers, chunk code-splitting |
 | **Geyser Standalone Architecture** | <span style="color: #22c55e; font-weight: 700;">Operational</span> | Pterodactyl Standalone deployment with auto-update & zero NMS crashes |
@@ -82,7 +82,7 @@ Follow real-time progress, newly deployed improvements, and the transition roadm
 
 ### 7. Release 1.0.1: Paper Build 40-alpha, Dependencies & Mobile
 * **Official Release 1.0.1 Migration:** Production milestone dedicated to **Minecraft 26.3** (succeeding release 1.0.0 for 26.2).
-* **Paper API Upgrade:** Bumped to `26.3.build.40-alpha` with all 69 unit test suites passing cleanly under Java 25 LTS.
+* **Paper API Upgrade:** Bumped to `26.3.build.41-alpha` with all 69 unit test suites passing cleanly under Java 25 LTS.
 * **Backend Libraries Upgrades:**
   - `jackson-databind` upgraded to `2.22.3` (JSON deserialization security patches).
   - `JDA` (Java Discord API) upgraded to `6.7.0` (Discord Gateway v10 protocol stability).
