@@ -45,67 +45,31 @@ export function ClientJobs() {
   );
 
   return (
-    <div className="client-shop" style={{ padding: '2rem' }}>
-      <div className="shop-header" style={{ textAlign: 'center', marginBottom: '3rem', animation: 'fadeInDown 0.8s ease-out' }}>
-        <div style={{display: 'inline-flex', padding: '1rem', borderRadius: '50%', background: 'var(--card-bg)', border: '1px solid var(--card-border)', boxShadow: '0 0 30px rgba(99, 102, 241, 0.2)', marginBottom: '1rem'}}>
-           <Trophy size={48} style={{color: 'var(--accent)'}} />
+    <div className="client-shop" style={{ padding: 'clamp(1rem, 4vw, 2rem)' }}>
+      <div className="shop-header" style={{ textAlign: 'center', marginBottom: '2rem', animation: 'fadeInDown 0.8s ease-out' }}>
+        <div style={{display: 'inline-flex', padding: '0.8rem', borderRadius: '50%', background: 'var(--card-bg)', border: '1px solid var(--card-border)', boxShadow: '0 0 30px rgba(99, 102, 241, 0.2)', marginBottom: '1rem'}}>
+           <Trophy size={40} style={{color: 'var(--accent)'}} />
         </div>
-        <h1 className="shop-title" style={{ fontSize: '3rem', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', color: 'transparent', margin: 0 }}>
+        <h1 className="shop-title" style={{ fontSize: 'clamp(1.6rem, 5vw, 3rem)', fontWeight: 800, background: 'linear-gradient(to right, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', color: 'transparent', margin: 0 }}>
           Légendes du Serveur
         </h1>
         
         {/* TAB SWITCHER */}
-        <div style={{display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem'}}>
+        <div className="tab-row jobs-tab-row" style={{margin: '1.5rem 0', gap: '8px'}}>
           <button 
-            onClick={() => setActiveTab('GUILDS')}
-            style={{
-              padding: '0.8rem 2rem', 
-              background: activeTab === 'GUILDS' ? 'var(--accent)' : 'var(--card-bg)', 
-              color: activeTab === 'GUILDS' ? '#000' : 'var(--text)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '30px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.3s'
-            }}>
-            <Shield size={20} /> Guildes
+            className={`tab-btn ${activeTab === 'GUILDS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('GUILDS')}>
+            <Shield size={18} /> Guildes
           </button>
           <button 
-            onClick={() => setActiveTab('JOBS')}
-            style={{
-              padding: '0.8rem 2rem', 
-              background: activeTab === 'JOBS' ? 'var(--accent)' : 'var(--card-bg)', 
-              color: activeTab === 'JOBS' ? '#000' : 'var(--text)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '30px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.3s'
-            }}>
-            <Pickaxe size={20} /> Classement Métiers
+            className={`tab-btn ${activeTab === 'JOBS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('JOBS')}>
+            <Pickaxe size={18} /> Classement Métiers
           </button>
           <button 
-            onClick={() => setActiveTab('QUESTS')}
-            style={{
-              padding: '0.8rem 2rem', 
-              background: activeTab === 'QUESTS' ? 'var(--accent)' : 'var(--card-bg)', 
-              color: activeTab === 'QUESTS' ? '#000' : 'var(--text)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '30px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.3s'
-            }}>
-            <Target size={20} /> Classement Quêtes
+            className={`tab-btn ${activeTab === 'QUESTS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('QUESTS')}>
+            <Target size={18} /> Classement Quêtes
           </button>
         </div>
       </div>
@@ -188,25 +152,27 @@ export function ClientJobs() {
           <div style={{
             background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(234, 179, 8, 0.05))',
             border: '1px solid rgba(234, 179, 8, 0.3)',
-            borderRadius: '16px', padding: '2rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '2rem',
+            borderRadius: '16px', padding: '1.5rem', marginBottom: '1.5rem',
+            display: 'flex', alignItems: 'center', gap: '1rem',
+            flexWrap: 'wrap',
             boxShadow: '0 10px 40px rgba(234, 179, 8, 0.1)',
             position: 'relative', overflow: 'hidden'
           }}>
-            <div style={{position: 'absolute', right: '-20px', top: '-20px', opacity: 0.1, color: '#eab308'}}>
-              <Gift size={150} />
+            <div style={{position: 'absolute', right: '-20px', top: '-20px', opacity: 0.08, color: '#eab308'}}>
+              <Gift size={120} />
             </div>
-            <div style={{padding: '1.5rem', background: 'rgba(234, 179, 8, 0.2)', borderRadius: '50%', color: '#eab308'}}>
-              <Gift size={48} />
+            <div style={{padding: '1rem', background: 'rgba(234, 179, 8, 0.2)', borderRadius: '50%', color: '#eab308', flexShrink: 0}}>
+              <Gift size={36} />
             </div>
-            <div>
-              <h2 style={{color: '#eab308', margin: '0 0 0.5rem 0', fontSize: '1.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
-                Lot de la Semaine <span style={{fontSize: '0.9rem', background: '#eab308', color: '#000', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold', verticalAlign: 'middle'}}>COMPÉTITION</span>
+            <div style={{minWidth: 0, flex: 1}}>
+              <h2 style={{color: '#eab308', margin: '0 0 0.5rem 0', fontSize: 'clamp(1.1rem, 3vw, 1.6rem)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap'}}>
+                Lot de la Semaine <span style={{fontSize: '0.82rem', background: '#eab308', color: '#000', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold'}}>COMPÉTITION</span>
               </h2>
-              <p style={{color: 'var(--text)', margin: 0, fontSize: '1.1rem', maxWidth: '600px', lineHeight: '1.5'}}>
-                Le joueur ayant complété le plus de quêtes <strong>à la fin de la semaine</strong> recevra automatiquement la récompense suivante : 
-                <strong style={{color: '#eab308', fontSize: '1.3rem', display: 'block', marginTop: '0.5rem'}}>{questsData?.reward}</strong>
-                <span style={{display: 'inline-block', marginTop: '0.5rem', fontSize: '0.9rem', color: '#fbbf24', background: 'rgba(234, 179, 8, 0.1)', padding: '4px 8px', borderRadius: '4px'}}>
-                  <Clock size={14} style={{display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px'}}/>
+              <p style={{color: 'var(--text)', margin: 0, fontSize: 'clamp(0.9rem, 2.5vw, 1rem)', lineHeight: '1.5'}}>
+                Le joueur ayant complété le plus de quêtes <strong>à la fin de la semaine</strong> recevra :
+                <strong style={{color: '#eab308', fontSize: 'clamp(1rem, 3vw, 1.2rem)', display: 'block', marginTop: '0.4rem'}}>{questsData?.reward}</strong>
+                <span style={{display: 'inline-block', marginTop: '0.4rem', fontSize: '0.85rem', color: '#fbbf24', background: 'rgba(234, 179, 8, 0.1)', padding: '3px 8px', borderRadius: '4px'}}>
+                  <Clock size={12} style={{display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px'}}/>
                   Temps restant : {questsData?.timeRemaining}
                 </span>
               </p>
@@ -214,20 +180,20 @@ export function ClientJobs() {
           </div>
 
           {/* QUESTS TABS */}
-          <div style={{display: 'flex', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '1rem'}}>
+          <div className="tab-row" style={{marginBottom: '1.5rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '0.8rem'}}>
             {[
               { id: 'daily', label: "Aujourd'hui", icon: Clock },
               { id: 'weekly', label: "Cette Semaine", icon: Calendar },
               { id: 'monthly', label: "Ce Mois", icon: BarChart },
               { id: 'total', label: "Total Global", icon: ListOrdered }
             ].map(tab => (
-              <button key={tab.id} onClick={() => setQuestSubTab(tab.id as any)} style={{
-                background: 'transparent', border: 'none', color: questSubTab === tab.id ? 'var(--accent)' : 'var(--text-muted)',
-                fontWeight: 600, fontSize: '1.1rem', cursor: 'pointer', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem',
-                borderBottom: questSubTab === tab.id ? '2px solid var(--accent)' : '2px solid transparent',
-                transition: 'all 0.2s'
-              }}>
-                <tab.icon size={18} /> {tab.label}
+              <button 
+                key={tab.id} 
+                onClick={() => setQuestSubTab(tab.id as any)} 
+                className={`tab-btn ${questSubTab === tab.id ? 'active' : ''}`}
+                style={{ fontSize: '0.85rem' }}
+              >
+                <tab.icon size={15} /> {tab.label}
               </button>
             ))}
           </div>
@@ -282,17 +248,18 @@ export function ClientJobs() {
               <div style={{
                 background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(234, 179, 8, 0.05))',
                 border: '1px solid rgba(234, 179, 8, 0.4)',
-                borderRadius: '16px', padding: '1.5rem 2rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem',
+                borderRadius: '16px', padding: '1.2rem 1.5rem', marginBottom: '1.5rem',
+                display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap',
                 boxShadow: '0 10px 40px rgba(234, 179, 8, 0.15)'
               }}>
-                <div style={{padding: '1rem', background: 'rgba(234, 179, 8, 0.2)', borderRadius: '50%', color: '#eab308'}}>
-                  <Target size={40} />
+                <div style={{padding: '0.8rem', background: 'rgba(234, 179, 8, 0.2)', borderRadius: '50%', color: '#eab308', flexShrink: 0}}>
+                  <Target size={32} />
                 </div>
-                <div>
-                  <h2 style={{color: '#eab308', margin: '0 0 0.5rem 0', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem'}}>
+                <div style={{minWidth: 0, flex: 1}}>
+                  <h2 style={{color: '#eab308', margin: '0 0 0.3rem 0', fontSize: 'clamp(1rem, 3vw, 1.4rem)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap'}}>
                     Quête de Guilde Hebdomadaire
                   </h2>
-                  <p style={{color: 'var(--text)', margin: 0, fontSize: '1.2rem', fontWeight: 'bold'}}>
+                  <p style={{color: 'var(--text)', margin: 0, fontSize: 'clamp(0.88rem, 2.5vw, 1.1rem)', fontWeight: 'bold'}}>
                     Objectif : {teamsData[0]?.quest_desc || 'Quête en cours'}
                   </p>
                 </div>
@@ -314,7 +281,7 @@ export function ClientJobs() {
                     display: 'flex', flexDirection: 'column', gap: '15px',
                     transition: 'transform 0.2s'
                   }}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px'}}>
                       <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
                         <div style={{
                           width: '40px', height: '40px', borderRadius: '50%', 

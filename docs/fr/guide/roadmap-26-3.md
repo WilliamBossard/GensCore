@@ -17,7 +17,7 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 | Composant | Statut | Détails |
 | :--- | :---: | :--- |
 | **Support Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Compilé avec l'option `--release 25` et validé sur JVM Temurin 25 |
-| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.40-alpha` (Release 1.0.1) |
+| **API Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | API mise à jour sur `26.3.build.41-alpha` (Release 1.0.1) |
 | **Mises à Jour Dépendances** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Jackson 2.22.3, JDA 6.7.0, Vite 8.3.1, Lucide 1.48.0, i18next 17.0.15 |
 | **Optimisation Mobile Web** | <span style="color: #22c55e; font-weight: 700;">Terminé</span> | Design responsive écrans < 480px, carte fluide, code-splitting chunks |
 | **Architecture Geyser Standalone** | <span style="color: #22c55e; font-weight: 700;">Opérationnel</span> | Déploiement Standalone Pterodactyl avec auto-update et isolation NMS |
@@ -82,7 +82,7 @@ Suivez en temps réel l'avancée des travaux, les améliorations apportées et l
 
 ### 7. Release 1.0.1 : Paper Build 40-alpha, Mises à jour des Dépendances & Mobile
 * **Passage officiel en Release 1.0.1 :** Version de production dédiée à **Minecraft 26.3** (faisant suite à la version 1.0.0 pour 26.2).
-* **Mise à niveau de l'API Paper :** Passage à `26.3.build.40-alpha` avec validation et passage avec succès des 69 tests unitaires sous Java 25 LTS.
+* **Mise à niveau de l'API Paper :** Passage à `26.3.build.41-alpha` avec validation et passage avec succès des 69 tests unitaires sous Java 25 LTS.
 * **Mises à jour des bibliothèques Backend :**
   - `jackson-databind` mis à niveau en `2.22.3` (correctifs de sécurité et désérialisation JSON).
   - `JDA` (Java Discord API) mis à niveau en `6.7.0` (stabilité passerelle Discord Gateway v10).

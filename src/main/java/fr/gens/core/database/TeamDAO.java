@@ -200,6 +200,8 @@ public class TeamDAO {
                             team.setLastInterestAt(rs.getLong("last_interest_at"));
                         } catch (Exception ignored) {}
                         teamsById.put(id, team);
+                        team.addMember(team.getLeaderUuid());
+                        teamsByPlayer.put(team.getLeaderUuid(), team);
                     }
                 }
             }
@@ -683,6 +685,110 @@ public class TeamDAO {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // ---- WEB FALLBACK: charge la guilde d'un joueur depuis la BDD (si absent de la RAM) ----
+    /**
+     * Charge la TeamData complète depuis la BDD pour un UUID de joueur donné.
+     * Utilisé par l'API web quand le joueur n'est pas chargé en mémoire RAM.
+     * @return TeamData fully loaded, or null if the player has no team.
+     */
+    public TeamData getTeamByPlayerUuid(UUID playerUuid) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            // 1. Find team_id via members table
+            int teamId = -1;
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT team_id FROM genscore_team_members WHERE player_uuid = ?")) {
+                stmt.setString(1, playerUuid.toString());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        teamId = rs.getInt("team_id");
+                    }
+                }
+            }
+            if (teamId == -1) {
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT team_id FROM genscore_teams WHERE leader_uuid = ?")) {
+                    stmt.setString(1, playerUuid.toString());
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            teamId = rs.getInt("team_id");
+                        }
+                    }
+                }
+            }
+            if (teamId == -1) return null;
+
+            // 2. Load team base data
+            TeamData team = null;
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT * FROM genscore_teams WHERE team_id = ?")) {
+                stmt.setInt(1, teamId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        String leaderStr = rs.getString("leader_uuid");
+                        if (leaderStr == null) return null;
+                        team = new TeamData(teamId, rs.getString("name"), UUID.fromString(leaderStr));
+                        try {
+                            team.setBankBalance(rs.getDouble("bank_balance"));
+                            team.setBankXp(rs.getInt("bank_xp"));
+                            String color = rs.getString("color");
+                            if (color != null && !color.isEmpty()) team.setColor(color);
+                            team.setLastInterestAt(rs.getLong("last_interest_at"));
+                        } catch (Exception ignored) {}
+                    }
+                }
+            }
+            if (team == null) return null;
+
+            // 3. Load all members
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT player_uuid, role FROM genscore_team_members WHERE team_id = ?")) {
+                stmt.setInt(1, teamId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        String uuidStr = rs.getString("player_uuid");
+                        if (uuidStr == null) continue;
+                        UUID mUuid = UUID.fromString(uuidStr);
+                        team.addMember(mUuid);
+                        try {
+                            String role = rs.getString("role");
+                            if ("ADMIN".equalsIgnoreCase(role)) team.promoteAdmin(mUuid);
+                        } catch (Exception ignored) {}
+                    }
+                }
+            }
+
+            // 4. Load upgrades
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT perk_id, level FROM genscore_team_upgrades WHERE team_id = ?")) {
+                stmt.setInt(1, teamId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        String perkId = rs.getString("perk_id");
+                        int level = rs.getInt("level");
+                        if (perkId != null) team.setUpgradeLevel(perkId, level);
+                    }
+                }
+            }
+
+            // 5. Load stats
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "SELECT weekly_points, total_points FROM genscore_team_stats WHERE team_id = ?")) {
+                stmt.setInt(1, teamId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        team.setWeeklyPoints(rs.getInt("weekly_points"));
+                        team.setTotalPoints(rs.getInt("total_points"));
+                    }
+                }
+            }
+
+            return team;
+        } catch (Exception e) {
+            plugin.getLogger().warning("[TeamDAO] getTeamByPlayerUuid error for " + playerUuid + ": " + e.getMessage());
+            return null;
+        }
     }
 
     // ---- BANK INTEREST TIMESTAMP ----

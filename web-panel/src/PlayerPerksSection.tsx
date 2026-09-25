@@ -234,14 +234,14 @@ export function PlayerPerksSection({ token, isEnabled = true }: { token: string,
     <div className="dashboard-content" style={{ padding: '2rem' }}>
       {/* Header */}
       <div className="admin-card" style={{ marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', minWidth: 0, flex: 1 }}>
           <div style={{
-            width: '56px', height: '56px', borderRadius: '12px',
+            width: '56px', height: '56px', minWidth: '56px', minHeight: '56px', flexShrink: 0, borderRadius: '12px',
             background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)'
           }}>
-            <Sparkles size={32} color="#ffffff" />
+            <Sparkles size={32} color="#ffffff" style={{ flexShrink: 0 }} />
           </div>
           <div>
             <h1 style={{ margin: 0, fontSize: '1.8rem' }}>
@@ -377,7 +377,7 @@ export function PlayerPerksSection({ token, isEnabled = true }: { token: string,
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{
-                        width: '42px', height: '42px', borderRadius: '10px',
+                        width: '42px', height: '42px', minWidth: '42px', flexShrink: 0, borderRadius: '10px',
                         background: 'rgba(255,255,255,0.05)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         border: '1px solid var(--card-border)'

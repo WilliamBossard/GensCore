@@ -240,12 +240,23 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     );
   }
 
+  const getTabTitle = () => {
+    switch (activeTab) {
+      case 'shop': return t('web.admin.settings.shop_title') || 'Gestion de la Boutique';
+      case 'modules': return t('web.admin.settings.modules_title') || 'Gestion des Modules';
+      case 'files': return t('web.admin.settings.files_title') || 'Editeur de Fichiers';
+      case 'players': return t('web.admin.settings.players_title') || 'Joueurs en ligne & Sanctions';
+      case 'content': return t('web.admin.content.title') || 'Annonces & Contenu Public';
+      default: return t('web.admin.settings.title') || 'Configuration Globale';
+    }
+  };
+
   return (
     <div className="admin-layout">
       {/* Overlay mobile */}
       {isSidebarOpen && (
         <div 
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 190 }}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -276,25 +287,46 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
       </aside>
       
       <main className="admin-main">
-        <header className="admin-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button 
-              className="mobile-menu-btn" 
-              onClick={() => setIsSidebarOpen(true)}
-              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '12px', cursor: 'pointer', display: 'none' }}
-            >
-              <Menu size={24} />
-            </button>
-            <h2>{activeTab === 'shop' ? t('web.admin.settings.shop_title') : activeTab === 'modules' ? t('web.admin.settings.modules_title') : activeTab === 'files' ? t('web.admin.settings.files_title') : activeTab === 'players' ? t('web.admin.settings.players_title') : activeTab === 'content' ? t('web.admin.content.title') : t('web.admin.settings.title')}</h2>
+        {/* Mobile Top Bar - Harmonisé avec PlayerPortal */}
+        <div className="mobile-top-bar admin-mobile-top-bar">
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Ouvrir le menu admin"
+            type="button"
+          >
+            <Menu size={22} />
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1, padding: '0 4px' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {getTabTitle()}
+            </span>
           </div>
-          <div className="admin-user"><Shield size={18}/> {t('web.admin.badge')}</div>
-        </header>
 
-        {activeTab === 'shop' && <AdminShop password={password} />}
+          <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+            <div className="admin-user-pill">
+              <Shield size={13} />
+              <span>{t('web.admin.badge') || 'Admin'}</span>
+            </div>
+          </div>
+        </div>
 
-        {activeTab === 'settings' && config && (
-          <form onSubmit={handleSaveConfig}>
-            <div className="settings-grid">
+        {/* Zone de contenu scrollable (séparée du top bar) */}
+        <div className="admin-content-scroll">
+          {/* Desktop Header */}
+          <header className="admin-header admin-desktop-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <h2>{getTabTitle()}</h2>
+            </div>
+            <div className="admin-user"><Shield size={18}/> {t('web.admin.badge')}</div>
+          </header>
+
+          {activeTab === 'shop' && <AdminShop password={password} />}
+
+          {activeTab === 'settings' && config && (
+            <form onSubmit={handleSaveConfig}>
+              <div className="settings-grid">
               <div className="admin-card">
                 <div className="settings-section-title"><Settings size={20} /> {t('web.admin.settings.eco_quests')}</div>
                 <div className="form-group">
@@ -445,8 +477,8 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                   </p>
                   <button 
                     type="button" 
-                    className="btn" 
-                    style={{ background: '#ef4444', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
+                    className="btn-danger-solid" 
+                    style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '340px' }}
                     onClick={async () => {
                       const confirmPassword = prompt("Cette action est irréversible et supprimera toutes les données joueurs. Tapez le mot de passe admin pour confirmer :");
                       if (confirmPassword === password) {
@@ -487,9 +519,10 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
             </div>
           </form>
         )}
-        {activeTab === 'modules' && <AdminModules password={password} />}
-        {activeTab === 'files' && <AdminFiles password={password} />}
-        {activeTab === 'players' && <AdminPlayers password={password} />}
+          {activeTab === 'modules' && <AdminModules password={password} />}
+          {activeTab === 'files' && <AdminFiles password={password} />}
+          {activeTab === 'players' && <AdminPlayers password={password} />}
+        </div>
       </main>
     </div>
   );
@@ -557,7 +590,12 @@ function AdminPlayers({ password }: { password: string }) {
 
   return (
     <div>
-      <h2 style={{marginBottom: '2rem'}}>{t('web.admin.players.title')} ({players.length})</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'white' }}>{t('web.admin.players.title')}</span>
+          <span className="badge badge-info" style={{ fontSize: '0.8rem' }}>{players.length}</span>
+        </div>
+      </div>
       
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))', gap: '1.5rem'}}>
         {players.map(p => (
@@ -871,9 +909,9 @@ function AdminModules({ password }: { password: string }) {
         const mods = _mods as any[];
         return (
         <div key={catName}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--card-border)'}}>
-            <h2 style={{fontSize: '1.5rem', margin: 0}}>{catName}</h2>
-            <div style={{display: 'flex', gap: '10px'}}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--card-border)', flexWrap: 'wrap', gap: '10px'}}>
+            <h2 style={{fontSize: '1.35rem', margin: 0}}>{catName}</h2>
+            <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
               <button className="btn-small" style={{background: '#10b981', color: 'white'}} onClick={() => toggleCategory(mods, true)}>{t('web.admin.modules_cat.enable_all') || 'Tout Activer'}</button>
               <button className="btn-small" style={{background: '#ef4444', color: 'white'}} onClick={() => toggleCategory(mods, false)}>{t('web.admin.modules_cat.disable_all') || 'Tout Désactiver'}</button>
             </div>
@@ -1185,15 +1223,15 @@ function AdminShop({ password }: { password: string }) {
                   </div>
                   <span style={{fontWeight: 600, fontSize: '0.88rem'}}>{c.displayName}</span>
                 </div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                   <span style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>{c.items?.length || 0}</span>
                   <button 
-                    className="wallet-reset-btn" 
-                    style={{color: 'var(--danger)', padding: '2px'}} 
+                    className="btn-trash" 
                     onClick={(e) => { e.stopPropagation(); deleteCategory(c.id); }}
-                    title="Supprimer la categorie"
+                    title="Supprimer la catégorie"
+                    aria-label="Supprimer la catégorie"
                   >
-                    <Trash2 size={14}/>
+                    <Trash2 size={15}/>
                   </button>
                 </div>
               </div>
@@ -1460,28 +1498,15 @@ function AdminShop({ password }: { password: string }) {
             {inspectorMode === 'edit' && activeCat && (
               <button 
                 type="button" 
+                className="btn-danger"
                 onClick={() => {
                   if (confirm(`Voulez-vous vraiment retirer ${formMat} de la categorie ${activeCat.displayName} ?`)) {
                     deleteItem(activeCat.id, formMat);
                   }
                 }}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: 'rgba(239, 68, 68, 0.08)',
-                  color: '#ef4444',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px'
-                }}
+                style={{ width: '100%', marginTop: '8px' }}
               >
-                <Trash2 size={15} /> Supprimer cet objet de la boutique
+                <Trash2 size={16} /> Supprimer cet objet de la boutique
               </button>
             )}
           </form>
@@ -1740,7 +1765,9 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 
   // Filtrage des categories et items
   const allItems: ShopItem[] = categories.flatMap(c => c.items || []);
-  let displayItems = activeCatId === 'all' ? allItems : (categories.find(c => c.id === activeCatId)?.items || []);
+  let displayItems = activeCatId === 'all' 
+    ? allItems 
+    : (categories.find(c => String(c.id).toLowerCase() === String(activeCatId).toLowerCase())?.items || []);
   displayItems = displayItems.filter(i => i.isEnabled !== false);
 
   if (searchQuery.trim()) {
@@ -1786,59 +1813,69 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
       </div>
 
       {/* BARRE DE FILTRES ET RECHERCHE */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap'}}>
-        <div style={{display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px'}}>
+      <div className="shop-filter-bar">
+        <div className="tab-row" style={{minWidth: 0, width: '100%'}}>
           <button 
-            className={`multiplier-btn ${activeCatId === 'all' ? 'selected' : ''}`}
-            onClick={() => setActiveCatId('all')}
+            type="button"
+            className={`tab-btn ${activeCatId === 'all' ? 'active' : ''}`}
+            onClick={() => { setActiveCatId('all'); setSearchQuery(''); }}
           >
             Tous ({allItems.length})
           </button>
 
           <button 
-            className={`multiplier-btn ${activeCatId === 'deposited' ? 'selected' : ''}`}
-            onClick={() => { setActiveCatId('deposited'); fetchDeposited(); }}
+            type="button"
+            className={`tab-btn ${activeCatId === 'deposited' ? 'active' : ''}`}
+            onClick={() => { setActiveCatId('deposited'); setSearchQuery(''); fetchDeposited(); }}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
               background: activeCatId === 'deposited' ? 'linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2))' : undefined,
               borderColor: activeCatId === 'deposited' ? '#10b981' : undefined
             }}
           >
-            <Package size={16} color="#10b981" />
-            <span style={{fontWeight: 600}}>Mes Objets Deposes (/web deposit)</span>
+            <Package size={16} color="#10b981" style={{pointerEvents: 'none'}} />
+            <span style={{pointerEvents: 'none'}}>Mes Objets Déposés (/web deposit)</span>
             {depositedItems.length > 0 && (
-              <span style={{fontSize: '0.72rem', background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '10px', fontWeight: 'bold'}}>
+              <span style={{fontSize: '0.72rem', background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '10px', fontWeight: 'bold', pointerEvents: 'none'}}>
                 {depositedItems.length}
               </span>
             )}
           </button>
 
-          {categories.map(c => (
-            <button 
-              key={c.id} 
-              className={`multiplier-btn ${activeCatId === c.id ? 'selected' : ''}`}
-              onClick={() => setActiveCatId(c.id)}
-              style={{display: 'flex', alignItems: 'center', gap: '6px'}}
-            >
-              <div className="mc-item-icon" style={{width: '18px', height: '18px'}}>
-                <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
-              </div>
-              <span>{c.displayName}</span>
-              <span style={{fontSize: '0.72rem', opacity: 0.7}}>({c.items?.length || 0})</span>
-            </button>
-          ))}
+          {categories.map(c => {
+            const isSelected = String(activeCatId).toLowerCase() === String(c.id).toLowerCase();
+            return (
+              <button 
+                key={c.id} 
+                type="button"
+                className={`tab-btn ${isSelected ? 'active' : ''}`}
+                onClick={() => { setActiveCatId(c.id); setSearchQuery(''); }}
+              >
+                <div className="mc-item-icon" style={{width: '18px', height: '18px', pointerEvents: 'none'}}>
+                  <img 
+                    src={getMinecraftItemUrl(c.icon || 'CHEST')} 
+                    alt={c.id} 
+                    loading="lazy" 
+                    decoding="async" 
+                    onError={handleMinecraftImageError}
+                    draggable={false}
+                    style={{pointerEvents: 'none'}}
+                  />
+                </div>
+                <span style={{pointerEvents: 'none'}}>{c.displayName}</span>
+                <span style={{fontSize: '0.72rem', opacity: 0.7, pointerEvents: 'none'}}>({c.items?.length || 0})</span>
+              </button>
+            );
+          })}
         </div>
 
-        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 14px', minWidth: '260px'}}>
-          <Search size={18} color="var(--text-muted)"/>
+        <div className="shop-search-box">
+          <Search size={16} color="var(--text-muted)" style={{flexShrink: 0}} />
           <input 
             type="text" 
             placeholder="Rechercher un objet..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem'}}
+            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.88rem'}}
           />
         </div>
       </div>
@@ -2050,8 +2087,8 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
               <div style={{fontWeight: 700, fontSize: '1.1rem', color: 'white'}}>
                 {drawerMode === 'buy' ? 'Acheter' : 'Vendre'} : {selectedItem.material}
               </div>
-              <button className="wallet-reset-btn" onClick={() => setDrawerOpen(false)}>
-                <X size={20}/>
+              <button className="btn-close" onClick={() => setDrawerOpen(false)} aria-label="Fermer">
+                <X size={18}/>
               </button>
             </div>
 
@@ -2674,21 +2711,21 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
       </div>
 
       {/* BARRE DE RECHERCHE ET FILTRES */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap'}}>
-        <div style={{display: 'flex', gap: '8px', overflowX: 'auto'}}>
-          <button className={`multiplier-btn ${categoryFilter === 'all' ? 'selected' : ''}`} onClick={() => setCategoryFilter('all')}>
+      <div className="shop-filter-bar">
+        <div className="tab-row" style={{flex: '1 1 auto', minWidth: 0}}>
+          <button className={`tab-btn ${categoryFilter === 'all' ? 'active' : ''}`} onClick={() => setCategoryFilter('all')}>
             Toutes les offres ({items.length})
           </button>
         </div>
 
-        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 14px', minWidth: '260px'}}>
+        <div className="shop-search-box">
           <Search size={18} color="var(--text-muted)"/>
           <input 
             type="text" 
             placeholder="Rechercher objet ou vendeur..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem'}}
+            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.88rem'}}
           />
         </div>
       </div>
@@ -2885,7 +2922,7 @@ export function ClientQuests({ isEnabled }: { isEnabled?: boolean }) {
         <p>{t('web.public.leaderboard_subtitle')}</p>
       </div>
 
-      <div style={{maxWidth: '1000px', margin: '0 auto', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: '1.5rem', overflowX: 'auto'}}>
+      <div style={{maxWidth: '1000px', width: '100%', boxSizing: 'border-box', margin: '0 auto', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '12px', padding: 'clamp(1rem, 3vw, 1.5rem)', overflowX: 'auto'}}>
         <table className="shop-table" style={{width: '100%', textAlign: 'left', minWidth: '600px'}}>
           <thead>
             <tr>
@@ -3015,20 +3052,36 @@ function App() {
 
     const savedPlayer = localStorage.getItem('gens_player_data');
     if (savedPlayer) {
-      const parsed = JSON.parse(savedPlayer);
-      setPlayerData(parsed);
+      try {
+        const parsed = JSON.parse(savedPlayer);
+        setPlayerData(parsed);
 
-      // Verify OP status to avoid phantom admin state
-      fetch(`${API_URL}/player/info?uuid=${parsed.uuid}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.isOp !== parsed.isOp) {
+        // Verify session and OP status to avoid phantom states or expired tokens
+        const headers: Record<string, string> = {};
+        if (parsed.token) headers['Authorization'] = `Bearer ${parsed.token}`;
+
+        fetch(`${API_URL}/player/info?uuid=${encodeURIComponent(parsed.uuid || '')}`, { headers })
+          .then(async res => {
+            if (res.status === 401) {
+              console.warn('[App] Player session expired on server, clearing stale credentials');
+              localStorage.removeItem('gens_player_data');
+              setPlayerData(null);
+              return;
+            }
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.isOp !== parsed.isOp) {
                 const updated = { ...parsed, isOp: data.isOp };
                 setPlayerData(updated);
                 localStorage.setItem('gens_player_data', JSON.stringify(updated));
+              }
             }
-        })
-        .catch(console.error);
+          })
+          .catch(console.error);
+      } catch (e) {
+        localStorage.removeItem('gens_player_data');
+        setPlayerData(null);
+      }
     }
   }, []);
 

@@ -93,46 +93,68 @@ function PlayerStats({ uuid, isEcoEnabled }: { uuid: string, isEcoEnabled: boole
     <div className="dashboard-content" style={{padding: '2rem'}}>
       <h2 style={{marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '10px'}}><BarChart2/> {t('web.public.stats.global_title')}</h2>
       
-      <div className="stats-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '20px', marginBottom: '2rem'}}>
-        
-        <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
-          <Clock size={40} style={{color: 'var(--accent)', marginBottom: '1rem', margin: '0 auto'}}/>
-          <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{formatPlaytime(stats.playtimeMinutes)}</h3>
-          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.playtime')}</p>
+      <div className="stats-grid">
+        <div className="admin-card stat-card">
+          <div className="stat-card-icon" style={{color: 'var(--accent)', background: 'rgba(59, 130, 246, 0.12)'}}>
+            <Clock size={32} />
+          </div>
+          <div className="stat-card-info">
+            <h3>{formatPlaytime(stats.playtimeMinutes)}</h3>
+            <p>{t('web.public.stats.playtime')}</p>
+          </div>
         </div>
 
-        <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
-          <Pickaxe size={40} style={{color: '#a855f7', marginBottom: '1rem', margin: '0 auto'}}/>
-          <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.globalJobLevel || 0}</h3>
-          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.jobs_level')}</p>
+        <div className="admin-card stat-card">
+          <div className="stat-card-icon" style={{color: '#a855f7', background: 'rgba(168, 85, 247, 0.12)'}}>
+            <Pickaxe size={32} />
+          </div>
+          <div className="stat-card-info">
+            <h3>{stats.globalJobLevel || 0}</h3>
+            <p>{t('web.public.stats.jobs_level')}</p>
+          </div>
         </div>
 
-        <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
-          <Swords size={40} style={{color: '#f97316', marginBottom: '1rem', margin: '0 auto'}}/>
-          <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{kdRatio}</h3>
-          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.kd_ratio')} ({stats.playerKills} Kills)</p>
+        <div className="admin-card stat-card">
+          <div className="stat-card-icon" style={{color: '#f97316', background: 'rgba(249, 115, 22, 0.12)'}}>
+            <Swords size={32} />
+          </div>
+          <div className="stat-card-info">
+            <h3>{kdRatio}</h3>
+            <p>{t('web.public.stats.kd_ratio')} ({stats.playerKills} Kills)</p>
+          </div>
         </div>
 
-        <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
-          <Skull size={40} style={{color: '#ef4444', marginBottom: '1rem', margin: '0 auto'}}/>
-          <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.deaths}</h3>
-          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.total_deaths')}</p>
+        <div className="admin-card stat-card">
+          <div className="stat-card-icon" style={{color: '#ef4444', background: 'rgba(239, 68, 68, 0.12)'}}>
+            <Skull size={32} />
+          </div>
+          <div className="stat-card-info">
+            <h3>{stats.deaths}</h3>
+            <p>{t('web.public.stats.total_deaths')}</p>
+          </div>
         </div>
 
-        <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
-          <Target size={40} style={{color: 'var(--accent)', marginBottom: '1rem', margin: '0 auto'}}/>
-          <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.questsCompleted}</h3>
-          <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.quests_completed')}</p>
+        <div className="admin-card stat-card">
+          <div className="stat-card-icon" style={{color: 'var(--accent)', background: 'rgba(59, 130, 246, 0.12)'}}>
+            <Target size={32} />
+          </div>
+          <div className="stat-card-info">
+            <h3>{stats.questsCompleted}</h3>
+            <p>{t('web.public.stats.quests_completed')}</p>
+          </div>
         </div>
 
         {isEcoEnabled && (
-          <div className="admin-card" style={{textAlign: 'center', padding: '2rem 1rem'}}>
-            <ShoppingCart size={40} style={{color: '#10b981', marginBottom: '1rem', margin: '0 auto'}}/>
-            <h3 style={{fontSize: '2rem', margin: '0.5rem 0'}}>{stats.balance ? stats.balance.toFixed(2) : 0} $</h3>
-            <p style={{color: 'var(--text-muted)'}}>{t('web.public.stats.balance')}</p>
+          <div className="admin-card stat-card">
+            <div className="stat-card-icon" style={{color: '#10b981', background: 'rgba(16, 185, 129, 0.12)'}}>
+              <ShoppingCart size={32} />
+            </div>
+            <div className="stat-card-info">
+              <h3>{stats.balance ? stats.balance.toFixed(2) : 0} $</h3>
+              <p>{t('web.public.stats.balance')}</p>
+            </div>
           </div>
         )}
-        
       </div>
 
       <div className="dashboard-split" style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
@@ -719,7 +741,17 @@ function PlayerGames({ uuid, token, isEnabled }: { uuid: string, token: string, 
   );
 }
 
-export function PlayerTeamSection({ token }: { token: string }) {
+export function PlayerTeamSection({ 
+  token, 
+  uuid, 
+  username, 
+  onLogout 
+}: { 
+  token: string; 
+  uuid?: string; 
+  username?: string; 
+  onLogout?: () => void; 
+}) {
   const { t } = useTranslation();
   const [team, setTeam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -728,20 +760,37 @@ export function PlayerTeamSection({ token }: { token: string }) {
   const [customColor, setCustomColor] = useState('#2ecc71');
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const fetchTeam = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/player/team`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      setAuthError(null);
+      const params = new URLSearchParams();
+      if (uuid) params.set('uuid', uuid);
+      if (username) params.set('username', username);
+      const qs = params.toString() ? `?${params.toString()}` : '';
+
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${token}`
+      };
+      if (uuid) headers['X-Player-UUID'] = uuid;
+
+      const res = await fetch(`${API_URL}/player/team${qs}`, { headers });
       const data = await res.json();
       if (res.ok) {
         setTeam(data);
         if (data.color) setCustomColor(data.color);
+      } else {
+        if (res.status === 401) {
+          setAuthError(data.error || 'Votre session a expiré. Veuillez vous reconnecter.');
+        } else {
+          setFeedback({ text: data.error || 'Erreur lors du chargement de la guilde.', type: 'error' });
+        }
       }
     } catch (err) {
       console.error(err);
+      setFeedback({ text: 'Erreur réseau lors de la récupération de la guilde.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -749,7 +798,16 @@ export function PlayerTeamSection({ token }: { token: string }) {
 
   useEffect(() => {
     fetchTeam();
-  }, [token]);
+  }, [token, uuid]);
+
+  const getAuthHeaders = () => {
+    const h: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+    if (uuid) h['X-Player-UUID'] = uuid;
+    return h;
+  };
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -758,9 +816,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
     setFeedback(null);
     try {
       const type = team?.isEconomyEnabled ? 'money' : 'xp';
-      const res = await fetch(`${API_URL}/player/team/deposit`, {
+      const res = await fetch(`${API_URL}/player/team/deposit${uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ amount: Number(depositAmount), type })
       });
       const data = await res.json();
@@ -785,9 +843,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
     setFeedback(null);
     try {
       const type = team?.isEconomyEnabled ? 'money' : 'xp';
-      const res = await fetch(`${API_URL}/player/team/withdraw`, {
+      const res = await fetch(`${API_URL}/player/team/withdraw${uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ amount: Number(withdrawAmount), type })
       });
       const data = await res.json();
@@ -809,9 +867,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
     setActionLoading(true);
     setFeedback(null);
     try {
-      const res = await fetch(`${API_URL}/player/team/upgrade`, {
+      const res = await fetch(`${API_URL}/player/team/upgrade${uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ perkId })
       });
       const data = await res.json();
@@ -832,9 +890,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
     setActionLoading(true);
     setFeedback(null);
     try {
-      const res = await fetch(`${API_URL}/player/team/color`, {
+      const res = await fetch(`${API_URL}/player/team/color${uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ color: customColor })
       });
       const data = await res.json();
@@ -856,9 +914,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
     setActionLoading(true);
     setFeedback(null);
     try {
-      const res = await fetch(`${API_URL}/player/team/promote`, {
+      const res = await fetch(`${API_URL}/player/team/promote${uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ uuid: targetUuid })
       });
       const data = await res.json();
@@ -880,9 +938,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
     setActionLoading(true);
     setFeedback(null);
     try {
-      const res = await fetch(`${API_URL}/player/team/demote`, {
+      const res = await fetch(`${API_URL}/player/team/demote${uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ uuid: targetUuid })
       });
       const data = await res.json();
@@ -904,9 +962,9 @@ export function PlayerTeamSection({ token }: { token: string }) {
     setActionLoading(true);
     setFeedback(null);
     try {
-      const res = await fetch(`${API_URL}/player/team/kick`, {
+      const res = await fetch(`${API_URL}/player/team/kick${uuid ? `?uuid=${encodeURIComponent(uuid)}` : ''}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ uuid: targetUuid })
       });
       const data = await res.json();
@@ -927,19 +985,78 @@ export function PlayerTeamSection({ token }: { token: string }) {
     return <div className="loading" style={{padding: '3rem'}}>{t('web.public.loading') || 'Chargement...'}</div>;
   }
 
+  if (authError) {
+    return (
+      <div className="dashboard-content" style={{padding: 'clamp(1rem, 4vw, 2rem)'}}>
+        <div className="admin-card" style={{maxWidth: '600px', margin: '2rem auto', textAlign: 'center', padding: '2.5rem 1.5rem', border: '1px solid rgba(239, 68, 68, 0.4)'}}>
+          <div style={{width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem'}}>
+            <AlertCircle size={32} color="#ef4444" />
+          </div>
+          <h2 style={{fontSize: '1.6rem', marginBottom: '0.8rem', color: '#fca5a5'}}>Session Expirée</h2>
+          <p style={{color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '1.5rem'}}>
+            {authError}
+          </p>
+          <div style={{display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap'}}>
+            <button 
+              onClick={() => {
+                if (onLogout) onLogout();
+                else {
+                  localStorage.removeItem('gens_player_data');
+                  window.location.href = '/login';
+                }
+              }} 
+              className="btn-danger-solid"
+            >
+              Se reconnecter
+            </button>
+            <button onClick={fetchTeam} className="btn">
+              <RefreshCw size={16} /> Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!team || !team.hasTeam) {
     return (
-      <div className="dashboard-content" style={{padding: '2rem'}}>
-        <div className="admin-card" style={{maxWidth: '700px', margin: '2rem auto', textAlign: 'center', padding: '3rem 2rem'}}>
+      <div className="dashboard-content" style={{padding: 'clamp(1rem, 4vw, 2rem)'}}>
+        <div className="admin-card" style={{maxWidth: '700px', margin: '1.5rem auto', textAlign: 'center', padding: 'clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem)'}}>
           <div style={{width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem'}}>
             <Users size={32} color="var(--accent)" />
           </div>
-          <h2 style={{fontSize: '1.8rem', marginBottom: '1rem'}}>{t('web.team.no_team_title') || 'Aucune Guilde Active'}</h2>
-          <p style={{color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1.05rem', marginBottom: '1.5rem'}}>
+          <h2 style={{fontSize: 'clamp(1.4rem, 4vw, 1.8rem)', marginBottom: '1rem'}}>{t('web.team.no_team_title') || 'Aucune Guilde Active'}</h2>
+          <p style={{color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '1rem', marginBottom: '1.5rem'}}>
             {t('web.team.no_team_desc') || "Vous ne faites actuellement partie d'aucune guilde. Creez-en une en jeu avec /team create <nom> ou demandez a vos amis de vous recruter !"}
           </p>
-          <div style={{background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '1rem', display: 'inline-block'}}>
-            <code style={{color: 'var(--accent)', fontWeight: 'bold'}}>/team create &lt;nom&gt;</code>
+          <div style={{background: 'rgba(255,255,255,0.03)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '0.8rem 1.2rem', display: 'inline-block', marginBottom: '1.5rem'}}>
+            <code style={{color: 'var(--accent)', fontWeight: 'bold', fontSize: '1.05rem'}}>/team create &lt;nom&gt;</code>
+          </div>
+          <div style={{display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap'}}>
+            <button onClick={fetchTeam} className="btn" style={{minHeight: '42px', padding: '8px 18px'}}>
+              <RefreshCw size={16} /> {t('web.wallet.refresh') || 'Actualiser'}
+            </button>
+            <button 
+              onClick={() => {
+                if (onLogout) onLogout();
+                else {
+                  localStorage.removeItem('gens_player_data');
+                  window.location.href = '/login';
+                }
+              }} 
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--card-border)',
+                color: 'var(--text-muted)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                minHeight: '42px'
+              }}
+            >
+              Changer de compte
+            </button>
           </div>
         </div>
       </div>
@@ -1067,36 +1184,36 @@ export function PlayerTeamSection({ token }: { token: string }) {
   ];
 
   return (
-    <div className="dashboard-content" style={{padding: '2rem'}}>
+    <div className="dashboard-content" style={{padding: 'clamp(1rem, 4vw, 2rem)'}}>
       {/* Header Guilde */}
-      <div className="admin-card" style={{marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem'}}>
-        <div style={{display: 'flex', alignItems: 'center', gap: '1.2rem'}}>
+      <div className="admin-card" style={{marginBottom: '1.5rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0, flex: 1}}>
           <div style={{
-            width: '56px', height: '56px', borderRadius: '12px',
+            width: '52px', height: '52px', borderRadius: '12px', flexShrink: 0,
             background: team.color || '#2ecc71', display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: `0 0 20px ${(team.color || '#2ecc71')}66`
           }}>
-            <Shield size={32} color="#ffffff" />
+            <Shield size={28} color="#ffffff" />
           </div>
-          <div>
-            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-              <h1 style={{margin: 0, fontSize: '1.8rem'}}>{team.name}</h1>
+          <div style={{minWidth: 0}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
+              <h1 style={{margin: 0, fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', lineHeight: 1.2}}>{team.name}</h1>
               <span style={{
                 background: isLeader ? 'rgba(234, 179, 8, 0.2)' : isAdmin ? 'rgba(59, 130, 246, 0.2)' : 'rgba(148, 163, 184, 0.2)',
                 color: isLeader ? '#eab308' : isAdmin ? '#3b82f6' : '#94a3b8',
                 border: `1px solid ${isLeader ? 'rgba(234, 179, 8, 0.4)' : isAdmin ? 'rgba(59, 130, 246, 0.4)' : 'rgba(148, 163, 184, 0.3)'}`,
-                padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold'
+                padding: '2px 8px', borderRadius: '12px', fontSize: '0.72rem', fontWeight: 'bold', whiteSpace: 'nowrap', flexShrink: 0
               }}>
                 {isLeader ? (t('web.team.role_leader') || 'Chef de Guilde') : isAdmin ? (t('web.team.role_admin') || 'Administrateur') : (t('web.team.role_member') || 'Membre')}
               </span>
             </div>
-            <p style={{color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.9rem'}}>
-              {t('web.team.subtitle') || 'Gerez votre equipe, votre tresorerie et vos ameliorations'}
+            <p style={{color: 'var(--text-muted)', margin: '4px 0 0 0', fontSize: '0.88rem'}}>
+              {t('web.team.subtitle') || 'Gérez votre équipe, votre trésorerie et vos améliorations'}
             </p>
           </div>
         </div>
-        <button onClick={fetchTeam} className="btn-action" style={{display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-main)', cursor: 'pointer'}}>
-          <RefreshCw size={16} /> {t('web.wallet.refresh') || 'Actualiser'}
+        <button onClick={fetchTeam} style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--card-border)', borderRadius: '8px', color: 'var(--text-main)', cursor: 'pointer', fontSize: '0.88rem', flexShrink: 0}}>
+          <RefreshCw size={15} /> {t('web.wallet.refresh') || 'Actualiser'}
         </button>
       </div>
 
@@ -1137,21 +1254,20 @@ export function PlayerTeamSection({ token }: { token: string }) {
           {/* Formulaire Depot */}
           <form onSubmit={handleDeposit} style={{marginBottom: '1rem'}}>
             <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px'}}>
-              {isEco ? 'Deposer des dollars dans la banque :' : 'Deposer des niveaux d\'XP (joueur connecte) :'}
+              {isEco ? 'Déposer des dollars dans la banque :' : "Déposer des niveaux d'XP (joueur connecté) :"}
             </label>
-            <div style={{display: 'flex', gap: '10px'}}>
+            <div className="team-form-stack">
               <input
                 type="number"
                 min="1"
                 step={isEco ? '0.01' : '1'}
-                placeholder={isEco ? 'Montant en $' : 'Niveaux d\'XP'}
+                placeholder={isEco ? 'Montant en $' : "Niveaux d'XP"}
                 value={depositAmount}
                 onChange={e => setDepositAmount(e.target.value)}
                 className="login-input"
-                style={{margin: 0, flex: 1}}
               />
-              <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: 'var(--accent)'}}>
-                {t('web.team.deposit_btn') || 'Deposer'}
+              <button type="submit" disabled={actionLoading} className="login-button team-form-btn">
+                {t('web.team.deposit_btn') || 'Déposer'}
               </button>
             </div>
           </form>
@@ -1160,20 +1276,19 @@ export function PlayerTeamSection({ token }: { token: string }) {
           {canManage ? (
             <form onSubmit={handleWithdraw}>
               <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px'}}>
-                {isEco ? 'Retirer des fonds vers votre solde :' : 'Retirer des niveaux d\'XP vers votre joueur :'}
+                {isEco ? 'Retirer des fonds vers votre solde :' : "Retirer des niveaux d'XP vers votre joueur :"}
               </label>
-              <div style={{display: 'flex', gap: '10px'}}>
+              <div className="team-form-stack">
                 <input
                   type="number"
                   min="1"
                   step={isEco ? '0.01' : '1'}
-                  placeholder={isEco ? 'Montant en $' : 'Niveaux d\'XP'}
+                  placeholder={isEco ? 'Montant en $' : "Niveaux d'XP"}
                   value={withdrawAmount}
                   onChange={e => setWithdrawAmount(e.target.value)}
                   className="login-input"
-                  style={{margin: 0, flex: 1}}
                 />
-                <button type="submit" disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: '#3b82f6'}}>
+                <button type="submit" disabled={actionLoading} className="login-button team-form-btn">
                   {t('web.team.withdraw_btn') || 'Retirer'}
                 </button>
               </div>
@@ -1221,24 +1336,26 @@ export function PlayerTeamSection({ token }: { token: string }) {
             <label style={{fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px'}}>
               {t('web.team.color_label') || 'Couleur de la Guilde sur BlueMap :'}
             </label>
-            <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-              <input
-                type="color"
-                value={customColor}
-                onChange={e => setCustomColor(e.target.value)}
-                disabled={!canManage}
-                style={{width: '44px', height: '44px', padding: '2px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: canManage ? 'pointer' : 'not-allowed', background: 'transparent'}}
-              />
-              <input
-                type="text"
-                value={customColor}
-                onChange={e => setCustomColor(e.target.value)}
-                disabled={!canManage}
-                className="login-input"
-                style={{margin: 0, maxWidth: '120px', fontFamily: 'monospace'}}
-              />
+            <div className="team-color-stack">
+              <div style={{display: 'flex', alignItems: 'center', gap: '10px', flex: 1}}>
+                <input
+                  type="color"
+                  value={customColor}
+                  onChange={e => setCustomColor(e.target.value)}
+                  disabled={!canManage}
+                  style={{width: '44px', height: '44px', padding: '2px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: canManage ? 'pointer' : 'not-allowed', background: 'transparent', flexShrink: 0}}
+                />
+                <input
+                  type="text"
+                  value={customColor}
+                  onChange={e => setCustomColor(e.target.value)}
+                  disabled={!canManage}
+                  className="login-input"
+                  style={{margin: 0, flex: 1, fontFamily: 'monospace'}}
+                />
+              </div>
               {canManage && (
-                <button onClick={handleSaveColor} disabled={actionLoading} className="login-button" style={{width: 'auto', padding: '0 20px', background: 'var(--card-bg)', border: '1px solid var(--card-border)'}}>
+                <button onClick={handleSaveColor} disabled={actionLoading} className="login-button team-form-btn">
                   {t('web.team.color_save_btn') || 'Enregistrer'}
                 </button>
               )}
@@ -1385,18 +1502,13 @@ export function PlayerTeamSection({ token }: { token: string }) {
                 </div>
 
                 {(canPromote || canDemote || canKick) && (
-                  <div style={{display: 'flex', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '8px', marginTop: '2px'}}>
+                  <div className="team-member-actions">
                     {canPromote && (
                       <button
                         onClick={() => handlePromote(m.uuid, m.username)}
                         disabled={actionLoading}
                         title="Promouvoir au rang d'Administrateur"
-                        style={{
-                          flex: 1, padding: '6px 10px', fontSize: '0.75rem', fontWeight: 'bold',
-                          background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa',
-                          border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '6px', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
-                        }}
+                        className="btn-member-action btn-promote"
                       >
                         <UserCheck size={14} /> {t('web.team.promote_btn', 'Nommer Admin')}
                       </button>
@@ -1406,12 +1518,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                         onClick={() => handleDemote(m.uuid, m.username)}
                         disabled={actionLoading}
                         title="Retrograder au rang de Membre"
-                        style={{
-                          flex: 1, padding: '6px 10px', fontSize: '0.75rem', fontWeight: 'bold',
-                          background: 'rgba(234, 179, 8, 0.15)', color: '#facc15',
-                          border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '6px', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
-                        }}
+                        className="btn-member-action btn-demote"
                       >
                         <UserMinus size={14} /> {t('web.team.demote_btn', 'Rétrograder')}
                       </button>
@@ -1421,12 +1528,7 @@ export function PlayerTeamSection({ token }: { token: string }) {
                         onClick={() => handleKick(m.uuid, m.username)}
                         disabled={actionLoading}
                         title="Expulser de la guilde"
-                        style={{
-                          padding: '6px 10px', fontSize: '0.75rem', fontWeight: 'bold',
-                          background: 'rgba(239, 68, 68, 0.15)', color: '#f87171',
-                          border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'
-                        }}
+                        className="btn-member-action btn-kick"
                       >
                         <UserX size={14} /> {t('web.team.kick_btn', 'Expulser')}
                       </button>
@@ -1491,14 +1593,13 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
 
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', marginBottom: '-6px' }}>
+        <div style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', marginBottom: '8px' }}>
           <button 
-            className="mobile-close-btn" 
+            className="btn-close mobile-close-btn" 
             onClick={() => setSidebarOpen(false)}
             aria-label="Fermer le menu"
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
           >
-            <X size={22} />
+            <X size={20} />
           </button>
         </div>
 
@@ -1530,7 +1631,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           )}
         </nav>
 
-        <div className="admin-sidebar-footer" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="admin-sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {playerData.isOp && (
             <Link 
               to="/admin" 
@@ -1585,7 +1686,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
         <Routes>
           <Route index element={<ClientShop isEnabled={isModuleEnabled('DynamicShop')} />} />
           <Route path="ah" element={<ClientAh isEnabled={isModuleEnabled('AuctionHouse')} />} />
-          <Route path="team" element={<PlayerTeamSection token={playerData.token} />} />
+          <Route path="team" element={<PlayerTeamSection token={playerData.token} uuid={playerData.uuid} username={playerData.username} onLogout={onLogout} />} />
           <Route path="quests" element={<ClientQuests isEnabled={isModuleEnabled('Quests')} />} />
           <Route path="jobs" element={<ClientJobs />} />
           <Route path="map" element={<ClientMap />} />

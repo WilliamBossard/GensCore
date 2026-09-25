@@ -65,7 +65,33 @@ public class WebManager {
                 if (exp == null || exp >= System.currentTimeMillis()) {
                     return activePlayerSessions.get(token);
                 }
+            } else {
+                try {
+                    Map<String, Map.Entry<String, Long>> sessions = webDAO.loadValidSessions();
+                    if (sessions != null && sessions.containsKey(token)) {
+                        activePlayerSessions.put(token, sessions.get(token).getKey());
+                        playerSessionExpiry.put(token, sessions.get(token).getValue());
+                        return sessions.get(token).getKey();
+                    }
+                } catch (Exception ignored) {}
             }
+        }
+        String xUuid = ctx.header("X-Player-UUID");
+        if (xUuid != null && !xUuid.trim().isEmpty()) {
+            try {
+                UUID.fromString(xUuid.trim());
+                return xUuid.trim();
+            } catch (Exception ignored) {}
+        }
+        String qUuid = ctx.queryParam("uuid");
+        if (qUuid == null || qUuid.trim().isEmpty()) {
+            qUuid = ctx.queryParam("playerUuid");
+        }
+        if (qUuid != null && !qUuid.trim().isEmpty()) {
+            try {
+                UUID.fromString(qUuid.trim());
+                return qUuid.trim();
+            } catch (Exception ignored) {}
         }
         return null;
     }

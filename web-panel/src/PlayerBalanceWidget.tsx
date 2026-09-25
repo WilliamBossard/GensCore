@@ -135,6 +135,29 @@ export function formatBalance(amount: number | null | undefined): string {
   });
 }
 
+export function formatCompactBalance(amount: number | null | undefined): string {
+  if (amount === null || amount === undefined) return '...';
+  const num = Number(amount);
+  if (isNaN(num)) return '...';
+  const abs = Math.abs(num);
+  if (abs >= 1_000_000_000_000) {
+    return (num / 1_000_000_000_000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + ' T';
+  }
+  if (abs >= 1_000_000_000) {
+    return (num / 1_000_000_000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + ' Md';
+  }
+  if (abs >= 1_000_000) {
+    return (num / 1_000_000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 2 }) + ' M';
+  }
+  if (abs >= 100_000) {
+    return (num / 1_000).toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + ' k';
+  }
+  return num.toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
 interface PlayerBalanceWidgetProps {
   uuid?: string;
   token?: string;
@@ -278,11 +301,23 @@ export function PlayerBalanceWidget({
         <Coins size={15} />
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-        <span style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f0fdf4', letterSpacing: '0.2px' }}>
+      <div 
+        style={{ display: 'flex', alignItems: 'baseline', gap: '4px', minWidth: 0 }}
+        title={`${formatBalance(balance)} $`}
+      >
+        <span 
+          className="balance-pill-text-desktop"
+          style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f0fdf4', letterSpacing: '0.2px' }}
+        >
           {formatBalance(balance)}
         </span>
-        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#34d399' }}>$</span>
+        <span 
+          className="balance-pill-text-mobile"
+          style={{ fontSize: '0.90rem', fontWeight: 700, color: '#f0fdf4', letterSpacing: '0.2px' }}
+        >
+          {formatCompactBalance(balance)}
+        </span>
+        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#34d399', flexShrink: 0 }}>$</span>
       </div>
 
       {showRefresh && (

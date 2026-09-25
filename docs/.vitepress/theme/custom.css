@@ -1,0 +1,175 @@
+/* Gens Launcher Promo Card - Light & Dark Mode Support */
+.gens-launcher-card {
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+  margin-top: 1.5rem;
+}
+
+/* Light Mode Defaults */
+:root:not(.dark) .gens-launcher-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f8fafc 100%);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  box-shadow: 0 10px 30px rgba(2, 132, 199, 0.08);
+}
+
+:root:not(.dark) .gens-launcher-badge {
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(2, 132, 199, 0.28);
+}
+
+:root:not(.dark) .gens-launcher-title {
+  color: #0f172a;
+}
+
+:root:not(.dark) .gens-launcher-desc {
+  color: #334155;
+}
+
+:root:not(.dark) .gens-launcher-desc strong {
+  color: #0369a1;
+}
+
+:root:not(.dark) .gens-launcher-pill {
+  color: #0369a1;
+  background: #ffffff;
+  border: 1px solid rgba(2, 132, 199, 0.22);
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08);
+}
+
+:root:not(.dark) .gens-launcher-btn-sec {
+  background: #ffffff;
+  color: #0284c7 !important;
+  border: 1px solid rgba(2, 132, 199, 0.35);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+:root:not(.dark) .gens-launcher-btn-sec:hover {
+  background: #f0f9ff;
+  border-color: #0284c7;
+}
+
+/* Dark Mode (.dark) */
+.dark .gens-launcher-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+}
+
+.dark .gens-launcher-badge {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.dark .gens-launcher-title {
+  color: #f8fafc;
+}
+
+.dark .gens-launcher-desc {
+  color: #94a3b8;
+}
+
+.dark .gens-launcher-desc strong {
+  color: #38bdf8;
+}
+
+.dark .gens-launcher-pill {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dark .gens-launcher-btn-sec {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.dark .gens-launcher-btn-sec:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* Common Styles */
+.gens-launcher-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  margin-bottom: 0.8rem;
+}
+
+.gens-launcher-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.3px;
+}
+
+.gens-launcher-desc {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+}
+
+.gens-launcher-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.gens-launcher-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-family: var(--vp-font-family-mono);
+}
+
+.gens-launcher-actions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.gens-launcher-btn-prim {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.3rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  background: #0284c7;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.gens-launcher-btn-prim:hover {
+  background: #0369a1;
+  transform: translateY(-1px);
+}
+
+.gens-launcher-btn-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.3rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.gens-launcher-btn-sec:hover {
+  transform: translateY(-1px);
+}
