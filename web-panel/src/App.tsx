@@ -2998,20 +2998,36 @@ function App() {
 
     const savedPlayer = localStorage.getItem('gens_player_data');
     if (savedPlayer) {
-      const parsed = JSON.parse(savedPlayer);
-      setPlayerData(parsed);
+      try {
+        const parsed = JSON.parse(savedPlayer);
+        setPlayerData(parsed);
 
-      // Verify OP status to avoid phantom admin state
-      fetch(`${API_URL}/player/info?uuid=${parsed.uuid}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.isOp !== parsed.isOp) {
+        // Verify session and OP status to avoid phantom states or expired tokens
+        const headers: Record<string, string> = {};
+        if (parsed.token) headers['Authorization'] = `Bearer ${parsed.token}`;
+
+        fetch(`${API_URL}/player/info?uuid=${encodeURIComponent(parsed.uuid || '')}`, { headers })
+          .then(async res => {
+            if (res.status === 401) {
+              console.warn('[App] Player session expired on server, clearing stale credentials');
+              localStorage.removeItem('gens_player_data');
+              setPlayerData(null);
+              return;
+            }
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.isOp !== parsed.isOp) {
                 const updated = { ...parsed, isOp: data.isOp };
                 setPlayerData(updated);
                 localStorage.setItem('gens_player_data', JSON.stringify(updated));
+              }
             }
-        })
-        .catch(console.error);
+          })
+          .catch(console.error);
+      } catch (e) {
+        localStorage.removeItem('gens_player_data');
+        setPlayerData(null);
+      }
     }
   }, []);
 

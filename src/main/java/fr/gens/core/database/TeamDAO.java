@@ -200,6 +200,8 @@ public class TeamDAO {
                             team.setLastInterestAt(rs.getLong("last_interest_at"));
                         } catch (Exception ignored) {}
                         teamsById.put(id, team);
+                        team.addMember(team.getLeaderUuid());
+                        teamsByPlayer.put(team.getLeaderUuid(), team);
                     }
                 }
             }

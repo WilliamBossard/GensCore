@@ -1212,37 +1212,63 @@ public class WebPlayerAPI implements Listener {
 
     private fr.gens.core.modules.teams.TeamData resolvePlayerTeam(UUID playerUuid, io.javalin.http.Context ctx) {
         if (playerUuid == null) return null;
+        fr.gens.core.modules.teams.TeamModule teamModule = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+        
+        // 1. Direct lookup with primary UUID
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
-        if (team == null) {
-            fr.gens.core.modules.teams.TeamModule teamModule = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-            if (teamModule != null) {
-                team = teamModule.getTeamDAO().getTeamByPlayerUuid(playerUuid);
+        if (team == null && teamModule != null) {
+            team = teamModule.getTeamDAO().getTeamByPlayerUuid(playerUuid);
+        }
+        if (team != null) return team;
+
+        // 2. Identify candidate usernames
+        String username = ctx.queryParam("username");
+        if (username == null || username.trim().isEmpty()) {
+            username = webDAO.getPlayerUsernameByUuid(playerUuid);
+        }
+        if (username == null || username.trim().isEmpty()) {
+            try {
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(playerUuid);
+                if (op != null && op.getName() != null) username = op.getName();
+            } catch (Exception ignored) {}
+        }
+
+        if (username != null && !username.trim().isEmpty()) {
+            username = username.trim();
+            String altName = username.startsWith(".") ? username.substring(1) : ("." + username);
+            
+            // Collect all possible alternate UUIDs (Bedrock, offline-mode, database-stored)
+            Set<UUID> candidateUuids = new LinkedHashSet<>();
+            
+            // Offline UUID from current username
+            try {
+                candidateUuids.add(UUID.nameUUIDFromBytes(("OfflinePlayer:" + username).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            } catch (Exception ignored) {}
+
+            // Alternate name lookup (with/without '.')
+            try {
+                UUID altFromDb = webDAO.getPlayerUuidByUsername(altName);
+                if (altFromDb != null) candidateUuids.add(altFromDb);
+            } catch (Exception ignored) {}
+
+            try {
+                candidateUuids.add(UUID.nameUUIDFromBytes(("OfflinePlayer:" + altName).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            } catch (Exception ignored) {}
+
+            candidateUuids.remove(playerUuid); // already checked
+
+            for (UUID cand : candidateUuids) {
+                if (cand == null) continue;
+                team = plugin.getTeamManager().getPlayerTeam(cand);
+                if (team == null && teamModule != null) {
+                    team = teamModule.getTeamDAO().getTeamByPlayerUuid(cand);
+                }
+                if (team != null) {
+                    return team;
+                }
             }
         }
-        if (team == null) {
-            String username = ctx.queryParam("username");
-            if (username == null) {
-                username = webDAO.getPlayerUsernameByUuid(playerUuid);
-            }
-            if (username != null) {
-                UUID altUuid = null;
-                if (username.startsWith(".")) {
-                    altUuid = webDAO.getPlayerUuidByUsername(username.substring(1));
-                } else {
-                    altUuid = webDAO.getPlayerUuidByUsername("." + username);
-                }
-                if (altUuid != null && !altUuid.equals(playerUuid)) {
-                    team = plugin.getTeamManager().getPlayerTeam(altUuid);
-                    if (team == null) {
-                        fr.gens.core.modules.teams.TeamModule teamModule = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-                        if (teamModule != null) {
-                            team = teamModule.getTeamDAO().getTeamByPlayerUuid(altUuid);
-                        }
-                    }
-                }
-            }
-        }
-        return team;
+        return null;
     }
 
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
