@@ -240,12 +240,23 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
     );
   }
 
+  const getTabTitle = () => {
+    switch (activeTab) {
+      case 'shop': return t('web.admin.settings.shop_title') || 'Gestion de la Boutique';
+      case 'modules': return t('web.admin.settings.modules_title') || 'Gestion des Modules';
+      case 'files': return t('web.admin.settings.files_title') || 'Editeur de Fichiers';
+      case 'players': return t('web.admin.settings.players_title') || 'Joueurs en ligne & Sanctions';
+      case 'content': return t('web.admin.content.title') || 'Annonces & Contenu Public';
+      default: return t('web.admin.settings.title') || 'Configuration Globale';
+    }
+  };
+
   return (
     <div className="admin-layout">
       {/* Overlay mobile */}
       {isSidebarOpen && (
         <div 
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 90 }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 190 }}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -276,25 +287,46 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
       </aside>
       
       <main className="admin-main">
-        <header className="admin-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <button 
-              className="mobile-menu-btn" 
-              onClick={() => setIsSidebarOpen(true)}
-              style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', color: 'var(--text-main)', padding: '10px', borderRadius: '12px', cursor: 'pointer', display: 'none' }}
-            >
-              <Menu size={24} />
-            </button>
-            <h2>{activeTab === 'shop' ? t('web.admin.settings.shop_title') : activeTab === 'modules' ? t('web.admin.settings.modules_title') : activeTab === 'files' ? t('web.admin.settings.files_title') : activeTab === 'players' ? t('web.admin.settings.players_title') : activeTab === 'content' ? t('web.admin.content.title') : t('web.admin.settings.title')}</h2>
+        {/* Mobile Top Bar - Harmonisé avec PlayerPortal */}
+        <div className="mobile-top-bar admin-mobile-top-bar">
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Ouvrir le menu admin"
+            type="button"
+          >
+            <Menu size={22} />
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1, padding: '0 4px' }}>
+            <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {getTabTitle()}
+            </span>
           </div>
-          <div className="admin-user"><Shield size={18}/> {t('web.admin.badge')}</div>
-        </header>
 
-        {activeTab === 'shop' && <AdminShop password={password} />}
+          <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+            <div className="admin-user-pill">
+              <Shield size={13} />
+              <span>{t('web.admin.badge') || 'Admin'}</span>
+            </div>
+          </div>
+        </div>
 
-        {activeTab === 'settings' && config && (
-          <form onSubmit={handleSaveConfig}>
-            <div className="settings-grid">
+        {/* Zone de contenu scrollable (séparée du top bar) */}
+        <div className="admin-content-scroll">
+          {/* Desktop Header */}
+          <header className="admin-header admin-desktop-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <h2>{getTabTitle()}</h2>
+            </div>
+            <div className="admin-user"><Shield size={18}/> {t('web.admin.badge')}</div>
+          </header>
+
+          {activeTab === 'shop' && <AdminShop password={password} />}
+
+          {activeTab === 'settings' && config && (
+            <form onSubmit={handleSaveConfig}>
+              <div className="settings-grid">
               <div className="admin-card">
                 <div className="settings-section-title"><Settings size={20} /> {t('web.admin.settings.eco_quests')}</div>
                 <div className="form-group">
@@ -487,9 +519,10 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
             </div>
           </form>
         )}
-        {activeTab === 'modules' && <AdminModules password={password} />}
-        {activeTab === 'files' && <AdminFiles password={password} />}
-        {activeTab === 'players' && <AdminPlayers password={password} />}
+          {activeTab === 'modules' && <AdminModules password={password} />}
+          {activeTab === 'files' && <AdminFiles password={password} />}
+          {activeTab === 'players' && <AdminPlayers password={password} />}
+        </div>
       </main>
     </div>
   );
@@ -557,7 +590,12 @@ function AdminPlayers({ password }: { password: string }) {
 
   return (
     <div>
-      <h2 style={{marginBottom: '2rem'}}>{t('web.admin.players.title')} ({players.length})</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'white' }}>{t('web.admin.players.title')}</span>
+          <span className="badge badge-info" style={{ fontSize: '0.8rem' }}>{players.length}</span>
+        </div>
+      </div>
       
       <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 350px), 1fr))', gap: '1.5rem'}}>
         {players.map(p => (
@@ -871,9 +909,9 @@ function AdminModules({ password }: { password: string }) {
         const mods = _mods as any[];
         return (
         <div key={catName}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--card-border)'}}>
-            <h2 style={{fontSize: '1.5rem', margin: 0}}>{catName}</h2>
-            <div style={{display: 'flex', gap: '10px'}}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--card-border)', flexWrap: 'wrap', gap: '10px'}}>
+            <h2 style={{fontSize: '1.35rem', margin: 0}}>{catName}</h2>
+            <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
               <button className="btn-small" style={{background: '#10b981', color: 'white'}} onClick={() => toggleCategory(mods, true)}>{t('web.admin.modules_cat.enable_all') || 'Tout Activer'}</button>
               <button className="btn-small" style={{background: '#ef4444', color: 'white'}} onClick={() => toggleCategory(mods, false)}>{t('web.admin.modules_cat.disable_all') || 'Tout Désactiver'}</button>
             </div>
