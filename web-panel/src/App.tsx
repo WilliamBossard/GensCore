@@ -445,8 +445,8 @@ function AdminLayout({ password, onLogout }: { password: string, onLogout: () =>
                   </p>
                   <button 
                     type="button" 
-                    className="btn" 
-                    style={{ background: '#ef4444', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
+                    className="btn-danger-solid" 
+                    style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '340px' }}
                     onClick={async () => {
                       const confirmPassword = prompt("Cette action est irréversible et supprimera toutes les données joueurs. Tapez le mot de passe admin pour confirmer :");
                       if (confirmPassword === password) {
@@ -1185,15 +1185,15 @@ function AdminShop({ password }: { password: string }) {
                   </div>
                   <span style={{fontWeight: 600, fontSize: '0.88rem'}}>{c.displayName}</span>
                 </div>
-                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                   <span style={{fontSize: '0.75rem', color: 'var(--text-muted)'}}>{c.items?.length || 0}</span>
                   <button 
-                    className="wallet-reset-btn" 
-                    style={{color: 'var(--danger)', padding: '2px'}} 
+                    className="btn-trash" 
                     onClick={(e) => { e.stopPropagation(); deleteCategory(c.id); }}
-                    title="Supprimer la categorie"
+                    title="Supprimer la catégorie"
+                    aria-label="Supprimer la catégorie"
                   >
-                    <Trash2 size={14}/>
+                    <Trash2 size={15}/>
                   </button>
                 </div>
               </div>
@@ -1460,28 +1460,15 @@ function AdminShop({ password }: { password: string }) {
             {inspectorMode === 'edit' && activeCat && (
               <button 
                 type="button" 
+                className="btn-danger"
                 onClick={() => {
                   if (confirm(`Voulez-vous vraiment retirer ${formMat} de la categorie ${activeCat.displayName} ?`)) {
                     deleteItem(activeCat.id, formMat);
                   }
                 }}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: 'rgba(239, 68, 68, 0.08)',
-                  color: '#ef4444',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px'
-                }}
+                style={{ width: '100%', marginTop: '8px' }}
               >
-                <Trash2 size={15} /> Supprimer cet objet de la boutique
+                <Trash2 size={16} /> Supprimer cet objet de la boutique
               </button>
             )}
           </form>
@@ -1787,27 +1774,24 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
 
       {/* BARRE DE FILTRES ET RECHERCHE */}
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap'}}>
-        <div style={{display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px', WebkitOverflowScrolling: 'touch' as any, msOverflowStyle: 'none' as any, scrollbarWidth: 'none' as any, flex: '1 1 200px'}}>
+        <div className="tab-row" style={{flex: '1 1 300px', minWidth: 0}}>
           <button 
-            className={`multiplier-btn ${activeCatId === 'all' ? 'selected' : ''}`}
+            className={`tab-btn ${activeCatId === 'all' ? 'active' : ''}`}
             onClick={() => setActiveCatId('all')}
           >
             Tous ({allItems.length})
           </button>
 
           <button 
-            className={`multiplier-btn ${activeCatId === 'deposited' ? 'selected' : ''}`}
+            className={`tab-btn ${activeCatId === 'deposited' ? 'active' : ''}`}
             onClick={() => { setActiveCatId('deposited'); fetchDeposited(); }}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
               background: activeCatId === 'deposited' ? 'linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2))' : undefined,
               borderColor: activeCatId === 'deposited' ? '#10b981' : undefined
             }}
           >
             <Package size={16} color="#10b981" />
-            <span style={{fontWeight: 600}}>Mes Objets Deposes (/web deposit)</span>
+            <span>Mes Objets Déposés (/web deposit)</span>
             {depositedItems.length > 0 && (
               <span style={{fontSize: '0.72rem', background: '#10b981', color: 'white', padding: '1px 6px', borderRadius: '10px', fontWeight: 'bold'}}>
                 {depositedItems.length}
@@ -1818,9 +1802,8 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
           {categories.map(c => (
             <button 
               key={c.id} 
-              className={`multiplier-btn ${activeCatId === c.id ? 'selected' : ''}`}
+              className={`tab-btn ${activeCatId === c.id ? 'active' : ''}`}
               onClick={() => setActiveCatId(c.id)}
-              style={{display: 'flex', alignItems: 'center', gap: '6px'}}
             >
               <div className="mc-item-icon" style={{width: '18px', height: '18px'}}>
                 <img src={getMinecraftItemUrl(c.icon || 'CHEST')} alt={c.id} loading="lazy" decoding="async" onError={handleMinecraftImageError} />
@@ -1831,11 +1814,11 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
           ))}
         </div>
 
-        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 12px', flex: '1 1 180px', minWidth: '160px'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 14px', flex: '1 1 200px', minWidth: '150px'}}>
           <Search size={16} color="var(--text-muted)"/>
           <input 
             type="text" 
-            placeholder="Rechercher..." 
+            placeholder="Rechercher un objet..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.88rem'}}
@@ -2050,8 +2033,8 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
               <div style={{fontWeight: 700, fontSize: '1.1rem', color: 'white'}}>
                 {drawerMode === 'buy' ? 'Acheter' : 'Vendre'} : {selectedItem.material}
               </div>
-              <button className="wallet-reset-btn" onClick={() => setDrawerOpen(false)}>
-                <X size={20}/>
+              <button className="btn-close" onClick={() => setDrawerOpen(false)} aria-label="Fermer">
+                <X size={18}/>
               </button>
             </div>
 
@@ -2674,21 +2657,21 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
       </div>
 
       {/* BARRE DE RECHERCHE ET FILTRES */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '24px', flexWrap: 'wrap'}}>
-        <div style={{display: 'flex', gap: '8px', overflowX: 'auto'}}>
-          <button className={`multiplier-btn ${categoryFilter === 'all' ? 'selected' : ''}`} onClick={() => setCategoryFilter('all')}>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '24px', flexWrap: 'wrap'}}>
+        <div className="tab-row" style={{flex: '1 1 auto'}}>
+          <button className={`tab-btn ${categoryFilter === 'all' ? 'active' : ''}`} onClick={() => setCategoryFilter('all')}>
             Toutes les offres ({items.length})
           </button>
         </div>
 
-        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '8px 14px', minWidth: '260px'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 14px', flex: '1 1 200px', minWidth: '150px'}}>
           <Search size={18} color="var(--text-muted)"/>
           <input 
             type="text" 
             placeholder="Rechercher objet ou vendeur..." 
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.9rem'}}
+            style={{background: 'transparent', border: 'none', color: 'white', outline: 'none', width: '100%', fontSize: '0.88rem'}}
           />
         </div>
       </div>

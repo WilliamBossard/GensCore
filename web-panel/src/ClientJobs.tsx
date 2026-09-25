@@ -55,59 +55,21 @@ export function ClientJobs() {
         </h1>
         
         {/* TAB SWITCHER */}
-        <div style={{display: 'flex', justifyContent: 'center', gap: '0.6rem', marginTop: '1.5rem', flexWrap: 'wrap'}}>
+        <div className="tab-row" style={{justifyContent: 'center', margin: '1.5rem 0', flexWrap: 'wrap', gap: '8px'}}>
           <button 
-            onClick={() => setActiveTab('GUILDS')}
-            style={{
-              padding: '0.6rem 1.2rem', 
-              background: activeTab === 'GUILDS' ? 'var(--accent)' : 'var(--card-bg)', 
-              color: activeTab === 'GUILDS' ? '#000' : 'var(--text)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '30px',
-              fontWeight: 700,
-              fontSize: 'clamp(0.78rem, 2.5vw, 0.95rem)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              transition: 'all 0.3s',
-              whiteSpace: 'nowrap'
-            }}>
-            <Shield size={20} /> Guildes
+            className={`tab-btn ${activeTab === 'GUILDS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('GUILDS')}>
+            <Shield size={18} /> Guildes
           </button>
           <button 
-            onClick={() => setActiveTab('JOBS')}
-            style={{
-              padding: '0.8rem 2rem', 
-              background: activeTab === 'JOBS' ? 'var(--accent)' : 'var(--card-bg)', 
-              color: activeTab === 'JOBS' ? '#000' : 'var(--text)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '30px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.3s'
-            }}>
-            <Pickaxe size={20} /> Classement Métiers
+            className={`tab-btn ${activeTab === 'JOBS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('JOBS')}>
+            <Pickaxe size={18} /> Classement Métiers
           </button>
           <button 
-            onClick={() => setActiveTab('QUESTS')}
-            style={{
-              padding: '0.8rem 2rem', 
-              background: activeTab === 'QUESTS' ? 'var(--accent)' : 'var(--card-bg)', 
-              color: activeTab === 'QUESTS' ? '#000' : 'var(--text)',
-              border: '1px solid var(--card-border)',
-              borderRadius: '30px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.3s'
-            }}>
-            <Target size={20} /> Classement Quêtes
+            className={`tab-btn ${activeTab === 'QUESTS' ? 'active' : ''}`}
+            onClick={() => setActiveTab('QUESTS')}>
+            <Target size={18} /> Classement Quêtes
           </button>
         </div>
       </div>
@@ -218,21 +180,20 @@ export function ClientJobs() {
           </div>
 
           {/* QUESTS TABS */}
-          <div style={{display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '0.8rem', overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any}}>
+          <div className="tab-row" style={{marginBottom: '1.5rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '0.8rem'}}>
             {[
               { id: 'daily', label: "Aujourd'hui", icon: Clock },
               { id: 'weekly', label: "Cette Semaine", icon: Calendar },
               { id: 'monthly', label: "Ce Mois", icon: BarChart },
               { id: 'total', label: "Total Global", icon: ListOrdered }
             ].map(tab => (
-              <button key={tab.id} onClick={() => setQuestSubTab(tab.id as any)} style={{
-                background: 'transparent', border: 'none', color: questSubTab === tab.id ? 'var(--accent)' : 'var(--text-muted)',
-                fontWeight: 600, fontSize: 'clamp(0.82rem, 2.5vw, 1rem)', cursor: 'pointer', padding: '0.4rem 0.8rem',
-                display: 'flex', alignItems: 'center', gap: '0.4rem',
-                borderBottom: questSubTab === tab.id ? '2px solid var(--accent)' : '2px solid transparent',
-                transition: 'all 0.2s', whiteSpace: 'nowrap', flexShrink: 0
-              }}>
-                <tab.icon size={16} /> {tab.label}
+              <button 
+                key={tab.id} 
+                onClick={() => setQuestSubTab(tab.id as any)} 
+                className={`tab-btn ${questSubTab === tab.id ? 'active' : ''}`}
+                style={{ fontSize: '0.85rem' }}
+              >
+                <tab.icon size={15} /> {tab.label}
               </button>
             ))}
           </div>

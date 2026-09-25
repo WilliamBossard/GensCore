@@ -1491,14 +1491,13 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
 
       {/* Sidebar */}
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', marginBottom: '-6px' }}>
+        <div style={{ display: 'flex', width: '100%', justifyContent: 'flex-end', marginBottom: '8px' }}>
           <button 
-            className="mobile-close-btn" 
+            className="btn-close mobile-close-btn" 
             onClick={() => setSidebarOpen(false)}
             aria-label="Fermer le menu"
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '6px' }}
           >
-            <X size={22} />
+            <X size={20} />
           </button>
         </div>
 
@@ -1530,7 +1529,7 @@ export function PlayerDashboard({ playerData, onLogout }: { playerData: any, onL
           )}
         </nav>
 
-        <div className="admin-sidebar-footer" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="admin-sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {playerData.isOp && (
             <Link 
               to="/admin" 
