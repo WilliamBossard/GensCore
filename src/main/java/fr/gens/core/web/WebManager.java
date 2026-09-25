@@ -83,6 +83,16 @@ public class WebManager {
                 return xUuid.trim();
             } catch (Exception ignored) {}
         }
+        String qUuid = ctx.queryParam("uuid");
+        if (qUuid == null || qUuid.trim().isEmpty()) {
+            qUuid = ctx.queryParam("playerUuid");
+        }
+        if (qUuid != null && !qUuid.trim().isEmpty()) {
+            try {
+                UUID.fromString(qUuid.trim());
+                return qUuid.trim();
+            } catch (Exception ignored) {}
+        }
         return null;
     }
 

@@ -704,6 +704,17 @@ public class TeamDAO {
                     }
                 }
             }
+            if (teamId == -1) {
+                try (PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT team_id FROM genscore_teams WHERE leader_uuid = ?")) {
+                    stmt.setString(1, playerUuid.toString());
+                    try (ResultSet rs = stmt.executeQuery()) {
+                        if (rs.next()) {
+                            teamId = rs.getInt("team_id");
+                        }
+                    }
+                }
+            }
             if (teamId == -1) return null;
 
             // 2. Load team base data

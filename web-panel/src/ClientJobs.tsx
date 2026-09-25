@@ -55,7 +55,7 @@ export function ClientJobs() {
         </h1>
         
         {/* TAB SWITCHER */}
-        <div className="tab-row" style={{justifyContent: 'center', margin: '1.5rem 0', flexWrap: 'wrap', gap: '8px'}}>
+        <div className="tab-row jobs-tab-row" style={{margin: '1.5rem 0', gap: '8px'}}>
           <button 
             className={`tab-btn ${activeTab === 'GUILDS' ? 'active' : ''}`}
             onClick={() => setActiveTab('GUILDS')}>

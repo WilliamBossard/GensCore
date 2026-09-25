@@ -549,23 +549,13 @@ public class WebPlayerAPI implements Listener {
         // --- GUILD / TEAM REST ENDPOINTS ---
 
         get("/api/player/team", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
-                ctx.status(401).json(Map.of("error", "Non authentifie."));
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
+                ctx.status(401).json(Map.of("error", "Non authentifie.", "hasTeam", false));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
-            
-            // Fallback BDD : si le joueur n'est pas en RAM (jamais connecté depuis démarrage),
-            // on charge sa guilde directement depuis la base de données.
-            if (team == null) {
-                fr.gens.core.modules.teams.TeamModule teamModule = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
-                if (teamModule != null) {
-                    team = teamModule.getTeamDAO().getTeamByPlayerUuid(playerUuid);
-                }
-            }
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             
             if (team == null) {
                 ctx.json(Map.of("hasTeam", false));
@@ -619,14 +609,13 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/team/deposit", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             if (team == null) {
                 ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
                 return;
@@ -689,14 +678,13 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/team/withdraw", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             if (team == null) {
                 ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
                 return;
@@ -770,14 +758,13 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/team/upgrade", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             if (team == null) {
                 ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
                 return;
@@ -809,14 +796,13 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/team/color", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             if (team == null) {
                 ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
                 return;
@@ -845,14 +831,13 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/team/promote", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             if (team == null) {
                 ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
                 return;
@@ -909,14 +894,13 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/team/demote", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             if (team == null) {
                 ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
                 return;
@@ -968,14 +952,13 @@ public class WebPlayerAPI implements Listener {
         });
 
         post("/api/player/team/kick", ctx -> {
-            String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
-            if (uuidStr == null) {
+            UUID playerUuid = resolvePlayerUuid(ctx);
+            if (playerUuid == null) {
                 ctx.status(401).json(Map.of("error", "Non authentifie."));
                 return;
             }
 
-            UUID playerUuid = UUID.fromString(uuidStr);
-            fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+            fr.gens.core.modules.teams.TeamData team = resolvePlayerTeam(playerUuid, ctx);
             if (team == null) {
                 ctx.status(400).json(Map.of("error", "Vous n'appartenez a aucune guilde."));
                 return;
@@ -1209,6 +1192,57 @@ public class WebPlayerAPI implements Listener {
                 e.printStackTrace();
             }
         });
+    }
+
+    private UUID resolvePlayerUuid(io.javalin.http.Context ctx) {
+        String uuidStr = webManager.getPlayerUuidFromCtx(ctx);
+        if (uuidStr == null) {
+            uuidStr = ctx.queryParam("uuid");
+        }
+        if (uuidStr == null) {
+            uuidStr = ctx.header("X-Player-UUID");
+        }
+        if (uuidStr != null && !uuidStr.trim().isEmpty()) {
+            try {
+                return UUID.fromString(uuidStr.trim());
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private fr.gens.core.modules.teams.TeamData resolvePlayerTeam(UUID playerUuid, io.javalin.http.Context ctx) {
+        if (playerUuid == null) return null;
+        fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(playerUuid);
+        if (team == null) {
+            fr.gens.core.modules.teams.TeamModule teamModule = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+            if (teamModule != null) {
+                team = teamModule.getTeamDAO().getTeamByPlayerUuid(playerUuid);
+            }
+        }
+        if (team == null) {
+            String username = ctx.queryParam("username");
+            if (username == null) {
+                username = webDAO.getPlayerUsernameByUuid(playerUuid);
+            }
+            if (username != null) {
+                UUID altUuid = null;
+                if (username.startsWith(".")) {
+                    altUuid = webDAO.getPlayerUuidByUsername(username.substring(1));
+                } else {
+                    altUuid = webDAO.getPlayerUuidByUsername("." + username);
+                }
+                if (altUuid != null && !altUuid.equals(playerUuid)) {
+                    team = plugin.getTeamManager().getPlayerTeam(altUuid);
+                    if (team == null) {
+                        fr.gens.core.modules.teams.TeamModule teamModule = (fr.gens.core.modules.teams.TeamModule) plugin.getModuleManager().getModule("teams");
+                        if (teamModule != null) {
+                            team = teamModule.getTeamDAO().getTeamByPlayerUuid(altUuid);
+                        }
+                    }
+                }
+            }
+        }
+        return team;
     }
 
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)

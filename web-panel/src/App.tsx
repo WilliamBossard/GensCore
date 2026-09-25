@@ -1773,7 +1773,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
       </div>
 
       {/* BARRE DE FILTRES ET RECHERCHE */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '20px', flexWrap: 'wrap'}}>
+      <div className="shop-filter-bar">
         <div className="tab-row" style={{flex: '1 1 300px', minWidth: 0}}>
           <button 
             className={`tab-btn ${activeCatId === 'all' ? 'active' : ''}`}
@@ -1814,7 +1814,7 @@ export function ClientShop({ isEnabled }: { isEnabled?: boolean }) {
           ))}
         </div>
 
-        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 14px', flex: '1 1 200px', minWidth: '150px'}}>
+        <div className="shop-search-box">
           <Search size={16} color="var(--text-muted)"/>
           <input 
             type="text" 
@@ -2657,14 +2657,14 @@ export function ClientAh({ isEnabled }: { isEnabled?: boolean }) {
       </div>
 
       {/* BARRE DE RECHERCHE ET FILTRES */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', marginBottom: '24px', flexWrap: 'wrap'}}>
-        <div className="tab-row" style={{flex: '1 1 auto'}}>
+      <div className="shop-filter-bar">
+        <div className="tab-row" style={{flex: '1 1 auto', minWidth: 0}}>
           <button className={`tab-btn ${categoryFilter === 'all' ? 'active' : ''}`} onClick={() => setCategoryFilter('all')}>
             Toutes les offres ({items.length})
           </button>
         </div>
 
-        <div style={{display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '10px', padding: '8px 14px', flex: '1 1 200px', minWidth: '150px'}}>
+        <div className="shop-search-box">
           <Search size={18} color="var(--text-muted)"/>
           <input 
             type="text" 

@@ -390,6 +390,159 @@ select.input-field option {
   box-shadow: 0 0 16px var(--accent-glow);
 }
 
+/* === STATS CARDS === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.75rem 1.25rem;
+  border-radius: 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.stat-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+.stat-card-info h3 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  color: white;
+}
+.stat-card-info p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* === GUILD RESPONSIVE FORM & MEMBER STACKS === */
+.team-form-stack {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.team-form-stack .login-input {
+  margin: 0;
+  flex: 1 1 120px;
+  min-width: 100px;
+}
+.team-form-btn {
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 22px !important;
+  min-height: 42px !important;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.team-color-stack {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.team-member-actions {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+.btn-member-action {
+  flex: 1 1 auto;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  transition: all 0.2s ease;
+}
+.btn-promote {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.btn-promote:hover {
+  background: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+}
+.btn-demote {
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.btn-demote:hover {
+  background: rgba(234, 179, 8, 0.25);
+  color: #fde047;
+}
+.btn-kick {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.btn-kick:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+/* === BALANCE TEXT RESPONSIVE === */
+.balance-pill-text-desktop {
+  display: inline;
+}
+.balance-pill-text-mobile {
+  display: none;
+}
+
+/* === SHOP & AH FILTER BAR === */
+.shop-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.shop-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  flex: 1 1 200px;
+  min-width: 150px;
+  box-sizing: border-box;
+}
+
+/* === JOBS TABS === */
+.jobs-tab-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* === SAVE BUTTON === */
 .btn-save {
   background: linear-gradient(135deg, var(--success), #059669);
@@ -646,10 +799,69 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     width: 100% !important;
   }
 
-  /* Grilles de stats : 2 colonnes sur mobile */
+  /* Stats : Réorganisation en liste de cartes spacieuses 1 colonne */
   .stats-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: 1fr !important;
     gap: 10px !important;
+  }
+  .stat-card {
+    flex-direction: row !important;
+    align-items: center !important;
+    text-align: left !important;
+    padding: 1.1rem 1.25rem !important;
+    gap: 1.2rem !important;
+  }
+  .stat-card-icon {
+    margin-bottom: 0 !important;
+    width: 48px !important;
+    height: 48px !important;
+  }
+  .stat-card-info h3 {
+    font-size: 1.5rem !important;
+    margin: 0 0 2px 0 !important;
+  }
+  .stat-card-info p {
+    margin: 0 !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Formulaires et actions guilde en pleine largeur */
+  .team-form-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .team-form-stack .login-input {
+    width: 100% !important;
+    flex: none !important;
+  }
+  .team-form-btn {
+    width: 100% !important;
+  }
+  .team-color-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .team-color-stack .team-form-btn {
+    width: 100% !important;
+  }
+  .team-member-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+  .btn-member-action {
+    width: 100% !important;
+    min-height: 40px !important;
+  }
+
+  /* Solde compact dans la barre mobile */
+  .balance-pill-text-desktop {
+    display: none !important;
+  }
+  .balance-pill-text-mobile {
+    display: inline !important;
   }
 
   /* Team / Guilde: layout en colonne sur mobile */
@@ -691,6 +903,32 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   .section-content {
     padding: 1rem !important;
   }
+
+  /* Filtres Boutique & AH : Recherche au-dessus en pleine largeur */
+  .shop-filter-bar {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .shop-search-box {
+    width: 100% !important;
+    flex: none !important;
+    min-height: 42px !important;
+  }
+
+  /* Tabs Métiers / Quêtes / Guildes en pleine largeur */
+  .jobs-tab-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .jobs-tab-row .tab-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 42px !important;
+    font-size: 0.95rem !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -707,9 +945,10 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   .ah-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
   .price-row { grid-template-columns: 1fr !important; }
   .admin-card { padding: 1rem 0.85rem !important; border-radius: 12px !important; }
-  .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-  .stats-grid .admin-card { padding: 1rem 0.5rem !important; }
-  .stats-grid h3 { font-size: 1.3rem !important; }
+  .stats-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
+  .stat-card { padding: 0.9rem 1rem !important; gap: 0.85rem !important; }
+  .stat-card-icon { width: 42px !important; height: 42px !important; }
+  .stat-card-info h3 { font-size: 1.35rem !important; }
   /* Boutons plus grands pour le touch */
   .btn, .btn-small { min-height: 42px; }
   .login-button { min-height: 48px; font-size: 1.05rem; }
