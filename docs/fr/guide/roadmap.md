@@ -56,20 +56,6 @@ Suivi en temps réel et historique complet des patches de **GensCore** pour **Mi
 
 ---
 
-### Patch 26.3-beta.1 — Paper build.28-alpha (21 septembre 2026)
-
-> **Alpha → Beta.** GensCore atteint la stabilité Beta. Tous les modules sont prêts pour la production et entièrement audités.
-
-- **Module Lootr — Migration SQLite complète :** Coffres instanciés par joueur entièrement persistés en SQLite (`lootr_chests` & `lootr_player_chests`) via `LootDAO`. Migration transparente automatique des anciens fichiers `chests.yml` au premier démarrage.
-- **Durcissement Folia :** Commandes console dans `QuestModule`, `CustomGuiModule` et `BlueMapModule` garanties d'exécuter sur le `GlobalRegionScheduler` via `runNextTick`.
-- **Sécurité Inventaire AuctionHouse :** Récupération d'objets et effacement de la main exécutés dans `runAtEntity` pour éviter les manipulations d'inventaire asynchrones.
-- **Fix TeamCommand Chunk Access :** `/team claim` et `/team unclaim` calculent les coordonnées de chunk via arithmétique pure, éliminant `IllegalStateException: Asynchronous chunk access` sur Folia.
-- **Fix Race Condition JobsModule :** Remplacement de `dirtyPlayers.clear()` par `dirtyPlayers.removeAll(toSave)` pour éviter les pertes d'XP pendant les sauvegardes concurrentes.
-- **Suite de tests :** 69 tests automatisés (contre 58) — 11 nouveaux tests couvrant le CRUD SQLite `LootDAO`, UPSERT, suppression en cascade et round-trips Base64.
-- **API Paper :** Mise à jour vers `26.3.build.28-alpha`.
-
----
-
 ### Patch 26.3-alpha.20 (19 septembre 2026)
 
 - **Module Bonus Quêtes Solo (`SoloPerkModule`) :** 29ème module autonome GensCore (`solo_perks`), activable en jeu (`/module solo_perks <on|off>`) ou via le tableau de bord admin.
@@ -148,3 +134,17 @@ Suivi en temps réel et historique complet des patches de **GensCore** pour **Mi
 - **Portail Web :** Élément de nav « Mini-Jeux » masqué dynamiquement quand le module ou tous les jeux sont désactivés.
 - **Portail Web :** Redirection automatique vers le tableau de bord si un joueur tente de naviguer vers une route de mini-jeux désactivée.
 - **Traductions :** Ajout des descriptions manquantes du module BedrockSkin en EN/FR avec les clés de fallback appropriées.
+
+---
+
+### Patch 26.3-beta.1 — Paper build.28-alpha (16 septembre 2026)
+
+> **Première milestone.** GensCore atteint la stabilité Beta. Tous les modules sont prêts pour la production et entièrement audités.
+
+- **Module Lootr — Migration SQLite complète :** Coffres instanciés par joueur entièrement persistés en SQLite (`lootr_chests` & `lootr_player_chests`) via `LootDAO`. Migration transparente automatique des anciens fichiers `chests.yml` au premier démarrage.
+- **Durcissement Folia :** Commandes console dans `QuestModule`, `CustomGuiModule` et `BlueMapModule` garanties d'exécuter sur le `GlobalRegionScheduler` via `runNextTick`.
+- **Sécurité Inventaire AuctionHouse :** Récupération d'objets et effacement de la main exécutés dans `runAtEntity` pour éviter les manipulations d'inventaire asynchrones.
+- **Fix TeamCommand Chunk Access :** `/team claim` et `/team unclaim` calculent les coordonnées de chunk via arithmétique pure, éliminant `IllegalStateException: Asynchronous chunk access` sur Folia.
+- **Fix Race Condition JobsModule :** Remplacement de `dirtyPlayers.clear()` par `dirtyPlayers.removeAll(toSave)` pour éviter les pertes d'XP pendant les sauvegardes concurrentes.
+- **Suite de tests :** 69 tests automatisés (contre 58) — 11 nouveaux tests couvrant le CRUD SQLite `LootDAO`, UPSERT, suppression en cascade et round-trips Base64.
+- **API Paper :** `26.3.build.28-alpha`.
