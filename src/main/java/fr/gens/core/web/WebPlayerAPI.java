@@ -24,6 +24,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import fr.gens.core.utils.PlaceholderUtils;
+import fr.gens.core.utils.FloodgateUtil;
 
 public class WebPlayerAPI implements Listener {
 
@@ -202,16 +203,24 @@ public class WebPlayerAPI implements Listener {
 
         get("/api/head/{name}", ctx -> {
             String name = ctx.pathParam("name");
-            String cleanName = name.startsWith(".") ? name.substring(1) : name;
-            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            String cleanName = FloodgateUtil.getCleanGamertag(name);
+            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(name);
+            if (hash == null || hash.isEmpty()) {
+                hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            }
             if (hash != null && !hash.isEmpty()) {
                 ctx.redirect("https://mc-heads.net/avatar/" + hash);
                 return;
             }
             UUID uuid = webDAO.getPlayerUuidByUsername(name);
             if (uuid == null) {
-                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(cleanName);
-                if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(name);
+                if (op != null && op.hasPlayedBefore()) {
+                    uuid = op.getUniqueId();
+                } else {
+                    op = Bukkit.getOfflinePlayer(cleanName);
+                    if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+                }
             }
             fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
             if (skinModule != null) {
@@ -227,16 +236,24 @@ public class WebPlayerAPI implements Listener {
         get("/api/head/{name}/{size}", ctx -> {
             String name = ctx.pathParam("name");
             String size = ctx.pathParam("size");
-            String cleanName = name.startsWith(".") ? name.substring(1) : name;
-            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            String cleanName = FloodgateUtil.getCleanGamertag(name);
+            String hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(name);
+            if (hash == null || hash.isEmpty()) {
+                hash = fr.gens.core.utils.HeadUtil.getSkinHashByUsername(cleanName);
+            }
             if (hash != null && !hash.isEmpty()) {
                 ctx.redirect("https://mc-heads.net/avatar/" + hash + "/" + size);
                 return;
             }
             UUID uuid = webDAO.getPlayerUuidByUsername(name);
             if (uuid == null) {
-                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(cleanName);
-                if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+                org.bukkit.OfflinePlayer op = Bukkit.getOfflinePlayer(name);
+                if (op != null && op.hasPlayedBefore()) {
+                    uuid = op.getUniqueId();
+                } else {
+                    op = Bukkit.getOfflinePlayer(cleanName);
+                    if (op != null && op.hasPlayedBefore()) uuid = op.getUniqueId();
+                }
             }
             fr.gens.core.modules.BedrockSkinModule skinModule = (fr.gens.core.modules.BedrockSkinModule) plugin.getModuleManager().getModule("bedrockskin");
             if (skinModule != null) {

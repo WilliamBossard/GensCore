@@ -48,4 +48,27 @@ public class HeadUtilTest {
         assertEquals(hash, HeadUtil.getSkinHashByUsername(username.toLowerCase()));
         assertEquals(username, HeadUtil.getUsername(uuid));
     }
+
+    @Test
+    @DisplayName("Mise en cache et resolution avec prefixe Bedrock (point)")
+    void testBedrockUsernameResolution() {
+        UUID bedrockUuid = new UUID(0L, 2535412345678901L);
+        String bedrockUser = ".BedrockPlayer";
+        String hash = "bedrock987hash";
+
+        HeadUtil.SkinData data = new HeadUtil.SkinData("b64", "sig", hash, bedrockUser);
+        HeadUtil.saveToCache(bedrockUuid, bedrockUser, data, false);
+
+        // Verification avec le point et sans le point
+        assertEquals(hash, HeadUtil.getSkinHashByUsername(".BedrockPlayer"));
+        assertEquals(hash, HeadUtil.getSkinHashByUsername("BedrockPlayer"));
+        assertEquals(hash, HeadUtil.getSkinHashByUsername(".bedrockplayer"));
+        assertEquals(hash, HeadUtil.getSkinHashByUsername("bedrockplayer"));
+
+        // Verification FloodgateUtil
+        assertTrue(FloodgateUtil.isBedrockPlayer(bedrockUuid));
+        assertTrue(FloodgateUtil.isBedrockPlayer(".BedrockPlayer"));
+        assertEquals("BedrockPlayer", FloodgateUtil.getCleanGamertag(".BedrockPlayer"));
+        assertEquals("BedrockPlayer", FloodgateUtil.getCleanGamertag("BedrockPlayer"));
+    }
 }

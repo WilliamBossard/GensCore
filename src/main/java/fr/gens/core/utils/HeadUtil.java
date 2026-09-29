@@ -78,6 +78,9 @@ public final class HeadUtil implements Listener {
                         String sig = rs.getString("texture_signature");
                         String user = rs.getString("username");
                         if (val != null && !val.isEmpty()) {
+                            if ((hash == null || hash.isEmpty())) {
+                                hash = extractHash(val);
+                            }
                             SkinData data = new SkinData(val, sig, hash, user);
                             if (uuidStr != null) {
                                 try {
@@ -86,7 +89,10 @@ public final class HeadUtil implements Listener {
                                 } catch (Exception ignored) {}
                             }
                             if (user != null && !user.isEmpty()) {
-                                NAME_CACHE.put(user.toLowerCase(), data);
+                                String lower = user.toLowerCase();
+                                NAME_CACHE.put(lower, data);
+                                String alt = lower.startsWith(".") ? lower.substring(1) : "." + lower;
+                                NAME_CACHE.put(alt, data);
                             }
                         }
                     }
@@ -303,7 +309,12 @@ public final class HeadUtil implements Listener {
     public static void saveToCache(UUID uuid, String username, SkinData data, boolean saveToDb) {
         if (data == null) return;
         if (uuid != null) UUID_CACHE.put(uuid, data);
-        if (username != null && !username.isEmpty()) NAME_CACHE.put(username.toLowerCase(), data);
+        if (username != null && !username.isEmpty()) {
+            String lower = username.toLowerCase();
+            NAME_CACHE.put(lower, data);
+            String alt = lower.startsWith(".") ? lower.substring(1) : "." + lower;
+            NAME_CACHE.put(alt, data);
+        }
 
         if (saveToDb && plugin != null && uuid != null) {
             plugin.getFoliaLib().getScheduler().runAsync(task -> {
@@ -342,9 +353,46 @@ public final class HeadUtil implements Listener {
 
     public static String getSkinHashByUsername(String username) {
         if (username == null || username.isEmpty()) return null;
-        SkinData data = NAME_CACHE.get(username.toLowerCase());
+        String key = username.toLowerCase();
+        SkinData data = NAME_CACHE.get(key);
         if (data != null && data.hash != null && !data.hash.isEmpty()) {
             return data.hash;
+        }
+        String altKey = key.startsWith(".") ? key.substring(1) : "." + key;
+        data = NAME_CACHE.get(altKey);
+        if (data != null && data.hash != null && !data.hash.isEmpty()) {
+            return data.hash;
+        }
+
+        // Fallback requete SQLite/MySQL si absent du cache memoire
+        if (plugin != null && plugin.getDatabaseManager() != null) {
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(
+                         "SELECT hash, texture_value, texture_signature, username, uuid FROM player_skins WHERE username = ? COLLATE NOCASE OR username = ? COLLATE NOCASE LIMIT 1")) {
+                pstmt.setString(1, username);
+                pstmt.setString(2, altKey);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        String hash = rs.getString("hash");
+                        String val = rs.getString("texture_value");
+                        String sig = rs.getString("texture_signature");
+                        String dbUser = rs.getString("username");
+                        String uuidStr = rs.getString("uuid");
+                        if ((hash == null || hash.isEmpty()) && val != null && !val.isEmpty()) {
+                            hash = extractHash(val);
+                        }
+                        if (hash != null && !hash.isEmpty()) {
+                            SkinData loaded = new SkinData(val, sig, hash, dbUser != null ? dbUser : username);
+                            NAME_CACHE.put(key, loaded);
+                            NAME_CACHE.put(altKey, loaded);
+                            if (uuidStr != null) {
+                                try { UUID_CACHE.put(UUID.fromString(uuidStr), loaded); } catch (Exception ignored) {}
+                            }
+                            return hash;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
         }
         return null;
     }

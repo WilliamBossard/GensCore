@@ -141,9 +141,12 @@ public class WebDAO {
     }
 
     public UUID getPlayerUuidByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) return null;
+        String alt = username.startsWith(".") ? username.substring(1) : "." + username;
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement("SELECT uuid FROM player_profiles WHERE username = ? COLLATE NOCASE")) {
+             PreparedStatement pstmt = conn.prepareStatement("SELECT uuid FROM player_profiles WHERE username = ? COLLATE NOCASE OR username = ? COLLATE NOCASE LIMIT 1")) {
             pstmt.setString(1, username);
+            pstmt.setString(2, alt);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return UUID.fromString(rs.getString("uuid"));
