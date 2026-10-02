@@ -14,7 +14,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: 26.3 Roadmap & Tracker
-      link: /guide/roadmap-26-3
+      link: /guide/roadmap
     - theme: alt
       text: Commands Reference
       link: /guide/commands

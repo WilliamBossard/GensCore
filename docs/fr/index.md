@@ -14,7 +14,7 @@ hero:
       link: /fr/guide/getting-started
     - theme: alt
       text: Suivi & Roadmap 26.3
-      link: /fr/guide/roadmap-26-3
+      link: /fr/guide/roadmap
     - theme: alt
       text: Liste des Commandes
       link: /fr/guide/commands
