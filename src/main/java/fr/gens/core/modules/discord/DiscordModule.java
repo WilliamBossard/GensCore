@@ -12,10 +12,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
 import org.incendo.cloud.annotations.Command;
 import org.bukkit.entity.Player;
@@ -302,17 +298,13 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
 
         // Récupérer le préfixe LuckPerms (ex: Owner, Admin)
         String platformPrefix = "";
-        try {
-            LuckPerms api = LuckPermsProvider.get();
-            User user = api.getUserManager().getUser(event.getPlayer().getUniqueId());
-            if (user != null) {
-                String lpPrefix = user.getCachedData().getMetaData().getPrefix();
-                if (lpPrefix != null) {
-                    // On retire les codes couleurs MiniMessage
-                    platformPrefix = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().stripTags(lpPrefix).trim() + " ";
-                }
+        if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+            String lpPrefix = LuckPermsHook.getUserPrefix(event.getPlayer().getUniqueId());
+            if (lpPrefix != null) {
+                // On retire les codes couleurs MiniMessage
+                platformPrefix = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().stripTags(lpPrefix).trim() + " ";
             }
-        } catch (Exception ignored) {}
+        }
 
         fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(event.getPlayer().getUniqueId());
         String guild = (team != null) ? "[" + team.getName() + "] " : "";
@@ -334,30 +326,10 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
             fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
             String discordId = statsModule != null ? statsModule.getStatsDAO().getDiscordId(p.getUniqueId()) : null;
             boolean isLinked = (discordId != null && !discordId.isEmpty());
+            boolean hasPerm = p.hasPermission("genscore.discord.linked");
             
-            try {
-                LuckPerms luckPerms = LuckPermsProvider.get();
-                User user = luckPerms.getUserManager().getUser(p.getUniqueId());
-                if (user != null) {
-                    boolean hasPerm = p.hasPermission("genscore.discord.linked");
-                    boolean changed = false;
-                    
-                    if (isLinked && !hasPerm) {
-                        user.data().add(Node.builder("genscore.discord.linked").build());
-                        changed = true;
-                    } else if (!isLinked && hasPerm) {
-                        user.data().remove(Node.builder("genscore.discord.linked").build());
-                        // Aussi retirer l'ancien groupe DiscordSRV au cas ou
-                        user.data().remove(Node.builder("group.linked").build());
-                        changed = true;
-                    }
-                    
-                    if (changed) {
-                        luckPerms.getUserManager().saveUser(user);
-                    }
-                }
-            } catch (Exception e) {
-                plugin.getLogger().warning("Error synchronizing LuckPerms Discord for " + p.getName());
+            if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+                LuckPermsHook.syncDiscordBadge(p.getUniqueId(), isLinked, hasPerm, plugin);
             }
         });
     }
@@ -428,23 +400,15 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
             Guild finalTargetGuild = event.getGuild();
 
             plugin.getFoliaLib().getScheduler().runNextTick((t2) -> {
-                try {
-                    LuckPerms api = LuckPermsProvider.get();
-                    User user = api.getUserManager().getUser(uuid);
-                    if (user != null) {
-                        user.data().add(Node.builder("genscore.discord.linked").build());
-                        api.getUserManager().saveUser(user);
-                        
-                        Player p = Bukkit.getPlayer(uuid);
-                        if (p != null) {
-                            plugin.getLangManager().sendMessage(p, "discordmodule.msg_5");
-                        }
-                    }
-                    fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
-                    if (statsModule != null) statsModule.getStatsDAO().setDiscordId(uuid, event.getAuthor().getId());
-                } catch (Exception e) {
-                    plugin.getLogger().warning("Error linking Discord: " + e.getMessage());
+                if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+                    LuckPermsHook.addLinkedPermission(uuid, plugin);
                 }
+                Player p = Bukkit.getPlayer(uuid);
+                if (p != null) {
+                    plugin.getLangManager().sendMessage(p, "discordmodule.msg_5");
+                }
+                fr.gens.core.modules.stats.StatsModule statsModule = (fr.gens.core.modules.stats.StatsModule) plugin.getModuleManager().getModule("stats");
+                if (statsModule != null) statsModule.getStatsDAO().setDiscordId(uuid, event.getAuthor().getId());
 
                 // Essayer de donner le rôle sur Discord (Asynchrone)
                 if (finalTargetGuild != null) {
@@ -481,14 +445,12 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
                 String playerName = event.getAuthor().getName();
                 
                 if (uuid != null) {
-                    try {
-                        net.luckperms.api.model.user.User user = net.luckperms.api.LuckPermsProvider.get().getUserManager().loadUser(uuid).get();
-                        if (user != null) {
-                            String lpPrefix = user.getCachedData().getMetaData().getPrefix();
-                            if (lpPrefix != null) prefix = lpPrefix + " ";
-                            playerName = user.getUsername() != null ? user.getUsername() : playerName;
-                        }
-                    } catch (Exception ignored) {}
+                    if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+                        String lpPrefix = LuckPermsHook.getUserPrefix(uuid);
+                        if (lpPrefix != null) prefix = lpPrefix + " ";
+                        String lpName = LuckPermsHook.getUsername(uuid);
+                        if (lpName != null) playerName = lpName;
+                    }
                     
                     fr.gens.core.modules.teams.TeamData team = plugin.getTeamManager().getPlayerTeam(uuid);
                     if (team != null) guild = "<yellow>[" + team.getName() + "] ";
@@ -539,7 +501,66 @@ public class DiscordModule extends ListenerAdapter implements Module, Listener {
             event.reply("Votre mot de passe Minecraft a été changé avec succès ! Vous pouvez maintenant vous connecter en jeu avec `/login`.").setEphemeral(true).queue();
         }
     }
+
+    private static class LuckPermsHook {
+        static void syncDiscordBadge(UUID uuid, boolean isLinked, boolean hasPerm, CorePlugin plugin) {
+            try {
+                net.luckperms.api.LuckPerms luckPerms = net.luckperms.api.LuckPermsProvider.get();
+                net.luckperms.api.model.user.User user = luckPerms.getUserManager().getUser(uuid);
+                if (user != null) {
+                    boolean changed = false;
+                    if (isLinked && !hasPerm) {
+                        user.data().add(net.luckperms.api.node.Node.builder("genscore.discord.linked").build());
+                        changed = true;
+                    } else if (!isLinked && hasPerm) {
+                        user.data().remove(net.luckperms.api.node.Node.builder("genscore.discord.linked").build());
+                        user.data().remove(net.luckperms.api.node.Node.builder("group.linked").build());
+                        changed = true;
+                    }
+                    if (changed) {
+                        luckPerms.getUserManager().saveUser(user);
+                    }
+                }
+            } catch (Throwable e) {
+                plugin.getLogger().warning("Error synchronizing LuckPerms Discord for " + uuid);
+            }
+        }
+
+        static void addLinkedPermission(UUID uuid, CorePlugin plugin) {
+            try {
+                net.luckperms.api.LuckPerms api = net.luckperms.api.LuckPermsProvider.get();
+                net.luckperms.api.model.user.User user = api.getUserManager().getUser(uuid);
+                if (user != null) {
+                    user.data().add(net.luckperms.api.node.Node.builder("genscore.discord.linked").build());
+                    api.getUserManager().saveUser(user);
+                }
+            } catch (Throwable e) {
+                plugin.getLogger().warning("Error adding LuckPerms permission for " + uuid);
+            }
+        }
+
+        static String getUserPrefix(UUID uuid) {
+            try {
+                net.luckperms.api.model.user.User user = net.luckperms.api.LuckPermsProvider.get().getUserManager().loadUser(uuid).get();
+                if (user != null) {
+                    return user.getCachedData().getMetaData().getPrefix();
+                }
+            } catch (Throwable ignored) {}
+            return null;
+        }
+
+        static String getUsername(UUID uuid) {
+            try {
+                net.luckperms.api.model.user.User user = net.luckperms.api.LuckPermsProvider.get().getUserManager().loadUser(uuid).get();
+                if (user != null) {
+                    return user.getUsername();
+                }
+            } catch (Throwable ignored) {}
+            return null;
+        }
+    }
 }
+
 
 
 

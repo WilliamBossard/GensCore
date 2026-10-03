@@ -75,7 +75,17 @@ public class DatabaseManager {
             try (Connection conn = getConnection()) {
                 if (conn != null && !conn.isClosed()) {
                     plugin.getLangManager().sendConsoleMessage("db.tables_ready");
-                    // Les tables sont désormais créées dynamiquement par chaque module (initDatabase)
+                    // S'assurer que player_web_rewards existe meme si le panel web est desactive
+                    try (Statement stmt = conn.createStatement()) {
+                        stmt.execute("CREATE TABLE IF NOT EXISTS player_web_rewards (" +
+                                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                "uuid VARCHAR(36) NOT NULL, " +
+                                "material VARCHAR(64) NOT NULL, " +
+                                "amount INTEGER NOT NULL, " +
+                                "base64_data TEXT, " +
+                                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);");
+                        stmt.execute("CREATE INDEX IF NOT EXISTS idx_player_web_rewards_uuid ON player_web_rewards(uuid);");
+                    }
                     plugin.getLangManager().sendConsoleMessage("db.tables_init_success");
                 }
             }
