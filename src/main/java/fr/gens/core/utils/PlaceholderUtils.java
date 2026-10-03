@@ -211,19 +211,19 @@ public class PlaceholderUtils {
                     String prefix = user.getCachedData().getMetaData().getPrefix();
                     if (prefix != null && !prefix.trim().isEmpty()) {
                         resolvers.add(Placeholder.component("prefix", parseToComponent(prefix)));
-                    } else if (groupName != null) {
+                    } else if (groupName != null && !groupName.equalsIgnoreCase("default")) {
                         resolvers.add(Placeholder.component("prefix", parseToComponent(
                                 "<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1))));
                     } else {
-                        resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
+                        resolvers.add(Placeholder.component("prefix", Component.empty()));
                     }
                 } else {
                     resolvers.add(Placeholder.parsed("group", "Joueur"));
-                    resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
+                    resolvers.add(Placeholder.component("prefix", Component.empty()));
                 }
             } catch (Exception ignored) {
                 resolvers.add(Placeholder.parsed("group", "Joueur"));
-                resolvers.add(Placeholder.component("prefix", parseToComponent("<gray>Joueur")));
+                resolvers.add(Placeholder.component("prefix", Component.empty()));
             }
         }
 

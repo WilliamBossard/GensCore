@@ -59,22 +59,25 @@ public class ChatModule implements Module, Listener {
         }
 
         // Récupérer le préfixe depuis LuckPerms
-        net.kyori.adventure.text.Component resolvedPrefixComp;
+        net.kyori.adventure.text.Component resolvedPrefixComp = net.kyori.adventure.text.Component.empty();
         try {
             net.luckperms.api.LuckPerms api = net.luckperms.api.LuckPermsProvider.get();
             net.luckperms.api.model.user.User user = api.getUserManager().getUser(event.getPlayer().getUniqueId());
             if (user != null) {
                 String lpPrefix = user.getCachedData().getMetaData().getPrefix();
-                if (lpPrefix != null) {
-                    resolvedPrefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix).append(net.kyori.adventure.text.Component.text(" "));
+                if (lpPrefix != null && !lpPrefix.trim().isEmpty()) {
+                    resolvedPrefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent(lpPrefix.endsWith(" ") ? lpPrefix : lpPrefix + " ");
                 } else {
-                    resolvedPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>[Joueur] ");
+                    String groupName = user.getPrimaryGroup();
+                    if (groupName != null && !groupName.equalsIgnoreCase("default")) {
+                        resolvedPrefixComp = fr.gens.core.utils.PlaceholderUtils.parseToComponent("<yellow>[" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1) + "] ");
+                    }
                 }
-            } else {
-                resolvedPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<gray>[Joueur] ");
             }
         } catch (Exception e) {
-            resolvedPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(event.getPlayer().hasPermission("genscore.admin") ? "<red>[Admin] " : "<gray>[Joueur] ");
+            if (event.getPlayer().hasPermission("genscore.admin")) {
+                resolvedPrefixComp = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<red>[Admin] ");
+            }
         }
         
         // Ajout du tag de guilde si le joueur en a une

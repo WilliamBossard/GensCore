@@ -136,7 +136,7 @@ public class TabBoardModule implements Module, Listener {
     private void updateAll() {
         tickCount++;
         boolean updateNametag = (tickCount % 5 == 0); // nametags toutes les 5s
-        boolean invalidatePrefix = (tickCount % 30 == 0); // invalide le cache de préfixe toutes les 30s
+        boolean invalidatePrefix = (tickCount % 5 == 0); // rafraîchit le cache de préfixe toutes les 5s
 
         if (invalidatePrefix) prefixCache.clear();
 
@@ -296,15 +296,19 @@ public class TabBoardModule implements Module, Listener {
                     ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix()
                     : fr.gens.core.utils.FloodgateUtil.getJavaPrefix();
             }
-            prefixStr = platformTag + prefixStr;
+            if (!platformTag.isEmpty()) {
+                prefixStr = platformTag + prefixStr;
+            }
 
             fr.gens.core.modules.teams.TeamData tData = plugin.getTeamManager().getPlayerTeam(target.getUniqueId());
-            prefixStr = prefixStr + (tData != null ? " <yellow>[" + tData.getName() + "] " : " ");
+            if (tData != null) {
+                prefixStr = prefixStr + "<yellow>[" + tData.getName() + "] ";
+            }
 
             String suffixStr = target.hasPermission("genscore.discord.linked") ? " <aqua><bold>" : "";
 
-            Component pfx = fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr);
-            Component sfx = fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr);
+            Component pfx = prefixStr.isEmpty() ? Component.empty() : fr.gens.core.utils.PlaceholderUtils.parseToComponent(prefixStr);
+            Component sfx = suffixStr.isEmpty() ? Component.empty() : fr.gens.core.utils.PlaceholderUtils.parseToComponent(suffixStr);
             list.add(new PlayerNametagSnapshot(teamName, target.getName(), pfx, sfx));
         }
         return list;
@@ -343,17 +347,18 @@ public class TabBoardModule implements Module, Listener {
             if (user != null) {
                 String prefix = user.getCachedData().getMetaData().getPrefix();
                 if (prefix != null && !prefix.trim().isEmpty()) {
-                    return prefix;
+                    return prefix.endsWith(" ") ? prefix : prefix + " ";
                 }
                 
-                // Fallback to group display name if prefix is not set
+                // Fallback to group display name if prefix is not set AND not the default group
                 String groupName = user.getPrimaryGroup();
-                if (groupName != null) {
-                    return "<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1);
+                if (groupName != null && !groupName.equalsIgnoreCase("default")) {
+                    return "<yellow>" + groupName.substring(0, 1).toUpperCase() + groupName.substring(1) + " ";
                 }
+                return "";
             }
         } catch (Exception ignored) {} // In case LuckPerms is missing
-        return "<gray>Joueur";
+        return "";
     }
 }
 
