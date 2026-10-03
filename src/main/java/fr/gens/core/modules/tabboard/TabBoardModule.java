@@ -39,6 +39,7 @@ public class TabBoardModule implements Module, Listener {
     private String cachedTabFooter = null;
     private List<String> cachedScoreboardLines = null;
     private String cachedScoreboardTitle = null;
+    private boolean cachedShowPlatformPrefix = true;
 
     public TabBoardModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -109,8 +110,9 @@ public class TabBoardModule implements Module, Listener {
         var cfg = plugin.getConfigManager().getConfig("modules/tabboard.yml");
         cachedScoreboardLines = cfg.getStringList("tabboard.scoreboard.lines");
         cachedScoreboardTitle = cfg.getString("tabboard.scoreboard.title", "<gold><bold>Serveur");
-        cachedTabHeader = cfg.getString("tabboard.tab.header", null);
-        cachedTabFooter = cfg.getString("tabboard.tab.footer", null);
+        cachedTabHeader = cfg.getString("tabboard.tablist.header", null);
+        cachedTabFooter = cfg.getString("tabboard.tablist.footer", null);
+        cachedShowPlatformPrefix = cfg.getBoolean("tabboard.tablist.show_platform_prefix", true);
     }
 
     @EventHandler
@@ -288,9 +290,12 @@ public class TabBoardModule implements Module, Listener {
             // Utilise le cache de préfixe LuckPerms
             String prefixStr = prefixCache.computeIfAbsent(target.getUniqueId(), uuid -> getLuckPermsPrefix(target));
 
-            String platformTag = fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(target.getUniqueId())
-                ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix()
-                : fr.gens.core.utils.FloodgateUtil.getJavaPrefix();
+            String platformTag = "";
+            if (cachedShowPlatformPrefix && fr.gens.core.utils.FloodgateUtil.isFloodgateInstalled()) {
+                platformTag = fr.gens.core.utils.FloodgateUtil.isBedrockPlayer(target.getUniqueId())
+                    ? fr.gens.core.utils.FloodgateUtil.getBedrockPrefix()
+                    : fr.gens.core.utils.FloodgateUtil.getJavaPrefix();
+            }
             prefixStr = platformTag + prefixStr;
 
             fr.gens.core.modules.teams.TeamData tData = plugin.getTeamManager().getPlayerTeam(target.getUniqueId());

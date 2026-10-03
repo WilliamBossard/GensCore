@@ -8,5 +8,6 @@ tabboard:
   tablist:
     header: "\n<dark_aqua><bold>A Minecraft Server\n"
     footer: "\n<gray>Online: %online%\n"
+    show_platform_prefix: true
     discord_not_linked: "<red>Discord not linked"
     discord_linked: "<green>Discord linked"
