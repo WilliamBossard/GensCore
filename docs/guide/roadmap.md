@@ -3,9 +3,9 @@
 Current status and complete patch history for **GensCore** on **Minecraft 26.3** and **Java 25 LTS**.
 
 ::: info Project Status
-- **Target Engine:** Minecraft 26.3 (Paper Build 41-alpha)
+- **Target Engine:** Minecraft 26.2 - 26.3 (Paper Build 143-beta)
 - **Runtime Environment:** Java 25 LTS
-- **Current Version:** **Release 1.0.1** — Stable
+- **Current Version:** **Release 1.0.2** — Stable
 - **Repository:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 :::
 
@@ -16,7 +16,7 @@ Current status and complete patch history for **GensCore** on **Minecraft 26.3**
 | Component | Status |
 | :--- | :---: |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Paper 26.3 API (build.41-alpha)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
+| **Paper 26.2 & 26.3 API (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Dependencies Upgrades** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Mobile Web Optimization** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Geyser Standalone Architecture** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
@@ -34,13 +34,36 @@ Current status and complete patch history for **GensCore** on **Minecraft 26.3**
 | **Guild Upgrades Phase 2** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Solo Quest Perks Module** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Lootr SQLite Migration** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Unit Test Suite (69/69)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
+| **Unit Test Suite (71/71)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 
 ---
 
 ## Changelog
 
 > Patches are listed in **reverse chronological order** — latest first.
+
+---
+
+### Release 1.0.2 — Paper build.143-beta (October 3, 2026)
+
+> **Stable maintenance release.** All 71 automated unit tests passing. Tested & verified on Paper 26.2 and Paper/Folia 26.3.
+
+- **TabBoard & Nametags:**
+  - Omitted prefix for players in the `default` LuckPerms group when no custom prefix is configured (displays clean username without fallback `Default` text).
+  - Synchronized prefix cache refresh rate with nametags (every 5 seconds) for rapid visibility of LuckPerms metadata changes.
+  - Guarded platform prefix: `[Java]` tag is no longer displayed if Floodgate is not installed on the server.
+- **Scoreboard & Placeholders:**
+  - Added native fallback resolution for `%vault_eco_balance%`, `%vault_eco_balance_fixed%`, and `%vault_eco_balance_formatted%` directly from GensCore's economy engine without requiring external plugins.
+  - Fallback `<prefix>` placeholder resolution cleanly returns empty component for un-prefixed default players.
+- **Chat & Formatting:**
+  - Aligned chat prefix formatting with LuckPerms group/meta rules, removing hardcoded `[Joueur]` fallback for players without a prefix.
+  - Fixed trailing space handling to eliminate duplicate spaces between prefix and player username.
+- **Auth & Localization:**
+  - Purged duplicate auto-appended translations in `fr_FR.yml` and `en_US.yml`.
+  - Replaced escaped HTML entities (`&lt;`/`&gt;`) with valid MiniMessage tags, restoring the welcome banner on join and resolving login prompt spam.
+- **Paper & Workflow:**
+  - Upgraded Paper API to `26.3.build.143-beta` with cross-version compatibility for Paper 26.2 and 26.3.
+  - Updated GitHub Actions release workflow with latest Paper build metadata.
 
 ---
 

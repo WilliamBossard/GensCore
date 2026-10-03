@@ -3,9 +3,9 @@
 Suivi en temps réel et historique complet des patches de **GensCore** pour **Minecraft 26.3** et **Java 25 LTS**.
 
 ::: info Statut du Projet
-- **Version cible :** Minecraft 26.3 (Paper Build 41-alpha)
+- **Version cible :** Minecraft 26.2 - 26.3 (Paper Build 143-beta)
 - **Environnement d'exécution :** Java 25 LTS
-- **Version actuelle :** **Release 1.0.1** — Stable
+- **Version actuelle :** **Release 1.0.2** — Stable
 - **Dépôt :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 :::
 
@@ -16,7 +16,7 @@ Suivi en temps réel et historique complet des patches de **GensCore** pour **Mi
 | Composant | Statut |
 | :--- | :---: |
 | **Support Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **API Paper 26.3 (build.41-alpha)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
+| **API Paper 26.2 & 26.3 (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Mises à jour des dépendances** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Optimisation Mobile Web** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Architecture Geyser Standalone** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
@@ -34,13 +34,36 @@ Suivi en temps réel et historique complet des patches de **GensCore** pour **Mi
 | **Améliorations de Guilde Phase 2** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Module Bonus Quêtes Solo** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Migration SQLite Lootr** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Suite de Tests (69/69)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
+| **Suite de Tests (71/71)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 
 ---
 
 ## Changelog
 
 > Les patches sont listés dans l'**ordre chronologique décroissant** — le plus récent en premier.
+
+---
+
+### Release 1.0.2 — Paper build.143-beta (3 octobre 2026)
+
+> **Release de maintenance stable.** 71 tests automatisés validés à 100%. Testé et validé sur Paper 26.2 et Paper/Folia 26.3.
+
+- **TabBoard & Nametags :**
+  - Suppression de l'affichage du préfixe de secours pour le groupe `default` de LuckPerms lorsqu'aucun préfixe personnalisé n'est configuré (affichage épuré du pseudo sans mention `Default`).
+  - Synchronisation du rafraîchissement du cache des préfixes sur le cycle des nametags (toutes les 5 secondes) pour une mise à jour rapide des métadonnées LuckPerms.
+  - Masquage automatique du tag de plateforme : la balise `[Java]` n'apparaît plus si le plugin Floodgate n'est pas installé sur le serveur.
+- **Scoreboard & Placeholders :**
+  - Ajout de la résolution native des placeholders `%vault_eco_balance%`, `%vault_eco_balance_fixed%` et `%vault_eco_balance_formatted%` directement via le moteur économique interne, sans dépendance externe requise.
+  - Résolution propre du placeholder `<prefix>` retournant un composant vide pour les joueurs sans préfixe.
+- **Chat & Formatage :**
+  - Alignement du préfixe dans le chat avec les métadonnées LuckPerms, supprimant le forçage de `[Joueur]` lorsqu'aucun préfixe n'est défini.
+  - Correction de la gestion des espaces pour éviter les doubles espaces entre le préfixe et le pseudo.
+- **Authentification & Traduction :**
+  - Nettoyage des clés dupliquées auto-ajoutées dans `fr_FR.yml` et `en_US.yml`.
+  - Remplacement des entités HTML échappées (`&lt;`/`&gt;`) par de véritables balises MiniMessage, restaurant la bannière de bienvenue à la connexion et éliminant le spam du prompt de login.
+- **Paper & Workflow :**
+  - Montée de version de l'API Paper vers `26.3.build.143-beta` assurant la compatibilité ascendante et descendante Paper 26.2 / 26.3.
+  - Mise à jour du workflow GitHub Actions de publication avec les métadonnées du build Paper.
 
 ---
 
