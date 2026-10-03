@@ -3,7 +3,7 @@
 Current status and complete patch history for **GensCore** on **Minecraft 26.3** and **Java 25 LTS**.
 
 ::: info Project Status
-- **Target Engine:** Minecraft 26.2 - 26.3 (Paper Build 143-beta)
+- **Target Engine:** Minecraft 26.1 - 26.3 (Paper Build 143-beta)
 - **Runtime Environment:** Java 25 LTS
 - **Current Version:** **Release 1.0.2** — Stable
 - **Repository:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
@@ -16,7 +16,7 @@ Current status and complete patch history for **GensCore** on **Minecraft 26.3**
 | Component | Status |
 | :--- | :---: |
 | **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Paper 26.2 & 26.3 API (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
+| **Paper 26.1, 26.2 & 26.3 API (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Dependencies Upgrades** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Mobile Web Optimization** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
 | **Geyser Standalone Architecture** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
@@ -46,7 +46,7 @@ Current status and complete patch history for **GensCore** on **Minecraft 26.3**
 
 ### Release 1.0.2 — Paper build.143-beta (October 3, 2026)
 
-> **Stable maintenance release.** All 71 automated unit tests passing. Tested & verified on Paper 26.2 and Paper/Folia 26.3.
+> **Stable maintenance release.** All 71 automated unit tests passing. Tested & verified on Paper 26.1, Paper 26.2 and Paper/Folia 26.3.
 
 - **TabBoard & Nametags:**
   - Omitted prefix for players in the `default` LuckPerms group when no custom prefix is configured (displays clean username without fallback `Default` text).

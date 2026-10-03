@@ -3,7 +3,7 @@
 Suivi en temps réel et historique complet des patches de **GensCore** pour **Minecraft 26.3** et **Java 25 LTS**.
 
 ::: info Statut du Projet
-- **Version cible :** Minecraft 26.2 - 26.3 (Paper Build 143-beta)
+- **Version cible :** Minecraft 26.1 - 26.3 (Paper Build 143-beta)
 - **Environnement d'exécution :** Java 25 LTS
 - **Version actuelle :** **Release 1.0.2** — Stable
 - **Dépôt :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
@@ -16,7 +16,7 @@ Suivi en temps réel et historique complet des patches de **GensCore** pour **Mi
 | Composant | Statut |
 | :--- | :---: |
 | **Support Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **API Paper 26.2 & 26.3 (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
+| **API Paper 26.1, 26.2 & 26.3 (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Mises à jour des dépendances** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Optimisation Mobile Web** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
 | **Architecture Geyser Standalone** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
@@ -46,7 +46,7 @@ Suivi en temps réel et historique complet des patches de **GensCore** pour **Mi
 
 ### Release 1.0.2 — Paper build.143-beta (3 octobre 2026)
 
-> **Release de maintenance stable.** 71 tests automatisés validés à 100%. Testé et validé sur Paper 26.2 et Paper/Folia 26.3.
+> **Release de maintenance stable.** 71 tests automatisés validés à 100%. Testé et validé sur Paper 26.1, Paper 26.2 et Paper/Folia 26.3.
 
 - **TabBoard & Nametags :**
   - Suppression de l'affichage du préfixe de secours pour le groupe `default` de LuckPerms lorsqu'aucun préfixe personnalisé n'est configuré (affichage épuré du pseudo sans mention `Default`).
