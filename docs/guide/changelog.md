@@ -10,15 +10,7 @@ Current status and complete release notes for **GensCore** on **Minecraft 26.3**
 - **Repository:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 :::
 
----
-
-## Release Notes
-
-> Releases are listed in **reverse chronological order** — latest first.
-
----
-
-### Release 1.0.3 — Paper build.143-beta (October 3, 2026)
+## Release 1.0.3 — Paper build.143-beta (October 3, 2026)
 
 > **Major stability, database and modernization release.** All 81 automated unit and concurrency tests passing with 0 errors. Verified on Paper 26.1, Paper 26.2, and Paper/Folia 26.3.
 
@@ -55,7 +47,7 @@ Current status and complete release notes for **GensCore** on **Minecraft 26.3**
 
 ---
 
-### Release 1.0.2 — Paper build.143-beta (October 3, 2026)
+## Release 1.0.2 — Paper build.143-beta (October 3, 2026)
 
 > **Stable maintenance release.** All 75 automated unit tests passing. Tested & verified on Paper 26.1, Paper 26.2 and Paper/Folia 26.3.
 
@@ -78,7 +70,7 @@ Current status and complete release notes for **GensCore** on **Minecraft 26.3**
 
 ---
 
-### Release 1.0.1 — Paper build.41-alpha (September 25, 2026)
+## Release 1.0.1 — Paper build.41-alpha (September 25, 2026)
 
 > **Stable release.** All 69 automated unit tests passing. Production-ready.
 
@@ -90,7 +82,7 @@ Current status and complete release notes for **GensCore** on **Minecraft 26.3**
 
 ---
 
-### Release 1.0.0 — Initial Release (September 20, 2026)
+## Release 1.0.0 — Initial Release (September 20, 2026)
 
 - Initial stable release of GensCore.
 - Modular architecture with autonomous modules.

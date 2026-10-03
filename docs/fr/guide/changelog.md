@@ -10,15 +10,7 @@ Statut actuel et historique complet des mises à jour de **GensCore** sur **Mine
 - **Dépôt GitHub :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 :::
 
----
-
-## Notes de Version
-
-> Les mises à jour sont listées par **ordre chronologique inverse** — les plus récentes en premier.
-
----
-
-### Release 1.0.3 — Paper build.143-beta (3 Octobre 2026)
+## Release 1.0.3 — Paper build.143-beta (3 Octobre 2026)
 
 > **Mise à jour majeure de stabilité, base de données et modernisation Paper 26.3.** Les 81 tests automatisés (unitaires et de concurrence) passent avec succès avec 0 erreur. Validé sur Paper 26.1, Paper 26.2 et Paper/Folia 26.3.
 
@@ -54,7 +46,7 @@ Statut actuel et historique complet des mises à jour de **GensCore** sur **Mine
 
 ---
 
-### Release 1.0.2 — Paper build.143-beta (3 Octobre 2026)
+## Release 1.0.2 — Paper build.143-beta (3 Octobre 2026)
 
 > **Mise à jour de maintenance stable.** Les 75 tests automatisés passent avec succès. Testé et certifié sur Paper 26.1, Paper 26.2 et Paper/Folia 26.3.
 
@@ -73,7 +65,7 @@ Statut actuel et historique complet des mises à jour de **GensCore** sur **Mine
 
 ---
 
-### Release 1.0.1 — Paper build.41-alpha (25 Septembre 2026)
+## Release 1.0.1 — Paper build.41-alpha (25 Septembre 2026)
 
 - **API Paper :** Mise à niveau vers `26.3.build.41-alpha`.
 - **Panel Web Mobile :** Barre supérieure fixée avec zone de défilement dédiée `admin-content-scroll`.
@@ -82,7 +74,7 @@ Statut actuel et historique complet des mises à jour de **GensCore** sur **Mine
 
 ---
 
-### Release 1.0.0 — Version Initiale (20 Septembre 2026)
+## Release 1.0.0 — Version Initiale (20 Septembre 2026)
 
 - Lancement officiel de GensCore.
 - Architecture modulaire avec modules autonomes.
