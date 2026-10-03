@@ -7,7 +7,7 @@ on:
       version:
         description: 'Version (ex: 1.2.3 — sans le "v")'
         required: true
-        default: '1.0.2'
+        default: '1.0.3'
       release_name:
         description: 'Nom de la release (optionnel — défaut: "GensCore vX.Y.Z")'
         required: false
@@ -122,7 +122,7 @@ jobs:
             ## GensCore ${{ steps.meta.outputs.version }}
 
             **Compatibilité :** Minecraft 26.1 - 26.3 (Compilé avec Paper 26.3.build.143-beta · Compatible Paper & Folia 26.1+) · Java 25+
-            **Assurance Qualité :** 100% des tests unitaires validés (71/71 tests)
+            **Assurance Qualité :** 100% des tests unitaires validés (81/81 tests)
 
             > Les notes de changements sont générées automatiquement depuis les commits.
             > Pour une release manuelle détaillée, éditez ce brouillon avant de le publier.

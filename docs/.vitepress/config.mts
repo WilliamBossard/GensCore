@@ -47,7 +47,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Getting Started', link: '/guide/getting-started' },
-          { text: 'Roadmap', link: '/guide/roadmap' },
+          { text: 'Changelog', link: '/guide/changelog' },
           { text: 'Commands', link: '/guide/commands' },
           { text: 'Permissions', link: '/guide/permissions' },
           { text: 'Modules', link: '/guide/modules' },
@@ -61,7 +61,7 @@ export default defineConfig({
             items: [
               { text: 'Introduction & Setup', link: '/guide/getting-started' },
               { text: 'Configuration & Network', link: '/guide/configuration' },
-              { text: 'Roadmap & Changelog', link: '/guide/roadmap' }
+              { text: 'Changelog', link: '/guide/changelog' }
             ]
           },
           {
@@ -74,7 +74,7 @@ export default defineConfig({
           {
             text: 'Deep-Dive Features',
             items: [
-              { text: 'In-Game Modules (28)', link: '/guide/modules' },
+              { text: 'In-Game Modules (30)', link: '/guide/modules' },
               { text: 'Web Panel & Minigames', link: '/guide/web-panel' }
             ]
           }
@@ -94,7 +94,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Démarrage', link: '/fr/guide/getting-started' },
-          { text: 'Roadmap', link: '/fr/guide/roadmap' },
+          { text: 'Changelog', link: '/fr/guide/changelog' },
           { text: 'Commandes', link: '/fr/guide/commands' },
           { text: 'Permissions', link: '/fr/guide/permissions' },
           { text: 'Modules', link: '/fr/guide/modules' },
@@ -108,7 +108,7 @@ export default defineConfig({
             items: [
               { text: 'Introduction & Installation', link: '/fr/guide/getting-started' },
               { text: 'Configuration & Réseau', link: '/fr/guide/configuration' },
-              { text: 'Roadmap & Changelog', link: '/fr/guide/roadmap' }
+              { text: 'Changelog', link: '/fr/guide/changelog' }
             ]
           },
           {
@@ -121,7 +121,7 @@ export default defineConfig({
           {
             text: 'Fonctionnalités avancées',
             items: [
-              { text: 'Modules en jeu (28)', link: '/fr/guide/modules' },
+              { text: 'Modules en jeu (30)', link: '/fr/guide/modules' },
               { text: 'Panel Web & Mini-jeux', link: '/fr/guide/web-panel' }
             ]
           }

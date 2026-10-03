@@ -1,5 +1,5 @@
 ---
-title: Roadmap & Changelog
+title: Suivi des Versions & Changelog
 ---
 
 <script setup>
@@ -8,10 +8,10 @@ import { useRouter } from 'vitepress'
 
 const router = useRouter()
 onMounted(() => {
-  router.go('/fr/guide/roadmap')
+  router.go('/fr/guide/changelog')
 })
 </script>
 
 # Redirection...
 
-Redirection vers [Suivi & Roadmap 26.3](/fr/guide/roadmap)...
+Redirection vers le [Suivi des Versions & Changelog](/fr/guide/changelog)...

@@ -26,5 +26,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run Maven Unit Tests
+      - name: Run Maven Unit Tests (81 Tests)
         run: mvn test
+
+      - name: Verify Shaded Package Build
+        run: mvn package -DskipTests
+

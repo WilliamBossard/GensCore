@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.3] - 2026-10-03
 
+### Compatibility
+- Tested and verified on **Paper 26.1** (build 74+), **Paper 26.2** (build 129+) and **Paper / Folia 26.3** (build 143-beta).
+- Requires Java 25 LTS+ with release 25 compiler target.
+- 100% automated test suite passing (**81/81 tests** including multi-threaded stress tests).
+
 ### Added
 - **Multi-Engine Database Support (MySQL / MariaDB & SQLite):**
   - Added optional support for external MySQL and MariaDB databases via HikariCP and the official MariaDB JDBC driver (`org.mariadb.jdbc:mariadb-java-client:3.5.2`, fully shaded).
@@ -25,10 +30,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Administration & Diagnostics Commands (`GensCommand.java`):**
   - `/gens status` (permission: `genscore.admin`): Displays live server platform, Folia TPS, Java/JVM memory usage, and active module count.
   - `/gens db` (permission: `genscore.admin`): Displays current storage engine (SQLite or MySQL/MariaDB), database URL, active/idle connections, and waiting thread metrics.
-- **Automated Test Coverage:**
+- **Paper 26.3 API Modernization & Complete Deprecation Purge:**
+  - `UtilsModule.java`: Migrated virtual menus (`openWorkbench`, `openAnvil`, `openEnchanting`) to Paper 26.3 `MenuType.CRAFTING.builder()`, `MenuType.ANVIL.builder()`, and `MenuType.ENCHANTMENT.builder()`.
+  - `ShopModule.java`: Migrated item detection to modern Data Components API (`meta.hasCustomModelDataComponent()`, `meta.hasCustomName()`, `meta.hasItemName()`).
+  - `TombListener.java`: Migrated player head skin profile to Paper 26.3 `skull.setProfile(ResolvableProfile.resolvableProfile(profile))`.
+  - `JobsModule.java`: Replaced Bukkit `Metadatable` (`FixedMetadataValue`) and deprecated `Block.getBlockKey()` with ultra-fast 64-bit coordinate packing `packBlockKey(x, y, z)` and thread-safe set storage (`Map<UUID, Set<Long>>`).
+  - Removed all `@SuppressWarnings("deprecation")` from active Bukkit/Paper plugin source code.
+- **Memory Safety & Resource Leak Elimination:**
+  - `TeleportBackModule.java`: Replaced `Location` references with immutable `record BackPosition(String worldName, double x, double y, double z, float yaw, float pitch)` to prevent strong reference retention to `World` instances across world reloads and unloads.
+  - `StorageManager.java`: Purged dead legacy YAML file management code (`dataFile`, `dataConfig`, `initDataFile()`, etc.).
+  - `ItemSerializer.java`: Isolated and documented the backward-compatibility deserialization fallback for pre-existing legacy Base64 items.
+- **Automated Test Coverage & CI/CD:**
   - Added unit test suite `SqlDialectTest` validating query rewriting across SQLite and MySQL dialects.
   - Added integration test suite `DatabaseConfigTest` validating configuration loading, driver resolution, and pool property initialization.
-  - Test suite expanded to 81 tests passing with 0 errors and 0 failures.
+  - Test suite expanded to **81 tests passing with 0 errors and 0 failures**.
+  - Updated GitHub Actions CI/CD workflows (`ci.yml`, `release.yml`) with automated shaded package verification and test tracking.
 
 ---
 

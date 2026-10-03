@@ -655,48 +655,59 @@ Accessible to everyday players at `http://<your-server-ip>:8080`:
 ## 6. Configuration & Deployment Guide
 
 ### Directory & File Structure
-Upon first run, GensCore creates the following directory structure inside `plugins/GensCore/`:
+Upon first run, GensCore automatically unpacks all necessary default configuration files and web assets into `plugins/GensCore/`:
 
 ```
 plugins/GensCore/
-├── config.yml              # Main configuration (language, database settings)
-├── modules.yml             # Global enable/disable switches for all modules
-├── genscore.db             # Local SQLite database (WAL mode)
+├── config.yml              # Core settings (language, database options)
+├── modules.yml             # Global enable/disable switches for all 30 modules
+├── genscore.db             # Local SQLite database (WAL mode, connection pooled)
 ├── lang/
-│   ├── fr_FR.yml           # French localization strings
-│   └── en_US.yml           # English localization strings
+│   ├── fr_FR.yml           # French localization strings (MiniMessage tags)
+│   └── en_US.yml           # English localization strings (MiniMessage tags)
 ├── menus/
-│   └── default.yml         # Custom GUI menu definitions
+│   └── default.yml         # Custom GUI menu definitions (virtual chest layouts)
 ├── modules/
-│   ├── web.yml             # Web panel port, admin password, CORS settings
-│   ├── discord.yml         # Discord bot token, channels, embed settings
-│   ├── minigames.yml       # Wheel of fortune rewards and chances
-│   ├── lootr.yml           # Lootr chest behavior and particle settings
-│   ├── shop.yml            # Dynamic shop items, base prices, categories
-│   └── ...
-└── web/                    # Extracted React / Vite frontend files (index.html, assets)
+│   ├── bluemap.yml         # BlueMap web integration URL
+│   ├── chat.yml            # Custom chat format and join/quit alerts
+│   ├── discord.yml         # Discord bot token, channels, and synchronization
+│   ├── economy.yml         # Shop dynamic inflation exponent and AH sales tax
+│   ├── headdrop.yml        # Mob and player skull drop probabilities
+│   ├── lootr.yml           # Instanced dungeon chests and anti-break security
+│   ├── minigames.yml       # Fortune Wheel rewards, Casino Slot RTP, CoinFlip
+│   ├── motd.yml            # Server list MOTD lines with MiniMessage tags
+│   ├── quests.yml          # Daily quest limits and reroll quotas
+│   ├── shop.yml            # Dynamic shop items, base prices, price elasticity
+│   ├── spawners.yml        # Custom spawner stacking, tick rate, and Silk Touch
+│   ├── tabboard.yml        # Dynamic Scoreboard and Tablist layout & placeholders
+│   ├── teams.yml           # Guild weekly quest rotation parameters
+│   ├── teleport.yml        # Default max homes and global teleportation delays
+│   ├── tomb.yml            # Death graves, XP retention, and access policies
+│   └── web.yml             # Embedded Javalin web server, BCrypt auth, CORS, limits
+└── web/                    # Extracted React / Vite production frontend bundle
 ```
 
-### Database Configuration (SQLite vs MySQL)
+---
 
-GensCore offers dual-engine database persistence configured via `config.yml`:
+### Core Configuration (`config.yml`)
 
-#### 1. SQLite Engine (Default)
-Ideal for single-server setups, local test servers, and autonomous deployments. No external server or configuration required.
+The primary configuration file governs language localization and the dual-engine database persistence layer.
+
 ```yaml
+# Main language file (fr_FR or en_US)
+lang: "en_US"
+
+# Database Configuration
 database:
+  # Storage engine type: "sqlite" (default, autonomous) or "mysql" (remote database)
   type: "sqlite"
+
+  # Local SQLite configuration (active by default if type: "sqlite")
   sqlite:
     file: "genscore.db"
-```
-- Operates in WAL mode with connection pooling (10 connections).
-- Zero external network dependencies.
 
-#### 2. MySQL / MariaDB Engine (Optional)
-Ideal for multi-server networks (BungeeCord / Velocity) or external analytics pipelines.
-```yaml
-database:
-  type: "mysql"
+  # Remote MySQL / MariaDB configuration (active only if type: "mysql")
+  # If remote connection fails at startup, GensCore automatically falls back to SQLite
   mysql:
     host: "localhost"
     port: 3306
@@ -708,32 +719,435 @@ database:
     minimum_idle: 2
     connection_timeout: 30000
 ```
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `lang` | String | `"en_US"` | Active localization file name in `plugins/GensCore/lang/` (without `.yml`). Supports hot-reloading. |
+| `database.type` | String | `"sqlite"` | Active storage engine. Valid values: `"sqlite"` or `"mysql"`. |
+| `database.sqlite.file` | String | `"genscore.db"` | SQLite database filename stored inside the `plugins/GensCore/` directory. |
+| `database.mysql.host` | String | `"localhost"` | IP address or hostname of the MySQL/MariaDB server. |
+| `database.mysql.port` | Integer | `3306` | Port of the MySQL/MariaDB service. |
+| `database.mysql.database` | String | `"genscore"` | Database/schema name. The schema must exist before connecting. |
+| `database.mysql.username` | String | `"root"` | Database authentication username. |
+| `database.mysql.password` | String | `""` | Database authentication password. |
+| `database.mysql.ssl` | Boolean | `false` | Enable or disable TLS/SSL encryption for the JDBC connection. |
+| `database.mysql.max_pool_size` | Integer | `10` | Maximum number of concurrent connections in the HikariCP connection pool. |
+| `database.mysql.minimum_idle` | Integer | `2` | Minimum number of idle connections maintained in the pool. |
+| `database.mysql.connection_timeout` | Integer | `30000` | Connection timeout in milliseconds before triggering the automatic SQLite fallback. |
+
 > [!NOTE]
-> **Automatic Safe Fallback:** If `type: "mysql"` is configured but the remote server is unreachable, timed out, or rejected, GensCore logs a clear warning in the server console and automatically engages the local SQLite database. The Minecraft server will never crash or fail to boot due to an unreachable database.
+> **Resilient Automatic Fallback:** If `type: "mysql"` is specified but the remote server is unreachable, timed out, or rejects authentication, GensCore outputs an actionable warning to the server console and instantly switches to the local SQLite engine. The server will never crash or fail to boot due to a database connection failure.
 
-### Network Ports & Port Forwarding
-If running GensCore on a dedicated server or VPS (e.g., Pterodactyl, OVH, Hetzner):
+---
 
-| Port | Protocol | Usage | Requirement |
+### Global Module Switchboard (`modules.yml`)
+
+GensCore operates on a modular architecture where each feature can be independently toggled on or off. Modules can also be toggled at runtime via `/module <name> <on|off>`.
+
+```yaml
+modules:
+  dynamicshop: true
+  economy: true
+  auctionhouse: true
+  jobs: true
+  stats: true
+  spawners: true
+  quests: true
+  lootr: true
+  headdrop: true
+  minigame: true
+  motd: true
+  tabboard: true
+  discord: true
+  gui: true
+  web: true
+  tomb: false
+  home: true
+  back: true
+  spawn: true
+  tpa: true
+  teams: true
+  lock: true
+  auth: true
+  moderation: true
+  chat: true
+  bluemap: false
+  fastleafdecay: true
+```
+
+| Module Key | In-Game Feature | Default | Dependencies / Notes |
+|---|---|---|---|
+| `dynamicshop` | Supply & demand server shop (`/shop`) | `true` | Requires `economy` module |
+| `economy` | Player balances, `/money`, `/pay`, Vault provider | `true` | Registers Vault `GensVaultEconomy` if Vault is present |
+| `auctionhouse` | Player-to-player marketplace (`/ah`) | `true` | Requires `economy` module |
+| `jobs` | Mining, woodcutting, hunting, farming professions | `true` | Folia thread-safe anti-farm block key cache |
+| `stats` | Persistent block break, kill, death & playtime tracking | `true` | Visible in Player Web Dashboard |
+| `spawners` | Smart stacked spawners with GUI upgrades & Silk Touch | `true` | Configured via `modules/spawners.yml` |
+| `quests` | Daily rotating quests with reroll limits | `true` | Configured via `modules/quests.yml` |
+| `lootr` | Per-player instanced dungeon & structure chests | `true` | Configured via `modules/lootr.yml` |
+| `headdrop` | Mob and player skull drop probabilities | `true` | Configured via `modules/headdrop.yml` |
+| `minigame` | Fortune Wheel, Casino Slots & CoinFlip | `true` | Configured via `modules/minigames.yml` & Web Panel |
+| `motd` | Dynamic server list ping message | `true` | Configured via `modules/motd.yml` |
+| `tabboard` | Custom Scoreboard and Tablist layout | `true` | Configured via `modules/tabboard.yml` |
+| `discord` | Discord Bot bridge (chat sync, staff logs) | `true` | Requires valid bot token in `modules/discord.yml` |
+| `gui` | In-game menu provider | `true` | Auto-detects Bedrock clients (Cumulus Forms) |
+| `web` | Embedded Javalin REST API & React Dashboard | `true` | Configured via `modules/web.yml` |
+| `tomb` | Death graves preserving items & XP upon player death | `false` | Enable if you want graves instead of standard item drops |
+| `home` | Player home waypoints (`/sethome`, `/home`) | `true` | Limits set via permissions and `modules/teleport.yml` |
+| `back` | Return to last death or teleport location (`/back`) | `true` | Zero-leak `BackPosition` memory safety |
+| `spawn` | Server spawn location (`/setspawn`, `/spawn`) | `true` | Persistent spawn coordinates in database |
+| `tpa` | Teleport request system (`/tpa`, `/tpaccept`, etc.) | `true` | Configurable warmup and movement cancellation |
+| `teams` | Guilds, territory claims, shared bank & weekly quests | `true` | Integrated with BlueMap and Web Panel |
+| `lock` | Container protection for chests, barrels & furnaces | `true` | Anti-hopper and anti-piston theft protection |
+| `auth` | In-game authentication for offline servers (`/login`) | `true` | BCrypt password hashing |
+| `moderation` | Staff toolset (`/ban`, `/mute`, `/kick`, `/freeze`) | `true` | Persistent punishment records in database |
+| `chat` | Chat formatting and join/quit messages | `true` | LuckPerms prefix/suffix synchronization |
+| `bluemap` | BlueMap guild territory claim visualization | `false` | Requires BlueMap installed on the server |
+| `fastleafdecay` | Instant natural decay for orphaned tree leaves | `true` | High-performance leaves cleanup |
+
+---
+
+### Module-by-Module Configuration Guide
+
+#### 1. Embedded Web Application & API (`modules/web.yml`)
+Configures the Javalin embedded web server, admin password, and security restrictions.
+
+```yaml
+web:
+  enabled: true
+  auto_update_panel: true
+  port: 8080
+  force_lang: ""
+  server_ip: "play.yourserver.com"
+  allowed_origin: ""
+  deposit_limit: 27
+  public_features_text: |-
+    Welcome to the server!
+    - Jobs System (/jobs)
+    - Auction House (/ah)
+    - Guild Claims (/team)
+admin-password: "gens"
+```
+
+| Key | Default | Explanation & Setup Instructions |
+|---|---|---|
+| `web.enabled` | `false` | Set to `true` to start the embedded web server on server boot. |
+| `web.auto_update_panel` | `true` | Automatically extracts updated web assets from the plugin JAR upon version upgrades. Set to `false` if you customize frontend assets in `plugins/GensCore/web/`. |
+| `web.port` | `8080` | Port for the web interface. Ensure this TCP port is forwarded or exposed in your firewall. |
+| `web.force_lang` | `""` | Forces a specific language (`"fr"` or `"en"`). If left empty, the browser's language header is automatically used. |
+| `web.server_ip` | `"localhost"` | Server address displayed on the public landing page. |
+| `web.allowed_origin` | `""` | Restricts CORS requests to a specific domain (e.g., `"https://panel.genscore.com"`). Leave empty during local development to allow any origin. |
+| `web.deposit_limit` | `27` | Maximum number of items a player can store in their web casino deposit box at any given time. |
+| `web.public_features_text` | Text | Markdown text shown to visitors on the landing page before logging in. |
+| `admin-password` | `"gens"` | Administrator password for accessing `http://<ip>:8080/admin`. When specified in plain text, GensCore automatically replaces it on startup with a secure BCrypt hash. To reset, replace the hash with a new plain text password and restart the server. |
+
+---
+
+#### 2. Discord Bot Integration (`modules/discord.yml`)
+Bridges in-game chat, death events, and staff moderation with your Discord server via JDA 6.
+
+```yaml
+discord:
+  bot_token: "YOUR_TOKEN_HERE"
+  chat_channel_id: "123456789012345678"
+  linked_role_id: "Linked"
+  log_channel_id: ""
+```
+
+| Key | Default | Setup Instructions |
+|---|---|---|
+| `discord.bot_token` | `"YOUR_TOKEN_HERE"` | Bot token generated on the [Discord Developer Portal](https://discord.com/developers/applications). Mandatory intents: **Server Members Intent** and **Message Content Intent**. |
+| `discord.chat_channel_id` | `"YOUR_CHANNEL_ID_HERE"` | Snowflake ID of the text channel where in-game chat messages are relayed and Discord messages are forwarded to Minecraft. |
+| `discord.linked_role_id` | `"Linked"` | Role name or role ID assigned automatically to players who link their Discord account in-game. |
+| `discord.log_channel_id` | `""` | Optional snowflake ID for security logs (bans, mutes, staff commands, economy anomalies). |
+
+---
+
+#### 3. Custom Spawners (`modules/spawners.yml`)
+Governs stacked smart spawners, spawn frequency, and silk touch harvesting.
+
+```yaml
+spawners:
+  delay: 25
+  holograms: true
+  hoppers: false
+  max-stack: 100000
+  upgrade-base-cost: 1000.0
+  vanilla-require-silktouch: true
+```
+
+| Key | Default | How It Works & Optimization Advice |
+|---|---|---|
+| `spawners.delay` | `25` | Delay in server ticks between mob spawn attempts (20 ticks = 1 second). Increase to reduce entity load on high-population servers. |
+| `spawners.holograms` | `true` | Displays dynamic floating text above spawners showing the mob type, current tier level, and stacked quantity. |
+| `spawners.hoppers` | `false` | When set to `true`, entities spawned directly drop their items into attached hoppers beneath the spawner block. |
+| `spawners.max-stack` | `100000` | Maximum number of spawner blocks that can be merged into a single block location to prevent world entity lag. |
+| `spawners.upgrade-base-cost` | `1000.0` | Initial cost in server currency to upgrade a spawner from Level 1 to Level 2. Each subsequent tier scales mathematically. |
+| `spawners.vanilla-require-silktouch` | `true` | If `true`, breaking a custom spawner without a Silk Touch pickaxe drops experience instead of the spawner item. |
+
+---
+
+#### 4. Instanced Chests / Lootr (`modules/lootr.yml`)
+Transforms dungeon and structure chests into per-player instanced containers. Every player gets their own personal loot roll from the exact same chest.
+
+```yaml
+lootr:
+  prevent-hopper: true
+  prevent-break: false
+  particles-enabled: true
+  break-confirm-time: 3
+  messages:
+    break-confirm: "<yellow>Break it again within 3 seconds to confirm!"
+    chest-broken: "<green>Lootr chest removed!"
+    cannot-break: "<red>You cannot break this chest!"
+  inventory:
+    title: "<dark_gray>[<gold><dark_gray>] <yellow>Loot Chest"
+```
+
+| Key | Default | Purpose |
+|---|---|---|
+| `lootr.prevent-hopper` | `true` | Blocks hoppers, hopper minecarts, and redstone systems from siphoning instanced loot chest contents. |
+| `lootr.prevent-break` | `false` | If `true`, instanced chests can never be broken in survival mode. |
+| `lootr.particles-enabled` | `true` | Emits subtle particle swirls around unopened chests to indicate fresh loot for the observing player. |
+| `lootr.break-confirm-time` | `3` | Seconds within which a player must hit the chest a second time to confirm destruction (prevents accidental loss). |
+| `lootr.messages.*` | MiniMessage | Customizable chat messages with full Adventure MiniMessage formatting support. |
+| `lootr.inventory.title` | MiniMessage | Custom GUI title displayed when opening an instanced loot container. |
+
+---
+
+#### 5. Economy & Auction House (`modules/economy.yml`)
+Controls market dynamics, price inflation formulas, and player trading fees.
+
+```yaml
+shop:
+  inflation_exponent: 0.5
+ah:
+  tax_percentage: 0.0
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `shop.inflation_exponent` | `0.5` | The mathematical exponent governing dynamic price elasticity. A higher exponent makes prices drop faster when players oversell goods, and rise faster when players buy up stock. |
+| `ah.tax_percentage` | `0.0` | Commission fee percentage deducted from the total sale price when a listing is purchased on `/ah`. Setting this to `5.0` imposes a 5% server sales tax. |
+
+---
+
+#### 6. Death Graves / Tombs (`modules/tomb.yml`)
+Safeguards player inventories upon death by creating an interactive grave block.
+
+```yaml
+modules:
+  tomb:
+    block_type: CHEST
+    store_xp: true
+    xp_keep_percentage: 100
+    expiration_time_seconds: 3600
+    expiration_action: UNLOCK
+    default_access: OWNER_ONLY
+```
+
+| Key | Default | Options & Description |
+|---|---|---|
+| `block_type` | `CHEST` | Block placed as the tomb marker. Valid materials: `CHEST`, `BARREL`, `PLAYER_HEAD`. Under Paper 26.3, player heads automatically render the deceased player's skin profile. |
+| `store_xp` | `true` | If `true`, the player's experience points are preserved inside the tomb instead of dropping on the ground. |
+| `xp_keep_percentage` | `100` | Percentage of experience retained upon death (0 to 100). |
+| `expiration_time_seconds` | `3600` | Lifetime of the grave before the expiration action triggers (3600 = 1 hour). |
+| `expiration_action` | `UNLOCK` | Action taken when expiration time is reached: `UNLOCK` (makes chest accessible to anyone), `DROP` (drops items on the ground), or `DESTROY` (permanently voids items). |
+| `default_access` | `OWNER_ONLY` | Initial security policy: `OWNER_ONLY` (only the deceased player or staff with `genscore.tomb.admin` can loot) or `EVERYONE`. |
+
+---
+
+#### 7. Teleportation & Homes (`modules/teleport.yml`)
+Governs home waypoint allowances and teleportation warmup delays.
+
+```yaml
+modules:
+  home:
+    default_max: 3
+teleport-cooldown: 3
+```
+
+| Key | Default | Usage & Permissions |
+|---|---|---|
+| `modules.home.default_max` | `3` | Maximum number of `/sethome` locations allowed for standard players without extra permissions. |
+| `teleport-cooldown` | `3` | Cooldown delay in seconds between teleportation commands (`/spawn`, `/home`, `/tpa`). |
+
+---
+
+#### 8. Daily Quests (`modules/quests.yml`)
+Controls player progression through rotating daily quest assignments.
+
+```yaml
+quests:
+  max_rerolls_per_day: 3
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `quests.max_rerolls_per_day` | `3` | Maximum number of times a player can reject an undesirable daily quest to roll a new objective. |
+
+---
+
+#### 9. Server List MOTD (`modules/motd.yml`)
+Customizes the multiplayer server list display with MiniMessage styling.
+
+```yaml
+motd:
+  line1: "<dark_aqua><bold>A Minecraft Server"
+  line2: "<gray><bold>>> <yellow>Powered by GensCore"
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `motd.line1` | MiniMessage | Top line displayed in the Minecraft server list. Supports gradients, hex colors, and formatting tags. |
+| `motd.line2` | MiniMessage | Bottom line displayed in the server list. |
+
+---
+
+#### 10. Tablist & Scoreboard (`modules/tabboard.yml`)
+Governs real-time on-screen player feedback and leaderboard presentation.
+
+```yaml
+tabboard:
+  scoreboard:
+    title: "<gold><bold>Server"
+    lines:
+      - ""
+      - "<gray>Money: <yellow>%money%$"
+      - ""
+  tablist:
+    header: "\n<dark_aqua><bold>A Minecraft Server\n"
+    footer: "\n<gray>Online: %online%\n"
+    show_platform_prefix: true
+    discord_not_linked: "<red>Discord not linked"
+    discord_linked: "<green>Discord linked"
+```
+
+| Key | Default | Explanation |
+|---|---|---|
+| `scoreboard.title` | MiniMessage | Scoreboard sidebar header. |
+| `scoreboard.lines` | List | Sidebar content lines. Supports native placeholders (`%money%`, `%online%`, `%ping%`, `%vault_eco_balance%`) and PlaceholderAPI. |
+| `tablist.header` / `footer` | MiniMessage | Multi-line text banner pinned above and below the player list in the Tab menu. |
+| `tablist.show_platform_prefix` | `true` | When Floodgate is detected, displays `[Bedrock]` or `[Java]` badges next to player names in Tab. |
+| `tablist.discord_linked` / `not_linked` | MiniMessage | Text badge indicating whether the player has linked their Discord account. |
+
+---
+
+#### 11. Minigames & Casino (`modules/minigames.yml`)
+Powers the Web Panel Fortune Wheel and 3-reel Slot Machine with customizable rewards.
+
+```yaml
+minigames:
+  wheel:
+    enabled: true
+    rewards:
+      '1':
+        name: "16x Pain"
+        command: "give %player% bread 16"
+        chance: 32
+        color: "#eab308"
+      '2':
+        name: "150$"
+        command: "eco give %player% 150"
+        chance: 25
+        color: "#10b981"
+      # ... (slices 3 to 8)
+  casino:
+    enabled: true
+    jackpot_chance: 4
+    medium_win_chance: 8
+    small_win_chance: 20
+  coinflip:
+    enabled: true
+    multiplier: 2
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `wheel.enabled` | `true` | Enables the daily 24-hour Fortune Wheel on the Player Web Dashboard. |
+| `wheel.rewards.*` | Map | 8 balanced slices. Each slice requires `name`, `command` executed by console upon winning, `chance` (percentages should sum to 100), and a hex `color` for web rendering. |
+| `casino.enabled` | `true` | Enables the web-based 3-reel item slot machine. |
+| `casino.jackpot_chance` | `4` | Percentage chance for a 3-of-a-kind jackpot (multiplies bet item count by 5x). |
+| `casino.medium_win_chance` | `8` | Percentage chance for a 2-of-a-kind medium win (3x item multiplier). |
+| `casino.small_win_chance` | `20` | Percentage chance for a small win (2x item multiplier). |
+| `coinflip.enabled` | `true` | Enables the 50/50 CoinFlip minigame. |
+| `coinflip.multiplier` | `2` | Payout multiplier awarded upon winning a CoinFlip round. |
+
+---
+
+#### 12. HeadDrop Module (`modules/headdrop.yml`)
+Controls mob and player skull trophy collection.
+
+```yaml
+headdrop:
+  chance: 10.0
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `headdrop.chance` | `10.0` | Probability (percentage) that a killed entity (player or mob) drops their skull upon death. |
+
+---
+
+#### 13. BlueMap Territory Integration (`modules/bluemap.yml`)
+Configures the live map endpoint embedded directly inside the Web Control Panel.
+
+```yaml
+bluemap:
+  url: "http://localhost:8100"
+```
+
+| Key | Default | Setup Advice |
+|---|---|---|
+| `bluemap.url` | `"http://localhost:8100"` | Address of your BlueMap web server. If using a custom domain or reverse proxy, enter the public URL (e.g., `"https://map.yourserver.com"`). |
+
+---
+
+#### 14. Guilds & Co-Op Quests (`modules/teams.yml`)
+Tracks automated weekly guild quest rotation timestamps.
+
+```yaml
+teams:
+  last_rotation: 0
+  active_quest: "weekly_1"
+```
+
+| Key | Default | Purpose |
+|---|---|---|
+| `teams.last_rotation` | Timestamp | Epoch millisecond timestamp of the last weekly quest rotation. Rotates automatically every 7 days. |
+| `teams.active_quest` | String | Key of the current active cooperative guild objective. |
+
+---
+
+### Network Ports & Reverse Proxy Deployment
+
+If running GensCore on a dedicated host or VPS:
+
+| Port | Protocol | Purpose | Requirement |
 |---|---|---|---|
 | **25565** | TCP/UDP | Minecraft Game Server | Mandatory for player connection |
 | **8080** | TCP | GensCore Web Panel & API | Mandatory if Web Panel is enabled |
-| **8100** | TCP | BlueMap Live Map (Optional) | Required only if BlueMap is used |
+| **8100** | TCP | BlueMap Live Map (Optional) | Required only if BlueMap is enabled |
 
-> [!TIP]
-> **Reverse Proxy / SSL:** To expose your Web Panel securely with HTTPS, you can place an Nginx, Caddy, or Cloudflare reverse proxy in front of port `8080`. Set `web.allowed_origin` in `modules/web.yml` if you configure a custom domain name.
+#### Recommended Nginx Reverse Proxy for SSL (`https://panel.yourserver.com`)
+```nginx
+server {
+    server_name panel.yourserver.com;
 
-### Discord Bot Setup
-1. Visit the [Discord Developer Portal](https://discord.com/developers/applications) and create a New Application.
-2. Under the **Bot** tab, generate a **Bot Token**.
-3. Enable **Server Members Intent** and **Message Content Intent**.
-4. Open `plugins/GensCore/modules/discord.yml` and paste your token:
-   ```yaml
-   bot_token: "YOUR_DISCORD_BOT_TOKEN_HERE"
-   channel_id: "YOUR_STATUS_OR_CHAT_CHANNEL_ID"
-   ```
-5. Restart your server or run `/module discord on`.
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
 ---
 
 *GensCore is maintained and built for performance, security, and next-generation Minecraft survival.*
+

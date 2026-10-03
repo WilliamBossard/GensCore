@@ -13,8 +13,8 @@ hero:
       text: Get Started
       link: /guide/getting-started
     - theme: alt
-      text: 26.3 Roadmap & Tracker
-      link: /guide/roadmap
+      text: Changelog & Release 1.0.3
+      link: /guide/changelog
     - theme: alt
       text: Commands Reference
       link: /guide/commands

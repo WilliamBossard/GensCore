@@ -13,8 +13,8 @@ hero:
       text: Démarrage Rapide
       link: /fr/guide/getting-started
     - theme: alt
-      text: Suivi & Roadmap 26.3
-      link: /fr/guide/roadmap
+      text: Changelog & Release 1.0.3
+      link: /fr/guide/changelog
     - theme: alt
       text: Liste des Commandes
       link: /fr/guide/commands
