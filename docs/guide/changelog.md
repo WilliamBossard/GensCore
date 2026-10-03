@@ -12,30 +12,6 @@ Current status and complete release notes for **GensCore** on **Minecraft 26.3**
 
 ---
 
-## Progress Overview
-
-| Component | Status |
-| :--- | :---: |
-| **Java 25 LTS Support** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Paper 26.1, 26.2 & 26.3 API (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Paper 26.3 Native MenuType API** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Data Components API (26.x Item Model & Names)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Player Skull ResolvableProfile Integration** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Bitwise Block Key Anti-Farm (No Metadatable)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Zero World Memory Leaks (record BackPosition)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Dual-Engine Database (SQLite & MySQL/MariaDB)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Automatic Database Failover to SQLite** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **System Metrics & Diagnostics Service** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Dependencies Upgrades** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Mobile Web Optimization** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Geyser & Floodgate Bedrock Cross-Play** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Dynamic Survival Shop (319 Items)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Folia Regional Multi-Threading** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Guilds, Territory Claims & Perks 2.0** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-| **Automated Unit & Concurrency Tests (81/81)** | <span style="color: #22c55e; font-weight: 700;">✓ Done</span> |
-
----
-
 ## Release Notes
 
 > Releases are listed in **reverse chronological order** — latest first.

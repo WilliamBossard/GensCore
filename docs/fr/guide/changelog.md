@@ -12,30 +12,6 @@ Statut actuel et historique complet des mises à jour de **GensCore** sur **Mine
 
 ---
 
-## Vue d'Ensemble des Fonctionnalités
-
-| Composant | Statut |
-| :--- | :---: |
-| **Support Java 25 LTS** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **API Paper 26.1, 26.2 & 26.3 (build.143-beta)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **API MenuType Native Paper 26.3** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Data Components 26.x (Modèles & Noms)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Intégration Têtes de Joueur ResolvableProfile** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Anti-Farm Bitwise (Élimination de Metadatable)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Zéro Fuite Mémoire (record BackPosition)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Double Moteur DB (SQLite & MySQL/MariaDB)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Bascule de Secours Automatique vers SQLite** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Service de Métriques & Diagnostic Système** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Mises à niveau des Dépendances** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Optimisation Mobile du Panel Web** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Cross-Play Bedrock (Geyser & Floodgate)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Boutique de Survie Dynamique (319 Objets)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Multi-Threading Régional Folia** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Guildes, Claims & Perks de Territoire 2.0** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-| **Suite de Tests Concurrence & Unitaire (81/81)** | <span style="color: #22c55e; font-weight: 700;">✓ Terminé</span> |
-
----
-
 ## Notes de Version
 
 > Les mises à jour sont listées par **ordre chronologique inverse** — les plus récentes en premier.
