@@ -3,14 +3,14 @@
 Current status and complete release notes for **GensCore** on **Minecraft 26.3** and **Java 25 LTS**.
 
 ::: info Project Status
-- **Target Engine:** Minecraft 26.1 - 26.3 (Paper Build 143-beta · Folia 26.1+)
+- **Target Engine:** Minecraft 26.1 - 26.3 (Paper Build 145-beta · Folia 26.1+)
 - **Runtime Environment:** Java 25 LTS (Classfile 69)
 - **Current Version:** **Release 1.0.3** — Stable
 - **Quality Assurance:** **81/81 automated tests passing** (0 errors, 0 failures)
 - **Repository:** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 :::
 
-## Release 1.0.3 — Paper build.143-beta (October 3, 2026)
+## Release 1.0.3 — Paper build.145-beta (October 3, 2026)
 
 > **Major stability, database and modernization release.** All 81 automated unit and concurrency tests passing with 0 errors. Verified on Paper 26.1, Paper 26.2, and Paper/Folia 26.3.
 

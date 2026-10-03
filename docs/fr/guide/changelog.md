@@ -3,14 +3,14 @@
 Statut actuel et historique complet des mises à jour de **GensCore** sur **Minecraft 26.3** et **Java 25 LTS**.
 
 ::: info État du Projet
-- **Moteur cible :** Minecraft 26.1 - 26.3 (Paper Build 143-beta · Folia 26.1+)
+- **Moteur cible :** Minecraft 26.1 - 26.3 (Paper Build 145-beta · Folia 26.1+)
 - **Environnement d'exécution :** Java 25 LTS (Classfile 69)
 - **Version actuelle :** **Release 1.0.3** — Stable
 - **Assurance Qualité :** **81/81 tests automatisés validés** (0 erreurs, 0 échecs)
 - **Dépôt GitHub :** [`dev`](https://github.com/WilliamBossard/GensCore/tree/dev) · [`main`](https://github.com/WilliamBossard/GensCore/tree/main)
 :::
 
-## Release 1.0.3 — Paper build.143-beta (3 Octobre 2026)
+## Release 1.0.3 — Paper build.145-beta (3 Octobre 2026)
 
 > **Mise à jour majeure de stabilité, base de données et modernisation Paper 26.3.** Les 81 tests automatisés (unitaires et de concurrence) passent avec succès avec 0 erreur. Validé sur Paper 26.1, Paper 26.2 et Paper/Folia 26.3.
 

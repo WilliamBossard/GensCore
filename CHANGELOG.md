@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.3] - 2026-10-03
 
 ### Compatibility
-- Tested and verified on **Paper 26.1** (build 74+), **Paper 26.2** (build 129+) and **Paper / Folia 26.3** (build 143-beta).
+- Tested and verified on **Paper 26.1** (build 74+), **Paper 26.2** (build 129+) and **Paper / Folia 26.3** (build 145-beta).
 - Requires Java 25 LTS+ with release 25 compiler target.
 - 100% automated test suite passing (**81/81 tests** including multi-threaded stress tests).
 
