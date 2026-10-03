@@ -3,7 +3,7 @@ tabboard:
     title: "<gold><bold>Server"
     lines:
       - ""
-      - "<gray>Money: <yellow>%vault_eco_balance%"
+      - "<gray>Money: <yellow>%money%$"
       - ""
   tablist:
     header: "\n<dark_aqua><bold>A Minecraft Server\n"

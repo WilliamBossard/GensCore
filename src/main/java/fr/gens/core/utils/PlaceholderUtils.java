@@ -95,15 +95,21 @@ public class PlaceholderUtils {
         }
 
         // Economy
-        if (text.contains("balance") || text.contains("money")) {
+        if (text.contains("balance") || text.contains("money") || text.contains("vault_eco_balance")) {
             EconomyModule eco = (EconomyModule) plugin.getModuleManager().getModule("economy");
             if (eco != null && eco.isEnabled()) {
                 String balance = String.format("%.0f", eco.getBalance(p.getUniqueId()));
                 resolvers.add(Placeholder.parsed("balance", balance));
                 resolvers.add(Placeholder.parsed("money", balance));
+                resolvers.add(Placeholder.parsed("vault_eco_balance", balance));
+                resolvers.add(Placeholder.parsed("vault_eco_balance_fixed", balance));
+                resolvers.add(Placeholder.parsed("vault_eco_balance_formatted", balance));
             } else {
                 resolvers.add(Placeholder.parsed("balance", "0"));
                 resolvers.add(Placeholder.parsed("money", "0"));
+                resolvers.add(Placeholder.parsed("vault_eco_balance", "0"));
+                resolvers.add(Placeholder.parsed("vault_eco_balance_fixed", "0"));
+                resolvers.add(Placeholder.parsed("vault_eco_balance_formatted", "0"));
             }
         }
 
@@ -224,6 +230,11 @@ public class PlaceholderUtils {
         // Before passing to MiniMessage, convert Legacy variables (%) to MiniMessage
         // Tags (<>)
         String mmText = text.replace("§", "&");
+
+        if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            mmText = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, mmText);
+        }
+
         if (mmText.indexOf('%') != -1) {
             mmText = mmText
                     .replace("%player%", "<player>")
@@ -232,6 +243,9 @@ public class PlaceholderUtils {
                     .replace("%quests_completed%", "<quests_completed>")
                     .replace("%balance%", "<balance>")
                     .replace("%money%", "<money>")
+                    .replace("%vault_eco_balance%", "<vault_eco_balance>")
+                    .replace("%vault_eco_balance_fixed%", "<vault_eco_balance_fixed>")
+                    .replace("%vault_eco_balance_formatted%", "<vault_eco_balance_formatted>")
                     .replace("%online%", "<online>")
                     .replace("%staff%", "<staff>")
                     .replace("%mem_used%", "<mem_used>")
@@ -252,10 +266,6 @@ public class PlaceholderUtils {
                     .replace("%client_type%", "<client_type>")
                     .replace("%is_legacy%", "<is_legacy>")
                     .replace("%is_bedrock%", "<is_bedrock>");
-        }
-
-        if (org.bukkit.Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            mmText = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, mmText);
         }
 
         // Convertir également les codes couleurs legacy introduits par PAPI en
