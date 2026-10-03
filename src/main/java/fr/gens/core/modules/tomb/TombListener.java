@@ -42,7 +42,6 @@ public class TombListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    @SuppressWarnings("deprecation")
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (!plugin.getConfigManager().getConfig("modules/tomb.yml").getBoolean("modules.tomb.enabled", true)) return;
         
@@ -138,7 +137,7 @@ public class TombListener implements Listener {
                     }
                 }
 
-                skull.setPlayerProfile(profile);
+                skull.setProfile(io.papermc.paper.datacomponent.item.ResolvableProfile.resolvableProfile(profile));
                 skull.update();
             }
         }

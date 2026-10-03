@@ -74,7 +74,7 @@ public class LootDAO {
         String sql = "INSERT INTO lootr_chests (location, loot_table, seed, size) VALUES (?, ?, ?, ?) " +
                 "ON CONFLICT(location) DO UPDATE SET loot_table=excluded.loot_table, seed=excluded.seed, size=excluded.size";
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn, sql)) {
             ps.setString(1, locKey);
             ps.setString(2, lootTable);
             ps.setLong(3, seed);
@@ -126,7 +126,7 @@ public class LootDAO {
         String sql = "INSERT INTO lootr_player_chests (uuid, location, items_data) VALUES (?, ?, ?) " +
                 "ON CONFLICT(uuid, location) DO UPDATE SET items_data=excluded.items_data";
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn, sql)) {
             ps.setString(1, uuid.toString());
             ps.setString(2, locKey);
             ps.setString(3, base64);

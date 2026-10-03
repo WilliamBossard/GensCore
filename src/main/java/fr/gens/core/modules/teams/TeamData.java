@@ -38,7 +38,7 @@ public class TeamData {
         this.teamId = teamId;
         this.name = name;
         this.leaderUuid = leaderUuid;
-        this.members = new ArrayList<>();
+        this.members = new java.util.concurrent.CopyOnWriteArrayList<>();
         this.members.add(leaderUuid);
         this.admins = java.util.concurrent.ConcurrentHashMap.newKeySet();
         this.autoLock = true;

@@ -94,7 +94,7 @@ public class SoloPerkDAO {
 
     public void savePerkSetting(UUID uuid, String perkId, boolean isEnabled) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
+             PreparedStatement stmt = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO genscore_perk_settings (uuid, perk_id, is_enabled) VALUES (?, ?, ?) " +
                              "ON CONFLICT(uuid, perk_id) DO UPDATE SET is_enabled = excluded.is_enabled")) {
             stmt.setString(1, uuid.toString());

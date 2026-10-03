@@ -76,7 +76,6 @@ public class UtilsModule implements Module, Listener {
     }
 
     @Command("anvil")
-    @SuppressWarnings("deprecation")
     public void executeAnvil(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -85,17 +84,28 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_1");
             return;
         }
-        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openAnvil(p.getLocation(), true));
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+            org.bukkit.inventory.InventoryView view = org.bukkit.inventory.MenuType.ANVIL.builder()
+                .location(p.getLocation())
+                .checkReachable(false)
+                .build(p);
+            p.openInventory(view);
+        });
     }
 
-    @SuppressWarnings("deprecation")
     private void executeCraftingTable(Player p) {
         if (!enabled) return;
         if (!p.hasPermission("genscore.craft") && !hasWorkbenchPerk(p)) {
             p.sendMessage(fr.gens.core.utils.PlaceholderUtils.parseToComponent("<red>Vous n'avez pas la permission ni la maîtrise Établi Portatif.</red>"));
             return;
         }
-        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openWorkbench(p.getLocation(), true));
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+            org.bukkit.inventory.InventoryView view = org.bukkit.inventory.MenuType.CRAFTING.builder()
+                .location(p.getLocation())
+                .checkReachable(false)
+                .build(p);
+            p.openInventory(view);
+        });
     }
 
     @Command("craft")
@@ -113,7 +123,6 @@ public class UtilsModule implements Module, Listener {
     }
 
     @Command("enchanttable")
-    @SuppressWarnings("deprecation")
     public void executeEnchantTable(org.bukkit.command.CommandSender sender) {
         if (!(sender instanceof org.bukkit.entity.Player)) return;
         org.bukkit.entity.Player p = (org.bukkit.entity.Player) sender;
@@ -122,7 +131,13 @@ public class UtilsModule implements Module, Listener {
             plugin.getLangManager().sendMessage(p, "utilsmodule.msg_3");
             return;
         }
-        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> p.openEnchanting(p.getLocation(), true));
+        plugin.getFoliaLib().getScheduler().runAtEntity(p, task -> {
+            org.bukkit.inventory.InventoryView view = org.bukkit.inventory.MenuType.ENCHANTMENT.builder()
+                .location(p.getLocation())
+                .checkReachable(false)
+                .build(p);
+            p.openInventory(view);
+        });
     }
 
     @Command("enchanting")

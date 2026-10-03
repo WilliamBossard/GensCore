@@ -315,7 +315,7 @@ public class WebManager {
             
         } catch (Exception e) {
             plugin.getLangManager().sendConsoleError("webmanager.log_1");
-            e.printStackTrace();
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Failed to start WebManager Javalin server", e);
         } finally {
             // Remettre le ClassLoader original de Bukkit
             Thread.currentThread().setContextClassLoader(classLoader);
@@ -421,6 +421,24 @@ public class WebManager {
                 modulesList.add(moduleData);
             }
             ctx.json(modulesList);
+        });
+
+        // Route API publique/monitoring pour les metriques du serveur
+        get("/api/metrics", ctx -> {
+            if (plugin.getMetricsService() != null) {
+                ctx.json(plugin.getMetricsService().getMetricsMap());
+            } else {
+                ctx.status(503).json(Map.of("error", "Service Unavailable", "message", "MetricsService non initialise"));
+            }
+        });
+
+        // Route API admin dediee aux metriques de performance
+        get("/api/admin/metrics", ctx -> {
+            if (plugin.getMetricsService() != null) {
+                ctx.json(plugin.getMetricsService().getMetricsMap());
+            } else {
+                ctx.status(503).json(Map.of("error", "Service Unavailable", "message", "MetricsService non initialise"));
+            }
         });
 
         // Texte public de la page d'accueil

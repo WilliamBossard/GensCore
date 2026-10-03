@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.LinkedHashMap;
+import java.util.logging.Level;
 
 
 public class EconomyDAO {
@@ -43,7 +44,7 @@ public class EconomyDAO {
                 balances.put(UUID.fromString(rs.getString("uuid")), rs.getDouble("balance"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors du chargement des soldes", e);
         }
         return balances;
     }
@@ -59,21 +60,21 @@ public class EconomyDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la récupération du solde pour " + uuid, e);
         }
         return balance;
     }
 
     public void savePlayerBalance(UUID uuid, double balance) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
+             PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO players_economy (uuid, balance) VALUES (?, ?) " +
                      "ON CONFLICT(uuid) DO UPDATE SET balance=excluded.balance")) {
             ps.setString(1, uuid.toString());
             ps.setDouble(2, balance);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la sauvegarde du solde pour " + uuid, e);
         }
     }
 
@@ -81,7 +82,7 @@ public class EconomyDAO {
         if (balancesToSave == null || balancesToSave.isEmpty()) return;
         try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             conn.setAutoCommit(false);
-            try (PreparedStatement ps = conn.prepareStatement(
+            try (PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn,
                     "INSERT INTO players_economy (uuid, balance) VALUES (?, ?) " +
                     "ON CONFLICT(uuid) DO UPDATE SET balance=excluded.balance")) {
                 for (Map.Entry<UUID, Double> entry : balancesToSave.entrySet()) {
@@ -100,7 +101,7 @@ public class EconomyDAO {
                 conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la sauvegarde par lot des soldes", e);
         }
     }
 
@@ -115,7 +116,7 @@ public class EconomyDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la récupération des meilleurs soldes (baltop)", e);
         }
         return top;
     }
@@ -129,7 +130,7 @@ public class EconomyDAO {
                 total = rs.getDouble("total");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors du calcul de la masse monétaire totale", e);
         }
         return total;
     }

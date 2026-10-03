@@ -4,11 +4,14 @@ import org.bukkit.inventory.ItemStack;
 
 public class ItemSerializer {
 
+    private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(ItemSerializer.class.getName());
+
     public static String toBase64(ItemStack item) {
         if (item == null) return null;
         return java.util.Base64.getEncoder().encodeToString(item.serializeAsBytes());
     }
 
+    // Dépréciation autorisée : maintien du fallback de rétrocompatibilité pour les anciens items (préfixe rO0AB)
     @SuppressWarnings("deprecation")
     public static ItemStack fromBase64(String data) {
         if (data == null || data.isEmpty()) return null;
@@ -23,7 +26,7 @@ public class ItemSerializer {
                 dataInput.close();
                 return item;
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.log(java.util.logging.Level.FINE, "Erreur lors de la désérialisation de l'item hérité: " + e.getMessage());
                 return null;
             }
         }
@@ -32,7 +35,7 @@ public class ItemSerializer {
         try {
             return ItemStack.deserializeBytes(java.util.Base64.getDecoder().decode(data));
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(java.util.logging.Level.FINE, "Erreur lors de la désérialisation de l'item: " + e.getMessage());
             return null;
         }
     }
@@ -55,11 +58,12 @@ public class ItemSerializer {
             dataOutput.close();
             return java.util.Base64.getEncoder().encodeToString(outputStream.toByteArray());
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(java.util.logging.Level.FINE, "Erreur lors de la sérialisation du tableau d'items: " + e.getMessage());
             return null;
         }
     }
 
+    // Dépréciation autorisée : maintien du fallback de rétrocompatibilité pour les anciens tableaux d'items
     @SuppressWarnings("deprecation")
     public static ItemStack[] itemStackArrayFromBase64(String data) {
         if (data == null || data.isEmpty()) return null;
@@ -76,7 +80,7 @@ public class ItemSerializer {
                 dataInput.close();
                 return items;
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.log(java.util.logging.Level.FINE, "Erreur lors de la désérialisation du tableau hérité: " + e.getMessage());
                 return null;
             }
         }
@@ -99,7 +103,7 @@ public class ItemSerializer {
             dataInput.close();
             return items;
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.log(java.util.logging.Level.FINE, "Erreur lors de la désérialisation du tableau d'items: " + e.getMessage());
             return null;
         }
     }

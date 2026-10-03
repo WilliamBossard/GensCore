@@ -99,8 +99,7 @@ public class CommandManager {
                 .registerTo(this.paperCommandManager);
             
         } catch (Exception e) {
-            plugin.getLogger().severe("Impossible d'initialiser Cloud Command Framework");
-            e.printStackTrace();
+            plugin.getLogger().log(java.util.logging.Level.SEVERE, "Impossible d'initialiser Cloud Command Framework", e);
         }
     }
 

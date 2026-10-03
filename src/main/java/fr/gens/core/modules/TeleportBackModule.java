@@ -18,9 +18,22 @@ import java.util.UUID;
 
 public class TeleportBackModule implements Module, Listener {
 
+    public record BackPosition(String worldName, double x, double y, double z, float yaw, float pitch) {
+        public static BackPosition fromLocation(Location loc) {
+            if (loc == null || loc.getWorld() == null) return null;
+            return new BackPosition(loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+        }
+
+        public Location toLocation() {
+            org.bukkit.World w = org.bukkit.Bukkit.getWorld(worldName);
+            if (w == null) return null;
+            return new Location(w, x, y, z, yaw, pitch);
+        }
+    }
+
     private final CorePlugin plugin;
     private boolean enabled = false;
-    private final Map<UUID, Location> lastLocations = new ConcurrentHashMap<>();
+    private final Map<UUID, BackPosition> lastLocations = new ConcurrentHashMap<>();
 
     public TeleportBackModule(CorePlugin plugin) {
         this.plugin = plugin;
@@ -60,15 +73,12 @@ public class TeleportBackModule implements Module, Listener {
     public void disable() {
         enabled = false;
         HandlerList.unregisterAll(this);
+        lastLocations.clear();
         plugin.getLangManager().sendConsoleMessage("teleportbackmodule.log_2");
     }
 
     private void loadBacks() {
         lastLocations.clear();
-    }
-
-    private void saveBacks() {
-        // Plus sauvegardé dans data.yml pour éviter un fichier vide
     }
 
     @EventHandler
@@ -80,8 +90,10 @@ public class TeleportBackModule implements Module, Listener {
     public void onDeath(PlayerDeathEvent event) {
         if(!enabled) return;
         Player p = event.getEntity();
-        lastLocations.put(p.getUniqueId(), p.getLocation());
-        saveBacks();
+        BackPosition pos = BackPosition.fromLocation(p.getLocation());
+        if (pos != null) {
+            lastLocations.put(p.getUniqueId(), pos);
+        }
 
         if (p.hasPermission("genscore.back")) {
             // Message cliquable via MiniMessage
@@ -94,8 +106,10 @@ public class TeleportBackModule implements Module, Listener {
     @EventHandler
     public void onTeleport(PlayerTeleportEvent event) {
         if(!enabled) return;
-        lastLocations.put(event.getPlayer().getUniqueId(), event.getFrom());
-        saveBacks();
+        BackPosition pos = BackPosition.fromLocation(event.getFrom());
+        if (pos != null) {
+            lastLocations.put(event.getPlayer().getUniqueId(), pos);
+        }
     }
 
     @Command("back")
@@ -112,12 +126,15 @@ public class TeleportBackModule implements Module, Listener {
             return;
         }
 
-        Location backLoc = lastLocations.get(p.getUniqueId());
-        if (backLoc != null) {
-            TeleportUtil.teleportWithCooldown(plugin, p, backLoc, "l'ancienne position", "genscore.bypass.cooldown.back");
-        } else {
-            plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_3");
+        BackPosition pos = lastLocations.get(p.getUniqueId());
+        if (pos != null) {
+            Location backLoc = pos.toLocation();
+            if (backLoc != null) {
+                TeleportUtil.teleportWithCooldown(plugin, p, backLoc, "l'ancienne position", "genscore.bypass.cooldown.back");
+                return;
+            }
         }
+        plugin.getLangManager().sendMessage(p, "teleportbackmodule.msg_3");
     }
 }
 

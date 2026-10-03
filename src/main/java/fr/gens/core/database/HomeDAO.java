@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class HomeDAO {
@@ -48,7 +49,7 @@ public class HomeDAO {
 
     public void saveHome(UUID uuid, String name, Location loc) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
+             PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO player_homes (uuid, name, world, x, y, z, yaw, pitch) VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
                      "ON CONFLICT(uuid, name) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
             ps.setString(1, uuid.toString());
@@ -61,7 +62,7 @@ public class HomeDAO {
             ps.setFloat(8, loc.getPitch());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save home " + name + " for " + uuid, e);
         }
     }
 
@@ -72,7 +73,7 @@ public class HomeDAO {
             ps.setString(2, name);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to delete home " + name + " for " + uuid, e);
         }
     }
 
@@ -81,7 +82,7 @@ public class HomeDAO {
              PreparedStatement ps = conn.prepareStatement("DELETE FROM player_homes")) {
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to clear all homes", e);
         }
     }
 
@@ -108,7 +109,7 @@ public class HomeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load homes for " + uuid, e);
         }
         return playerHomes;
     }

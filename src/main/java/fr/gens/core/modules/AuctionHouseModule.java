@@ -126,7 +126,7 @@ public class AuctionHouseModule implements Module {
                         giveOrDropItem(p, itemToSell);
                         plugin.getLangManager().sendMessage(p, "auctionhousemodule.msg_5");
                     });
-                    e.printStackTrace();
+                    plugin.getLogger().log(java.util.logging.Level.WARNING, "Error creating auction item for player " + p.getName(), e);
                 }
             });
         });

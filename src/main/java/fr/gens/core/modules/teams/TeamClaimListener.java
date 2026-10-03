@@ -383,13 +383,13 @@ public class TeamClaimListener implements Listener {
         TeamClaimManager claimManager = getClaimManager();
         if (claimManager == null) return;
 
-        Chunk sourceChunk = event.getBlock().getChunk();
-        Integer sourceTeam = claimManager.getTeamIdAt(sourceChunk);
+        Block pistonBlock = event.getBlock();
+        String world = pistonBlock.getWorld().getName();
+        Integer sourceTeam = claimManager.getTeamIdAt(world, pistonBlock.getX() >> 4, pistonBlock.getZ() >> 4);
 
         for (Block b : event.getBlocks()) {
             Block target = b.getRelative(event.getDirection());
-            Chunk targetChunk = target.getChunk();
-            Integer targetTeam = claimManager.getTeamIdAt(targetChunk);
+            Integer targetTeam = claimManager.getTeamIdAt(world, target.getX() >> 4, target.getZ() >> 4);
 
             if (targetTeam != null && (sourceTeam == null || !sourceTeam.equals(targetTeam))) {
                 event.setCancelled(true);
@@ -403,12 +403,12 @@ public class TeamClaimListener implements Listener {
         TeamClaimManager claimManager = getClaimManager();
         if (claimManager == null) return;
 
-        Chunk sourceChunk = event.getBlock().getChunk();
-        Integer sourceTeam = claimManager.getTeamIdAt(sourceChunk);
+        Block pistonBlock = event.getBlock();
+        String world = pistonBlock.getWorld().getName();
+        Integer sourceTeam = claimManager.getTeamIdAt(world, pistonBlock.getX() >> 4, pistonBlock.getZ() >> 4);
 
         for (Block b : event.getBlocks()) {
-            Chunk targetChunk = b.getChunk();
-            Integer targetTeam = claimManager.getTeamIdAt(targetChunk);
+            Integer targetTeam = claimManager.getTeamIdAt(world, b.getX() >> 4, b.getZ() >> 4);
 
             if (targetTeam != null && (sourceTeam == null || !sourceTeam.equals(targetTeam))) {
                 event.setCancelled(true);

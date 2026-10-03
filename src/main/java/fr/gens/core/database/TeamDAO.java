@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class TeamDAO {
@@ -126,7 +127,7 @@ public class TeamDAO {
             stmt.setString(3, itemData);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to add pending reward for " + uuid, e);
         }
     }
 
@@ -178,7 +179,7 @@ public class TeamDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to process pending rewards for " + player.getName(), e);
         }
     }
 
@@ -265,7 +266,7 @@ public class TeamDAO {
 
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("teammanager.log_1");
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load teams from database", e);
         }
     }
 
@@ -284,7 +285,7 @@ public class TeamDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to create team " + name, e);
         }
         return -1;
     }
@@ -295,7 +296,7 @@ public class TeamDAO {
             statStmt.setInt(1, teamId);
             statStmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to initialize stats for team " + teamId, e);
         }
     }
 
@@ -305,7 +306,7 @@ public class TeamDAO {
             stmt.setInt(1, teamId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to disband team " + teamId, e);
         }
     }
 
@@ -316,7 +317,7 @@ public class TeamDAO {
             stmt.setString(2, member.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to add member " + member + " to team " + teamId, e);
         }
     }
 
@@ -328,7 +329,7 @@ public class TeamDAO {
             stmt.setString(3, member.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to update member role for " + member, e);
         }
     }
 
@@ -339,7 +340,7 @@ public class TeamDAO {
             stmt.executeUpdate();
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("db.query_error");
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to remove member " + member, e);
         }
     }
 
@@ -380,7 +381,7 @@ public class TeamDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get best team stats", e);
         }
         return null;
     }
@@ -432,7 +433,7 @@ public class TeamDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get all team stats", e);
         }
         return teamsList;
     }
@@ -444,7 +445,7 @@ public class TeamDAO {
              PreparedStatement stmt = conn.prepareStatement("DELETE FROM genscore_team_quests")) {
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to clear team quests", e);
         }
     }
     
@@ -459,14 +460,14 @@ public class TeamDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load team quest progress for " + activeQuestId, e);
         }
         return progressMap;
     }
     
     public void saveTeamQuestProgress(int teamId, String activeQuestId, int progress) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
+             PreparedStatement stmt = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO genscore_team_quests (team_id, quest_id, progress) VALUES (?, ?, ?) " +
                      "ON CONFLICT(team_id) DO UPDATE SET progress = ?, quest_id = ?")) {
             stmt.setInt(1, teamId);
@@ -476,7 +477,7 @@ public class TeamDAO {
             stmt.setString(5, activeQuestId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save team quest progress for team " + teamId, e);
         }
     }
     
@@ -488,7 +489,7 @@ public class TeamDAO {
             stmt.setInt(3, teamId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save team stats for team " + teamId, e);
         }
     }
 
@@ -504,13 +505,13 @@ public class TeamDAO {
                 claimsMap.put(fr.gens.core.modules.teams.TeamClaimManager.getChunkKey(world, x, z), teamId);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load team claims", e);
         }
     }
 
     public boolean addClaim(int teamId, String world, int chunkX, int chunkZ) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
+             PreparedStatement stmt = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO genscore_team_claims (team_id, world, chunk_x, chunk_z) VALUES (?, ?, ?, ?) " +
                      "ON CONFLICT(world, chunk_x, chunk_z) DO UPDATE SET team_id = ?")) {
             stmt.setInt(1, teamId);
@@ -521,7 +522,7 @@ public class TeamDAO {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to add claim at " + world + ":" + chunkX + "," + chunkZ, e);
             return false;
         }
     }
@@ -535,7 +536,7 @@ public class TeamDAO {
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to remove claim at " + world + ":" + chunkX + "," + chunkZ, e);
             return false;
         }
     }
@@ -546,7 +547,7 @@ public class TeamDAO {
             stmt.setInt(1, teamId);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to remove all claims for team " + teamId, e);
         }
     }
 
@@ -558,7 +559,7 @@ public class TeamDAO {
             stmt.setInt(3, team.getTeamId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save bank for team " + team.getTeamId(), e);
         }
     }
 
@@ -569,13 +570,13 @@ public class TeamDAO {
             stmt.setInt(2, team.getTeamId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save color for team " + team.getTeamId(), e);
         }
     }
 
     public void saveUpgrade(int teamId, String perkId, int level) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
+             PreparedStatement stmt = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO genscore_team_upgrades (team_id, perk_id, level) VALUES (?, ?, ?) " +
                      "ON CONFLICT(team_id, perk_id) DO UPDATE SET level = ?")) {
             stmt.setInt(1, teamId);
@@ -584,7 +585,7 @@ public class TeamDAO {
             stmt.setInt(4, level);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save upgrade for team " + teamId, e);
         }
     }
     // ---- GUILD HOME ----
@@ -597,11 +598,13 @@ public class TeamDAO {
                          "DELETE FROM genscore_team_home WHERE team_id = ?")) {
                 stmt.setInt(1, team.getTeamId());
                 stmt.executeUpdate();
-            } catch (SQLException e) { e.printStackTrace(); }
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.WARNING, "Failed to delete home for team " + team.getTeamId(), e);
+            }
             return;
         }
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement stmt = conn.prepareStatement(
+             PreparedStatement stmt = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO genscore_team_home (team_id, world, x, y, z, yaw, pitch) VALUES (?,?,?,?,?,?,?) " +
                      "ON CONFLICT(team_id) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
             stmt.setInt(1, team.getTeamId());
@@ -612,7 +615,9 @@ public class TeamDAO {
             stmt.setFloat(6, loc.getYaw());
             stmt.setFloat(7, loc.getPitch());
             stmt.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to save home for team " + team.getTeamId(), e);
+        }
     }
 
     public void loadHome(TeamData team) {
@@ -636,7 +641,9 @@ public class TeamDAO {
                     }
                 }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to load home for team " + team.getTeamId(), e);
+        }
     }
 
     // ---- GUILD VAULT ----
@@ -663,11 +670,15 @@ public class TeamDAO {
                         ins.setInt(2, slot);
                         ins.setString(3, base64);
                         ins.addBatch();
-                    } catch (Exception ex) { ex.printStackTrace(); }
+                    } catch (Exception ex) {
+                        plugin.getLogger().log(Level.WARNING, "Failed to serialize vault item at slot " + slot, ex);
+                    }
                 }
                 ins.executeBatch();
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to save vault for team " + team.getTeamId(), e);
+        }
     }
 
     public void loadVault(TeamData team) {
@@ -684,10 +695,14 @@ public class TeamDAO {
                         byte[] data = java.util.Base64.getDecoder().decode(base64);
                         org.bukkit.inventory.ItemStack item = org.bukkit.inventory.ItemStack.deserializeBytes(data);
                         team.setVaultItem(slot, item);
-                    } catch (Exception ex) { ex.printStackTrace(); }
+                    } catch (Exception ex) {
+                        plugin.getLogger().log(Level.WARNING, "Failed to deserialize vault item at slot " + slot, ex);
+                    }
                 }
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to load vault for team " + team.getTeamId(), e);
+        }
     }
 
     // ---- WEB FALLBACK: charge la guilde d'un joueur depuis la BDD (si absent de la RAM) ----
@@ -802,7 +817,9 @@ public class TeamDAO {
             stmt.setLong(1, team.getLastInterestAt());
             stmt.setInt(2, team.getTeamId());
             stmt.executeUpdate();
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to save bank interest timestamp for team " + team.getTeamId(), e);
+        }
     }
 }
 

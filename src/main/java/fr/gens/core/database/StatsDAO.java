@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class StatsDAO {
@@ -70,7 +71,7 @@ public class StatsDAO {
         String sql = "INSERT INTO player_stats (uuid, discord_id) VALUES (?, ?) " +
                      "ON CONFLICT(uuid) DO UPDATE SET discord_id = excluded.discord_id;";
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = plugin.getDatabaseManager().prepareStatement(conn, sql)) {
             pstmt.setString(1, uuid.toString());
             pstmt.setString(2, discordId);
             pstmt.executeUpdate();
@@ -107,7 +108,7 @@ public class StatsDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get discord ID for " + uuid, e);
         }
         return null;
     }
@@ -125,7 +126,7 @@ public class StatsDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to fetch all known players", e);
         }
         return players;
     }
@@ -139,7 +140,7 @@ public class StatsDAO {
             }
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("db.query_error");
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get playtime minutes for " + uuid, e);
         }
         return 0;
     }
@@ -172,7 +173,7 @@ public class StatsDAO {
             }
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("db.query_error");
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get global leaderboard", e);
         }
         return leaderboard;
     }
@@ -199,7 +200,7 @@ public class StatsDAO {
                     }
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to load player stats for " + uuid, e);
             }
             future.complete(loadedStats);
         });
@@ -220,7 +221,7 @@ public class StatsDAO {
                 pstmt.setString(7, uuid.toString());
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to save player stats for " + uuid, e);
             }
             future.complete(null);
         });
@@ -253,7 +254,7 @@ public class StatsDAO {
                 pstmt.executeBatch();
                 conn.commit();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to save all player stats batch", e);
             }
             future.complete(null);
         };

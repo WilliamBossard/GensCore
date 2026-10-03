@@ -1,6 +1,6 @@
 # GensCore
 
-![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.3+-red.svg) ![Status](https://img.shields.io/badge/Status-Beta-orange.svg) ![Tests](https://img.shields.io/badge/Tests-69%20passing-brightgreen.svg)
+![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.3+-red.svg) ![Status](https://img.shields.io/badge/Status-Beta-orange.svg) ![Tests](https://img.shields.io/badge/Tests-81%20passing-brightgreen.svg)
 
 **GensCore** is a comprehensive core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all the essential server mechanics into a single, optimized plugin, offering excellent performance while avoiding the need to manage dozens of separate small plugins. It is fully compatible with **Paper** and **Folia**!
 
@@ -65,6 +65,25 @@ The Discord module requires a bot Token. For security reasons, this Token must *
 - Provide it via the `bot_token: "YOUR_TOKEN"` option in `modules/discord.yml`.
 - The bot ensures clean server shutdowns without throwing `zip file closed` errors by disconnecting its WebSockets properly before the Minecraft server halts.
 
+### Database Engine
+GensCore uses a dual-engine database layer managed by HikariCP:
+- **SQLite (Default):** Zero setup required. All data is saved locally in `plugins/GensCore/genscore.db`.
+- **MySQL / MariaDB (Optional):** Can be activated in `config.yml` (`database.type: "mysql"`). Ideal for external databases or containerized setups.
+- **Automatic Fallback:** If the external database server is unreachable or offline, GensCore automatically falls back to local SQLite without interrupting server startup.
+
+```yaml
+database:
+  type: "sqlite" # "sqlite" or "mysql"
+  sqlite:
+    file: "genscore.db"
+  mysql:
+    host: "127.0.0.1"
+    port: 3306
+    database: "genscore"
+    username: "genscore_user"
+    password: "change_me"
+```
+
 ---
 
 ## Internal Code Architecture
@@ -72,8 +91,10 @@ The Discord module requires a bot Token. For security reasons, this Token must *
 For developers wishing to modify or understand the plugin, here are the pillars of its internal architecture:
 
 1. **The `ModuleManager`**: This is the core system. Instead of being a monolithic plugin, GensCore is divided into dozens of "Modules" (such as `EconomyModule`, `TeamsModule`, `DiscordModule`). They all inherit from the `Module` interface and can be dynamically enabled or disabled.
-2. **Local Database (`DatabaseManager.java`)**: To remain autonomous, GensCore doesn't use MySQL but a **local SQLite database** (`genscore.db`), which saves everything: player balances, guild inventories, quest progression, and connection histories.
+2. **Database Engine (`DatabaseManager.java`)**: By default, GensCore uses a local SQLite database (`genscore.db`) with HikariCP connection pooling. An optional external MySQL/MariaDB database can be enabled with automatic schema migration, SQL dialect translation (`adaptQuery`), and resilient automatic fallback to SQLite upon connection failure.
 3. **REST Web API (`WebManager.java` & `WebPlayerAPI.java`)**: Javalin is used in the background to spin up an HTTP micro-server on port 8080. The React code in the `/web-panel` folder is built and placed into `/src/main/resources/public/`. Every time an admin visits the web page, Javalin serves these HTML/JS files and communicates with React via a JSON API.
+4. **Metrics & Health Service (`MetricsService.java`)**: Collects real-time JVM telemetry, Folia tick rate, database connection pool statistics, and active module status exposed via `/api/metrics` and in-game commands.
+5. **Command Engine & Cloud Patch (`CommandManager.java`)**: Powered by the Incendo Cloud Command Framework with asynchronous coordination and Brigadier suggestions. Includes an architecture patch (`ItemStackParser.java`) to ensure flawless item argument parsing on Paper 26.3 until Cloud 2.1+ is released.
 
 ---
 
@@ -187,12 +208,14 @@ On startup and when a player with the `genscore.admin` permission (or operator s
 | `/team disband` | — | Disband your team |
 | `/team info` | — | View team info |
 
-### Other
+### Administration & System
 | Command | Permission | Description |
 |---------|-----------|-------------|
-| `/ec` | — | Open your enderchest |
+| `/gens status` | `genscore.admin` | View server, JVM, Folia tick rate and active modules status |
+| `/gens db` | `genscore.admin` | View database engine type and HikariCP connection pool metrics |
+| `/genscore reload` | `genscore.admin` | Reload plugin configuration files |
 | `/feed` | `genscore.admin` | Feed yourself |
-| `/genscore reload` | `genscore.admin` | Reload plugin config |
+| `/ec` | — | Open your enderchest |
 
 > **Note:** Players with operator status (`/op`) automatically inherit the `genscore.admin` permission.
 > 
@@ -202,7 +225,7 @@ On startup and when a player with the `genscore.admin` permission (or operator s
 
 ## Lootr Integration
 
-GensCore completely integrates a custom Lootr-like system (per-player loot chests) directly into the core, meaning **you do not need to install any external mods or plugins**. Chest data and per-player loot inventories are persisted in the embedded **SQLite** database (`lootr_chests` & `lootr_player_chests` tables). If a legacy `chests.yml` file is detected on startup, it will be migrated automatically and transparently.
+GensCore completely integrates a custom Lootr-like system (per-player loot chests) directly into the core, meaning **you do not need to install any external mods or plugins**. Chest data and per-player loot inventories are persisted in the configured database (SQLite or MySQL, in `lootr_chests` & `lootr_player_chests` tables). If a legacy `chests.yml` file is detected on startup, it will be migrated automatically and transparently.
 
 You can configure its behaviour in the `modules/lootr.yml` file:
 

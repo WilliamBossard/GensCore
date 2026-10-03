@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class SpawnerDAO {
@@ -87,7 +88,7 @@ public class SpawnerDAO {
             }
         } catch (SQLException e) {
             plugin.getLangManager().sendConsoleError("spawnermodule.log_3");
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load active spawners from database", e);
         }
         return count;
     }
@@ -113,7 +114,7 @@ public class SpawnerDAO {
             
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save spawner " + data.getId(), e);
         }
     }
 
@@ -149,7 +150,7 @@ public class SpawnerDAO {
             conn.setAutoCommit(true);
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to batch save spawners", e);
         }
     }
 
@@ -159,7 +160,7 @@ public class SpawnerDAO {
             stmt.setString(1, id.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to delete spawner " + id, e);
         }
     }
 }

@@ -50,7 +50,7 @@ GensCore is designed as an autonomous, self-contained server core replacing doze
 - **Engine Target:** **PaperMC** and **Folia** (Minecraft 26.3+).
 - **Runtime:** **Java 25 (LTS)** with Classfile 69 compatibility and ASM 9.10.1 shading.
 - **Concurrency & Folia Threading:** Utilizes *FoliaLib* for regional multi-threading. Global actions run on `GlobalRegionScheduler`, chunk tasks on `RegionScheduler`, and player actions on `EntityScheduler`. Console commands and inventory manipulations are isolated to prevent cross-thread synchronization crashes.
-- **Autonomous Database:** Embedded **SQLite** engine operating in **WAL (Write-Ahead Logging)** mode (`PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;`). No external SQL server is required, though transactions are thread-safe and isolated.
+- **Dual Database Architecture (SQLite Default & Optional MySQL/MariaDB):** By default, GensCore runs on an embedded **SQLite** engine operating in **WAL (Write-Ahead Logging)** mode (`PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;`). For multi-server networks or external storage, an optional **MySQL / MariaDB** connection can be activated in `config.yml`. If the external database is unreachable at startup, an automatic safe fallback to local SQLite engages to ensure the server always boots without interruption.
 - **Cross-Play Ready (Geyser & Floodgate):** Bedrock players are natively detected. In-game menus automatically open as native Bedrock dialogs (Cumulus Forms API) on Bedrock clients, while Java players receive virtual chest GUIs. Bedrock custom skins and heads are supported via the built-in Web Avatar API.
 - **Multi-Protocol & ViaVersion Interoperability:** Uses reflection-isolated `ViaVersionUtil` to seamlessly support legacy Java clients (26.2, 1.21.x, 1.20.x). Automatically substitutes 26.3 blocks (Pale Oak, Resin) in menus with cross-version equivalents, exposes `%genscore_client_version%` via PlaceholderAPI, and provides `/check <player>` for staff diagnostics.
 - **Vault & LuckPerms Optionality:** Built-in economy and permission systems function with or without Vault and LuckPerms. If Vault is present, GensCore registers its `GensVaultEconomy` provider automatically.
@@ -394,6 +394,7 @@ Master administration commands for server operators.
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
+| `/gens` | `[status|db]` | `genscore.admin` | OP | Master administration command displaying system health, JVM metrics, Folia status, and database pool statistics. |
 | `/module` | `<moduleName> <on\|off>` | `genscore.admin` | OP | Dynamically enables or disables any internal module at runtime without restarting. |
 | `/menu` | `[name]` | *None* | Everyone | Opens a custom YAML menu configured in `plugins/GensCore/menus/`. |
 
@@ -675,6 +676,40 @@ plugins/GensCore/
 │   └── ...
 └── web/                    # Extracted React / Vite frontend files (index.html, assets)
 ```
+
+### Database Configuration (SQLite vs MySQL)
+
+GensCore offers dual-engine database persistence configured via `config.yml`:
+
+#### 1. SQLite Engine (Default)
+Ideal for single-server setups, local test servers, and autonomous deployments. No external server or configuration required.
+```yaml
+database:
+  type: "sqlite"
+  sqlite:
+    file: "genscore.db"
+```
+- Operates in WAL mode with connection pooling (10 connections).
+- Zero external network dependencies.
+
+#### 2. MySQL / MariaDB Engine (Optional)
+Ideal for multi-server networks (BungeeCord / Velocity) or external analytics pipelines.
+```yaml
+database:
+  type: "mysql"
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "genscore"
+    username: "root"
+    password: "YOUR_SECURE_PASSWORD"
+    ssl: false
+    max_pool_size: 10
+    minimum_idle: 2
+    connection_timeout: 30000
+```
+> [!NOTE]
+> **Automatic Safe Fallback:** If `type: "mysql"` is configured but the remote server is unreachable, timed out, or rejected, GensCore logs a clear warning in the server console and automatically engages the local SQLite database. The Minecraft server will never crash or fail to boot due to an unreachable database.
 
 ### Network Ports & Port Forwarding
 If running GensCore on a dedicated server or VPS (e.g., Pterodactyl, OVH, Hetzner):

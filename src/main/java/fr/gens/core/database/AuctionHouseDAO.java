@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 
 public class AuctionHouseDAO {
@@ -51,7 +52,7 @@ public class AuctionHouseDAO {
             ps.setLong(5, expireTime);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de l'ajout d'une enchère pour " + sellerName, e);
         }
     }
 
@@ -75,7 +76,7 @@ public class AuctionHouseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la récupération des enchères", e);
         }
         return items;
     }
@@ -87,7 +88,7 @@ public class AuctionHouseDAO {
             int affected = ps.executeUpdate();
             return affected > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la suppression de l'enchère " + id, e);
             return false;
         }
     }
@@ -110,7 +111,7 @@ public class AuctionHouseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la récupération de l'enchère " + id, e);
         }
         return null;
     }
@@ -172,7 +173,7 @@ public class AuctionHouseDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Erreur lors de la récupération des enchères pour le panel web", e);
         }
         return ahItems;
     }

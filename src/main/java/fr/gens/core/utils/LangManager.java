@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.logging.Level;
 
 
 public class LangManager {
@@ -64,7 +65,7 @@ public class LangManager {
                     defConfig.save(file);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Impossible d'initialiser le fichier de langue " + fileName, e);
             }
         } else {
             updateLangFile(file, fileName);
@@ -95,7 +96,7 @@ public class LangManager {
                 plugin.getLogger().info("Updated language file: " + fileName + " with missing keys.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Impossible de mettre à jour le fichier de langue " + fileName, e);
         }
     }
 

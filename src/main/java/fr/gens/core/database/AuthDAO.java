@@ -74,7 +74,7 @@ public class AuthDAO {
             pstmt.setString(1, uuid.toString());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(java.util.logging.Level.WARNING, "Failed to remove auth data for " + uuid, e);
         }
     }
 

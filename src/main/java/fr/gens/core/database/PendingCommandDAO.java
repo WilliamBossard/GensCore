@@ -57,7 +57,7 @@ public class PendingCommandDAO {
             ps.setString(4, itemDataBase64);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(java.util.logging.Level.WARNING, "Erreur lors de l'enregistrement d'une récompense différée pour " + uuid, e);
         }
     }
 

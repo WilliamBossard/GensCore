@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class ShopDAO {
@@ -76,7 +77,7 @@ public class ShopDAO {
                 ));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load shop categories", e);
         }
         return categories;
     }
@@ -109,14 +110,14 @@ public class ShopDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load shop items", e);
         }
     }
 
     public void saveShop(List<ShopCategory> categories) {
         try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             for (ShopCategory cat : categories) {
-                try (PreparedStatement ps = conn.prepareStatement(
+                try (PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn,
                         "INSERT INTO shop_categories (id, displayName, icon) VALUES (?, ?, ?) " +
                         "ON CONFLICT(id) DO UPDATE SET displayName=excluded.displayName, icon=excluded.icon")) {
                     ps.setString(1, cat.getId());
@@ -126,7 +127,7 @@ public class ShopDAO {
                 }
 
                 for (ShopItem item : cat.getItems()) {
-                    try (PreparedStatement ps = conn.prepareStatement(
+                    try (PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn,
                             "INSERT INTO shop_items (material, category_id, buyPrice, sellPrice, stock, targetStock, isCommand, commandToExecute, isEnabled) " +
                             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                             "ON CONFLICT(material) DO UPDATE SET category_id=excluded.category_id, buyPrice=excluded.buyPrice, " +
@@ -146,7 +147,7 @@ public class ShopDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save shop categories/items", e);
         }
     }
 
@@ -158,7 +159,7 @@ public class ShopDAO {
                 ps.setString(2, item.getMaterial().name());
                 ps.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to update item stock async for " + item.getMaterial(), e);
             }
         });
     }
@@ -175,7 +176,7 @@ public class ShopDAO {
                 ps.setInt(5, item.getStock());
                 ps.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to log shop transaction for " + item.getMaterial(), e);
             }
         });
     }
@@ -194,7 +195,7 @@ public class ShopDAO {
                 ps.setLong(6, System.currentTimeMillis());
                 ps.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to log player transaction for " + uuid, e);
             }
         });
     }
@@ -216,7 +217,7 @@ public class ShopDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to fetch shop history for " + material, e);
         }
         return history;
     }
@@ -228,7 +229,7 @@ public class ShopDAO {
             ps.setString(2, categoryId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to delete shop item " + materialName, e);
         }
         return false;
     }
@@ -239,7 +240,7 @@ public class ShopDAO {
             ps.setString(1, categoryId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to delete shop category " + categoryId, e);
         }
         return false;
     }

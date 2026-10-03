@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Location;
@@ -81,7 +82,7 @@ public class LockModule implements Module {
                 locks.put(locStr, new LockData(locStr, ownerUuid, teamId > 0 ? teamId : -1));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load locks from database", e);
         }
     }
 
@@ -103,7 +104,7 @@ public class LockModule implements Module {
                 stmt.setInt(3, teamId);
                 stmt.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to create lock in database", e);
             }
         });
     }
@@ -118,7 +119,7 @@ public class LockModule implements Module {
                 stmt.setString(1, locStr);
                 stmt.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to remove lock from database", e);
             }
         });
     }

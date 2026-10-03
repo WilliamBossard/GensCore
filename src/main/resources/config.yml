@@ -1,8 +1,25 @@
-# General Configuration for GensCore
-# Global language file to use (e.g., en_US, fr_FR)
+# Configuration generale de GensCore
+# Fichier de langue global (ex: fr_FR, en_US)
 lang: "en_US"
 
-# Database Configuration (SQLite)
-# Local SQLite Database configuration
+# Configuration de la base de donnees
 database:
-  file: "genscore.db"
+  # Type de base de donnees : "sqlite" (defaut, autonome) ou "mysql" (base de donnees distante)
+  type: "sqlite"
+
+  # Configuration SQLite locale (active par defaut si type: "sqlite")
+  sqlite:
+    file: "genscore.db"
+
+  # Configuration MySQL / MariaDB externe (optionnelle, active uniquement si type: "mysql")
+  # En cas d'echec de connexion au serveur distant, GensCore bascule automatiquement sur SQLite
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "genscore"
+    username: "root"
+    password: ""
+    ssl: false
+    max_pool_size: 10
+    minimum_idle: 2
+    connection_timeout: 30000

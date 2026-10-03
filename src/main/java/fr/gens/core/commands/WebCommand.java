@@ -19,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public class WebCommand implements Listener {
 
@@ -148,7 +149,7 @@ public class WebCommand implements Listener {
                     });
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to deposit item to web for " + player.getName(), e);
                 // Rollback defensif : restituer l'objet
                 plugin.getFoliaLib().getScheduler().runAtEntity(player, (t2) -> {
                     if (player.isOnline()) {
@@ -203,7 +204,7 @@ public class WebCommand implements Listener {
                 });
 
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to open web withdraw GUI for " + player.getName(), e);
                 plugin.getLangManager().sendMessage(player, "webcommand.msg_7");
             }
         });
@@ -250,7 +251,7 @@ public class WebCommand implements Listener {
                         });
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    plugin.getLogger().log(Level.WARNING, "Failed to claim web reward item " + id + " for " + player.getName(), e);
                 }
             });
         }
@@ -299,7 +300,7 @@ public class WebCommand implements Listener {
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to load pending web rewards for " + player.getName(), e);
             }
         });
     }

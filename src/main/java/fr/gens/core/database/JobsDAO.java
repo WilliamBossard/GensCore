@@ -11,6 +11,7 @@ import java.sql.Statement;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class JobsDAO {
@@ -57,14 +58,14 @@ public class JobsDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load player jobs for " + uuid, e);
         }
     }
 
     public void savePlayerJobs(UUID uuid, Map<JobType, Double> playerXp, Map<JobType, Integer> playerLevel, Map<JobType, Boolean> activeJobs) {
         if (playerXp == null || playerXp.isEmpty()) return;
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
+             PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO player_jobs (uuid, job_name, level, xp) VALUES (?, ?, ?, ?) " +
                      "ON CONFLICT(uuid, job_name) DO UPDATE SET level = excluded.level, xp = excluded.xp")) {
             for (Map.Entry<JobType, Double> entry : playerXp.entrySet()) {
@@ -78,7 +79,7 @@ public class JobsDAO {
             }
             ps.executeBatch();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save player jobs for " + uuid, e);
         }
     }
 
@@ -89,7 +90,7 @@ public class JobsDAO {
             ps.setString(2, type.name());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to remove job " + type + " for " + uuid, e);
         }
     }
 
@@ -103,7 +104,7 @@ public class JobsDAO {
                 globalJobLevel = rs.getInt("total");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get total job level for " + uuid, e);
         }
         return globalJobLevel;
     }
@@ -132,7 +133,7 @@ public class JobsDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to fetch jobs leaderboard data", e);
         }
         return jobsLeaderboard;
     }

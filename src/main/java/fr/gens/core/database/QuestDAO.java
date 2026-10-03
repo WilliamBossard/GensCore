@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.logging.Level;
 
 
 public class QuestDAO {
@@ -80,7 +81,7 @@ public class QuestDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get quests completed total for " + uuid, e);
         }
         return 0;
     }
@@ -105,7 +106,7 @@ public class QuestDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get rerolls done for " + uuid, e);
         }
 
         if (needsReset) {
@@ -126,7 +127,7 @@ public class QuestDAO {
                 stmt.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to set rerolls done for " + uuid, e);
         }
     }
 
@@ -179,7 +180,7 @@ public class QuestDAO {
                         }
                     }
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    plugin.getLogger().log(Level.WARNING, "Failed to query quests leaderboard period", e);
                 }
                 return list;
             };
@@ -202,12 +203,12 @@ public class QuestDAO {
                     totalList.add(map);
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to get all-time quests leaderboard", e);
             }
             result.put("total", totalList);
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get quests leaderboard data", e);
         }
         return result;
     }

@@ -30,6 +30,7 @@ public class CorePlugin extends JavaPlugin {
     private TeamQuestManager teamQuestManager;
     private CommandManager commandManager;
     private FoliaLib foliaLib;
+    private fr.gens.core.utils.MetricsService metricsService;
     private boolean isWiping = false;
     private static CorePlugin instance;
     private com.tcoded.folialib.wrapper.task.WrappedTask reminderTask;
@@ -64,6 +65,7 @@ public class CorePlugin extends JavaPlugin {
 
         this.storageManager = new StorageManager(this);
         this.databaseManager = new DatabaseManager(this);
+        this.metricsService = new fr.gens.core.utils.MetricsService(this);
         fr.gens.core.utils.HeadUtil.init(this);
         fr.gens.core.utils.ViaVersionUtil.init(this);
         this.actionBarManager = new ActionBarManager(this);
@@ -100,6 +102,7 @@ public class CorePlugin extends JavaPlugin {
         if (this.commandManager != null && this.commandManager.getAnnotationParser() != null) {
             this.commandManager.getAnnotationParser().parse(new fr.gens.core.commands.WebCommand(this));
             this.commandManager.getAnnotationParser().parse(new fr.gens.core.commands.ModuleCommand(this));
+            this.commandManager.getAnnotationParser().parse(new fr.gens.core.commands.GensCommand(this));
         }
 
         org.bukkit.configuration.file.FileConfiguration webConfig = getConfigManager().getConfig("modules/web.yml");
@@ -216,6 +219,10 @@ public class CorePlugin extends JavaPlugin {
     
     public FoliaLib getFoliaLib() {
         return foliaLib;
+    }
+
+    public fr.gens.core.utils.MetricsService getMetricsService() {
+        return metricsService;
     }
 }
 

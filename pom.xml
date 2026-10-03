@@ -6,7 +6,7 @@
 
     <groupId>fr.gens</groupId>
     <artifactId>GensCore</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
 
     <name>GensCore</name>
@@ -91,11 +91,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- SQLite pour la base de données -->
+        <!-- SQLite pour la base de donnees locale -->
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.53.4.0</version>
+        </dependency>
+
+        <!-- MariaDB / MySQL JDBC Driver pour le support optionnel de base externe -->
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.5.2</version>
         </dependency>
         
         <!-- LuckPerms API pour le Scoreboard et Nametags -->
@@ -293,6 +300,10 @@
                                 <relocation>
                                     <pattern>org.incendo</pattern>
                                     <shadedPattern>fr.gens.core.lib.incendo</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.mariadb.jdbc</pattern>
+                                    <shadedPattern>fr.gens.core.lib.mariadb</shadedPattern>
                                 </relocation>
                             </relocations>
                             <filters>

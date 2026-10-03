@@ -58,6 +58,12 @@ import org.incendo.cloud.suggestion.SuggestionProvider;
  * Custom override of ItemStackParser to support Minecraft / Paper 26.3 without
  * throwing ExceptionInInitializerError during PaperCommandManager initialization.
  *
+ * NOTE DE MAINTENANCE ARCHITECTURALE :
+ * Cette classe est un patch temporaire surchargeant org.incendo.cloud.bukkit.parser.ItemStackParser
+ * pour contourner une rupture de réflexion NMS sur les arguments ItemInput/Brigadier de Paper 26.3.
+ * Dès la publication de Cloud Paper 2.1+ supportant nativement Paper 26.3, cette classe
+ * pourra être retirée pour repasser intégralement sur la dépendance Maven officielle.
+ *
  * @param <C> Command sender type
  */
 public class ItemStackParser<C> implements ArgumentParser.FutureArgumentParser<C, ProtoItemStack> {

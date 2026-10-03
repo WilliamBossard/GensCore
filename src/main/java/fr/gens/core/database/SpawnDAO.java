@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
 
 
 public class SpawnDAO {
@@ -58,14 +59,14 @@ public class SpawnDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load spawn location from database", e);
         }
         return null;
     }
 
     public void saveSpawn(Location loc) {
         try (Connection conn = plugin.getDatabaseManager().getConnection();
-             PreparedStatement ps = conn.prepareStatement(
+             PreparedStatement ps = plugin.getDatabaseManager().prepareStatement(conn,
                      "INSERT INTO spawn_location (id, world, x, y, z, yaw, pitch) VALUES (1, ?, ?, ?, ?, ?, ?) " +
                      "ON CONFLICT(id) DO UPDATE SET world=excluded.world, x=excluded.x, y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch")) {
             ps.setString(1, loc.getWorld().getName());
@@ -76,7 +77,7 @@ public class SpawnDAO {
             ps.setFloat(6, loc.getPitch());
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save spawn location to database", e);
         }
     }
 }

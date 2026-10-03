@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class TombDAO {
@@ -74,7 +75,7 @@ public class TombDAO {
                 tombsByLocation.put(loc.getBlock().getLocation(), id);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load active tombs from database", e);
         }
     }
 
@@ -92,7 +93,7 @@ public class TombDAO {
             stmt.setLong(9, expirationTime);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to create tomb " + id + " for " + ownerId, e);
         }
     }
 
@@ -102,7 +103,7 @@ public class TombDAO {
             stmt.setString(1, id.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to delete tomb " + id, e);
         }
     }
 }

@@ -339,7 +339,7 @@ public class EconomyModule implements Module, Listener {
                 }
             } catch (Exception e) {
                 plugin.getLangManager().sendMessage(sender, "economymodule.msg_2");
-                e.printStackTrace();
+                plugin.getLogger().log(java.util.logging.Level.WARNING, "Error displaying baltop", e);
             }
         });
     }

@@ -1208,7 +1208,7 @@ public class WebPlayerAPI implements Listener {
                     profileStmt.executeUpdate();
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().log(java.util.logging.Level.WARNING, "Error updating player profile in database", e);
             }
         });
     }

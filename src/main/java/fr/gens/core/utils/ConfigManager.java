@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import java.util.Map;
 
 
@@ -62,7 +63,7 @@ public class ConfigManager {
         try {
             config.save(file);
         } catch (IOException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.SEVERE, "Impossible de sauvegarder initialement " + fileName, e);
         }
 
         // Si on a des defaults dans le jar, on les ajoute
@@ -74,7 +75,7 @@ public class ConfigManager {
             try {
                 config.save(file);
             } catch (IOException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.SEVERE, "Impossible de sauvegarder les defaults pour " + fileName, e);
             }
         }
 
@@ -108,8 +109,7 @@ public class ConfigManager {
                 try {
                     java.nio.file.Files.writeString(file.toPath(), data, StandardCharsets.UTF_8);
                 } catch (IOException e) {
-                    plugin.getLogger().severe("Impossible de sauvegarder la configuration: " + fileName);
-                    e.printStackTrace();
+                    plugin.getLogger().log(Level.SEVERE, "Impossible de sauvegarder la configuration: " + fileName, e);
                 }
             };
 
@@ -132,8 +132,7 @@ public class ConfigManager {
             try {
                 java.nio.file.Files.writeString(file.toPath(), data, StandardCharsets.UTF_8);
             } catch (IOException e) {
-                plugin.getLogger().severe("Impossible de sauvegarder la configuration principale (config.yml)");
-                e.printStackTrace();
+                plugin.getLogger().log(Level.SEVERE, "Impossible de sauvegarder la configuration principale (config.yml)", e);
             }
         };
 

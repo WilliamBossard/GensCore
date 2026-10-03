@@ -525,14 +525,13 @@ public class ShopModule implements Module {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private boolean isSellableItem(ItemStack item, Material requiredMaterial) {
         if (item == null || item.getType() != requiredMaterial) {
             return false;
         }
         if (item.hasItemMeta()) {
             ItemMeta meta = item.getItemMeta();
-            if (meta.hasDisplayName() || meta.hasEnchants() || meta.hasLore() || meta.hasCustomModelData()) {
+            if (meta.hasCustomName() || meta.hasItemName() || meta.hasEnchants() || meta.hasLore() || meta.hasCustomModelDataComponent()) {
                 return false;
             }
             if (meta instanceof Damageable dmg && dmg.hasDamage()) {

@@ -28,6 +28,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.meta.SkullMeta;
 
@@ -231,7 +232,7 @@ public class QuestModule implements Module, Listener {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to distribute weekly quest rewards", e);
         }
     }
 
@@ -263,7 +264,7 @@ public class QuestModule implements Module, Listener {
                     try {
                         Files.copy(file.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        plugin.getLogger().log(Level.WARNING, "Failed to copy legacy quest file: " + file.getName(), e);
                     }
                 }
             }
@@ -368,7 +369,7 @@ public class QuestModule implements Module, Listener {
                     assignNewQuests(uuid, data, conn);
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to load player quest data for " + uuid, e);
             }
             
             // Fetch stats (must be outside the connection block to avoid deadlock with connection pool = 1)
@@ -466,7 +467,7 @@ public class QuestModule implements Module, Listener {
                                 ps.setString(4, questId);
                                 ps.executeUpdate();
                             } catch (SQLException e) {
-                                e.printStackTrace();
+                                plugin.getLogger().log(Level.WARNING, "Failed to update player quest progress for " + p.getName(), e);
                             }
                         });
                     }
@@ -504,7 +505,7 @@ public class QuestModule implements Module, Listener {
                     ps.executeUpdate();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to increment quest stats for " + p.getName(), e);
             }
         });
     }
@@ -574,7 +575,7 @@ public class QuestModule implements Module, Listener {
                 }
                 ps.executeBatch();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to batch save active quests for " + uuid, e);
             }
         };
 
@@ -605,7 +606,7 @@ public class QuestModule implements Module, Listener {
                         openQuestsMenu(p);
                     });
                 } catch (java.sql.SQLException e) {
-                    e.printStackTrace();
+                    plugin.getLogger().log(Level.WARNING, "Failed to execute quest reroll for " + p.getName(), e);
                 }
             });
         } else {
@@ -1011,7 +1012,7 @@ public class QuestModule implements Module, Listener {
                 });
                 
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to reroll quest in DB for " + p.getName(), e);
             }
         });
     }

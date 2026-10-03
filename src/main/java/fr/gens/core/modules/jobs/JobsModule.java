@@ -39,6 +39,7 @@ public class JobsModule implements Module, Listener {
     private final Map<UUID, Map<JobType, Integer>> playerLevel = new ConcurrentHashMap<>();
     private final Map<UUID, Map<JobType, Boolean>> activeJobs = new ConcurrentHashMap<>();
     private final java.util.Set<UUID> dirtyPlayers = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private final Map<UUID, java.util.Set<Long>> playerPlacedBlocks = new ConcurrentHashMap<>();
     private com.tcoded.folialib.wrapper.task.WrappedTask autoSaveTask = null;
     
     private fr.gens.core.database.JobsDAO jobsDAO;
@@ -117,6 +118,7 @@ public class JobsModule implements Module, Listener {
             savePlayer(uuid);
         }
         dirtyPlayers.clear();
+        playerPlacedBlocks.clear();
         playerXp.clear();
         playerLevel.clear();
         activeJobs.clear();
@@ -298,11 +300,16 @@ public class JobsModule implements Module, Listener {
         }
     }
 
-    @SuppressWarnings("deprecation")
+    private static long packBlockKey(int x, int y, int z) {
+        return ((long) x & 0x3FFFFFF) << 38 | ((long) y & 0xFFF) << 26 | ((long) z & 0x3FFFFFF);
+    }
+
     @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
     public void onBlockPlace(org.bukkit.event.block.BlockPlaceEvent e) {
         if (!enabled) return;
-        e.getBlockPlaced().setMetadata("genscore_player_placed", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+        org.bukkit.block.Block b = e.getBlockPlaced();
+        long key = packBlockKey(b.getX(), b.getY(), b.getZ());
+        playerPlacedBlocks.computeIfAbsent(b.getWorld().getUID(), k -> ConcurrentHashMap.newKeySet()).add(key);
     }
 
     @EventHandler(ignoreCancelled = true, priority = org.bukkit.event.EventPriority.HIGH)
@@ -310,8 +317,10 @@ public class JobsModule implements Module, Listener {
         if (!enabled) return;
         
         // Anti-Farm Exploit
-        if (e.getBlock().hasMetadata("genscore_player_placed")) {
-            e.getBlock().removeMetadata("genscore_player_placed", plugin);
+        org.bukkit.block.Block b = e.getBlock();
+        java.util.Set<Long> placedInWorld = playerPlacedBlocks.get(b.getWorld().getUID());
+        long key = packBlockKey(b.getX(), b.getY(), b.getZ());
+        if (placedInWorld != null && placedInWorld.remove(key)) {
             return; // Le joueur ne reçoit pas d'XP pour les blocs posés à la main
         }
         

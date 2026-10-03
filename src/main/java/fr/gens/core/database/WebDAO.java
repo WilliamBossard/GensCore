@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Random;
+import java.util.logging.Level;
 
 public class WebDAO {
 
@@ -70,7 +71,7 @@ public class WebDAO {
             ps.setLong(2, expiry);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save web admin session", e);
         }
     }
 
@@ -80,7 +81,7 @@ public class WebDAO {
             ps.setString(1, token);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to remove web admin session", e);
         }
     }
 
@@ -96,7 +97,7 @@ public class WebDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load valid admin sessions", e);
         }
         return sessions;
     }
@@ -109,7 +110,7 @@ public class WebDAO {
             ps.setLong(3, expiry);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save player web session for " + uuid, e);
         }
     }
 
@@ -119,7 +120,7 @@ public class WebDAO {
             ps.setString(1, token);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to remove player web session", e);
         }
     }
 
@@ -135,7 +136,7 @@ public class WebDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load valid web player sessions", e);
         }
         return sessions;
     }
@@ -332,7 +333,7 @@ public class WebDAO {
                 return Map.of("success", true, "multiplier", multiplier, "result", resultType);
             } catch (Exception e) {
                 conn.rollback();
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to execute web roulette spin", e);
                 return Map.of("error", "Erreur serveur lors de la transaction");
             } finally {
                 conn.setAutoCommit(true);
@@ -403,7 +404,7 @@ public class WebDAO {
                 );
             } catch (Exception e) {
                 conn.rollback();
-                e.printStackTrace();
+                plugin.getLogger().log(Level.WARNING, "Failed to execute web coinflip", e);
                 return Map.of("error", "Erreur serveur lors de la transaction");
             } finally {
                 conn.setAutoCommit(true);
@@ -429,7 +430,7 @@ public class WebDAO {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to get deposited item " + id + " for " + uuid, e);
         }
         return null;
     }
@@ -441,7 +442,7 @@ public class WebDAO {
             pstmt.setString(2, uuid);
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to delete deposited item " + id + " for " + uuid, e);
         }
         return false;
     }
@@ -455,7 +456,7 @@ public class WebDAO {
             pstmt.setString(4, base64 != null ? base64 : "");
             pstmt.executeUpdate();
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to add web reward for " + uuid, e);
         }
     }
 
@@ -470,7 +471,7 @@ public class WebDAO {
                 if (rs.next()) return rs.getInt(1);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to count deposited slots for " + uuid, e);
         }
         return 0;
     }
@@ -497,7 +498,7 @@ public class WebDAO {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to find stackable deposit for " + uuid, e);
         }
         return null;
     }
@@ -518,7 +519,7 @@ public class WebDAO {
             pstmt.setString(3, uuid);
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to update deposited item amount for " + id, e);
         }
         return false;
     }
@@ -535,7 +536,7 @@ public class WebDAO {
             pstmt.setString(3, uuid);
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to increment deposited item amount for " + id, e);
         }
         return false;
     }

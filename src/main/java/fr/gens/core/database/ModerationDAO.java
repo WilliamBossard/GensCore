@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Level;
 
 
 public class ModerationDAO {
@@ -57,7 +58,7 @@ public class ModerationDAO {
             }
             pstmt.executeBatch();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save moderation mutes", e);
         }
     }
 
@@ -74,7 +75,7 @@ public class ModerationDAO {
             }
             pstmt.executeBatch();
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to save moderation frozen players", e);
         }
     }
 
@@ -87,7 +88,7 @@ public class ModerationDAO {
                 mutes.put(UUID.fromString(rs.getString("uuid")), new MuteData(rs.getString("reason"), rs.getLong("expiration")));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load moderation mutes", e);
         }
         return mutes;
     }
@@ -101,7 +102,7 @@ public class ModerationDAO {
                 frozen.add(UUID.fromString(rs.getString("uuid")));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().log(Level.WARNING, "Failed to load moderation frozen players", e);
         }
         return frozen;
     }

@@ -26,6 +26,7 @@ public class SpawnerData {
     private transient long lastGenerateMillis;
     
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(SpawnerData.class.getName());
 
     public SpawnerData(UUID id, Location location, String type, int stackCount, int storedExp, String itemsJson, String lastInteractedPlayer, int storageLevel, int expLevel, int speedLevel) {
         this.id = id;
@@ -44,7 +45,7 @@ public class SpawnerData {
             try {
                 this.storedItems = mapper.readValue(itemsJson, new TypeReference<Map<String, Integer>>() {});
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                LOGGER.log(java.util.logging.Level.WARNING, "Failed to parse spawner storedItems JSON", e);
             }
         }
     }
@@ -130,7 +131,7 @@ public class SpawnerData {
         try {
             return mapper.writeValueAsString(this.storedItems);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            LOGGER.log(java.util.logging.Level.WARNING, "Failed to serialize spawner storedItems to JSON", e);
             return "{}";
         }
     }
