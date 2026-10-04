@@ -1,0 +1,106 @@
+# ==============================================================================
+# GensCore - Quêtes Journalières : Catégorie Facile (easy.yml)
+# ==============================================================================
+# Chaque fichier dans plugins/GensCore/quests/ représente une catégorie.
+# GensCore tire au sort chaque jour 3 quêtes par catégorie pour chaque joueur.
+# ==============================================================================
+
+quests:
+  mine_stone:
+    name: "<green><bold>Carrière de Pierre"
+    menu_item: "STONE_PICKAXE"
+    description:
+      - "<gray>Mine 64 blocs de pierre ou roche."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "BREAK"
+    required:
+      - "STONE"
+      - "COBBLESTONE"
+      - "DEEPSLATE"
+      - "COBBLED_DEEPSLATE"
+    required_amount: 64
+    reward:
+      commands:
+        - "eco give %player% 75"
+
+  chop_wood:
+    name: "<green><bold>Bûcheron Débutant"
+    menu_item: "OAK_LOG"
+    description:
+      - "<gray>Abats 32 bûches de n'importe quel bois."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "BREAK"
+    required:
+      - "OAK_LOG"
+      - "BIRCH_LOG"
+      - "SPRUCE_LOG"
+      - "JUNGLE_LOG"
+      - "ACACIA_LOG"
+      - "DARK_OAK_LOG"
+      - "MANGROVE_LOG"
+      - "CHERRY_LOG"
+    required_amount: 32
+    reward:
+      commands:
+        - "eco give %player% 80"
+
+  kill_zombies:
+    name: "<green><bold>Chasse aux Rôdeurs"
+    menu_item: "ROTTEN_FLESH"
+    description:
+      - "<gray>Élimine 10 zombies à la surface ou sous terre."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "KILL"
+    required:
+      - "ZOMBIE"
+      - "HUSK"
+      - "DROWNED"
+    required_amount: 10
+    reward:
+      commands:
+        - "eco give %player% 100"
+
+  catch_fish:
+    name: "<green><bold>Pêche du Matin"
+    menu_item: "FISHING_ROD"
+    description:
+      - "<gray>Pêche 5 poissons ou trésors dans l'eau."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "FISH"
+    required:
+      - "COD"
+      - "SALMON"
+      - "PUFFERFISH"
+      - "TROPICAL_FISH"
+    required_amount: 5
+    reward:
+      commands:
+        - "eco give %player% 90"
+
+  bake_bread:
+    name: "<green><bold>Boulangerie Artisanale"
+    menu_item: "BREAD"
+    description:
+      - "<gray>Fabrique 16 miches de pain."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "CRAFT"
+    required:
+      - "BREAD"
+    required_amount: 16
+    reward:
+      commands:
+        - "eco give %player% 60"
+
+  shear_sheep:
+    name: "<green><bold>Tonte Pastorale"
+    menu_item: "SHEARS"
+    description:
+      - "<gray>Tonds 8 moutons avec des cisailles."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "SHEAR"
+    required:
+      - "SHEEP"
+    required_amount: 8
+    reward:
+      commands:
+        - "eco give %player% 70"

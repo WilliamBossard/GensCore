@@ -1,0 +1,97 @@
+# ==============================================================================
+# GensCore - Quêtes Journalières : Catégorie Moyenne (medium.yml)
+# ==============================================================================
+
+quests:
+  mine_iron:
+    name: "<gold><bold>Extraction de Fer"
+    menu_item: "IRON_INGOT"
+    description:
+      - "<gray>Mine 32 minerais de fer brut."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "BREAK"
+    required:
+      - "IRON_ORE"
+      - "DEEPSLATE_IRON_ORE"
+    required_amount: 32
+    reward:
+      commands:
+        - "eco give %player% 200"
+
+  kill_skeletons:
+    name: "<gold><bold>Nettoyage d'Ossements"
+    menu_item: "BONE"
+    description:
+      - "<gray>Élimine 15 squelettes à distance ou au corps-à-corps."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "KILL"
+    required:
+      - "SKELETON"
+      - "STRAY"
+      - "BOGGED"
+    required_amount: 15
+    reward:
+      commands:
+        - "eco give %player% 250"
+
+  cook_beef:
+    name: "<gold><bold>Grand Festin Grillé"
+    menu_item: "COOKED_BEEF"
+    description:
+      - "<gray>Fais cuire 32 steaks dans un four ou fumoir."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "COOK"
+    required:
+      - "COOKED_BEEF"
+      - "COOKED_PORKCHOP"
+      - "COOKED_MUTTON"
+    required_amount: 32
+    reward:
+      commands:
+        - "eco give %player% 180"
+
+  breed_animals:
+    name: "<gold><bold>Éleveur Assidu"
+    menu_item: "WHEAT"
+    description:
+      - "<gray>Fais se reproduire 10 couples d'animaux."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "BREED"
+    required:
+      - "COW"
+      - "SHEEP"
+      - "PIG"
+      - "CHICKEN"
+    required_amount: 10
+    reward:
+      commands:
+        - "eco give %player% 220"
+
+  kill_spiders:
+    name: "<gold><bold>Éradication d'Arachnides"
+    menu_item: "SPIDER_EYE"
+    description:
+      - "<gray>Élimine 12 araignées venimeuses ou géantes."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "KILL"
+    required:
+      - "SPIDER"
+      - "CAVE_SPIDER"
+    required_amount: 12
+    reward:
+      commands:
+        - "eco give %player% 200"
+
+  craft_iron_chestplate:
+    name: "<gold><bold>Armurier Militaire"
+    menu_item: "IRON_CHESTPLATE"
+    description:
+      - "<gray>Fabrique 1 plastron en fer complet."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "CRAFT"
+    required:
+      - "IRON_CHESTPLATE"
+    required_amount: 1
+    reward:
+      commands:
+        - "eco give %player% 150"

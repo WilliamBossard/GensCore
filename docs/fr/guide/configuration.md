@@ -244,6 +244,80 @@ items:
 
 ---
 
+## Création et Configuration des Quêtes (`quests/`)
+
+En plus du réglage global des relances dans `modules/quests.yml`, GensCore permet de créer une infinité de quêtes personnalisées réparties par catégories dans le dossier `plugins/GensCore/quests/` (ex : `easy.yml`, `medium.yml`, `hard.yml` fournis par défaut, ou vos propres fichiers comme `farming.yml`, `combat.yml`, `mining.yml`).
+
+### Comment fonctionne la distribution ?
+- Chaque fichier YAML dans `plugins/GensCore/quests/` définit une **catégorie** de quêtes.
+- Chaque jour à minuit (ou lors de la première connexion quotidienne du joueur), GensCore tire au sort automatiquement **jusqu'à 3 quêtes par catégorie**.
+- Le joueur ouvre l'interface via `/quests` (ou `/quest`) pour consulter ses objectifs, sa barre de progression en temps réel et ses récompenses.
+- Un **clic droit** sur une quête permet de la relancer (reroll) dans la limite autorisée (`quests.max_rerolls_per_day` dans `modules/quests.yml`).
+- Chaque quête terminée alimente l'historique du joueur et débloque les avantages permanents du module [Solo Perks](/fr/guide/modules#12-bonus-personnels-de-quetes-soloperkmodule) (`/perks`) ainsi que l'avancement de guilde.
+
+### Structure YAML d'un fichier de quêtes
+
+```yaml
+quests:
+  mine_diamonds:
+    name: "<aqua><bold>Trésor des Abîmes"
+    menu_item: "DIAMOND"
+    description:
+      - "<gray>Mine 16 minerais de diamant brut."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "BREAK"
+    required:
+      - "DIAMOND_ORE"
+      - "DEEPSLATE_DIAMOND_ORE"
+    required_amount: 16
+    reward:
+      commands:
+        - "eco give %player% 750"
+        - "tell %player% Félicitations pour votre trouvaille !"
+```
+
+### Paramètres d'une quête
+
+| Champ | Type | Description |
+|---|---|---|
+| `name` | Texte | Nom formaté avec le support complet de **MiniMessage** (`<gradient>`, `<bold>`, etc.). |
+| `menu_item` | Matériau | Matériau Minecraft vanilla servant d'icône d'affichage dans le menu `/quests`. |
+| `description` | Liste | Lignes de texte affichées dans l'infobulle (lore). Les balises `<current>` et `<total>` sont automatiquement remplacées par la progression en direct. |
+| `quest_type` | Chaîne | Type d'objectif parmi les 28 types reconnus par le moteur. |
+| `required` | Liste / Texte | Matériau vanilla ou entité ciblée. Peut être une valeur unique ou une liste (ex: plusieurs variantes de minerais). |
+| `required_amount` | Entier | Quantité cible requise pour valider la quête. |
+| `reward.commands` | Liste | Commandes exécutées par la console lors de la complétion. Supporte `%player%` et `{player}` pour cibler le joueur. |
+
+### Les 28 Types de Quêtes Pris en Charge (`quest_type`)
+
+| `quest_type` | Action Déclenchante | Valeur attendue dans `required` | Exemple |
+|---|---|---|---|
+| `BREAK` | Casser / Miner un bloc | Type de bloc vanilla | `STONE`, `DIAMOND_ORE`, `OAK_LOG` |
+| `PLACE` | Poser un bloc dans le monde | Type de bloc vanilla | `OBSIDIAN`, `TORCH`, `STONE_BRICKS` |
+| `KILL` | Tuer une créature ou un joueur | Type d'entité vanilla | `ZOMBIE`, `SKELETON`, `CREEPER`, `PLAYER` |
+| `CRAFT` | Fabriquer un objet dans l'établi | Type d'objet résultant | `BREAD`, `IRON_CHESTPLATE`, `GOLDEN_APPLE` |
+| `FISH` | Pêcher un poisson ou un trésor | Type d'objet repêché | `COD`, `SALMON`, `PUFFERFISH`, `BOW` |
+| `SHEAR` | Tondre un animal avec des cisailles | Type d'entité tondue | `SHEEP`, `MOOSHROOM` |
+| `COOK` | Cuire un aliment ou fondre un minerai | Type d'objet extrait du four | `COOKED_BEEF`, `IRON_INGOT`, `GLASS` |
+| `CONSUME` | Manger ou boire un consommable | Type d'aliment ou potion | `GOLDEN_CARROT`, `POTION`, `BREAD` |
+| `BREED` | Faire se reproduire deux animaux | Type d'animal reproduit | `COW`, `SHEEP`, `CHICKEN`, `PIG` |
+| `PICKUP` | Ramasser un objet au sol | Type d'objet ramassé | `EMERALD`, `NETHERITE_INGOT` |
+| `TAME` | Apprivoiser un animal sauvage | Type d'animal apprivoisé | `WOLF`, `CAT`, `HORSE`, `PARROT` |
+| `VILLAGER_TRADE` | Conclure un échange avec un PNJ | Type d'objet ou profession | `VILLAGER` |
+| `GET` | Obtenir un objet dans son inventaire | Type d'objet | `ELYTRA`, `TOTEM_OF_UNDYING` |
+| `MILKING` | Traire une vache avec un seau | Type d'entité | `COW`, `MOOSHROOM` |
+| `EXP_POINTS` | Récolter des orbes d'expérience | Quantité de points | `EXP_POINTS` |
+| `EXP_LEVELS` | Atteindre un niveau d'XP requis | Nombre de niveaux | `EXP_LEVELS` |
+| `ENCHANT` | Enchanter un objet sur la table | Matériau enchanté | `DIAMOND_SWORD`, `BOW`, `BOOK` |
+| `CARVE` | Sculpter une citrouille avec cisailles | Type de bloc | `PUMPKIN` |
+| `PLAYER_DEATH` | Mourir au combat ou d'accident | Cause ou n'importe | `PLAYER_DEATH` |
+| `LOCATION` | Atteindre une région ou des coordonnées | Nom de zone | Coordonnées / Région |
+| `FARMING` | Récolter une culture mature | Type de graine ou légume | `WHEAT`, `CARROTS`, `POTATOES` |
+| `LAUNCH` | Tirer une flèche ou lancer un projectile | Type de projectile | `ARROW`, `ENDER_PEARL`, `TRIDENT` |
+| *Intégrations* | Plugins externes optionnels | Dépendance | `MYTHIC_MOBS`, `ELITE_MOBS`, `NU_VOTIFIER`, `PYRO_FISH`, `EMF_FISH`, `PLACEHOLDER` |
+
+---
+
 ## Fichiers de Langues & Traduction (`lang/`)
 
 Tous les messages, notifications d'erreurs et affichages textuels du plugin sont regroupés dans `plugins/GensCore/lang/` (`fr_FR.yml` et `en_US.yml`) :
