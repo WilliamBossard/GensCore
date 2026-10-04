@@ -89,24 +89,27 @@ Chaque fonctionnalité de GensCore peut être activée ou désactivée indépend
 | `quests` | Quêtes journalières avec relances | `true` | Configuré via `modules/quests.yml` |
 | `lootr` | Coffres de donjon instanciés par joueur | `true` | Configuré via `modules/lootr.yml` |
 | `headdrop` | Drop de têtes de monstres et joueurs | `true` | Configuré via `modules/headdrop.yml` |
-| `minigame` | Roue de la fortune, machine à sous, pile ou face | `true` | Configuré via `modules/minigames.yml` |
+| `minigames` | Roue de la fortune, machine à sous, pile ou face | `true` | Configuré via `modules/minigames.yml` |
 | `motd` | MOTD dynamique avec tags MiniMessage | `true` | Configuré via `modules/motd.yml` |
 | `tabboard` | Scoreboard et Tablist dynamiques | `true` | Configuré via `modules/tabboard.yml` |
 | `discord` | Pont Discord Bot (chat et logs staff) | `true` | Nécessite un bot token dans `modules/discord.yml` |
 | `gui` | Gestionnaire d'inventaires virtuels | `true` | Détecte nativement les joueurs Bedrock (Geyser/Floodgate) |
-| `web` | Serveur API Javalin et panel React | `true` | Configuré via `modules/web.yml` |
 | `tomb` | Tombes de mort protégeant stuff et XP | `false` | Activer si vous préférez des tombes aux drops au sol |
 | `home` | Points de téléportation personnels (`/home`) | `true` | Quotas configurables par permissions |
 | `back` | Retour au point de mort ou téléportation (`/back`) | `true` | Zéro fuite mémoire (`record BackPosition`) |
 | `spawn` | Point d'apparition principal (`/spawn`) | `true` | Persistant en base de données |
 | `tpa` | Requêtes de téléportation entre joueurs | `true` | Annulation automatique en cas de mouvement |
 | `teams` | Guildes, claims de territoire, banque commune | `true` | Intégré à BlueMap et au panel web |
-| `lock` | Verrouillage anti-vol des coffres et fours | `true` | Protection contre les pistons et entonnoirs |
+| `locks` | Verrouillage anti-vol des coffres et fours | `true` | Protection contre les pistons et entonnoirs |
 | `auth` | Authentification en jeu (`/login`, `/register`) | `true` | Hashage sécurisé des mots de passe en BCrypt |
 | `moderation` | Outils de modération (`/ban`, `/mute`, `/freeze`) | `true` | Sanctions persistantes en base de données |
 | `chat` | Format du chat et synchronisation des préfixes | `true` | Synchronisation automatique avec LuckPerms |
 | `bluemap` | Affichage des territoires sur BlueMap | `false` | Nécessite le plugin BlueMap |
 | `fastleafdecay` | Disparition rapide des feuilles d'arbres | `true` | Optimisé pour Paper et Folia |
+| `solo_perks` | Avantages et maîtrises de quêtes solo (`/perks`) | `true` | Synchronisé avec les quêtes et l'économie |
+| `customgui` | Chargeur de menus virtuels YAML (`/menu`) | `true` | Configuré via `plugins/GensCore/menus/` |
+| `utils` | Utilitaires virtuels (`/craft`, `/anvil`, `/ec`, `/feed`) | `true` | API native Paper 26.3 MenuType |
+| `bedrockskin` | Proxy et cache des skins & avatars Bedrock | `true` | Cache local Floodgate pour les têtes 3D |
 
 ---
 
@@ -149,6 +152,103 @@ Chaque fonctionnalité de GensCore peut être activée ou désactivée indépend
 - `modules.tomb.expiration_time_seconds` (`3600`) : Durée avant déclenchement de l'action d'expiration.
 - `modules.tomb.expiration_action` (`UNLOCK`) : Comportement à expiration (`UNLOCK`, `DROP` au sol, ou `DESTROY`).
 - `modules.tomb.default_access` (`OWNER_ONLY`) : Accès réservé au défunt (`OWNER_ONLY`) ou ouvert à tous (`EVERYONE`).
+
+### 7. Boutique Dynamique & Catalogue d'Objets (`modules/shop.yml`)
+- `categories.<nom_categorie>` : Définit une catégorie d'articles (ex: `ores`, `farming`, `drops`, `blocks`, `nether`).
+  - `displayName` : Nom formaté de la catégorie affiché dans l'interface `/shop`.
+  - `icon` : Matériau vanilla utilisé comme icône du menu de catégorie.
+  - `items.<MATERIAU>` :
+    - `buyPrice` : Prix d'achat unitaire de base auprès du serveur.
+    - `sellPrice` : Prix de vente unitaire de base au serveur (calibré à ~25-35% du prix d'achat pour prévenir tout arbitrage).
+    - `stock` : Quantité actuelle en stock dynamique.
+    - `targetStock` : Stock cible d'équilibre. Les achats diminuent le stock (font monter le prix) ; les ventes alimentent le stock (font baisser le prix).
+
+### 8. Mini-Jeux & Casino Web (`modules/minigames.yml`)
+- **Roue de la Fortune (`minigames.wheel`) :**
+  - `wheel.enabled` (`true`) : Active le tirage gratuit quotidien.
+  - `wheel.rewards` : 8 parts de récompenses équilibrées avec `name`, `command` (exécutée en console lors du gain), `chance` (poids en pourcentage), et `color` (couleur hexadécimale sur l'interface web).
+- **Machine à Sous Web (`minigames.casino`) :**
+  - `casino.enabled` (`true`) : Active la machine à sous animée à 3 rouleaux sur le panel web.
+  - `jackpot_chance` (`4`) : Probabilité du triple 7 / jackpot (~500x).
+  - `medium_win_chance` (`8`) : Probabilité de 3 symboles identiques (~300x).
+  - `small_win_chance` (`20`) : Probabilité de 2 symboles identiques (~200x). Assure un taux de redistribution théorique (RTP) équilibré d'environ 84%.
+- **CoinFlip (`minigames.coinflip`) :**
+  - `coinflip.enabled` (`true`) : Active les duels joueur-contre-joueur à pile ou face.
+  - `coinflip.multiplier` (`2`) : Multiplicateur appliqué à la mise du vainqueur.
+
+### 9. Scoreboard Dynamique & Tablist (`modules/tabboard.yml`)
+- **Scoreboard (`tabboard.scoreboard`) :**
+  - `title` : Titre d'en-tête acceptant les balises MiniMessage.
+  - `lines` : Lignes personnalisables acceptant les variables intégrées (`%money%`, `%player%`, `%online%`) et les méta LuckPerms.
+- **Tablist (`tabboard.tablist`) :**
+  - `header` : Bannière de bienvenue au-dessus de la liste des joueurs.
+  - `footer` : Pied de page sous la liste des joueurs.
+  - `show_platform_prefix` (`true`) : Affiche le tag `[Bedrock]` pour les joueurs mobiles Floodgate.
+  - `discord_linked` / `discord_not_linked` : Badges visuels de vérification Discord.
+
+### 10. Délais de Téléportation & Quota de Homes (`modules/teleport.yml`)
+- `modules.home.default_max` (`3`) : Nombre maximum de homes personnels autorisés pour les joueurs sans grade ni perk solo.
+- `teleport-cooldown` (`3`) : Délai de préchauffage (warmup) en secondes avant l'exécution de `/spawn`, `/home` ou `/tpa`. Tout déplacement ou coup reçu annule la téléportation, sauf avec une permission de contournement.
+
+### 11. Quêtes Journalières (`modules/quests.yml`)
+- `quests.max_rerolls_per_day` (`3`) : Nombre maximum de relances par clic droit autorisées chaque jour dans `/quests`.
+
+### 12. Quêtes Hebdomadaires de Guilde (`modules/teams.yml`)
+- `teams.last_rotation` : Horodatage (epoch) de la dernière rotation de quête hebdomadaire de guilde.
+- `teams.active_quest` : Identifiant de la quête collective active (ex: `weekly_1`).
+
+### 13. Têtes de Joueurs & Monstres (`modules/headdrop.yml`)
+- `headdrop.chance` (`10.0`) : Pourcentage de probabilité (0.0 à 100.0) qu'un monstre ou un joueur vaincu fasse tomber sa tête avec skin lors de sa mort.
+
+### 14. Message Serveur MOTD (`modules/motd.yml`)
+- `motd.line1` : Première ligne affichée dans la liste des serveurs multijoueur (balises MiniMessage supportées).
+- `motd.line2` : Seconde ligne affichée dans la liste des serveurs.
+
+### 15. Système de Chat (`modules/chat.yml`)
+- `chat.custom-join-messages` (`true`) : Active les annonces formatées d'arrivée et de départ synchronisées avec les préfixes LuckPerms.
+
+### 16. Carte 3D BlueMap (`modules/bluemap.yml`)
+- `bluemap.url` (`"http://localhost:8100"`) : Adresse du serveur BlueMap intégrée dans l'iframe du panel web d'administration.
+
+---
+
+## Menus Virtuels Personnalisés en YAML (`menus/`)
+
+GensCore permet aux administrateurs de concevoir une infinité de menus virtuels d'inventaire dans le dossier `plugins/GensCore/menus/` (ex : `default.yml`, `tutoriel.yml`).
+
+```yaml
+title: "<gradient:#00c6ff:#0072ff><bold>Menu Principal</bold></gradient>"
+size: 27
+items:
+  '11':
+    material: "DIAMOND_SWORD"
+    name: "<gold><bold>Boutique & Économie"
+    lore:
+      - "<gray>Cliquez pour ouvrir la boutique du serveur."
+    command: "shop"
+  '13':
+    material: "PLAYER_HEAD"
+    name: "<green><bold>Métiers & Professions"
+    lore:
+      - "<gray>Consultez votre progression de carrière."
+    command: "jobs"
+  '15':
+    material: "BEACON"
+    name: "<aqua><bold>Système de Guildes"
+    lore:
+      - "<gray>Gérez votre clan et vos territoires."
+    command: "team"
+```
+
+- **Enregistrement Automatique de Commande :** Tout fichier de menu créé dans `menus/<nom>.yml` génère automatiquement la commande `/menu <nom>` en jeu !
+
+---
+
+## Fichiers de Langues & Traduction (`lang/`)
+
+Tous les messages, notifications d'erreurs et affichages textuels du plugin sont regroupés dans `plugins/GensCore/lang/` (`fr_FR.yml` et `en_US.yml`) :
+- **Support MiniMessage Intégral :** Couleurs hexadécimales, dégradés (`<gradient:#ff0000:#00ff00>texte</gradient>`), tooltips au survol (`<hover:show_text:'Infobulle'>Survolez-moi</hover>`) et actions au clic (`<click:run_command:'/spawn'>Spawn</click>`).
+- **Variables Dynamiques :** Les messages injectent automatiquement les variables contextuelles comme `<player>`, `<amount>`, `<target>`, `<balance>`.
 
 ---
 

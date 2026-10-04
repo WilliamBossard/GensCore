@@ -61,5 +61,5 @@ Pour offrir la meilleure expérience à vos joueurs (ressource packs, mods, sync
 
 - Consultez la [Liste complète des Commandes](/fr/guide/commands).
 - Configurez les grades joueurs et staff avec le guide [Permissions & LuckPerms](/fr/guide/permissions).
-- Découvrez les [28 Modules en jeu](/fr/guide/modules).
+- Découvrez les [30 Modules en jeu](/fr/guide/modules).
 - Connectez-vous au [Panel Web & Mini-jeux](/fr/guide/web-panel).

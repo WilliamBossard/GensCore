@@ -32,7 +32,11 @@ Welcome to the official documentation for **GensCore**, the all-in-one survival/
    - [Custom Spawner Leveling](#custom-spawner-leveling)
    - [Jobs Leveling & Economy Rewards](#jobs-leveling--economy-rewards)
    - [Container Locking & Anti-Piston Security](#container-locking--anti-piston-security)
+   - [Guilds, Claims & Shared Treasury](#guilds-claims--shared-treasury)
+   - [Solo Quest Perks & Masteries](#solo-quest-perks--masteries)
+   - [Minigames & Casino](#minigames--casino)
    - [Bedrock & Floodgate Cross-Play Features](#bedrock--floodgate-cross-play-features)
+   - [ViaVersion & Multi-Protocol Interoperability](#viaversion--multi-protocol-interoperability)
    - [Custom YAML Menus](#custom-yaml-menus)
 5. [The Web Application & Administration Panel](#5-the-web-application--administration-panel)
    - [Web Server Architecture & Security](#web-server-architecture--security)
@@ -531,6 +535,39 @@ Chest and container security operates at the block-event level:
 - **Anti-Piston Shield:** Pistons cannot move, retract, or push locked blocks.
 - **Anti-Shulker Break:** Piston-based shulker breaking contraptions are cancelled, preventing duplication or theft exploits.
 
+### Guilds, Claims & Shared Treasury
+A complete clan ecosystem supporting Folia multi-threading and Bedrock crossplay:
+- **Hierarchy & Roles (Leader, Admin, Member):**
+  - **Leader (`LEADER`):** Full ownership, admin promotions/demotions, disbanding the guild, treasury withdrawals, and territory claims.
+  - **Administrator (`ADMIN`):** Co-management powers: invitations, kicking regular members, treasury withdrawals, land claims/unclaims, BlueMap color styling, and perk purchases.
+  - **Member (`MEMBER`):** Depositing funds & XP, participating in weekly co-op quests, and accessing guild-locked storage containers.
+- **Shared Treasury (Guild Bank):** Guild members deposit dollars (`/team deposit <amount>`) or XP levels (`/team depositxp <levels>`). When the Economy module is disabled, all transactions and perk upgrades automatically switch to player XP levels.
+- **Territory Claims ($16 \times 16$ Chunks):** Guilds claim chunks via `/team claim` ($1500 or 10 XP levels per chunk). Comprehensive anti-grief prevents breaking, placing, container access, redstone, and entity damage by outsiders.
+- **Team Perks (10 Active Guild Upgrade Trees):** Max Members, Extended Territory, Jobs Boost, Auction House Tax Reduction, Co-op Quest Boost, Guild Home Warp, Territory Buffs (Regen, Speed, Haste with 5-minute chunk stabilization anchor), Daily Bank Interest, Spawner Efficiency, and Shared Virtual Vault (`/team vault`).
+- **BlueMap Live Integration:** All guild claims render seamlessly on 3D BlueMap with customized hex colors.
+
+### Solo Quest Perks & Masteries
+Comprehensive individual progression system connecting lifetime completed daily quests to permanent benefits:
+- **Free Milestone Perks:**
+  1. *Free Reroll (5 quests):* 1 free daily quest reroll (`/quest reroll`).
+  2. *Extra Home (15 quests):* +1 additional personal waypoint usable with `/sethome`.
+  3. *Celestial Stride (30 quests):* Permanent Speed I effect out of combat.
+  4. *Jobs Wisdom (50 quests):* Permanent +5% multiplier on all jobs XP gains.
+  5. *Instant Teleport (75 quests):* Halves all teleport warmup delays.
+  6. *Endless Feast (100 quests):* Unlocks the `/feed` command with a 15-minute cooldown.
+- **Major Solo Masteries:**
+  1. *Item Magnet (25 quests, $20,000 / 40 XP):* Magnetically draws ground items within 5 blocks. Toggleable (`/magnet`).
+  2. *Double Harvest (40 quests, $35,000 / 60 XP):* 5% chance to double mined ores and chopped logs.
+  3. *Portable Workbench (60 quests, $50,000 / 80 XP):* Instant access to `/craft` anywhere.
+  4. *Auto-Smelt (80 quests, $75,000 / 100 XP):* Automatically smelts mined raw ores into ingots. Toggleable (`/autosmelt`).
+  5. *Soul Preservation (100 quests, $100,000 / 120 XP):* Retains 50% of your experience levels upon death.
+
+### Minigames & Casino
+Dynamic interactive minigames designed for server engagement and item circulation:
+- **Wheel of Fortune:** Daily reward spinner giving players chances to win resources, netherite, spawners, and items with offline queue persistence.
+- **Web Slot Machine:** 3-reel casino machine powered by in-game items deposited via `/web deposit` (balanced aggregate RTP of ~84%).
+- **CoinFlip & Bets:** High-stakes peer-to-peer duels synchronized with SQLite/MySQL balances.
+
 ### Bedrock & Floodgate Cross-Play Features
 - Automatic detection of Bedrock players joining via GeyserMC / Floodgate.
 - **Cumulus Forms API:** Opening menus (`/team`, `/jobs`, `/shop`) automatically serves native Bedrock window forms instead of Java inventory containers, avoiding desyncs and touch-screen misclicks.
@@ -589,7 +626,7 @@ Accessible at `http://<your-server-ip>:8080/admin`:
   - View all registered players, their online/offline status, balances, and UUIDs.
   - Search by name or UUID.
   - Kick, ban, mute, or adjust player money directly through the browser.
-- **Live Module Switchboard:** Toggle any of the 28 modules on or off instantly with a click—no server reboot required.
+- **Live Module Switchboard:** Toggle any of the 30 modules on or off instantly with a click—no server reboot required.
 - **Configuration Tuner:**
   - Adjust shop inflation rates.
   - Set auction house taxation percentages.
@@ -747,6 +784,8 @@ database:
 GensCore operates on a modular architecture where each feature can be independently toggled on or off. Modules can also be toggled at runtime via `/module <name> <on|off>`.
 
 ```yaml
+# Enable or disable specific GensCore modules (30 modules).
+# Set to true to enable, false to disable.
 modules:
   dynamicshop: true
   economy: true
@@ -755,26 +794,29 @@ modules:
   stats: true
   spawners: true
   quests: true
+  solo_perks: true
   lootr: true
   headdrop: true
-  minigame: true
+  minigames: true
   motd: true
   tabboard: true
   discord: true
   gui: true
-  web: true
+  customgui: true
   tomb: false
   home: true
   back: true
   spawn: true
   tpa: true
   teams: true
-  lock: true
+  locks: true
   auth: true
   moderation: true
   chat: true
   bluemap: false
   fastleafdecay: true
+  utils: true
+  bedrockskin: true
 ```
 
 | Module Key | In-Game Feature | Default | Dependencies / Notes |
@@ -788,24 +830,27 @@ modules:
 | `quests` | Daily rotating quests with reroll limits | `true` | Configured via `modules/quests.yml` |
 | `lootr` | Per-player instanced dungeon & structure chests | `true` | Configured via `modules/lootr.yml` |
 | `headdrop` | Mob and player skull drop probabilities | `true` | Configured via `modules/headdrop.yml` |
-| `minigame` | Fortune Wheel, Casino Slots & CoinFlip | `true` | Configured via `modules/minigames.yml` & Web Panel |
+| `minigames` | Fortune Wheel, Casino Slots & CoinFlip | `true` | Configured via `modules/minigames.yml` & Web Panel |
 | `motd` | Dynamic server list ping message | `true` | Configured via `modules/motd.yml` |
 | `tabboard` | Custom Scoreboard and Tablist layout | `true` | Configured via `modules/tabboard.yml` |
 | `discord` | Discord Bot bridge (chat sync, staff logs) | `true` | Requires valid bot token in `modules/discord.yml` |
 | `gui` | In-game menu provider | `true` | Auto-detects Bedrock clients (Cumulus Forms) |
-| `web` | Embedded Javalin REST API & React Dashboard | `true` | Configured via `modules/web.yml` |
 | `tomb` | Death graves preserving items & XP upon player death | `false` | Enable if you want graves instead of standard item drops |
 | `home` | Player home waypoints (`/sethome`, `/home`) | `true` | Limits set via permissions and `modules/teleport.yml` |
 | `back` | Return to last death or teleport location (`/back`) | `true` | Zero-leak `BackPosition` memory safety |
 | `spawn` | Server spawn location (`/setspawn`, `/spawn`) | `true` | Persistent spawn coordinates in database |
 | `tpa` | Teleport request system (`/tpa`, `/tpaccept`, etc.) | `true` | Configurable warmup and movement cancellation |
 | `teams` | Guilds, territory claims, shared bank & weekly quests | `true` | Integrated with BlueMap and Web Panel |
-| `lock` | Container protection for chests, barrels & furnaces | `true` | Anti-hopper and anti-piston theft protection |
+| `locks` | Container protection for chests, barrels & furnaces | `true` | Anti-hopper and anti-piston theft protection |
 | `auth` | In-game authentication for offline servers (`/login`) | `true` | BCrypt password hashing |
 | `moderation` | Staff toolset (`/ban`, `/mute`, `/kick`, `/freeze`) | `true` | Persistent punishment records in database |
 | `chat` | Chat formatting and join/quit messages | `true` | LuckPerms prefix/suffix synchronization |
 | `bluemap` | BlueMap guild territory claim visualization | `false` | Requires BlueMap installed on the server |
 | `fastleafdecay` | Instant natural decay for orphaned tree leaves | `true` | High-performance leaves cleanup |
+| `solo_perks` | Solo quest progression perks & masteries (`/perks`) | `true` | Integrated with daily quests & economy |
+| `customgui` | Custom YAML inventory menus loader (`/menu`) | `true` | Configured via `plugins/GensCore/menus/` |
+| `utils` | Virtual utilities (`/craft`, `/anvil`, `/ec`, `/feed`) | `true` | Native Paper 26.3 MenuType API |
+| `bedrockskin` | Bedrock player skin & avatar proxying | `true` | Auto-caches Floodgate skins for 3D avatars |
 
 ---
 
@@ -1118,6 +1163,47 @@ teams:
 |---|---|---|
 | `teams.last_rotation` | Timestamp | Epoch millisecond timestamp of the last weekly quest rotation. Rotates automatically every 7 days. |
 | `teams.active_quest` | String | Key of the current active cooperative guild objective. |
+
+---
+
+#### 15. Chat System (`modules/chat.yml`)
+Controls custom join and leave announcements.
+
+```yaml
+chat:
+  custom-join-messages: true
+```
+
+| Key | Default | Purpose |
+|---|---|---|
+| `chat.custom-join-messages` | `true` | Enables formatted welcome and departure announcements synchronized with LuckPerms ranks. |
+
+---
+
+#### 16. Dynamic Shop & Items Catalog (`modules/shop.yml`)
+Defines item categories, materials, baseline buy/sell prices, and dynamic stock target quotas.
+
+```yaml
+categories:
+  ores:
+    displayName: "<gradient:#00c6ff:#0072ff><bold>Ores & Minerals</bold></gradient>"
+    icon: "DIAMOND"
+    items:
+      DIAMOND:
+        buyPrice: 150.0
+        sellPrice: 50.0
+        stock: 500
+        targetStock: 500
+```
+
+| Key | Default | Purpose |
+|---|---|---|
+| `categories.<category_name>.displayName` | String | Formatted title displayed in `/shop` menu. |
+| `categories.<category_name>.icon` | Material | Vanilla material identifier used as the category icon. |
+| `categories.<cat>.items.<mat>.buyPrice` | Double | Base unit purchase price from the server shop. |
+| `categories.<cat>.items.<mat>.sellPrice` | Double | Base unit sale price to the server shop (~25-35% of buyPrice). |
+| `categories.<cat>.items.<mat>.stock` | Integer | Current dynamic stock units. |
+| `categories.<cat>.items.<mat>.targetStock` | Integer | Equilibrium target capacity. Purchasing decreases stock (increasing prices); selling adds stock (decreasing prices). |
 
 ---
 

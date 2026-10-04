@@ -123,7 +123,7 @@ A complete clan ecosystem supporting Folia multi-threading and Bedrock crossplay
 
 ## 12. Solo Quest Perks (SoloPerkModule)
 Comprehensive individual progression and rewards system for solo adventurers, connecting lifetime completed quests to permanent benefits and major masteries:
-- **Autonomy & Runtime Control:** 29th autonomous GensCore module (`solo_perks`), dynamically toggled at runtime (`/module solo_perks <on|off>`) or via the web admin panel without server restarts.
+- **Autonomy & Runtime Control:** Autonomous GensCore module (`solo_perks`), dynamically toggled at runtime (`/module solo_perks <on|off>`) or via the web admin panel without server restarts.
 - **Free Milestone Perks:** Unlocked automatically or on click once the lifetime completed quest quota is reached:
   1. *Free Reroll (5 quests):* 1 free daily quest reroll (`/quest reroll`).
   2. *Extra Home (15 quests):* +1 additional personal waypoint usable with `/sethome`.

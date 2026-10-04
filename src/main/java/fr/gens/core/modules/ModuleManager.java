@@ -77,7 +77,8 @@ public class ModuleManager {
             String modKey = module.getName().toLowerCase();
             boolean shouldEnable = modulesConfig.getBoolean("modules." + modKey, 
                 modulesConfig.getBoolean("modules." + modKey + ".enabled", 
-                    "minigames".equals(modKey) ? modulesConfig.getBoolean("modules.minigame", true) : true));
+                    "minigames".equals(modKey) ? modulesConfig.getBoolean("modules.minigame", true) : 
+                    "locks".equals(modKey) ? modulesConfig.getBoolean("modules.lock", true) : true));
             if (shouldEnable) {
                 module.initDatabase(plugin.getDatabaseManager());
                 module.enable();
