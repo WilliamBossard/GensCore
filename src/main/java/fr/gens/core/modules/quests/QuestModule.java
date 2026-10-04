@@ -270,6 +270,15 @@ public class QuestModule implements Module, Listener {
             }
             plugin.getLangManager().sendConsoleMessage("questmodule.log_3");
         }
+
+        File[] existing = newQuestsFolder.listFiles();
+        if (existing == null || existing.length == 0) {
+            for (String def : java.util.List.of("easy.yml", "medium.yml", "hard.yml")) {
+                if (plugin.getResource("quests/" + def) != null) {
+                    plugin.saveResource("quests/" + def, false);
+                }
+            }
+        }
     }
 
     private void loadQuests() {
@@ -512,7 +521,7 @@ public class QuestModule implements Module, Listener {
 
     private void giveRewards(Player p, Quest quest) {
         for (String cmd : quest.getRewardCommands()) {
-            cmd = cmd.replace("%player%", p.getName());
+            cmd = cmd.replace("%player%", p.getName()).replace("{player}", p.getName());
             if (cmd.startsWith("eco give")) {
                 // Internal Economy
                 String[] parts = cmd.split(" ");

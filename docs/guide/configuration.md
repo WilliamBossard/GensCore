@@ -244,6 +244,80 @@ items:
 
 ---
 
+## Creating & Configuring Custom Quests (`quests/`)
+
+Beyond global daily reroll limits configured in `modules/quests.yml`, GensCore allows server administrators to create an unlimited collection of custom quests organized by categories inside `plugins/GensCore/quests/` (e.g. `easy.yml`, `medium.yml`, `hard.yml` provided by default, or your own files like `farming.yml`, `combat.yml`, `mining.yml`).
+
+### How Quests are Distributed
+- Each YAML file inside `plugins/GensCore/quests/` defines an active quest **category**.
+- Every day at midnight (or upon a player's first daily login), GensCore randomly selects **up to 3 quests per category** for that player.
+- Players open `/quests` (or `/quest`) to view their assigned objectives, live progress bars, and rewards.
+- **Right-clicking** a quest in the GUI rerolls it (subject to `quests.max_rerolls_per_day` in `modules/quests.yml`).
+- Every completed quest feeds the player's lifetime completion stats, unlocking perks in [Solo Perks](/guide/modules#12-solo-quest-perks-soloperkmodule) (`/perks`) and team weekly progress.
+
+### YAML Quest File Structure
+
+```yaml
+quests:
+  mine_diamonds:
+    name: "<aqua><bold>Abyssal Diamond Hunter"
+    menu_item: "DIAMOND"
+    description:
+      - "<gray>Mine 16 raw diamond ores deep underground."
+      - "<yellow>Progress: <current>/<total>"
+    quest_type: "BREAK"
+    required:
+      - "DIAMOND_ORE"
+      - "DEEPSLATE_DIAMOND_ORE"
+    required_amount: 16
+    reward:
+      commands:
+        - "eco give %player% 750"
+        - "tell %player% Congratulations on your find!"
+```
+
+### Quest Configuration Parameters
+
+| Field | Type | Description |
+|---|---|---|
+| `name` | String | Formatted quest display title supporting modern **MiniMessage** tags (`<gradient>`, `<bold>`, etc.). |
+| `menu_item` | Material | Vanilla Minecraft material used as the display icon inside `/quests` menu. |
+| `description` | List | Lore lines displayed on hover. `<current>` and `<total>` tags are automatically replaced with live player progress. |
+| `quest_type` | String | Objective action type among the 28 engine-supported types. |
+| `required` | List / String | Targeted vanilla material or entity type. Can be a single item or a list of acceptable items. |
+| `required_amount` | Integer | Goal count required to complete the quest. |
+| `reward.commands` | List | Commands executed via console upon completion. Supports `%player%` and `{player}` variables. |
+
+### All 28 Supported Quest Types (`quest_type`)
+
+| `quest_type` | Trigger Action | Expected `required` Target | Example |
+|---|---|---|---|
+| `BREAK` | Mine or break a world block | Vanilla block material | `STONE`, `DIAMOND_ORE`, `OAK_LOG` |
+| `PLACE` | Place a block into the world | Vanilla block material | `OBSIDIAN`, `TORCH`, `STONE_BRICKS` |
+| `KILL` | Defeat a mob or player | Vanilla entity type | `ZOMBIE`, `SKELETON`, `CREEPER`, `PLAYER` |
+| `CRAFT` | Craft an item in workbench | Resulting item material | `BREAD`, `IRON_CHESTPLATE`, `GOLDEN_APPLE` |
+| `FISH` | Catch a fish or treasure | Caught item material | `COD`, `SALMON`, `PUFFERFISH`, `BOW` |
+| `SHEAR` | Shear a woolly mob | Sheared entity type | `SHEEP`, `MOOSHROOM` |
+| `COOK` | Smelt ores or cook food | Extracted item material | `COOKED_BEEF`, `IRON_INGOT`, `GLASS` |
+| `CONSUME` | Eat food or drink potions | Consumed item material | `GOLDEN_CARROT`, `POTION`, `BREAD` |
+| `BREED` | Breed two animals together | Bred entity type | `COW`, `SHEEP`, `CHICKEN`, `PIG` |
+| `PICKUP` | Pick up dropped ground item | Picked item material | `EMERALD`, `NETHERITE_INGOT` |
+| `TAME` | Tame a wild animal | Tamed entity type | `WOLF`, `CAT`, `HORSE`, `PARROT` |
+| `VILLAGER_TRADE` | Complete trade with a villager | Villager type or item | `VILLAGER` |
+| `GET` | Obtain an item in inventory | Material identifier | `ELYTRA`, `TOTEM_OF_UNDYING` |
+| `MILKING` | Milk a cow using a bucket | Entity type | `COW`, `MOOSHROOM` |
+| `EXP_POINTS` | Collect experience points | Point quota | `EXP_POINTS` |
+| `EXP_LEVELS` | Reach an XP level quota | Level quota | `EXP_LEVELS` |
+| `ENCHANT` | Enchant an item on enchanting table | Enchanted item material | `DIAMOND_SWORD`, `BOW`, `BOOK` |
+| `CARVE` | Carve a pumpkin with shears | Block material | `PUMPKIN` |
+| `PLAYER_DEATH` | Die in combat or by accident | Death reason / any | `PLAYER_DEATH` |
+| `LOCATION` | Reach a region or coordinates | Region identifier | World Coordinates / Region |
+| `FARMING` | Harvest mature crops | Crop item material | `WHEAT`, `CARROTS`, `POTATOES` |
+| `LAUNCH` | Shoot an arrow or projectile | Projectile type | `ARROW`, `ENDER_PEARL`, `TRIDENT` |
+| *Integrations* | Optional third-party plugins | Plugin dependency | `MYTHIC_MOBS`, `ELITE_MOBS`, `NU_VOTIFIER`, `PYRO_FISH`, `EMF_FISH`, `PLACEHOLDER` |
+
+---
+
 ## Languages & Localization (`lang/`)
 
 All player-facing messages, error prompts, and chat notifications are located in `plugins/GensCore/lang/` (`fr_FR.yml` and `en_US.yml`):

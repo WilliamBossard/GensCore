@@ -38,6 +38,7 @@ Welcome to the official documentation for **GensCore**, the all-in-one survival/
    - [Bedrock & Floodgate Cross-Play Features](#bedrock--floodgate-cross-play-features)
    - [ViaVersion & Multi-Protocol Interoperability](#viaversion--multi-protocol-interoperability)
    - [Custom YAML Menus](#custom-yaml-menus)
+   - [Custom Quests Engine (quests/)](#custom-quests-engine-quests)
 5. [The Web Application & Administration Panel](#5-the-web-application--administration-panel)
    - [Web Server Architecture & Security](#web-server-architecture--security)
    - [Admin Control Dashboard](#admin-control-dashboard)
@@ -585,6 +586,20 @@ Server owners can build unlimited graphical menus in `plugins/GensCore/menus/*.y
 - Specify custom titles, rows (1 to 6), items, display names, and lores.
 - Bind custom commands (e.g., `/warp`, `/rules`, `/menu server`).
 - Execute console commands, player commands, or open other menus upon clicking items.
+
+### Custom Quests Engine (`quests/`)
+GensCore includes an autonomous quest engine where quests are organized by category files inside `plugins/GensCore/quests/*.yml` (such as `easy.yml`, `medium.yml`, `hard.yml` provided out of the box):
+- **Daily Rotation & Assignment:** Every 24 hours (or upon the player's first daily login), GensCore randomly draws **up to 3 quests per category** for each player.
+- **In-Game GUI (`/quests`):** Displays real-time progress bars, required targets, and rewards. Right-click any active quest to reroll it (subject to `quests.max_rerolls_per_day` in `modules/quests.yml`).
+- **28 Supported Quest Types (`quest_type`):**
+  - Block actions: `BREAK`, `PLACE`, `CARVE`, `FARMING`
+  - Combat & Survival: `KILL`, `PLAYER_DEATH`, `CONSUME`, `LAUNCH`
+  - Crafting & Economy: `CRAFT`, `COOK`, `ENCHANT`, `VILLAGER_TRADE`, `GET`, `PICKUP`
+  - Animals & Nature: `FISH`, `SHEAR`, `BREED`, `TAME`, `MILKING`
+  - Progression: `EXP_POINTS`, `EXP_LEVELS`, `LOCATION`
+  - External hooks: `MYTHIC_MOBS`, `ELITE_MOBS`, `NU_VOTIFIER`, `PYRO_FISH`, `EMF_FISH`, `PLACEHOLDER`
+- **Dynamic Reward Dispatch:** Executes console commands upon completion, replacing `%player%` and `{player}` with the player's name (e.g., `eco give %player% 500`).
+- **Solo & Team Synergy:** Completed quests permanently accumulate into player stats, powering [Solo Perks](#solo-quest-perks--masteries) (`/perks`) and team weekly co-op quests.
 
 ---
 

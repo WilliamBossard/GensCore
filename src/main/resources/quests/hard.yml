@@ -1,0 +1,90 @@
+# ==============================================================================
+# GensCore - Quêtes Journalières : Catégorie Difficile (hard.yml)
+# ==============================================================================
+
+quests:
+  mine_diamonds:
+    name: "<aqua><bold>Trésor des Abîmes"
+    menu_item: "DIAMOND"
+    description:
+      - "<gray>Mine 16 minerais de diamant brut."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "BREAK"
+    required:
+      - "DIAMOND_ORE"
+      - "DEEPSLATE_DIAMOND_ORE"
+    required_amount: 16
+    reward:
+      commands:
+        - "eco give %player% 750"
+
+  mine_ancient_debris:
+    name: "<red><bold>Poussière d'Ébène"
+    menu_item: "ANCIENT_DEBRIS"
+    description:
+      - "<gray>Mine 4 débris antiques dans les entrailles du Nether."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "BREAK"
+    required:
+      - "ANCIENT_DEBRIS"
+    required_amount: 4
+    reward:
+      commands:
+        - "eco give %player% 1500"
+
+  kill_endermen:
+    name: "<dark_purple><bold>Chasseur de l'End"
+    menu_item: "ENDER_PEARL"
+    description:
+      - "<gray>Élimine 10 Endermen sans périr."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "KILL"
+    required:
+      - "ENDERMAN"
+    required_amount: 10
+    reward:
+      commands:
+        - "eco give %player% 800"
+
+  kill_creepers:
+    name: "<dark_red><bold>Démineur de l'Extrême"
+    menu_item: "GUNPOWDER"
+    description:
+      - "<gray>Élimine 15 creepers avant qu'ils n'explosent."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "KILL"
+    required:
+      - "CREEPER"
+    required_amount: 15
+    reward:
+      commands:
+        - "eco give %player% 600"
+
+  kill_wither_skeletons:
+    name: "<dark_gray><bold>Garde Noire de la Forteresse"
+    menu_item: "WITHER_SKELETON_SKULL"
+    description:
+      - "<gray>Élimine 10 squelettes wither dans les forteresses."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "KILL"
+    required:
+      - "WITHER_SKELETON"
+    required_amount: 10
+    reward:
+      commands:
+        - "eco give %player% 1000"
+
+  consume_golden_apple:
+    name: "<gold><bold>Festin Doré"
+    menu_item: "GOLDEN_APPLE"
+    description:
+      - "<gray>Consomme 3 pommes dorées bénies."
+      - "<yellow>Progression : <current>/<total>"
+    quest_type: "CONSUME"
+    required:
+      - "GOLDEN_APPLE"
+      - "ENCHANTED_GOLDEN_APPLE"
+    required_amount: 3
+    reward:
+      commands:
+        - "eco give %player% 500"
