@@ -23,6 +23,7 @@ GensCore utilise une nomenclature Bukkit moderne qui s'intègre harmonieusement 
 | `genscore.discord.linked` | Badge joueur vérifié Discord | `false` | Joueurs synchronisés |
 | `genscore.freeze` | Geler les suspects (`/freeze`) | `op` | Assistant / Modérateur |
 | `genscore.openinv` | Inspecter l'inventaire en direct (`/openinv`) | `op` | Modérateur |
+| `genscore.check` | Dossier technique et version client (`/check`, `/whois`) | `op` | Modérateur |
 | `genscore.mute` | Muter / démuter un joueur dans le chat | `op` | Modérateur |
 | `genscore.kick` | Expulser un joueur (`/kick`) | `op` | Modérateur |
 | `genscore.ban` | Bannir / débannir un joueur (`/ban`) | `op` | Administrateur |
@@ -71,6 +72,7 @@ lp group vip permission set genscore.bypass.cooldown.home true
 lp group moderator parent add vip
 lp group moderator permission set genscore.freeze true
 lp group moderator permission set genscore.openinv true
+lp group moderator permission set genscore.check true
 lp group moderator permission set genscore.mute true
 lp group moderator permission set genscore.kick true
 lp group moderator permission set genscore.feed true

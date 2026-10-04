@@ -22,7 +22,7 @@ Access at: `http://<your-server-ip>:8080/admin`
 - **Live Performance Metrics:** Real-time gauges for TPS, active players, JVM memory allocation, and CPU load.
 - **Interactive Web Console:** Real-time server log streaming with command dispatching safely routed to Folia's `GlobalRegionScheduler`.
 - **Player Management:** Search players, inspect balances, adjust money, and execute kicks/bans/mutes from the browser.
-- **Live Module Switchboard:** Toggle any of the 28 modules on or off with a single click.
+- **Live Module Switchboard:** Toggle any of the 30 modules on or off with a single click.
 - **Dynamic Config Editor:** Modify shop inflation, auction house fees, head drop rates, quest reroll limits, and MOTD lines live.
 - **Integrated BlueMap:** Embedded interactive 3D/2D territory map.
 - **Emergency Server Wipe:** Password-guarded atomic database reset button.

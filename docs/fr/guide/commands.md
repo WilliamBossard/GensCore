@@ -159,6 +159,16 @@ Progression individuelle récompensant l'accomplissement des quêtes quotidienne
 | `/kick` | `<joueur> [motif]` | `genscore.kick` | OP | Expulse un joueur du serveur. |
 | `/freeze` | `<joueur>` | `genscore.freeze` | OP | Gèle un joueur sur place pour vérification screenshare. |
 | `/openinv` | `<joueur>` | `genscore.openinv` | OP | Inspecte l'inventaire et l'armure d'un joueur en temps réel. *(Alias : `/invsee`)* |
+| `/check` | `<joueur>` | `genscore.check` | OP | Dossier technique complet (Bedrock/Java, version client, protocole, ping, coordonnées). *(Alias : `/whois`)* |
+
+---
+
+## Intégration Discord
+
+| Commande | Arguments | Permission | Défaut | Description |
+|---|---|---|---|---|
+| `/discord link` | *Aucun* | *Aucune* | Tout le monde | Génère un code à 6 caractères pour lier son compte sur Discord (`!link <code>`). |
+| `/discord reg` | *Aucun* | *Aucune* | Tout le monde | Affiche l'aide à la liaison de compte et le lien d'invitation Discord. |
 
 ---
 
@@ -176,5 +186,7 @@ Progression individuelle récompensant l'accomplissement des quêtes quotidienne
 
 | Commande | Arguments | Permission | Défaut | Description |
 |---|---|---|---|---|
-| `/module` | `<nomModule> <on\|off>` | `genscore.admin` | OP | Active ou désactive à chaud l'un des 28 modules. |
+| `/gens status` | *Aucun* | `genscore.admin` | OP | Diagnostic système en direct : plateforme, mémoire JVM, charge CPU, TPS Folia, modules actifs. |
+| `/gens db` | *Aucun* | `genscore.admin` | OP | Diagnostic de la base de données : moteur actif (SQLite / MySQL) et métriques du pool de connexions. |
+| `/module` | `<nomModule> <on\|off>` | `genscore.admin` | OP | Active ou désactive à chaud l'un des 30 modules. |
 | `/menu` | `[nom]` | *Aucune* | Tout le monde | Ouvre un menu inventaire YAML configuré dans `plugins/GensCore/menus/`. |

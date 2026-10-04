@@ -1,25 +1,28 @@
 # GensCore
 
-![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.3+-red.svg) ![Status](https://img.shields.io/badge/Status-Beta-orange.svg) ![Tests](https://img.shields.io/badge/Tests-81%20passing-brightgreen.svg)
+![GensCore Banner](https://img.shields.io/badge/GensCore-Paper%20%26%20Folia-green.svg) ![Java Version](https://img.shields.io/badge/Java-25+-blue.svg) ![Minecraft Version](https://img.shields.io/badge/Minecraft-26.1+-red.svg) ![Status](https://img.shields.io/badge/Status-Release%20v1.0.3-blue.svg) ![Tests](https://img.shields.io/badge/Tests-81%20passing-brightgreen.svg)
 
-**GensCore** is a comprehensive core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all the essential server mechanics into a single, optimized plugin, offering excellent performance while avoiding the need to manage dozens of separate small plugins. It is fully compatible with **Paper** and **Folia**!
+**GensCore** is a comprehensive, production-ready core plugin developed specifically for the Survival/Faction server *GensBien*. It bundles all essential server mechanics into a single, high-performance plugin, eliminating the complexity and overhead of managing dozens of fragmented plugins. Engineered natively for **PaperMC** and **Folia (Minecraft 26.1+)** running on **Java 25 LTS**!
 
 > **Official Documentation Website:** [**williambossard.github.io/GensCore**](https://williambossard.github.io/GensCore/)  
 > **Full offline reference:** [**Comprehensive Documentation (DOCUMENTATION.md)**](DOCUMENTATION.md).
 
-## Included Features
+## Included Features (30 Modules)
 
-This plugin is modular and manages the following server aspects:
-* **Economy & Jobs:** Money management (`/money`, `/pay`) and job progression.
-* **Guilds & Claims (Teams):** Full guild system (`/team`) featuring shared treasury bank ($ or XP levels), Folia-ready territory chunk protection, live BlueMap markers with custom colors, 5 purchasable team perks, and complete web management.
-* **Quests & Statistics:** Daily quests and global player statistics.
-* **Web Panel & BlueMap:** A fully responsive Web administration panel for PC and Mobile with BlueMap integration, running via Javalin.
-* **Discord Bot:** Full synchronization with Discord via the JDA API. Includes auto-deleting `!link` commands for account linking, server status (ONLINE/OFFLINE), and rich embeds.
-* **Cross-play Support:** Integrated support for Bedrock players via Geyser and Floodgate (custom placeholders and Bedrock-specific prefixes).
-* **Moderation:** Basic commands (`/mute`, `/ban`, `/freeze`, `/openinv`).
-* **Survival Utilities:** Essential commands like `/spawn`, `/sethome`, `/back`, `/tpa`, `/ec`.
-* **Loot & Spawners:** Custom loot system and spawner management.
-* **Modern Chat System:** Fully migrated to MiniMessage (Kyori Adventure) for a robust and legacy-free chat formatting experience.
+GensCore is 100% modular with zero mandatory external dependencies:
+* **Dual-Engine Database Persistence:** Runs out of the box on embedded **SQLite** (WAL mode) or connects to remote **MySQL / MariaDB** with HikariCP pooling, dynamic SQL dialect translation, and automatic safe fallback to SQLite if remote DB is unreachable.
+* **Economy, Dynamic Shop & Auction House:** Centralized currency (`/money`, `/pay`, `/baltop`), dynamic mathematical supply/demand shop (`/shop`, 319 survival items), and player-to-player marketplace (`/ah`).
+* **Guilds & Claims (Teams):** Complete clan system (`/team`) featuring shared treasury ($ or XP levels), territory chunk protection ($16 \times 16$), real-time 3D BlueMap markers with custom colors, 10 team upgrade trees, shared vaults (`/team vault`), and web roster administration.
+* **Jobs & Daily Quests:** 6 professions (Miner, Lumberjack, Hunter, Farmer, Fisherman, Builder) with anti-farm block caching, paired with a daily rotating quest system (`/quests`).
+* **Solo Quest Perks & Masteries:** Individual progression rewarding completed quests (`/perks`), unlocking abilities like instant `/autosmelt`, 5-block `/magnet`, and extra homes.
+* **Container Security & Grief Shield:** Container locking (`/lock`, `/lock guild`), anti-hopper protection, and anti-piston push/retraction shields.
+* **Web Panel & Player Portal:** Fully responsive React 18 / Vite web application served by embedded Javalin, featuring live server telemetry, console, player management, module toggles, and interactive web minigames (Wheel of Fortune, Casino Slots).
+* **Discord Integration:** Two-way synchronization via JDA (Java Discord API) with account linking (`!link`), chat bridge, and staff action embeds.
+* **Cross-Play Bedrock Ready:** Native Geyser & Floodgate integration with automatic Cumulus Forms menus, Bedrock prefixes, and high-res avatar rendering.
+* **Multi-Protocol Compatibility:** Decoupled ViaVersion integration detecting client protocols (`/check <player>`), mapping materials for legacy versions, and providing PlaceholderAPI expansions.
+* **Death Graves (Tombs) & Instanced Lootr:** Holographic player graves preserving inventory/XP and per-player instanced dungeon chests.
+* **System Telemetry & Administration:** In-game health monitoring (`/gens status`, `/gens db`) and live hot-swappable module toggling (`/module`).
+* **Modern MiniMessage Formatting:** Pure Kyori Adventure chat and tablist styling with zero legacy formatting codes.
 
 ---
 
@@ -42,7 +45,7 @@ GensCore is designed to be fully **autonomous**. It can run standalone without r
 * **[PlaceholderAPI](https://placeholderapi.com/):** Integrated with the official `GensCoreExpansion` (%genscore_balance%, %genscore_client_version%, %genscore_guild%, etc.).
 
 ### Compatibility: Paper & Folia Only
-**GensCore is STRICTLY compatible with PaperMC and Folia (Minecraft 26.3+, Java 25+).** 
+**GensCore is STRICTLY compatible with PaperMC and Folia (Minecraft 26.1+, Java 25+).** 
 It will **not** start on a standard legacy Spigot server. The plugin relies on modern Paper APIs such as *Kyori Adventure (MiniMessage)* for text components, regional multi-threaded Folia schedulers (*FoliaLib*), and the *Cloud Command Framework* for Paper.
 
 ---
@@ -114,7 +117,7 @@ cd ..
 # Then, package the Java plugin
 mvn clean package -DskipTests
 ```
-The final file will be located in `target/GensCore-1.0.2.jar`.
+The final file will be located in `target/GensCore-1.0.3.jar`.
 
 ### Build via GitHub Actions
 GensCore has a configured Workflow (in `.github/workflows/release.yml`).
@@ -161,65 +164,115 @@ On startup and when a player with the `genscore.admin` permission (or operator s
 ### Authentication
 | Command | Permission | Description |
 |---------|-----------|-------------|
-| `/login <password>` | — | Log in to your account |
-| `/register <password> <confirm>` | — | Create an account |
-| `/changemdp <old> <new>` | — | Change your password |
-| `/resetmdp <player>` | `genscore.admin` | Reset another player's password |
+| `/register <password> <confirm>` | — | Register your account (hashed via BCrypt) |
+| `/login <password>` | — | Log in to your account *(Alias: `/l`)* |
+| `/changemdp <old> <new>` | — | Change your account password *(Alias: `/changepassword`)* |
+| `/resetmdp <player>` | `genscore.admin` | Force-reset a player's password |
 
-### Economy
+### Economy, Dynamic Shop & Auction House
 | Command | Permission | Description |
 |---------|-----------|-------------|
-| `/money` | — | View your balance |
+| `/money` | — | View your current balance *(Alias: `/balance`)* |
 | `/money <player>` | `genscore.admin` | View another player's balance |
-| `/pay <player> <amount>` | — | Transfer money |
-| `/addmoney <player> <amount>` | `genscore.admin` | Add money to a player |
-| `/removemoney <player> <amount>` | `genscore.admin` | Remove money from a player |
+| `/baltop` | — | Display top server balances leaderboard |
+| `/pay <player> <amount>` | — | Transfer money to another online player |
+| `/eco <set\|give\|take\|reset>` | `genscore.admin` | Administer player balances |
+| `/shop` | — | Open the dynamic mathematical server shop GUI |
+| `/ah` | — | Open the Auction House marketplace *(Alias: `/hdv`)* |
+| `/ah sell <price>` | — | List the item in hand on the Auction House |
 
-### Teleportation
+### Guilds & Clans (`/team`)
 | Command | Permission | Description |
 |---------|-----------|-------------|
-| `/sethome [name]` | — | Set a home |
-| `/home [name]` | — | Teleport to a home |
-| `/delhome [name]` | — | Delete a home |
-| `/spawn` | — | Teleport to spawn |
-| `/setspawn` | `genscore.admin` | Set the spawn point |
-| `/tpa <player>` | — | Request a teleport |
-| `/tpaccept` | — | Accept a TPA request |
-| `/tpdeny` | — | Deny a TPA request |
-| `/back` | — | Return to your last location |
+| `/team` | — | Open the Guild management GUI *(Aliases: `/guild`, `/teams`)* |
+| `/team create <name>` | — | Create a new guild (max 16 chars) |
+| `/team invite <player>` | — | Invite a player to join (Admin/Leader) |
+| `/team accept` | — | Accept a pending guild invitation |
+| `/team kick <player>` | — | Kick a member from the guild (Admin/Leader) |
+| `/team promote/demote` | — | Promote to Admin or demote to Member (Leader) |
+| `/team leave` | — | Leave current guild (Leader must disband) |
+| `/team disband` | — | Permanently disband the guild and release claims |
+| `/team quest` | — | Open the weekly co-op guild quest menu |
+| `/team upgrades` | — | Open the 10 guild perks upgrade shop |
+| `/team sethome` / `/team home` | — | Set or teleport to shared guild waypoint |
+| `/team vault` | — | Open communal guild virtual chest *(Aliases: `/team coffre`, `/team chest`)* |
+| `/team deposit/withdraw` | — | Deposit or withdraw dollars ($) from guild bank |
+| `/team depositxp/withdrawxp` | — | Deposit or withdraw XP levels from guild bank |
+| `/team claim` / `/team unclaim` | — | Claim or unclaim current chunk ($16 \times 16$) |
+| `/team color <#hex>` | — | Set guild territory marker color on BlueMap |
 
-### Moderation
+### Jobs, Daily Quests & Solo Perks
 | Command | Permission | Description |
 |---------|-----------|-------------|
-| `/ban <player> [reason]` | `genscore.ban` | Permanently ban a player |
+| `/jobs` | — | Open the Jobs & Professions menu *(Alias: `/job`)* |
+| `/quests` | — | Open the Daily Quests menu *(Aliases: `/quest`, `/quete`)* |
+| `/perks` | — | Open the Solo Quest Perks GUI *(Aliases: `/bonus`, `/passe`)* |
+| `/autosmelt` | — | Toggle instant raw ore auto-smelting On/Off |
+| `/magnet` | — | Toggle 5-block ground item magnet On/Off |
+
+### Teleportation & Navigation
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/spawn` | `genscore.spawn` | Teleport to world spawn |
+| `/setspawn` | `genscore.admin` | Set global server spawn location |
+| `/sethome [name]` | `genscore.home` | Set a personal home waypoint |
+| `/home [name]` | `genscore.home` | Teleport to a personal home waypoint |
+| `/delhome [name]` | `genscore.home` | Delete a personal home waypoint |
+| `/back` | `genscore.back` | Return to last death or teleport location |
+| `/tpa <player>` | `genscore.tpa` | Send a teleport request to a player |
+| `/tpaccept` | `genscore.tpa` | Accept incoming teleport request |
+| `/tpdeny` / `/tpadeny` | `genscore.tpa` | Deny incoming teleport request |
+| `/tpacancel` | `genscore.tpa` | Cancel your outgoing teleport request |
+
+### Container Security & Locks
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/lock [private]` | — | Lock a container (chest, barrel, furnace, shulker) |
+| `/lock unlock` | — | Remove the lock from your container |
+| `/lock guild` | — | Share container access with all guild members |
+
+### Survival Utilities
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/ec [player]` | `genscore.ec` | Open virtual Ender Chest *(Alias: `/enderchest`)* |
+| `/craft` | `genscore.craft` | Open virtual 3x3 workbench *(Alias: `/workbench`)* |
+| `/anvil` | `genscore.anvil` | Open virtual Anvil |
+| `/enchant` | `genscore.enchant` | Open virtual Enchanting Table *(Alias: `/enchanttable`)* |
+| `/feed` | `genscore.feed` | Satisfy hunger bar |
+
+### Staff & Moderation
+| Command | Permission | Description |
+|---------|-----------|-------------|
+| `/ban <player> [time] [reason]` | `genscore.ban` | Ban a player permanently or temporarily |
 | `/unban <player>` | `genscore.ban` | Unban a player |
-| `/mute <player> [duration] [reason]` | `genscore.mute` | Mute a player |
+| `/mute <player> [time] [reason]` | `genscore.mute` | Mute a player in public chat |
 | `/unmute <player>` | `genscore.mute` | Unmute a player |
-| `/kick <player> [reason]` | `genscore.kick` | Kick a player |
-| `/freeze <player>` | `genscore.freeze` | Freeze/unfreeze a player |
-| `/openinv <player>` | `genscore.openinv` | Open a player's inventory |
+| `/kick <player> [reason]` | `genscore.kick` | Kick an online player from the server |
+| `/freeze <player>` | `genscore.freeze` | Freeze a player for screenshare checks |
+| `/openinv <player>` | `genscore.openinv` | Live inspect inventory & armor *(Alias: `/invsee`)* |
+| `/check <player>` | `genscore.check` | Technical dossier (Bedrock/Java, version, ping, coords) *(Alias: `/whois`)* |
 
-### Teams / Guilds
+### Discord & Web Casino Bridge
 | Command | Permission | Description |
 |---------|-----------|-------------|
-| `/team create <name>` | — | Create a team |
-| `/team invite <player>` | — | Invite a player |
-| `/team leave` | — | Leave your team |
-| `/team disband` | — | Disband your team |
-| `/team info` | — | View team info |
+| `/discord link` | — | Generate a 6-character linking code for Discord (`!link <code>`) |
+| `/discord reg` | — | Display Discord linking instructions and invite |
+| `/web` | — | Help message for web casino deposit inventory |
+| `/web deposit` | — | Deposit held item into web casino betting inventory |
+| `/web withdraw` | — | Retrieve won items from the web slot machine |
 
-### Administration & System
+### Administration & Diagnostics
 | Command | Permission | Description |
 |---------|-----------|-------------|
-| `/gens status` | `genscore.admin` | View server, JVM, Folia tick rate and active modules status |
-| `/gens db` | `genscore.admin` | View database engine type and HikariCP connection pool metrics |
-| `/genscore reload` | `genscore.admin` | Reload plugin configuration files |
-| `/feed` | `genscore.admin` | Feed yourself |
-| `/ec` | — | Open your enderchest |
+| `/gens status` | `genscore.admin` | Live telemetry: platform, JVM memory, CPU load, Folia TPS, active modules |
+| `/gens db` | `genscore.admin` | Live database status: storage engine (SQLite/MySQL) and HikariCP pool stats |
+| `/module <name> <on\|off>` | `genscore.admin` | Dynamically toggle any of the 30 modules at runtime |
+| `/menu [name]` | — | Open a custom YAML inventory menu from `plugins/GensCore/menus/` |
+| `/spawner give <player> <type>` | `genscore.admin.spawner` | Give custom stacked smart spawner block |
 
 > **Note:** Players with operator status (`/op`) automatically inherit the `genscore.admin` permission.
 > 
-> **For the complete list of all 28 modules, advanced subcommands, bypass permissions, and ready-to-use LuckPerms templates, see [DOCUMENTATION.md](DOCUMENTATION.md).**
+> **For the complete list of all 30 modules, advanced subcommands, bypass permissions, and ready-to-use LuckPerms templates, see [DOCUMENTATION.md](DOCUMENTATION.md) and the [Online Docs](https://williambossard.github.io/GensCore/).**
 
 ---
 

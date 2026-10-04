@@ -23,6 +23,7 @@ GensCore uses modern Bukkit permission nodes that seamlessly integrate with **Lu
 | `genscore.discord.linked` | Verified Discord badge | `false` | Linked players |
 | `genscore.freeze` | Freeze suspected players (`/freeze`) | `op` | Helper / Mod |
 | `genscore.openinv` | Live inspect inventories (`/openinv`) | `op` | Moderator |
+| `genscore.check` | Technical and client dossier (`/check`, `/whois`) | `op` | Moderator |
 | `genscore.mute` | Mute/unmute players in chat | `op` | Moderator |
 | `genscore.kick` | Kick players (`/kick`) | `op` | Moderator |
 | `genscore.ban` | Ban/unban players (`/ban`) | `op` | Admin |
@@ -71,6 +72,7 @@ lp group vip permission set genscore.bypass.cooldown.home true
 lp group moderator parent add vip
 lp group moderator permission set genscore.freeze true
 lp group moderator permission set genscore.openinv true
+lp group moderator permission set genscore.check true
 lp group moderator permission set genscore.mute true
 lp group moderator permission set genscore.kick true
 lp group moderator permission set genscore.feed true
