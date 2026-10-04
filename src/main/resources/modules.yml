@@ -1,4 +1,4 @@
-# Enable or disable specific GensCore modules.
+# Enable or disable specific GensCore modules (30 modules).
 # Set to true to enable, false to disable.
 modules:
   dynamicshop: true
@@ -8,23 +8,26 @@ modules:
   stats: true
   spawners: true
   quests: true
+  solo_perks: true
   lootr: true
   headdrop: true
-  minigame: true
+  minigames: true
   motd: true
   tabboard: true
   discord: true
   gui: true
-  web: true
+  customgui: true
   tomb: false
   home: true
   back: true
   spawn: true
   tpa: true
   teams: true
-  lock: true
+  locks: true
   auth: true
   moderation: true
   chat: true
   bluemap: false
   fastleafdecay: true
+  utils: true
+  bedrockskin: true

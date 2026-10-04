@@ -123,7 +123,7 @@ Un écosystème de guilde complet, compatible Folia multi-thread et crossplay Be
 
 ## 12. Bonus Personnels de Quêtes (SoloPerkModule)
 Système complet de progression et de récompenses pour les joueurs solo, reliant l'accomplissement des quêtes journalières à des avantages permanents et des maîtrises majeures :
-- **Autonomie & Contrôle :** 29ème module autonome de GensCore (`solo_perks`), activable et désactivable dynamiquement en direct (`/module solo_perks <on|off>`) ou via l'interface web admin sans redémarrage.
+- **Autonomie & Contrôle :** Module autonome de GensCore (`solo_perks`), activable et désactivable dynamiquement en direct (`/module solo_perks <on|off>`) ou via l'interface web admin sans redémarrage.
 - **Paliers Gratuits de Quêtes :** Déblocage automatique ou par clic dès que le quota de quêtes réalisées à vie est atteint :
   1. *Relance Gratuite (5 quêtes) :* 1 reroll quotidien gratuit de quête (`/quest reroll`).
   2. *Foyer Additionnel (15 quêtes) :* +1 home supplémentaire utilisable avec `/sethome`.

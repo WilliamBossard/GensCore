@@ -61,5 +61,5 @@ For the best player experience when connecting to a GensCore server (automatic m
 
 - Explore the complete [Commands Reference](/guide/commands).
 - Set up player and staff ranks with [Permissions & LuckPerms](/guide/permissions).
-- Dive into the [In-Game Modules](/guide/modules).
+- Dive into the [30 In-Game Modules](/guide/modules).
 - Connect to the [Web Panel & Minigames](/guide/web-panel).

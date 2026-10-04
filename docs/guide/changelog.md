@@ -1,6 +1,6 @@
 # Changelog & Version History
 
-Current status and complete release notes for **GensCore** on **Minecraft 26.3** and **Java 25 LTS**.
+Current status and complete release notes for **GensCore** on **Minecraft 26.1+** (Paper 26.1 - 26.3+) and **Java 25 LTS**.
 
 ::: info Project Status
 - **Target Engine:** Minecraft 26.1 - 26.3 (Paper Build 145-beta · Folia 26.1+)

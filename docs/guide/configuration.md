@@ -89,24 +89,27 @@ Each feature in GensCore can be enabled or disabled independently. You can also 
 | `quests` | Daily rotating quests with reroll limits | `true` | Configured via `modules/quests.yml` |
 | `lootr` | Per-player instanced dungeon & structure chests | `true` | Configured via `modules/lootr.yml` |
 | `headdrop` | Mob and player skull drop probabilities | `true` | Configured via `modules/headdrop.yml` |
-| `minigame` | Fortune Wheel, Casino Slots & CoinFlip | `true` | Configured via `modules/minigames.yml` & Web Panel |
+| `minigames` | Fortune Wheel, Casino Slots & CoinFlip | `true` | Configured via `modules/minigames.yml` & Web Panel |
 | `motd` | Dynamic server list ping message | `true` | Configured via `modules/motd.yml` |
 | `tabboard` | Custom Scoreboard and Tablist layout | `true` | Configured via `modules/tabboard.yml` |
 | `discord` | Discord Bot bridge (chat sync, staff logs) | `true` | Requires valid bot token in `modules/discord.yml` |
 | `gui` | In-game menu provider | `true` | Auto-detects Bedrock clients (Cumulus Forms) |
-| `web` | Embedded Javalin REST API & React Dashboard | `true` | Configured via `modules/web.yml` |
 | `tomb` | Death graves preserving items & XP upon player death | `false` | Enable if you want graves instead of standard drops |
 | `home` | Player home waypoints (`/sethome`, `/home`) | `true` | Limits set via permissions and `modules/teleport.yml` |
 | `back` | Return to last death or teleport location (`/back`) | `true` | Zero-leak `BackPosition` memory safety |
 | `spawn` | Server spawn location (`/setspawn`, `/spawn`) | `true` | Persistent spawn coordinates in database |
 | `tpa` | Teleport request system (`/tpa`, `/tpaccept`, etc.) | `true` | Configurable warmup and movement cancellation |
 | `teams` | Guilds, territory claims, shared bank & weekly quests | `true` | Integrated with BlueMap and Web Panel |
-| `lock` | Container protection for chests, barrels & furnaces | `true` | Anti-hopper and anti-piston theft protection |
+| `locks` | Container protection for chests, barrels & furnaces | `true` | Anti-hopper and anti-piston theft protection |
 | `auth` | In-game authentication for offline servers (`/login`) | `true` | BCrypt password hashing |
 | `moderation` | Staff toolset (`/ban`, `/mute`, `/kick`, `/freeze`) | `true` | Persistent punishment records in database |
 | `chat` | Chat formatting and join/quit messages | `true` | LuckPerms prefix/suffix synchronization |
 | `bluemap` | BlueMap guild territory claim visualization | `false` | Requires BlueMap installed on the server |
 | `fastleafdecay` | Instant natural decay for orphaned tree leaves | `true` | High-performance leaves cleanup |
+| `solo_perks` | Solo quest progression perks & masteries (`/perks`) | `true` | Integrated with daily quests & economy |
+| `customgui` | Custom YAML inventory menus loader (`/menu`) | `true` | Configured via `plugins/GensCore/menus/` |
+| `utils` | Virtual utilities (`/craft`, `/anvil`, `/ec`, `/feed`) | `true` | Native Paper 26.3 MenuType API |
+| `bedrockskin` | Bedrock player skin & avatar proxying | `true` | Auto-caches Floodgate skins for 3D avatars |
 
 ---
 
@@ -149,6 +152,103 @@ Each feature in GensCore can be enabled or disabled independently. You can also 
 - `modules.tomb.expiration_time_seconds` (`3600`): Despawn countdown in seconds.
 - `modules.tomb.expiration_action` (`UNLOCK`): Action on expiry (`UNLOCK`, `DROP`, or `DESTROY`).
 - `modules.tomb.default_access` (`OWNER_ONLY`): Access policy (`OWNER_ONLY` or `EVERYONE`).
+
+### 7. Dynamic Shop & Items Catalog (`modules/shop.yml`)
+- `categories.<category_name>`: Defines a shop category (e.g. `ores`, `farming`, `drops`, `blocks`, `nether`).
+  - `displayName`: Formatted title displayed in `/shop`.
+  - `icon`: Vanilla material identifier used as the category icon.
+  - `items.<MATERIAL>`:
+    - `buyPrice`: Base unit purchase price from the server shop.
+    - `sellPrice`: Base unit sale price to the server shop (balanced at ~25% to 35% of purchase price).
+    - `stock`: Current dynamic stock units.
+    - `targetStock`: Equilibrium target capacity. Purchasing decreases stock (increasing prices); selling adds stock (decreasing prices).
+
+### 8. Minigames & Casino (`modules/minigames.yml`)
+- **Wheel of Fortune (`minigames.wheel`):**
+  - `wheel.enabled` (`true`): Toggles the daily free wheel spin.
+  - `wheel.rewards`: 8 balanced reward slices with `name`, `command` (executed on win), `chance` (percentage weight), and `color` (hex color on web UI).
+- **Casino Slot Machine (`minigames.casino`):**
+  - `casino.enabled` (`true`): Toggles the 3-reel web slot machine.
+  - `jackpot_chance` (`4`): Triple 7s / jackpot chance (~500x).
+  - `medium_win_chance` (`8`): 3 matching items chance (~300x).
+  - `small_win_chance` (`20`): 2 matching items chance (~200x). Yields a balanced aggregate RTP (Return to Player) of ~84%.
+- **CoinFlip (`minigames.coinflip`):**
+  - `coinflip.enabled` (`true`): Toggles player duel coinflips.
+  - `coinflip.multiplier` (`2`): Payout multiplier on winning bets.
+
+### 9. Dynamic Scoreboard & Tablist (`modules/tabboard.yml`)
+- **Scoreboard (`tabboard.scoreboard`):**
+  - `title`: Header title component supporting MiniMessage formatting tags.
+  - `lines`: Ordered list of scoreboard lines supporting internal placeholders (`%money%`, `%player%`, `%online%`) and LuckPerms prefixes.
+- **Tablist (`tabboard.tablist`):**
+  - `header`: Multi-line text banner above player usernames.
+  - `footer`: Multi-line text banner below player usernames.
+  - `show_platform_prefix` (`true`): Displays `[Bedrock]` tag for Floodgate mobile players.
+  - `discord_linked` / `discord_not_linked`: Discord account verification badge indicators.
+
+### 10. Teleportation Delays & Homes Quota (`modules/teleport.yml`)
+- `modules.home.default_max` (`3`): Maximum personal homes permitted for default players without rank permissions or solo perks.
+- `teleport-cooldown` (`3`): Warmup delay in seconds before executing `/spawn`, `/home`, or `/tpa`. Any movement or damage cancels the teleportation unless the player holds a bypass permission.
+
+### 11. Daily Quests (`modules/quests.yml`)
+- `quests.max_rerolls_per_day` (`3`): Maximum times a player can right-click an objective in `/quests` to reroll it each day.
+
+### 12. Guild Weekly Quests (`modules/teams.yml`)
+- `teams.last_rotation`: Epoch timestamp of the last weekly quest rotation.
+- `teams.active_quest`: Currently assigned communal guild objective identifier (e.g. `weekly_1`).
+
+### 13. Player & Mob Head Drops (`modules/headdrop.yml`)
+- `headdrop.chance` (`10.0`): Percentage probability (0.0 to 100.0) for a defeated player or mob to drop their textured head upon death.
+
+### 14. Server List Ping MOTD (`modules/motd.yml`)
+- `motd.line1`: Top text line in the Minecraft multiplayer server list (supports MiniMessage color tags).
+- `motd.line2`: Bottom text line in the multiplayer server list.
+
+### 15. Chat System (`modules/chat.yml`)
+- `chat.custom-join-messages` (`true`): Enables formatted welcome and departure announcements synchronized with LuckPerms ranks.
+
+### 16. BlueMap 3D Visualizer (`modules/bluemap.yml`)
+- `bluemap.url` (`"http://localhost:8100"`): Local or public URL of the BlueMap web server embedded into the Web Admin Panel territory iframe.
+
+---
+
+## Custom Virtual Inventory Menus (`menus/`)
+
+GensCore allows administrators to create unlimited custom GUI menus in `plugins/GensCore/menus/` (e.g. `default.yml`, `tutorial.yml`).
+
+```yaml
+title: "<gradient:#00c6ff:#0072ff><bold>Server Hub</bold></gradient>"
+size: 27
+items:
+  '11':
+    material: "DIAMOND_SWORD"
+    name: "<gold><bold>Shop & Economy"
+    lore:
+      - "<gray>Click to open the dynamic server shop."
+    command: "shop"
+  '13':
+    material: "PLAYER_HEAD"
+    name: "<green><bold>Jobs & Professions"
+    lore:
+      - "<gray>Click to view your career progress."
+    command: "jobs"
+  '15':
+    material: "BEACON"
+    name: "<aqua><bold>Guild System"
+    lore:
+      - "<gray>Click to manage your clan and territory."
+    command: "team"
+```
+
+- **Dynamic Command Binding:** Any menu file created in `menus/<name>.yml` automatically registers the `/menu <name>` command!
+
+---
+
+## Languages & Localization (`lang/`)
+
+All player-facing messages, error prompts, and chat notifications are located in `plugins/GensCore/lang/` (`fr_FR.yml` and `en_US.yml`):
+- **Full MiniMessage Support:** Rich modern text tags (`<gradient:#ff0000:#00ff00>text</gradient>`, `<hover:show_text:'Tooltip'>Click here</hover>`, `<click:run_command:'/spawn'>Spawn</click>`).
+- **Dynamic Placeholders:** Messages automatically inject context variables like `<player>`, `<amount>`, `<target>`, `<balance>`.
 
 ---
 
