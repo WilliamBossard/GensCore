@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "GensCore"
   text: "Core Paper & Folia Haute Performance"
-  tagline: "Moteur Survie & Faction autonome conçu pour Minecraft 26.3+ sur Java 25 (LTS)"
+  tagline: "Moteur Survie & Faction autonome conçu pour Minecraft 26.1+ sur Java 25 (LTS)"
   image:
     src: /icon.png
     alt: GensCore
@@ -33,8 +33,8 @@ features:
     details: Micro-serveur React 18 + Javalin sur le port 8080 avec console en direct, gestion des joueurs et BlueMap.
   - title: Économie Dynamique & Métiers
     details: Boutique à inflation/déflation automatique, Hôtel des Ventes joueur-à-joueur et 6 métiers rémunérateurs.
-  - title: Moteur SQLite Autonome
-    details: Base de données embarquée en mode WAL (Write-Ahead Logging). Fonctionne à 100% sans serveur SQL externe.
+  - title: Double Moteur de Base de Données
+    details: SQLite embarqué en mode WAL par défaut, ou MySQL / MariaDB distant optionnel avec bascule de secours automatique.
 ---
 
 <div style="max-width: 900px; margin: 2rem auto 1rem; padding: 0 1rem;">

@@ -159,6 +159,16 @@ Individual progression system rewarding lifetime completed quests with permanent
 | `/kick` | `<player> [reason]` | `genscore.kick` | OP | Kicks a player from the server. |
 | `/freeze` | `<player>` | `genscore.freeze` | OP | Freezes a player in place for screenshare checks. |
 | `/openinv` | `<player>` | `genscore.openinv` | OP | Live views player inventory & armor. *(Alias: `/invsee`)* |
+| `/check` | `<player>` | `genscore.check` | OP | Technical dossier on player (Bedrock/Java, client version, protocol, ping, location). *(Alias: `/whois`)* |
+
+---
+
+## Discord Integration
+
+| Command | Arguments | Permission | Default | Description |
+|---|---|---|---|---|
+| `/discord link` | *None* | *None* | Everyone | Generates a 6-character linking code to verify your account in Discord (`!link <code>`). |
+| `/discord reg` | *None* | *None* | Everyone | Displays Discord registration help and server invitation link. |
 
 ---
 
@@ -176,5 +186,7 @@ Individual progression system rewarding lifetime completed quests with permanent
 
 | Command | Arguments | Permission | Default | Description |
 |---|---|---|---|---|
-| `/module` | `<moduleName> <on\|off>` | `genscore.admin` | OP | Toggles any of the 28 modules live. |
+| `/gens status` | *None* | `genscore.admin` | OP | Live system diagnostics: server platform, JVM memory, CPU load, Folia TPS, active modules. |
+| `/gens db` | *None* | `genscore.admin` | OP | Live database diagnostics: engine type (SQLite / MySQL) and connection pool metrics. |
+| `/module` | `<moduleName> <on\|off>` | `genscore.admin` | OP | Toggles any of the 30 modules live. |
 | `/menu` | `[name]` | *None* | Everyone | Opens a custom YAML menu from `plugins/GensCore/menus/`. |

@@ -1,6 +1,6 @@
 # GensCore - Comprehensive Feature, Command & Web Documentation
 
-Welcome to the official documentation for **GensCore**, the all-in-one survival/faction core plugin engineered for **PaperMC & Folia (Minecraft 26.3+)** running on **Java 25 (LTS)**.
+Welcome to the official documentation for **GensCore**, the all-in-one survival/faction core plugin engineered for **PaperMC & Folia (Minecraft 26.1+)** running on **Java 25 (LTS)**.
 
 ---
 
@@ -47,7 +47,7 @@ Welcome to the official documentation for **GensCore**, the all-in-one survival/
 
 GensCore is designed as an autonomous, self-contained server core replacing dozens of fragmented plugins.
 
-- **Engine Target:** **PaperMC** and **Folia** (Minecraft 26.3+).
+- **Engine Target:** **PaperMC** and **Folia** (Minecraft 26.1+).
 - **Runtime:** **Java 25 (LTS)** with Classfile 69 compatibility and ASM 9.10.1 shading.
 - **Concurrency & Folia Threading:** Utilizes *FoliaLib* for regional multi-threading. Global actions run on `GlobalRegionScheduler`, chunk tasks on `RegionScheduler`, and player actions on `EntityScheduler`. Console commands and inventory manipulations are isolated to prevent cross-thread synchronization crashes.
 - **Dual Database Architecture (SQLite Default & Optional MySQL/MariaDB):** By default, GensCore runs on an embedded **SQLite** engine operating in **WAL (Write-Ahead Logging)** mode (`PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;`). For multi-server networks or external storage, an optional **MySQL / MariaDB** connection can be activated in `config.yml`. If the external database is unreachable at startup, an automatic safe fallback to local SQLite engages to ensure the server always boots without interruption.
@@ -421,6 +421,7 @@ Master administration commands for server operators.
 | `genscore.discord.linked` | Displays verified Discord badge | `false` | Auto-assigned |
 | `genscore.freeze` | Allows freezing and unfreezing suspected players | `op` | Helper / Mod |
 | `genscore.openinv` | Allows `/openinv` live inventory inspection | `op` | Moderator |
+| `genscore.check` | Allows `/check` and `/whois` technical & client dossier inspection | `op` | Moderator |
 | `genscore.mute` | Allows `/mute` and `/unmute` | `op` | Moderator |
 | `genscore.kick` | Allows `/kick` | `op` | Moderator |
 | `genscore.ban` | Allows `/ban` and `/unban` | `op` | Administrator |
@@ -467,6 +468,7 @@ lp group vip permission set genscore.bypass.cooldown.home true
 lp group moderator parent add vip
 lp group moderator permission set genscore.freeze true
 lp group moderator permission set genscore.openinv true
+lp group moderator permission set genscore.check true
 lp group moderator permission set genscore.mute true
 lp group moderator permission set genscore.kick true
 lp group moderator permission set genscore.feed true

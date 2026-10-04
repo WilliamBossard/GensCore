@@ -43,7 +43,7 @@ export default defineConfig({
       label: 'English',
       lang: 'en-US',
       title: 'GensCore',
-      description: 'The Ultimate Paper & Folia Core Plugin for Minecraft 26.2+ and Java 25',
+      description: 'The Ultimate Paper & Folia Core Plugin for Minecraft 26.1+ and Java 25',
       themeConfig: {
         nav: [
           { text: 'Getting Started', link: '/guide/getting-started' },
@@ -90,7 +90,7 @@ export default defineConfig({
       lang: 'fr-FR',
       link: '/fr/',
       title: 'GensCore',
-      description: 'Le plugin Core ultime Paper & Folia pour Minecraft 26.2+ et Java 25',
+      description: 'Le plugin Core ultime Paper & Folia pour Minecraft 26.1+ et Java 25',
       themeConfig: {
         nav: [
           { text: 'Démarrage', link: '/fr/guide/getting-started' },

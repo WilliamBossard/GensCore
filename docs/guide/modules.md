@@ -1,4 +1,4 @@
-# In-Game Modules (29 Modules)
+# In-Game Modules (30 Modules)
 
 GensCore is built around a modular architecture managed by `ModuleManager`. Every module can be enabled or disabled dynamically without server restarts.
 
@@ -154,6 +154,20 @@ Comprehensive cross-version compatibility engine managed by `ViaVersionUtil`:
 
 ---
 
-## Complete Module List (29)
-`UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `SoloPerkModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.
+## 14. Minigames & Casino (MinigamesModule)
+Dynamic interactive minigames designed for server engagement and item circulation:
+- **Wheel of Fortune:** Daily reward spinner giving players chances to win resources, netherite, spawners, and items with offline queue persistence.
+- **Web Slot Machine:** 3-reel casino machine powered by in-game items deposited via `/web deposit`.
+- **CoinFlip & Bets:** High-stakes peer-to-peer games synchronized with SQLite/MySQL balances.
+
+---
+
+## 15. Bedrock Skin & Avatar Engine (BedrockSkinModule)
+- Seamless Bedrock player head rendering for custom menus, tombs, and web panel avatars.
+- Resolves Bedrock textures via Geyser/Floodgate API with offline caching to prevent network latency.
+
+---
+
+## Complete Module List (30)
+`UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `SoloPerkModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`, `MinigamesModule`.
 

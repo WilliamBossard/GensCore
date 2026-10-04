@@ -22,7 +22,7 @@ Accessible sur : `http://<ip-de-votre-serveur>:8080/admin`
 - **Performances en Direct :** Jauges en temps réel pour le TPS, les joueurs connectés, l'allocation mémoire JVM et la charge CPU.
 - **Console Web Interactive :** Streaming en direct des logs du serveur avec envoi sécurisé de commandes via le `GlobalRegionScheduler` de Folia.
 - **Gestion des Joueurs :** Recherche de joueurs, inspection des soldes, modification de l'argent et exécution de kicks/bans/mutes depuis le navigateur.
-- **Commutateur de Modules en Direct :** Activez ou désactivez n'importe lequel des 28 modules d'un simple clic.
+- **Commutateur de Modules en Direct :** Activez ou désactivez n'importe lequel des 30 modules d'un simple clic.
 - **Éditeur de Configuration Dynamique :** Ajustez l'inflation de la boutique, les taxes d'enchères, les chances de têtes, le reroll de quêtes et le MOTD en direct.
 - **BlueMap Intégré :** Carte 2D/3D interactive intégrée dans l'interface.
 - **Purge d'Urgence du Serveur :** Bouton de réinitialisation atomique de la base de données protégé par mot de passe.

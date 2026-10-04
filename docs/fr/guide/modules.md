@@ -1,4 +1,4 @@
-# Modules en Jeu (29 Modules)
+# Modules en Jeu (30 Modules)
 
 GensCore repose sur une architecture entièrement modulaire pilotée par `ModuleManager`. Chaque module peut être activé ou désactivé dynamiquement sans redémarrer le serveur.
 
@@ -154,6 +154,20 @@ Moteur d'adaptation et de compatibilité multi-versions piloté par `ViaVersionU
 
 ---
 
-## Liste Complète des Modules (29)
-`UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `SoloPerkModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`.
+## 14. Mini-Jeux & Casino Web (MinigamesModule)
+Mini-jeux interactifs conçus pour dynamiser le serveur et stimuler l'économie :
+- **Roue de la Fortune :** Tirage quotidien offrant des chances de remporter ressources, netherite, spawners et objets exclusifs avec file d'attente hors-ligne.
+- **Machine à Sous Web :** Casino à 3 rouleaux jouable directement depuis le navigateur avec les items déposés via `/web deposit`.
+- **CoinFlip & Paris :** Duels et tirages synchronisés avec la base de données SQLite/MySQL.
+
+---
+
+## 15. Moteur d'Avatars & Skins Bedrock (BedrockSkinModule)
+- Rendu fluide des têtes de joueurs Bedrock pour les menus virtuels, les tombes de mort et les avatars du panel web.
+- Résolution des textures Bedrock via Geyser/Floodgate avec mise en cache locale anti-latence.
+
+---
+
+## Liste Complète des Modules (30)
+`UtilsModule`, `TombModule`, `TeleportTpaModule`, `TeleportSpawnModule`, `TeleportHomeModule`, `TeleportBackModule`, `TeamModule`, `TabBoardModule`, `StatsModule`, `SpawnerModule`, `ShopModule`, `SoloPerkModule`, `QuestModule`, `MotdModule`, `ModerationModule`, `LootModule`, `LockModule`, `HeadDropModule`, `CustomGuiModule`, `GuiModule`, `JobsModule`, `FastLeafDecayModule`, `EconomyModule`, `ChatModule`, `BlueMapModule`, `DiscordModule`, `AuctionHouseModule`, `AuthModule`, `BedrockSkinModule`, `MinigamesModule`.
 
