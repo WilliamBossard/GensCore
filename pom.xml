@@ -53,7 +53,7 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>26.3.build.159-beta</version>
+            <version>26.3.build.174-beta</version>
             <scope>provided</scope>
         </dependency>
 
@@ -245,12 +245,12 @@
                     <dependency>
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm</artifactId>
-                        <version>9.10.1</version>
+                        <version>9.11</version>
                     </dependency>
                     <dependency>
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm-commons</artifactId>
-                        <version>9.10.1</version>
+                        <version>9.11</version>
                     </dependency>
                 </dependencies>
                 <executions>

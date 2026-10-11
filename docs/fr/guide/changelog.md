@@ -3,7 +3,7 @@
 Statut actuel et historique complet des mises à jour de **GensCore** sur **Minecraft 26.1+** (Paper 26.1 - 26.3+) et **Java 25 LTS**.
 
 ::: info État du Projet
-- **Moteur cible :** Minecraft 26.1 - 26.3 (Paper Build 145-beta · Folia 26.1+)
+- **Moteur cible :** Minecraft 26.1 - 26.3 (Paper Build 174-beta · Folia 26.1+)
 - **Environnement d'exécution :** Java 25 LTS (Classfile 69)
 - **Version actuelle :** **Release 1.0.3** — Stable
 - **Assurance Qualité :** **81/81 tests automatisés validés** (0 erreurs, 0 échecs)
